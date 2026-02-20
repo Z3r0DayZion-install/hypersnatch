@@ -1,0 +1,36 @@
+HyperSnatch Integrity Upgrade Notes
+Date: 2026-02-18
+
+Implemented:
+1. Added SHA-256 digest generation inside encrypted `.tear` payload packs.
+2. Added digest verification during payload decryption.
+3. Added tamper-detection failure path (`Integrity check failed`).
+4. Added encrypted import path in fused build (`Import Encrypted` button).
+5. Added fused self-test case for tampered digest rejection.
+6. Added modular tests for digest mismatch handling.
+7. Added `tear-v2` schema with explicit versioned metadata.
+8. Added automatic `tear-v1` -> `tear-v2` migration during import/decrypt.
+9. Added strict pack validation for supported schema fields.
+10. Added schema test suite (`schema.test.mjs`).
+11. Added ECDSA signature support (`src/signing.js`).
+12. Added signed pack verification path in decrypt/import logic.
+13. Added signed-pack tamper/missing-key failure tests.
+14. Added trust-store module for key registry, rotation, and revocation.
+15. Added trust-store-based signature verification and revocation enforcement.
+16. Added fused unsigned-import policy gating.
+17. Added release-manifest build/sign/verify module.
+18. Added fused trust-management UI for operational trust policy control.
+19. Added runtime release manifest generator and verifier scripts.
+20. Added release artifact-set audit module and runtime audit script.
+21. Upgraded release verify script to enforce checksum audit.
+22. Hardened default key handling (private key not exported unless explicit flag).
+23. Added browser E2E suite for fused runtime workflows.
+24. Added optional online adapter fallback module and tests.
+25. Added CI workflow for modular + E2E + release checks.
+26. Verified full modular + E2E suites pass.
+
+Verification:
+- Command: node --test
+- Result: 42 passed, 0 failed.
+- Command: npx playwright test
+- Result: 3 passed, 0 failed.

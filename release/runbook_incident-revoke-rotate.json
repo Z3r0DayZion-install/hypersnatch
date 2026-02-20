@@ -1,0 +1,12 @@
+{
+  "format": "hs-runbook-report-v1",
+  "scenario": "incident-revoke-rotate",
+  "executedAt": "2026-02-18T03:58:02.184Z",
+  "steps": [
+    "Load trust store",
+    "Revoke compromised key",
+    "Rotate active signing key",
+    "Regenerate release manifest",
+    "Verify release signature and checksum audit"
+  ]
+}

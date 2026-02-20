@@ -1,0 +1,33 @@
+HyperSnatch Autonomous Continuation - Next 30 Steps (Round 4)
+Date: 2026-02-18
+
+1. Planned trust-store hardening phase.
+2. Added trust-store module scaffold.
+3. Implemented trust-store creation API.
+4. Implemented trusted-key add API.
+5. Implemented active-key rotation API.
+6. Implemented key revocation API.
+7. Implemented trusted-key lookup policy.
+8. Implemented trust-store export serialization.
+9. Implemented trust-store import validation.
+10. Wired trust-store access into decrypt signature verification.
+11. Added trust-store key-id resolution for signatures.
+12. Added revocation rejection behavior in decrypt path.
+13. Added optional embedded-key fallback policy.
+14. Added trust-store test suite scaffold.
+15. Added trust-store add/get test.
+16. Added trust-store rotate/revoke test.
+17. Added trust-store export/import test.
+18. Added signed decrypt via trust-store test.
+19. Added revoked-key rejection test.
+20. Synced fused state with trust-store + trust policy fields.
+21. Synced fused persistence for trust-store/policy.
+22. Added fused trust-store helper functions.
+23. Added fused key add/rotate/revoke operations.
+24. Synced fused signature verify to trust-store policy.
+25. Added fused unsigned-import policy enforcement.
+26. Added fused self-test for revoked-key rejection.
+27. Fixed signing-key consistency issue in fused sign path.
+28. Ran full modular tests.
+29. Verified 34/34 tests pass.
+30. Prepared repack + artifact verification.

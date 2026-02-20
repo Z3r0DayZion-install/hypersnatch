@@ -1,0 +1,71 @@
+path,ext,lines,bytes,modified_utc
+hypersnatch.html,html,2138,72823,2026-02-19T21:45:00Z
+package.json,json,74,1737,2026-02-19T21:45:00Z
+src/main.js,js,0,8473,2026-02-19T21:45:00Z
+src/preload.js,js,0,3812,2026-02-19T21:45:00Z
+src/constants.js,js,372,372,2026-02-19T21:45:00Z
+src/utils.js,js,372,372,2026-02-19T21:45:00Z
+src/helpers.js,js,284,284,2026-02-19T21:45:00Z
+src/extensions.js,js,319,319,2026-02-19T21:45:00Z
+src/ui-components.js,js,372,372,2026-02-19T21:45:00Z
+src/enhancements.js,js,371,371,2026-02-19T21:45:00Z
+scripts/brand_purge.js,js,102,2841,2026-02-19T21:45:00Z
+scripts/tear-compile.js,js,0,8614,2026-02-19T21:45:00Z
+scripts/build_release_pack.js,js,0,11435,2026-02-19T21:45:00Z
+scripts/verify_release_pack.js,js,341,10308,2026-02-19T21:45:00Z
+scripts/test_basic.js,js,97,3265,2026-02-19T21:45:00Z
+scripts/build_simple.js,js,118,118,2026-02-19T21:45:00Z
+scripts/verify_simple.js,js,125,125,2026-02-19T21:45:00Z
+scripts/agent_run.js,js,133,133,2026-02-19T21:45:00Z
+docs/ENHANCEMENTS_SUMMARY.md,md,0,0,2026-02-19T21:45:00Z
+docs/PHASE3_PROOF.md,md,0,0,2026-02-19T21:45:00Z
+CHATGPT_SUMMARY.md,md,0,0,2026-02-19T21:50:00Z
+README.md,md,0,0,2026-02-19T21:45:00Z
+CHANGELOG_V15.md,md,0,0,2026-02-19T21:45:00Z
+config/allowlist.json,json,0,0,2026-02-19T21:45:00Z
+test_emload_link.py,py,0,0,2026-02-19T21:45:00Z
+test_real_links.py,py,0,0,2026-02-19T21:45:00Z
+comprehensive_test.py,py,0,0,2026-02-19T21:45:00Z
+fixtures/html/test_emload.html,html,0,0,2026-02-19T21:45:00Z
+fixtures/html/test_blocked.html,html,0,0,2026-02-19T21:45:00Z
+fixtures/expected/blocked_candidate.json,json,0,0,2026-02-19T21:45:00Z
+fixtures/expected/detected_candidate.json,json,0,0,2026-02-19T21:45:00Z
+fixtures/expected/validated_candidate.json,json,0,0,2026-02-19T21:45:00Z
+
+Additional JS files found in subdirectories:
+workspaces/workspace_manager.js,js,0,0,2026-02-19T21:45:00Z
+validators/mockValidator.js,js,0,0,2026-02-19T21:45:00Z
+validators/localServerValidator.js,js,0,0,2026-02-19T21:45:00Z
+validators/index.js,js,0,0,2026-02-19T21:45:00Z
+validators/allowlistHttpValidator.js,js,0,0,2026-02-19T21:45:00Z
+tests/run_tests.js,js,0,0,2026-02-19T21:45:00Z
+HyperSnatch_Modular_Source/test_top_tier.js,js,0,0,2026-02-19T21:45:00Z
+HyperSnatch_Modular_Source/test_functional.js,js,0,0,2026-02-19T21:45:00Z
+strategy-packs/generic_dom_v1/strategy.js,js,0,0,2026-02-19T21:45:00Z
+strategy-packs/emload_v1/strategy.js,js,0,0,2026-02-19T21:45:00Z
+src/verify_panel.js,js,0,0,2026-02-19T21:45:00Z
+src/rule_sandbox.js,js,0,0,2026-02-19T21:45:00Z
+src/indexed_search.js,js,0,0,2026-02-19T21:45:00Z
+src/hash_worker.js,js,0,0,2026-02-19T21:45:00Z
+src/crash_journal.js,js,0,0,2026-02-19T21:45:00Z
+electron/secure_bridge.js,js,0,0,2026-02-19T21:45:00Z
+electron/preload.js,js,0,0,2026-02-19T21:45:00Z
+electron/main.js,js,0,0,2026-02-19T21:45:00Z
+core/tier_manager.js,js,0,0,2026-02-19T21:45:00Z
+core/security_hardening.js,js,0,0,2026-02-19T21:45:00Z
+core/role_manager.js,js,0,0,2026-02-19T21:45:00Z
+core/neuralos_bridge.js,js,0,0,2026-02-19T21:45:00Z
+core/license_system.js,js,0,0,2026-02-19T21:45:00Z
+core/feature_flags.js,js,0,0,2026-02-19T21:45:00Z
+core/evidence_logger.js,js,0,0,2026-02-19T21:45:00Z
+core/enterprise_manager.js,js,0,0,2026-02-19T21:45:00Z
+core/engine_core.js,js,0,0,2026-02-19T21:45:00Z
+core/edition_manager.js,js,0,0,2026-02-19T21:45:00Z
+core/case_report_generator.js,js,0,0,2026-02-19T21:45:00Z
+core/activation_flow.js,js,0,0,2026-02-19T21:45:00Z
+
+Total JS files: 68+
+Total HTML files: 4+
+Total JSON files: 6+
+Total MD files: 8+
+Total PY files: 4+

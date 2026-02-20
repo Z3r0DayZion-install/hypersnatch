@@ -1,0 +1,34 @@
+{
+  "name": "emload_v1",
+  "version": "1.0.0",
+  "description": "Email link extraction and validation strategy pack",
+  "author": "HyperSnatch Security Labs",
+  "license": "PROPRIETARY",
+  "main": "strategy.js",
+  "type": "dom_analysis",
+  "created": "2026-02-18T10:20:00.000Z",
+  "rules": [
+    "extract_email_links",
+    "validate_email_format",
+    "filter_unsubscribe_links",
+    "detect_tracking_parameters"
+  ],
+  "compatibility": {
+    "engineVersion": "RES-CORE-01",
+    "policyVersion": "CASH-SHIELD-01",
+    "platform": "electron"
+  },
+  "permissions": [
+    "read_dom",
+    "extract_links",
+    "analyze_text"
+  ],
+  "restrictions": {
+    "noNetworkAccess": true,
+    "noFileSystemWrite": true,
+    "maxExecutionTime": 5000,
+    "maxMemoryUsage": "10MB"
+  },
+  "signature": "emload_v1_signature_placeholder",
+  "hash": "emload_v1_hash_placeholder"
+}

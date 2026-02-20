@@ -1,0 +1,15 @@
+{
+  "description": "Default allowlist configuration - localhost only for security",
+  "allowlistEnabled": true,
+  "allowedHosts": [
+    "localhost",
+    "127.0.0.1"
+  ],
+  "allowedPorts": [3000, 8000, 8080, 3001],
+  "allowedContentTypes": [
+    "text/html",
+    "application/json", 
+    "text/plain"
+  ],
+  "notes": "This configuration only allows localhost access for testing and development"
+}

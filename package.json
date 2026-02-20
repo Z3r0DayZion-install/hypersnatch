@@ -1,0 +1,76 @@
+{
+  "name": "hypersnatch",
+  "version": "1.0.0",
+  "description": "HyperSnatch - Security-First Evidence Analyzer",
+  "main": "src/main.js",
+  "author": "HyperSnatch Security Team",
+  "homepage": "https://hypersnatch.com",
+  "license": "PROPRIETARY",
+  "private": true,
+  "keywords": [
+    "evidence-analysis",
+    "link-resurrection",
+    "security-compliance",
+    "forensic-platform",
+    "electron",
+    "desktop"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^26.8.1"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "dist": "electron-builder --publish=never",
+    "pack": "electron-builder --dir=dist",
+    "verify": "node scripts/verify_release.js",
+    "test": "node scripts/test_basic.js",
+    "postinstall": "npx --yes electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.hypersnatch.platform",
+    "productName": "HyperSnatch",
+    "npmRebuild": false,
+    "nodeGypRebuild": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/main.js",
+      "src/preload.js",
+      "hypersnatch.html",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build",
+        "to": ".",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "HyperSnatch"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "hypersnatch-security",
+      "repo": "hypersnatch"
+    }
+  }
+}

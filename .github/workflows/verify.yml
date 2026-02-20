@@ -1,0 +1,56 @@
+name: HyperSnatch Verify
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "HyperSnatch_Work/**"
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run modular tests
+        run: node --test
+        working-directory: HyperSnatch_Work/HyperSnatch_Modular_Source
+
+      - name: Install E2E dependencies
+        run: npm install
+        working-directory: HyperSnatch_Work/e2e
+
+      - name: Install Chromium
+        run: npx playwright install chromium
+        working-directory: HyperSnatch_Work/e2e
+
+      - name: Run E2E tests
+        run: npx playwright test --config playwright.config.js fused.spec.js
+        working-directory: HyperSnatch_Work/e2e
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Create release zip
+        run: python create_zip.py
+        working-directory: HyperSnatch_Work
+
+      - name: Generate release manifest
+        run: node HyperSnatch_Work/scripts/release_manifest_generate.mjs
+
+      - name: Verify release manifest + audit
+        run: node HyperSnatch_Work/scripts/release_manifest_verify.mjs
+
+      - name: Standalone release audit
+        run: node HyperSnatch_Work/scripts/release_manifest_audit.mjs

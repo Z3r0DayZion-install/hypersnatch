@@ -1,0 +1,58 @@
+HyperSnatch Key Management Playbook
+Date: 2026-02-18
+
+Purpose
+- Define signing-key lifecycle for release authenticity and trust-policy enforcement.
+
+Roles
+- Release Signer: generates signed manifest for each release.
+- Trust Maintainer: manages trusted public keys, rotation, revocation.
+- Verifier: runs signature + checksum audit scripts before distribution/use.
+
+Key Types
+- Release signing key pair (ECDSA P-256).
+- Trust store entries in app/runtime:
+  - active
+  - rotated
+  - revoked
+
+Default Safety
+- `release_manifest_generate.mjs` does NOT export private key by default.
+- To export private key intentionally:
+  - set `HS_EXPORT_PRIVATE_KEY=true`
+  - optional `HS_RELEASE_PRIVATE_KEY_OUT=<path>`
+- `release/.gitignore` blocks accidental private key check-in.
+
+Operational Flow
+1. Build artifacts.
+2. Generate signed manifest:
+   - `node scripts/release_manifest_generate.mjs`
+3. Verify signature + checksums:
+   - `node scripts/release_manifest_verify.mjs`
+4. Optional independent audit:
+   - `node scripts/release_manifest_audit.mjs`
+5. Distribute artifacts + `release_manifest.json` + `release_public_key.jwk.json`.
+
+Rotation Policy
+- Rotate signing key on schedule (e.g., every 90 days) or on event trigger.
+- Keep previous key as `rotated` during transition.
+- Set new key as `active`.
+- Re-sign manifests with new key after rotation.
+
+Revocation Policy
+- Revoke immediately on suspected compromise.
+- Record reason and timestamp.
+- Block verification for revoked `keyId`.
+- Publish replacement public key and updated trust store snapshot.
+
+Trust Policy (App)
+- `TOFU` can be enabled for first-seen key onboarding.
+- `Require signed import` should remain enabled for production.
+- Disable TOFU in strict deployment environments.
+
+Incident Response
+1. Revoke affected key in trust store.
+2. Rotate to new active key.
+3. Rebuild and re-sign current release manifest.
+4. Re-verify using new public key.
+5. Distribute updated trust store to clients.

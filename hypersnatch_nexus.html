@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperSnatch - Terminal Elite Link Resurrection</title>
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --panel: #0f1929;
+            --border: #1a2332;
+            --text: #e1e8f0;
+            --muted: #6b7280;
+            --accent: #00ff88;
+            --accent-secondary: #00ccff;
+            --warning: #ffaa00;
+            --error: #ff4444;
+            --success: #00ff88;
+        }
+        
+        * { 
+            box-sizing: border-box; 
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .terminal {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .title {
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--accent);
+        }
+        
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+        }
+        
+        .status-item {
+            color: var(--muted);
+        }
+        
+        .status-item span {
+            color: var(--text);
+            font-weight: bold;
+        }
+        
+        .main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .input-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .input-area {
+            width: 100%;
+            height: 150px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: var(--accent-secondary);
+            box-shadow: 0 0 10px var(--accent);
+        }
+        
+        .btn.secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+        
+        .results-section {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .candidate-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .candidate-table th,
+        .candidate-table td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .candidate-table th {
+            background: var(--panel);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        
+        .confidence-high { color: var(--success); }
+        .confidence-medium { color: var(--warning); }
+        .confidence-low { color: var(--error); }
+        
+        .log-section {
+            height: 200px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            color: var(--muted);
+        }
+        
+        .log-entry .timestamp {
+            color: var(--accent);
+        }
+        
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+        
+        .sidebar-title {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .setting {
+            margin-bottom: 10px;
+        }
+        
+        .setting label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        .setting input,
+        .setting select {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 5px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 12px;
+        }
+        
+        .stat {
+            background: var(--bg);
+            padding: 10px;
+            border: 1px solid var(--border);
+        }
+        
+        .stat-label {
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal">
+        <div class="header">
+            <div class="title">HyperSnatch v1.0 - Terminal Elite</div>
+            <div class="status-bar">
+                <div class="status-item">Processed: <span id="processed">0</span></div>
+                <div class="status-item">Candidates: <span id="candidates">0</span></div>
+                <div class="status-item">Queue: <span id="queue">0</span></div>
+                <div class="status-item">Mode: <span id="mode">SAFE</span></div>
+            </div>
+        </div>
+        
+        <div class="main">
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Settings</div>
+                    <div class="setting">
+                        <label>Max Concurrent</label>
+                        <input type="number" id="maxConcurrent" value="5" min="1" max="20">
+                    </div>
+                    <div class="setting">
+                        <label>Confidence Threshold</label>
+                        <select id="confidenceThreshold">
+                            <option value="0.9">High (90%)</option>
+                            <option value="0.7" selected>Medium (70%)</option>
+                            <option value="0.5">Low (50%)</option>
+                        </select>
+                    </div>
+                    <div class="setting">
+                        <label>
+                            <input type="checkbox" id="autoDedupe" checked> Auto-dedupe
+                        </label>
+                    </div>
+                    <div class="setting">
+                        <label>
+                            <input type="checkbox" id="collectionMode" checked> Collection Detection
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Statistics</div>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-label">URLs Found</div>
+                            <div class="stat-value" id="urlsFound">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Collections</div>
+                            <div class="stat-value" id="collectionsFound">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Duplicates</div>
+                            <div class="stat-value" id="duplicatesRemoved">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Success Rate</div>
+                            <div class="stat-value" id="successRate">0%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Actions</div>
+                    <button class="btn secondary" onclick="clearAll()" style="width: 100%; margin-bottom: 10px;">Clear All</button>
+                    <button class="btn secondary" onclick="exportResults()" style="width: 100%; margin-bottom: 10px;">Export JSON</button>
+                    <button class="btn secondary" onclick="exportMarkdown()" style="width: 100%; margin-bottom: 10px;">Export MD</button>
+                    <button class="btn secondary" onclick="exportZip()" style="width: 100%;">Export ZIP</button>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="input-section">
+                    <textarea class="input-area" id="inputArea" placeholder="Paste URLs, HTML, or HAR JSON here...&#10;Supports mixed content - up to 500 lines&#10;Auto-detects: URLs, HTML pages, HAR captures, Collections"></textarea>
+                    <div class="controls">
+                        <button class="btn" onclick="processInput()">Process Input</button>
+                        <button class="btn secondary" onclick="loadSample()">Load Sample</button>
+                        <button class="btn secondary" onclick="clearInput()">Clear Input</button>
+                    </div>
+                    <div class="progress-bar" id="progressBar" style="display: none;">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+                
+                <div class="results-section">
+                    <div id="resultsContainer">
+                        <div style="text-align: center; color: var(--muted); margin-top: 50px;">
+                            Ready for input. Paste URLs, HTML, or HAR data above.
+                        </div>
+                    </div>
+                    
+                    <div class="log-section" id="logSection">
+                        <div class="log-entry">
+                            <span class="timestamp">[2026-02-19 20:15:00]</span> HyperSnatch Terminal Elite initialized
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Core Application State
+        const AppState = {
+            processed: 0,
+            candidates: [],
+            queue: [],
+            logs: [],
+            settings: {
+                maxConcurrent: 5,
+                confidenceThreshold: 0.7,
+                autoDedupe: true,
+                collectionMode: true
+            }
+        };
+
+        // Strategy Plugin Interface
+        class StrategyPlugin {
+            constructor(name) {
+                this.name = name;
+            }
+            
+            async detect(input) {
+                throw new Error('detect() must be implemented');
+            }
+            
+            async analyze(input) {
+                throw new Error('analyze() must be implemented');
+            }
+            
+            async score(candidate) {
+                throw new Error('score() must be implemented');
+            }
+        }
+
+        // URL Strategy
+        class URLStrategy extends StrategyPlugin {
+            constructor() {
+                super('URL');
+            }
+            
+            async detect(input) {
+                const urlPattern = /https?:\/\/[^\s<>"']+/gi;
+                return input.match(urlPattern) || [];
+            }
+            
+            async analyze(url) {
+                try {
+                    const urlObj = new URL(url);
+                    return {
+                        domain: urlObj.hostname,
+                        path: urlObj.pathname,
+                        protocol: urlObj.protocol,
+                        search: urlObj.search,
+                        hash: urlObj.hash
+                    };
+                } catch (e) {
+                    return null;
+                }
+            }
+            
+            async score(candidate) {
+                let score = 0.5;
+                
+                // Boost for HTTPS
+                if (candidate.url.startsWith('https://')) score += 0.2;
+                
+                // Boost for common media domains
+                const mediaDomains = ['youtube.com', 'vimeo.com', 'imgur.com', 'flickr.com'];
+                if (mediaDomains.some(domain => candidate.url.includes(domain))) score += 0.2;
+                
+                // Boost for direct file links
+                if (/\.(mp4|avi|mov|wmv|flv|webm)$/i.test(candidate.url)) score += 0.3;
+                
+                return Math.min(score, 1.0);
+            }
+        }
+
+        // HTML Strategy
+        class HTMLStrategy extends StrategyPlugin {
+            constructor() {
+                super('HTML');
+            }
+            
+            async detect(input) {
+                if (!/<[^>]+>/i.test(input)) return [];
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(input, 'text/html');
+                const links = [];
+                
+                // Extract from various attributes
+                const selectors = [
+                    'a[href]', 'img[src]', 'video[src]', 'audio[src]',
+                    'source[src]', 'iframe[src]', 'embed[src]',
+                    'link[href]', 'script[src]'
+                ];
+                
+                selectors.forEach(selector => {
+                    const elements = doc.querySelectorAll(selector);
+                    elements.forEach(el => {
+                        const url = el.getAttribute('href') || el.getAttribute('src');
+                        if (url && url.startsWith('http')) {
+                            links.push(url);
+                        }
+                    });
+                });
+                
+                return links;
+            }
+            
+            async analyze(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                return {
+                    title: doc.title || 'No title',
+                    links: doc.querySelectorAll('a[href]').length,
+                    images: doc.querySelectorAll('img[src]').length,
+                    scripts: doc.querySelectorAll('script[src]').length,
+                    forms: doc.querySelectorAll('form').length
+                };
+            }
+            
+            async score(candidate) {
+                let score = 0.6;
+                
+                // Boost for navigation links
+                if (candidate.element === 'a[href]') score += 0.2;
+                
+                // Boost for media elements
+                if (['video[src]', 'audio[src]', 'img[src]'].includes(candidate.element)) score += 0.2;
+                
+                return Math.min(score, 1.0);
+            }
+        }
+
+        // HAR Strategy
+        class HARStrategy extends StrategyPlugin {
+            constructor() {
+                super('HAR');
+            }
+            
+            async detect(input) {
+                try {
+                    const har = JSON.parse(input);
+                    if (!har.log || !har.log.entries) return [];
+                    
+                    const urls = [];
+                    har.log.entries.forEach(entry => {
+                        if (entry.request && entry.request.url) {
+                            urls.push(entry.request.url);
+                        }
+                        if (entry.response && entry.response.redirectURL) {
+                            urls.push(entry.response.redirectURL);
+                        }
+                    });
+                    
+                    return urls;
+                } catch (e) {
+                    return [];
+                }
+            }
+            
+            async analyze(harData) {
+                try {
+                    const har = JSON.parse(harData);
+                    const entries = har.log.entries || [];
+                    
+                    return {
+                        entries: entries.length,
+                        domains: [...new Set(entries.map(e => new URL(e.request.url).hostname))],
+                        startTime: entries[0]?.startedDateTime,
+                        endTime: entries[entries.length - 1]?.startedDateTime
+                    };
+                } catch (e) {
+                    return null;
+                }
+            }
+            
+            async score(candidate) {
+                let score = 0.7;
+                
+                // Boost for successful responses
+                if (candidate.status >= 200 && candidate.status < 300) score += 0.2;
+                
+                // Boost for media content types
+                if (candidate.contentType && /image|video|audio/i.test(candidate.contentType)) {
+                    score += 0.1;
+                }
+                
+                return Math.min(score, 1.0);
+            }
+        }
+
+        // Collection Strategy
+        class CollectionStrategy extends StrategyPlugin {
+            constructor() {
+                super('Collection');
+            }
+            
+            async detect(input) {
+                const indicators = [
+                    /folder|directory|collection|gallery|album/i,
+                    /list\s+of\s+links/i,
+                    /index\s+of/i,
+                    /directory\s+listing/i
+                ];
+                
+                return indicators.some(pattern => pattern.test(input)) ? ['collection'] : [];
+            }
+            
+            async analyze(input) {
+                return {
+                    type: 'collection',
+                    indicators: this.detect(input).length,
+                    guidance: 'This appears to be a collection page. Use Collection Analyzer for detailed processing.'
+                };
+            }
+            
+            async score(candidate) {
+                return 0.8; // Collections are high value
+            }
+        }
+
+        // Initialize strategies
+        const strategies = [
+            new URLStrategy(),
+            new HTMLStrategy(),
+            new HARStrategy(),
+            new CollectionStrategy()
+        ];
+
+        // Main processing functions
+        function log(message, type = 'info') {
+            const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+            const logEntry = `[${timestamp}] ${message}`;
+            AppState.logs.push({ timestamp, message, type });
+            
+            const logSection = document.getElementById('logSection');
+            const logDiv = document.createElement('div');
+            logDiv.className = 'log-entry';
+            logDiv.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            logSection.appendChild(logDiv);
+            logSection.scrollTop = logSection.scrollHeight;
+        }
+
+        function updateStats() {
+            document.getElementById('processed').textContent = AppState.processed;
+            document.getElementById('candidates').textContent = AppState.candidates.length;
+            document.getElementById('queue').textContent = AppState.queue.length;
+            document.getElementById('urlsFound').textContent = AppState.candidates.length;
+            document.getElementById('duplicatesRemoved').textContent = AppState.duplicatesRemoved || 0;
+            
+            const successRate = AppState.processed > 0 ? 
+                ((AppState.candidates.length / AppState.processed) * 100).toFixed(1) : 0;
+            document.getElementById('successRate').textContent = successRate + '%';
+        }
+
+        function dedupe(urls) {
+            if (!AppState.settings.autoDedupe) return urls;
+            
+            const seen = new Set();
+            const deduped = [];
+            let removed = 0;
+            
+            urls.forEach(url => {
+                const normalized = url.toLowerCase().trim();
+                if (!seen.has(normalized)) {
+                    seen.add(normalized);
+                    deduped.push(url);
+                } else {
+                    removed++;
+                }
+            });
+            
+            AppState.duplicatesRemoved = (AppState.duplicatesRemoved || 0) + removed;
+            return deduped;
+        }
+
+        async function processInput() {
+            const input = document.getElementById('inputArea').value.trim();
+            if (!input) {
+                log('No input provided', 'error');
+                return;
+            }
+            
+            log('Starting batch processing...');
+            showProgress();
+            
+            // Split input into lines
+            const lines = input.split('\n').filter(line => line.trim());
+            if (lines.length > 500) {
+                log('Input exceeds 500 lines limit', 'error');
+                hideProgress();
+                return;
+            }
+            
+            AppState.queue = lines;
+            updateStats();
+            
+            // Process each line
+            const allCandidates = [];
+            let processed = 0;
+            
+            for (const line of lines) {
+                const candidates = await processLine(line);
+                allCandidates.push(...candidates);
+                processed++;
+                
+                updateProgress((processed / lines.length) * 100);
+                await new Promise(resolve => setTimeout(resolve, 10)); // Keep UI responsive
+            }
+            
+            // Dedupe candidates
+            const dedupedCandidates = dedupe(allCandidates);
+            
+            // Score candidates
+            for (const candidate of dedupedCandidates) {
+                candidate.score = await scoreCandidate(candidate);
+            }
+            
+            // Filter by confidence threshold
+            const threshold = parseFloat(document.getElementById('confidenceThreshold').value);
+            const filteredCandidates = dedupedCandidates.filter(c => c.score >= threshold);
+            
+            AppState.candidates = filteredCandidates;
+            AppState.processed = processed;
+            
+            updateStats();
+            renderResults();
+            hideProgress();
+            
+            log(`Processing complete: ${filteredCandidates.length} candidates found from ${processed} inputs`);
+        }
+
+        async function processLine(line) {
+            const candidates = [];
+            
+            for (const strategy of strategies) {
+                try {
+                    const detected = await strategy.detect(line);
+                    if (detected.length > 0) {
+                        const analysis = await strategy.analyze(line);
+                        
+                        detected.forEach(item => {
+                            candidates.push({
+                                url: typeof item === 'string' ? item : item.url || item,
+                                strategy: strategy.name,
+                                analysis: analysis,
+                                source: line.substring(0, 100) + (line.length > 100 ? '...' : ''),
+                                timestamp: new Date().toISOString()
+                            });
+                        });
+                        
+                        break; // Use first matching strategy
+                    }
+                } catch (e) {
+                    log(`Strategy ${strategy.name} failed: ${e.message}`, 'error');
+                }
+            }
+            
+            return candidates;
+        }
+
+        async function scoreCandidate(candidate) {
+            for (const strategy of strategies) {
+                if (strategy.name === candidate.strategy) {
+                    try {
+                        return await strategy.score(candidate);
+                    } catch (e) {
+                        return 0.5; // Default score
+                    }
+                }
+            }
+            return 0.5;
+        }
+
+        function renderResults() {
+            const container = document.getElementById('resultsContainer');
+            
+            if (AppState.candidates.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: var(--muted); margin-top: 50px;">
+                        No candidates found. Try adjusting confidence threshold or input format.
+                    </div>
+                `;
+                return;
+            }
+            
+            const table = document.createElement('table');
+            table.className = 'candidate-table';
+            
+            // Header
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>URL</th>
+                    <th>Confidence</th>
+                    <th>Type</th>
+                    <th>Source</th>
+                    <th>Actions</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+            
+            // Body
+            const tbody = document.createElement('tbody');
+            AppState.candidates.forEach(candidate => {
+                const row = document.createElement('tr');
+                const confidenceClass = candidate.score >= 0.8 ? 'confidence-high' : 
+                                     candidate.score >= 0.6 ? 'confidence-medium' : 'confidence-low';
+                
+                row.innerHTML = `
+                    <td title="${candidate.url}">${candidate.url.length > 60 ? candidate.url.substring(0, 60) + '...' : candidate.url}</td>
+                    <td class="${confidenceClass}">${(candidate.score * 100).toFixed(1)}%</td>
+                    <td>${candidate.strategy}</td>
+                    <td>${candidate.source}</td>
+                    <td>
+                        <button class="btn secondary" onclick="copyToClipboard('${candidate.url}')" style="padding: 4px 8px; font-size: 11px;">Copy</button>
+                        <button class="btn secondary" onclick="showDetails('${candidate.url}')" style="padding: 4px 8px; font-size: 11px;">Why</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+            
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        function showProgress() {
+            document.getElementById('progressBar').style.display = 'block';
+        }
+
+        function hideProgress() {
+            document.getElementById('progressBar').style.display = 'none';
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                log(`Copied to clipboard: ${text.substring(0, 50)}...`);
+            }).catch(err => {
+                log('Failed to copy to clipboard', 'error');
+            });
+        }
+
+        function showDetails(url) {
+            const candidate = AppState.candidates.find(c => c.url === url);
+            if (!candidate) return;
+            
+            const details = `
+URL: ${candidate.url}
+Strategy: ${candidate.strategy}
+Score: ${(candidate.score * 100).toFixed(1)}%
+Analysis: ${JSON.stringify(candidate.analysis, null, 2)}
+Source: ${candidate.source}
+Timestamp: ${candidate.timestamp}
+            `;
+            
+            log(`Details for ${url}: ${details}`);
+        }
+
+        function clearInput() {
+            document.getElementById('inputArea').value = '';
+            log('Input cleared');
+        }
+
+        function clearAll() {
+            if (confirm('Clear all data and results?')) {
+                AppState.candidates = [];
+                AppState.processed = 0;
+                AppState.queue = [];
+                AppState.duplicatesRemoved = 0;
+                updateStats();
+                renderResults();
+                clearInput();
+                log('All data cleared');
+            }
+        }
+
+        function exportResults() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                settings: AppState.settings,
+                stats: {
+                    processed: AppState.processed,
+                    candidates: AppState.candidates.length,
+                    duplicatesRemoved: AppState.duplicatesRemoved || 0
+                },
+                candidates: AppState.candidates
+            };
+            
+            downloadJSON(data, 'hypersnatch-results.json');
+            log('Results exported to JSON');
+        }
+
+        function exportMarkdown() {
+            let md = `# HyperSnatch Results\n\n`;
+            md += `Generated: ${new Date().toISOString()}\n\n`;
+            md += `## Statistics\n\n`;
+            md += `- Processed: ${AppState.processed}\n`;
+            md += `- Candidates: ${AppState.candidates.length}\n`;
+            md += `- Duplicates Removed: ${AppState.duplicatesRemoved || 0}\n\n`;
+            md += `## Candidates\n\n`;
+            
+            AppState.candidates.forEach((candidate, index) => {
+                md += `${index + 1}. ${candidate.url}\n`;
+                md += `   - Confidence: ${(candidate.score * 100).toFixed(1)}%\n`;
+                md += `   - Type: ${candidate.strategy}\n`;
+                md += `   - Source: ${candidate.source}\n\n`;
+            });
+            
+            downloadText(md, 'hypersnatch-results.md');
+            log('Results exported to Markdown');
+        }
+
+        async function exportZip() {
+            // Simple ZIP creation using JSZip would be included here
+            // For now, export JSON and mention ZIP capability
+            exportResults();
+            log('ZIP export requires JSZip library - JSON exported instead');
+        }
+
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadText(text, filename) {
+            const blob = new Blob([text], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function loadSample() {
+            const sample = `https://example.com/video1.mp4
+https://example.com/video2.mp4
+https://example.com/gallery/
+<html>
+<head><title>Test Page</title></head>
+<body>
+<a href="https://example.com/link1">Link 1</a>
+<img src="https://example.com/image1.jpg" />
+<script src="https://example.com/script.js"></script>
+</body>
+</html>
+{"log": {"entries": [{"request": {"url": "https://example.com/har1"}, "response": {"status": 200}}]}}`;
+            
+            document.getElementById('inputArea').value = sample;
+            log('Sample data loaded');
+        }
+
+        // Settings handlers
+        document.getElementById('maxConcurrent').addEventListener('change', (e) => {
+            AppState.settings.maxConcurrent = parseInt(e.target.value);
+        });
+
+        document.getElementById('confidenceThreshold').addEventListener('change', (e) => {
+            AppState.settings.confidenceThreshold = parseFloat(e.target.value);
+        });
+
+        document.getElementById('autoDedupe').addEventListener('change', (e) => {
+            AppState.settings.autoDedupe = e.target.checked;
+        });
+
+        document.getElementById('collectionMode').addEventListener('change', (e) => {
+            AppState.settings.collectionMode = e.target.checked;
+        });
+
+        // Initialize
+        log('HyperSnatch Terminal Elite ready');
+        updateStats();
+    </script>
+</body>
+</html>

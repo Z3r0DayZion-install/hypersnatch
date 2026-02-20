@@ -1,0 +1,50 @@
+{
+  "description": "Expected result for validated candidate",
+  "candidates": [
+    {
+      "id": "emload-v2-ajRGMlgyUmt0VXNnc01xNzRiZk5Odz09",
+      "url": "https://www.emload.com/v2/file/ajRGMlgyUmt0VXNnc01xNzRiZk5Odz09/syrup-series-complete-compilation-rar",
+      "source": "html",
+      "type": "archive/rar",
+      "rank": 1,
+      "extractedAt": "2026-02-19T00:00:00.000Z",
+      "status": "validated",
+      "statusReason": "Mock validation - all checks passed",
+      "confidence": 0.95,
+      "method": "v2-pattern-extraction",
+      "host": "www.emload.com",
+      "filename": "syrup-series-complete-compilation-rar",
+      "fileId": "ajRGMlgyUmt0VXNnc01xNzRiZk5Odz09",
+      "category": "candidate",
+      "validation": {
+        "validatedAt": "2026-02-19T00:00:00.000Z",
+        "checks": [
+          {
+            "name": "url_format",
+            "pass": true,
+            "info": "Valid URL format"
+          },
+          {
+            "name": "host_allowed",
+            "pass": true,
+            "info": "Host is allowed"
+          },
+          {
+            "name": "confidence_threshold",
+            "pass": true,
+            "info": "Confidence 0.95 meets threshold"
+          },
+          {
+            "name": "method_allowed",
+            "pass": true,
+            "info": "Method is allowed"
+          }
+        ]
+      }
+    }
+  ],
+  "refusal": false,
+  "refusalReason": null,
+  "detectedMarkers": [],
+  "engineVersion": "RES-CORE-01"
+}

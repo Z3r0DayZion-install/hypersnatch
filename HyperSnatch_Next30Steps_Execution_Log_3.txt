@@ -1,0 +1,33 @@
+HyperSnatch Autonomous Continuation - Next 30 Steps (Round 3)
+Date: 2026-02-18
+
+1. Planned authenticity upgrade on top of tear-v2 integrity.
+2. Audited modular export cryptographic pipeline.
+3. Audited schema validation constraints.
+4. Added signing helper module scaffold.
+5. Implemented ECDSA keypair generation utility.
+6. Implemented public/private JWK export helpers.
+7. Implemented public/private JWK import helpers.
+8. Implemented canonical text sign helper.
+9. Implemented signature verify helper.
+10. Extended schema validation for optional signature envelope.
+11. Added signature algorithm allowlist check.
+12. Added signature key-id validation.
+13. Added signature byte-format validation.
+14. Added canonical pack string function in export module.
+15. Extended encrypt API to accept signing options.
+16. Implemented signed pack generation in export flow.
+17. Extended decrypt API to support signature verification.
+18. Added strict failure when signed pack has no verify key.
+19. Added signature verification failure handling.
+20. Added signing unit tests.
+21. Added JWK roundtrip test coverage.
+22. Added signed export/decrypt test coverage.
+23. Added signed-pack missing-key rejection test.
+24. Added signed-pack tamper rejection test.
+25. Synced fused build with canonical signing support.
+26. Synced fused build with signature verification.
+27. Added fused self-test for signature tamper detection.
+28. Ran complete modular test suite.
+29. Verified all tests pass after signature integration.
+30. Prepared packaging + artifact verification phase.

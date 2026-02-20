@@ -1,0 +1,26 @@
+{
+  "description": "Expected result for detected emload candidate",
+  "candidates": [
+    {
+      "id": "emload-v2-ajRGMlgyUmt0VXNnc01xNzRiZk5Odz09",
+      "url": "https://www.emload.com/v2/file/ajRGMlgyUmt0VXNnc01xNzRiZk5Odz09/syrup-series-complete-compilation-rar",
+      "source": "html",
+      "type": "archive/rar",
+      "rank": 1,
+      "extractedAt": "2026-02-19T00:00:00.000Z",
+      "status": "detected",
+      "statusReason": "Pattern matched V2 emload URL structure",
+      "confidence": 0.95,
+      "method": "v2-pattern-extraction",
+      "host": "www.emload.com",
+      "filename": "syrup-series-complete-compilation-rar",
+      "fileId": "ajRGMlgyUmt0VXNnc01xNzRiZk5Odz09",
+      "category": "candidate",
+      "validation": null
+    }
+  ],
+  "refusal": false,
+  "refusalReason": null,
+  "detectedMarkers": [],
+  "engineVersion": "RES-CORE-01"
+}

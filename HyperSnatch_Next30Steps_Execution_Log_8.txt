@@ -1,0 +1,33 @@
+HyperSnatch Autonomous Continuation - Next 30 Steps (Round 8)
+Date: 2026-02-18
+
+1. Planned final "do it all" hardening pass.
+2. Added optional online adapter extraction module.
+3. Added async online adapter decode fallback API.
+4. Added online adapter unit tests.
+5. Added fused UI toggle for online adapter.
+6. Added fused async queue processing support.
+7. Wired fused decode/retry handlers to async process path.
+8. Wired fused clipboard watcher to async processing.
+9. Added online adapter state toggle + logging.
+10. Added CI workflow for verify pipeline.
+11. Added deterministic e2e npm scripts.
+12. Added key-export hardening in release generator.
+13. Added optional external key input support for release signer.
+14. Added private-key default non-export behavior.
+15. Added private-key `.gitignore` policy.
+16. Added key-management playbook doc.
+17. Added trust table UI placeholder in fused app.
+18. Added trust table rendering logic.
+19. Added guarded rotate confirmation UX.
+20. Added guarded revoke confirmation UX.
+21. Added Playwright config + e2e spec.
+22. Initialized isolated e2e package.
+23. Installed Playwright dependency/runtime.
+24. Ran e2e suite successfully.
+25. Ran modular suite; found online adapter regex bug.
+26. Fixed regex capture bug in online adapter.
+27. Reran modular suite; all passing.
+28. Regenerated/verified/audited release artifacts sequentially.
+29. Confirmed private key absent by default in release output.
+30. Prepared final packaging and verification summary.

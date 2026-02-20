@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Test HTML with Blocked Content</title>
+</head>
+<body>
+    <h1>Test HTML with Premium Content</h1>
+    <p>This HTML contains premium markers that should trigger blocking:</p>
+    
+    <div style="background: #f0f0f0; padding: 10px; border-radius: 4px; margin: 10px 0;">
+        <a href="https://www.emload.com/v2/file/ajRGMlgyUmt0VXNnc01xNzRiZk5Odz09/syrup-series-complete-compilation-rar">
+            Subscribe to download Syrup Series Complete Compilation RAR
+        </a>
+    </div>
+    
+    <p style="color: red; font-weight: bold;">
+        Premium content detected! Login required to access this file.
+    </p>
+    
+    <p>Expected behavior:</p>
+    <ul>
+        <li>Detect V2 pattern with 95% confidence</li>
+        <li>Generate candidate with status "detected"</li>
+        <li>Policy scan finds "subscribe" and "login" markers</li>
+        <li>Strict policy mode should block the candidate</li>
+        <li>Final status should be "blocked"</li>
+    </ul>
+</body>
+</html>

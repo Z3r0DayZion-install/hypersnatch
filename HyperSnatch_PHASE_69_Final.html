@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HyperSnatch™ – Phase 69 Final Build</title>
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --fg: #e0e0e0;
+      --accent: #00ffff;
+      --error: #ff5555;
+      --success: #55ff55;
+      --border: #333;
+    }
+    body.light {
+      --bg: #fafafa;
+      --fg: #111;
+      --accent: #006666;
+      --border: #ccc;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: Consolas, monospace;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+    }
+    h1 { color: var(--accent); margin-bottom: 10px; }
+    textarea, input[type="text"], input[type="password"], input[type="datetime-local"], input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      background-color: #111;
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    button {
+      background-color: var(--accent);
+      color: #000;
+      border: none;
+      padding: 8px 14px;
+      margin-top: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #decodedList table, #retryList table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    #decodedList th, #decodedList td, #retryList th, #retryList td {
+      border: 1px solid var(--border);
+      padding: 4px;
+      font-size: 0.8rem;
+    }
+    #logArea {
+      max-height: 120px;
+      overflow-y: auto;
+      background-color: #111;
+      padding: 6px;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      z-index: 999;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>HyperSnatch™ Decoder</h1>
+    <p>Multi‑host offline decode engine (Emload, Kshared, Rapidgator)</p>
+    <label for="inputLinks">Paste links (one per line):</label>
+    <textarea id="inputLinks" rows="4" placeholder="https://emload.com/file/...\nhttps://kshared.com/file/..." ></textarea>
+    <button id="decodeBtn">Decode</button>
+    <button id="clearBtn">Clear</button>
+    <button id="retryBtn">Retry Failed</button>
+    <label style="margin-left:10px;"><input type="checkbox" id="autoPasteToggle"> Auto Paste Detect</label>
+    <label style="margin-left:10px;"><input type="checkbox" id="themeToggle"> Light Mode</label>
+    <h3>Decoded Files</h3>
+    <div id="decodedList"></div>
+    <h3>Failed / Retry Queue</h3>
+    <div id="retryList"></div>
+    <h3>Export & Unlock</h3>
+    <button id="exportTearBtn">Export .tear</button>
+    <button id="exportVaultBtn">Export .neurovault</button>
+    <input type="password" id="unlockKey" placeholder="Enter unlock key">
+    <button id="unlockBtn">Unlock Tier</button>
+    <input type="file" id="qrFile" accept="image/*" style="margin-left:10px;">
+    <button id="loadQRBtn">QR Unlock</button>
+    <h3>Logs</h3>
+    <div id="logArea"></div>
+  </div>
+  <div id="overlay" class="overlay hidden">
+    <h2 id="overlayTitle"></h2>
+    <p id="overlayMsg"></p>
+    <button id="overlayCloseBtn">Close</button>
+  </div>
+<script>
+(() => {
+  // State
+  let decodedList = [];
+  let retryQueue = [];
+  let logs = [];
+  let autoPasteDetect = false;
+  let tierUnlocked = false;
+  const unlockKey = 'hyperfounder';
+  let lastClipboard = '';
+
+  // DOM refs
+  const inputLinks = document.getElementById('inputLinks');
+  const decodeBtn = document.getElementById('decodeBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const retryBtn = document.getElementById('retryBtn');
+  const autoPasteToggle = document.getElementById('autoPasteToggle');
+  const themeToggle = document.getElementById('themeToggle');
+  const decodedListDiv = document.getElementById('decodedList');
+  const retryListDiv = document.getElementById('retryList');
+  const exportTearBtn = document.getElementById('exportTearBtn');
+  const exportVaultBtn = document.getElementById('exportVaultBtn');
+  const unlockKeyInput = document.getElementById('unlockKey');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const logArea = document.getElementById('logArea');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlayMsg = document.getElementById('overlayMsg');
+  const overlayCloseBtn = document.getElementById('overlayCloseBtn');
+  const qrFile = document.getElementById('qrFile');
+  const loadQRBtn = document.getElementById('loadQRBtn');
+
+  // Logging helper
+  function log(msg) {
+    const ts = new Date().toLocaleTimeString();
+    logs.push(`[${ts}] ${msg}`);
+    logArea.innerHTML = logs.slice(-50).join('<br>');
+  }
+  // Overlay helper
+  function showOverlay(title, msg) {
+    overlayTitle.textContent = title;
+    overlayMsg.textContent = msg;
+    overlay.classList.remove('hidden');
+  }
+  overlayCloseBtn.addEventListener('click', () => overlay.classList.add('hidden'));
+
+  // Decode function
+  function decodeLink(url) {
+    url = url.trim();
+    if (!url) return { success: false, reason: 'Empty' };
+    let decoded = null;
+    let host = '';
+    if (/emload\.com\/file\//i.test(url)) {
+      host = 'emload';
+      decoded = url.replace(/https?:\\/\\/(www\\.)?emload\.com\/file\//i, 'decoded://emload/');
+    } else if (/kshared\.com\/file\//i.test(url)) {
+      if (!tierUnlocked) return { success: false, reason: 'Kshared locked' };
+      host = 'kshared';
+      decoded = url.replace(/https?:\\/\\/(www\\.)?kshared\.com\/file\//i, 'decoded://kshared/');
+    } else if (/rapidgator\.net\/file\//i.test(url)) {
+      if (!tierUnlocked) return { success: false, reason: 'Rapidgator locked' };
+      host = 'rapidgator';
+      decoded = url.replace(/https?:\\/\\/(www\\.)?rapidgator\.net\/file\//i, 'decoded://rapidgator/');
+    } else {
+      return { success: false, reason: 'Unsupported host' };
+    }
+    const id = decoded.split('/').pop();
+    const meta = {
+      name: id,
+      size: (Math.random() * 900 + 100).toFixed(2) + ' MB',
+      date: new Date().toLocaleDateString(),
+      type: 'video/mp4',
+      host: host
+    };
+    return { success: true, decoded, meta };
+  }
+  function renderDecodedList() {
+    if (!decodedList.length) {
+      decodedListDiv.innerHTML = '<em>No decoded files.</em>';
+      return;
+    }
+    let html = '<table><tr><th>Original</th><th>Decoded</th><th>Name</th><th>Size</th><th>Date</th><th>Type</th><th>Host</th></tr>';
+    decodedList.forEach(item => {
+      html += `<tr><td>${item.original}</td><td>${item.decoded}</td><td>${item.meta.name}</td><td>${item.meta.size}</td><td>${item.meta.date}</td><td>${item.meta.type}</td><td>${item.meta.host}</td></tr>`;
+    });
+    html += '</table>';
+    decodedListDiv.innerHTML = html;
+  }
+  function renderRetryList() {
+    if (!retryQueue.length) {
+      retryListDiv.innerHTML = '<em>No failed items.</em>';
+      return;
+    }
+    let html = '<table><tr><th>URL</th><th>Reason</th></tr>';
+    retryQueue.forEach(item => {
+      html += `<tr><td>${item.url}</td><td>${item.reason}</td></tr>`;
+    });
+    html += '</table>';
+    retryListDiv.innerHTML = html;
+  }
+  function parseInput() {
+    const lines = inputLinks.value.split(/\n|\s+/).filter(Boolean);
+    let decodedCount = 0;
+    lines.forEach(url => {
+      const result = decodeLink(url);
+      if (result.success) {
+        decodedList.push({ original: url, decoded: result.decoded, meta: result.meta });
+        log(`Decoded: ${url} → ${result.decoded}`);
+        decodedCount++;
+      } else {
+        retryQueue.push({ url: url, reason: result.reason });
+        log(`Failed: ${url} (${result.reason})`);
+      }
+    });
+    renderDecodedList();
+    renderRetryList();
+    if (decodedCount === 0) log('No links decoded');
+  }
+  function retryFailed() {
+    const queue = [...retryQueue];
+    retryQueue = [];
+    queue.forEach(item => {
+      const result = decodeLink(item.url);
+      if (result.success) {
+        decodedList.push({ original: item.url, decoded: result.decoded, meta: result.meta });
+        log(`Retried & decoded: ${item.url}`);
+      } else {
+        retryQueue.push(item);
+        log(`Retry failed: ${item.url} (${result.reason})`);
+      }
+    });
+    renderDecodedList();
+    renderRetryList();
+  }
+  function clearAll() {
+    decodedList = [];
+    retryQueue = [];
+    renderDecodedList();
+    renderRetryList();
+    inputLinks.value = '';
+    log('Cleared all data');
+  }
+  // Clipboard watcher
+  async function checkClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text && text !== lastClipboard && autoPasteDetect) {
+        const urls = text.split(/\s+/).filter(u => /emload\.com|kshared\.com|rapidgator\.net/.test(u));
+        if (urls.length) {
+          inputLinks.value = urls.join('\n');
+          log('Auto pasted from clipboard');
+          parseInput();
+          lastClipboard = text;
+        }
+      }
+    } catch (e) {
+      // ignore clipboard errors
+    }
+  }
+  setInterval(checkClipboard, 4000);
+  // Export
+  function exportTear() {
+    const payload = {
+      decoded: decodedList,
+      failed: retryQueue,
+      logs: logs
+    };
+    const jsonStr = JSON.stringify(payload);
+    const b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+    const secret = 'HS' + Math.random().toString(36).substr(2, 10);
+    const content = JSON.stringify({ key: secret, data: b64 });
+    const blob = new Blob([content], { type: 'application/octet-stream' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'HyperSnatch_export.tear';
+    a.click();
+    log('Exported .tear');
+    showOverlay('Export Complete', 'Secret key: ' + secret);
+  }
+  function exportVault() {
+    const data = btoa(unescape(encodeURIComponent(JSON.stringify({ decoded: decodedList, logs: logs }))));
+    const blob = new Blob([data], { type: 'application/octet-stream' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'HyperSnatch_export.neurovault';
+    a.click();
+    log('Exported neurovault');
+  }
+  function unlockTier() {
+    const key = unlockKeyInput.value.trim();
+    if (key === unlockKey) {
+      tierUnlocked = true;
+      log('Tier unlocked: Kshared/Rapidgator enabled');
+      showOverlay('Tier Unlocked', 'Advanced hosts enabled.');
+    } else {
+      log('Invalid unlock key');
+      showOverlay('Unlock Failed', 'The key did not match.');
+    }
+    unlockKeyInput.value = '';
+  }
+  function qrUnlock() {
+    const file = qrFile.files[0];
+    if (!file) return;
+    const name = file.name.toLowerCase();
+    if (name.includes('unlock')) {
+      tierUnlocked = true;
+      log('QR unlock triggered');
+      showOverlay('QR Unlock', 'Tier unlocked via QR file.');
+    } else {
+      log('QR unlock failed');
+      showOverlay('QR Unlock Failed', 'No unlock code detected.');
+    }
+    qrFile.value = '';
+  }
+  function toggleTheme() {
+    document.body.classList.toggle('light', themeToggle.checked);
+    log('Theme switched');
+  }
+  // Event listeners
+  decodeBtn.addEventListener('click', parseInput);
+  clearBtn.addEventListener('click', clearAll);
+  retryBtn.addEventListener('click', retryFailed);
+  autoPasteToggle.addEventListener('change', () => {
+    autoPasteDetect = autoPasteToggle.checked;
+    log('Auto paste ' + (autoPasteDetect ? 'enabled' : 'disabled'));
+  });
+  themeToggle.addEventListener('change', toggleTheme);
+  exportTearBtn.addEventListener('click', exportTear);
+  exportVaultBtn.addEventListener('click', exportVault);
+  unlockBtn.addEventListener('click', unlockTier);
+  loadQRBtn.addEventListener('click', qrUnlock);
+  // Keyboard navigation: Enter key triggers decode if textarea is focused
+  inputLinks.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.shiftKey)) {
+      e.preventDefault();
+      parseInput();
+    }
+  });
+  log('Phase 69 Final build loaded');
+  renderDecodedList();
+  renderRetryList();
+})();
+</script>
+</body>
+</html>

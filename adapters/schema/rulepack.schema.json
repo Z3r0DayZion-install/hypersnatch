@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hypersnatch.com/schemas/rulepack.schema.json",
+  "title": "HyperSnatch Rulepack v1",
+  "description": "Data-only rulepack for transforming and scoring items",
+  "type": "object",
+  "required": [
+    "format",
+    "schemaVersion",
+    "name",
+    "version",
+    "rules"
+  ],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "hs-rulepack-1",
+      "description": "Rulepack format identifier"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version number"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Rulepack display name"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Rulepack version (semantic versioning)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Rulepack description"
+    },
+    "author": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Rulepack author"
+    },
+    "license": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Rulepack license"
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Rulepack homepage URL"
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Array of transformation rules",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "enabled"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Unique rule identifier"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Human-readable rule name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "What this rule does"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether this rule is active"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Rule execution priority (lower = higher priority)"
+          },
+          "conditions": {
+            "type": "object",
+            "description": "Conditions for rule execution",
+            "properties": {
+              "itemType": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["url", "media", "text", "link", "script", "style"]
+                },
+                "description": "Item types this rule applies to"
+              },
+              "confidence": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "Minimum confidence threshold"
+                  },
+                  "max": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "Maximum confidence threshold"
+                  }
+                },
+                "description": "Confidence range for rule application"
+              },
+              "host": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Host patterns to match"
+              },
+              "contentPattern": {
+                "type": "string",
+                "description": "Regex pattern for content matching"
+              },
+              "metadata": {
+                "type": "object",
+                "description": "Metadata conditions",
+                "properties": {
+                  "hasKey": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Required metadata keys"
+                  },
+                  "keyValues": {
+                    "type": "object",
+                    "description": "Specific key-value pairs to match"
+                  }
+                }
+              }
+            }
+          },
+          "actions": {
+            "type": "object",
+            "description": "Actions to apply when conditions match",
+            "required": [
+              "transform",
+              "score",
+              "label"
+            ],
+            "properties": {
+              "transform": {
+                "type": "object",
+                "description": "Transformation action",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["regex", "replace", "function"],
+                    "description": "Transformation type"
+                  },
+                  "pattern": {
+                    "type": "string",
+                    "description": "Regex pattern (for regex type)"
+                  },
+                  "replacement": {
+                    "type": "string",
+                    "description": "Replacement string (for regex type)"
+                  },
+                  "function": {
+                    "type": "string",
+                    "description": "Function name (for function type)"
+                  }
+                }
+              },
+              "score": {
+                "type": "object",
+                "description": "Scoring action",
+                "properties": {
+                  "adjustment": {
+                    "type": "number",
+                    "minimum": -1.0,
+                    "maximum": 1.0,
+                    "description": "Confidence adjustment (-1.0 to 1.0)"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "Reason for score adjustment"
+                  }
+                }
+              },
+              "label": {
+                "type": "object",
+                "description": "Labeling action",
+                "properties": {
+                  "add": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Labels to add"
+                  },
+                  "remove": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Labels to remove"
+                  }
+                }
+              },
+              "flag": {
+                "type": "object",
+                "description": "Flagging action",
+                "properties": {
+                  "level": {
+                    "type": "string",
+                    "enum": ["info", "warning", "error"],
+                    "description": "Flag level"
+                  },
+                  "message": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "Flag message"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

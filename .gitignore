@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist_test/
+PROOF_PACK/
+PROOF_PACK_FINAL/
+*.log
+*.tmp
+.DS_Store

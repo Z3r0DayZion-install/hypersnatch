@@ -1,0 +1,33 @@
+HyperSnatch Autonomous Continuation - Next 30 Steps (Round 7)
+Date: 2026-02-18
+
+1. Planned completion pass for all remaining gaps.
+2. Checked runtime and Playwright availability.
+3. Hardened release generator key-export defaults.
+4. Added private-key export gating via env flag.
+5. Added optional external key input paths for signing.
+6. Added private-key cleanup when export disabled.
+7. Added release private-key ignore guard in `release/.gitignore`.
+8. Added key-management playbook documentation.
+9. Added trust-key metadata table placeholder in fused UI.
+10. Added trust table DOM binding.
+11. Added trust table renderer in UI module.
+12. Added confirm-guarded rotation flow in fused UI.
+13. Added confirm-guarded revocation flow in fused UI.
+14. Added Playwright config for browser E2E.
+15. Added E2E spec for decode flow.
+16. Added E2E spec for trust policy toggles.
+17. Added E2E spec for self-test smoke.
+18. Initialized isolated e2e npm package.
+19. Installed `@playwright/test`.
+20. Installed Playwright Chromium runtime.
+21. Ran Playwright E2E suite successfully.
+22. Ran modular unit/integration test suite successfully.
+23. Regenerated release manifest with hardened key policy.
+24. Verified signature + checksum audit pass.
+25. Verified standalone release audit pass.
+26. Confirmed release folder excludes private key by default.
+27. Added E2E README usage guide.
+28. Prepared report/documentation updates.
+29. Ready for package refresh.
+30. Ready for final artifact verification.

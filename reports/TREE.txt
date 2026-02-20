@@ -1,0 +1,87 @@
+HyperSnatch_Project_Tree
+====================
+
+C:\USERS\KICKA\HYPERSNATCH_WORK\
+├── _archive\
+├── adapters\
+├── config\
+├── dist\
+├── dist_test\
+├── docs\
+├── evidence\
+├── exports\
+├── fixtures\
+│   ├── expected\
+│   │   ├── blocked_candidate.json
+│   │   ├── detected_candidate.json
+│   │   └── validated_candidate.json
+│   └── html\
+│       ├── test_blocked.html
+│       └── test_emload.html
+├── logs\
+├── reports\
+├── runtime\
+├── scripts\
+├── src\
+├── validators\
+├── workspaces\
+├── 90DAY_PLAN.md
+├── AUDIT.md
+├── CHANGELOG_V15.md
+├── CHATGPT_SUMMARY.md
+├── CODE_SCAN_REPORT.md
+├── EXECUTIVE_SUMMARY.md
+├── HyperSnatch_Architecture_Documentation.txt
+├── HyperSnatch_Key_Management_Playbook.txt
+├── HyperSnatch_Legacy_FullBundle_0212.zip
+├── HyperSnatch_Modular_Source\
+├── HyperSnatch_Modular_Source.zip
+├── HyperSnatch_Next30Steps_Execution_Log.txt (multiple files)
+├── HyperSnatch_NextBuild_Integrity_Upgrades.txt
+├── HyperSnatch_PHASE_69_Final.html
+├── HyperSnatch_Phase_Completion_Report.txt
+├── IMPLEMENTATION_COMPLETE.md
+├── IMPLEMENTATION_MAP.md
+├── LAUNCHER_AUDIT.md
+├── LEAN_STRATEGY.md
+├── README.md
+├── README_ECOSYSTEM.md
+├── _fused_numbered.txt
+├── comprehensive_test.py
+├── hypersnatch.html
+├── hypersnatch_bundle_prelim.zip
+├── package.json
+├── test_emload_browser.html
+├── test_emload_link.py
+├── test_final.html
+└── test_real_links.py
+
+SRC DIRECTORY:
+├── constants.js
+├── enhancements.js
+├── extensions.js
+├── helpers.js
+├── main.js
+├── preload.js
+├── ui-components.js
+└── utils.js
+
+SCRIPTS DIRECTORY:
+├── agent_run.js
+├── brand_purge.js
+├── build_release_pack.js
+├── build_simple.js
+├── tear-compile.js
+├── test_basic.js
+└── verify_simple.js
+
+DOCS DIRECTORY:
+├── ENHANCEMENTS_SUMMARY.md
+├── PHASE3_PROOF.md
+└── (other documentation files)
+
+Total Files Found: 68+
+Total Directories: 15+
+Max Depth: 6 levels
+
+Generated: 2026-02-19T21:59:00Z

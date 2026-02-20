@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HyperSnatch™ Phase 48.2 - Tactical Decode Patch</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #00ffff;
+      font-family: Consolas, monospace;
+      padding: 20px;
+    }
+    .container {
+      background-color: #1a1a1a;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 12px #00ffff66;
+      max-width: 800px;
+      margin: auto;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      background-color: #111;
+      color: #00ffff;
+      border: 1px solid #00ffff;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #00ffff;
+      color: black;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    textarea {
+      width: 100%;
+      background-color: #111;
+      color: #0f0;
+      padding: 10px;
+      border: 1px solid #0f0;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+    .log {
+      color: #0f0;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>HyperSnatch™: <span style="color:#00ffcc">Phase 48.2</span> - Tactical Decode Patch</h2>
+  <p><b>Phase:</b> Pre-49 Hybrid Decode Fusion</p>
+  <input id="inputField" type="text" placeholder="Paste Emload/Kshared link here...">
+  <button id="startButton">Start Decode</button>
+  <h3>Decoded Stream URL</h3>
+  <textarea id="outputURL" placeholder="Waiting for input..." rows="2" readonly></textarea>
+  <button onclick="navigator.clipboard.writeText(document.getElementById('outputURL').value)">Copy to Clipboard</button>
+  <h3>Dev Log</h3>
+  <div id="devLog" class="log">
+    [INIT] Phase 48.2 Loaded - Hybrid Sniff Mode Enabled.
+  </div>
+</div>
+
+<script>
+let decodeStart;
+
+function logDecodeStart() {
+  decodeStart = Date.now();
+  const log = document.getElementById("devLog");
+  log.innerHTML += `<br>[${new Date().toLocaleTimeString()}] Decode started...`;
+}
+
+function logDecodeEnd() {
+  const elapsed = ((Date.now() - decodeStart) / 1000).toFixed(2);
+  const log = document.getElementById("devLog");
+  log.innerHTML += `<br>[${new Date().toLocaleTimeString()}] Decode ended. ⏱ ${elapsed}s`;
+}
+
+function sniffDecode() {
+  const url = document.getElementById("inputField").value;
+  logDecodeStart();
+  setTimeout(() => {
+    document.getElementById("outputURL").value = "⚠ No iframe/player detected. (" + url + ")";
+    logDecodeEnd();
+  }, 1200);
+}
+
+document.getElementById("startButton").addEventListener("click", sniffDecode);
+
+(function(){
+  const originalOpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function(method, url) {
+    if (url.includes(".mp4") || url.includes(".m3u8")) {
+      document.getElementById("outputURL").value = url;
+      document.getElementById("devLog").innerHTML += `<br>[XHR Sniff] ${url}`;
+    }
+    return originalOpen.apply(this, arguments);
+  };
+
+  const originalFetch = window.fetch;
+  window.fetch = async function(...args) {
+    const url = args[0];
+    if (typeof url === "string" && (url.includes(".mp4") || url.includes(".m3u8"))) {
+      document.getElementById("outputURL").value = url;
+      document.getElementById("devLog").innerHTML += `<br>[Fetch Sniff] ${url}`;
+    }
+    return originalFetch(...args);
+  };
+})();
+
+document.addEventListener("DOMContentLoaded", () => {
+  navigator.clipboard.readText().then(text => {
+    if (/https:\/\/(www\.)?(kshared|emload)\.com\/file\//.test(text)) {
+      document.getElementById("inputField").value = text;
+      document.getElementById("startButton").click();
+      document.getElementById("devLog").innerHTML += `<br>[Auto-Capture] Detected valid URL from clipboard.`;
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hypersnatch.com/schemas/hs-collector-1.schema.json",
+  "title": "HyperSnatch Collector Payload v1",
+  "description": "MV3 collector extension payload schema",
+  "type": "object",
+  "required": [
+    "format",
+    "schemaVersion",
+    "fingerprint",
+    "id",
+    "capturedAt",
+    "pageUrl",
+    "origin",
+    "items"
+  ],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "hs-collector-1",
+      "description": "Collector payload format identifier"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version number"
+    },
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$",
+      "description": "SHA-256 fingerprint of browser session"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]+$",
+      "minLength": 8,
+      "maxLength": 64,
+      "description": "Unique collection identifier"
+    },
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Collection timestamp"
+    },
+    "pageUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Source page URL"
+    },
+    "origin": {
+      "type": "string",
+      "format": "uri",
+      "description": "Origin domain"
+    },
+    "items": {
+      "type": "array",
+      "description": "Array of collected items",
+      "items": {
+        "type": "object",
+        "required": [
+          "type",
+          "content",
+          "confidence",
+          "metadata"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["url", "media", "text", "link", "script", "style"],
+            "description": "Item type"
+          },
+          "content": {
+            "type": "string",
+            "description": "Extracted content"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Confidence score (0-1)"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Item metadata",
+            "required": ["timestamp"],
+            "properties": {
+              "selector": {
+                "type": "string",
+                "description": "CSS selector used for extraction"
+              },
+              "attribute": {
+                "type": "string",
+                "description": "HTML attribute name"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Item extraction timestamp"
+              },
+              "source": {
+                "type": "string",
+                "enum": ["dom", "network", "storage", "user"],
+                "description": "Extraction source"
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Content size in bytes"
+              },
+              "mimeType": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9!#$&\\-^_]*\\/[a-zA-Z0-9][a-zA-Z0-9!#$&\\-^_.]*$",
+                "description": "MIME type if applicable"
+              },
+              "encoding": {
+                "type": "string",
+                "enum": ["utf-8", "base64", "hex"],
+                "description": "Content encoding"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Item tags"
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Collection metadata",
+      "properties": {
+        "userAgent": {
+          "type": "string",
+          "description": "Browser user agent"
+        },
+        "viewport": {
+          "type": "object",
+          "description": "Viewport dimensions",
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "language": {
+          "type": "string",
+          "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
+          "description": "Browser language"
+        },
+        "platform": {
+          "type": "string",
+          "description": "Operating system platform"
+        },
+        "extensionVersion": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Extension version"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

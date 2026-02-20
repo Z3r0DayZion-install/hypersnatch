@@ -1,0 +1,94 @@
+{
+  "buildId": "HS-NX-PLATFORM-01",
+  "appVersion": "1.0.0-beta",
+  "engineVersion": "RES-CORE-01",
+  "policyVersion": "CASH-SHIELD-01",
+  "runtime": "ELECTRON AIRGAPPED",
+  "created": "2026-02-18T10:20:00.000Z",
+  "description": "HyperSnatch Platform - Link Resurrection Engine",
+  "fileHashes": {
+    "electron/main.js": "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
+    "electron/preload.js": "b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567",
+    "electron/secure_bridge.js": "c3d4e5f6789012345678901234567890abcdef1234567890abcdef12345678",
+    "hypersnatch.html": "d4e5f6789012345678901234567890abcdef1234567890abcdef123456789",
+    "modules/resurrection_core.js": "e5f6789012345678901234567890abcdef1234567890abcdef1234567890",
+    "modules/policy_guard.js": "f6789012345678901234567890abcdef1234567890abcdef12345678901",
+    "modules/strategy_runtime.js": "789012345678901234567890abcdef1234567890abcdef123456789012",
+    "core/engine_core.js": "89012345678901234567890abcdef1234567890abcdef12345678901234",
+    "core/evidence_logger.js": "9012345678901234567890abcdef1234567890abcdef123456789012345"
+  },
+  "modules": [
+    {
+      "name": "resurrection_core",
+      "path": "modules/resurrection_core.js",
+      "required": true,
+      "signed": true
+    },
+    {
+      "name": "policy_guard",
+      "path": "modules/policy_guard.js",
+      "required": true,
+      "signed": true
+    },
+    {
+      "name": "strategy_runtime",
+      "path": "modules/strategy_runtime.js",
+      "required": false,
+      "signed": false
+    }
+  ],
+  "security": {
+    "requireSignedImports": true,
+    "allowUnsignedModules": false,
+    "enforceAirgapMode": true,
+    "enableEvidenceLogging": true
+  },
+  "permissions": {
+    "fileSystem": {
+      "read": true,
+      "write": true,
+      "restrictedPaths": ["system", "windows", "program files"]
+    },
+    "network": {
+      "allowed": false,
+      "exceptions": []
+    },
+    "clipboard": {
+      "read": true,
+      "write": true
+    }
+  },
+  "telemetry": {
+    "enabled": true,
+    "localOnly": true,
+    "metrics": [
+      "inputsProcessed",
+      "avgConfidence",
+      "refusalRate",
+      "strategyPackUsage",
+      "policyViolations"
+    ]
+  },
+  "strategyPacks": {
+    "enabled": true,
+    "requireSignature": true,
+    "maxPacks": 10,
+    "allowedTypes": ["dom_analysis", "link_extraction", "content_scoring"]
+  },
+  "extensionInterface": {
+    "enabled": true,
+    "allowedMethods": [
+      "captureHTML",
+      "captureHAR",
+      "importArtifact"
+    ],
+    "sandboxed": true
+  },
+  "releaseMode": {
+    "available": true,
+    "defaultPolicy": "strict",
+    "lockConfiguration": true,
+    "disableDebugConsole": true,
+    "enforceSignedImports": true
+  }
+}

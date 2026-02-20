@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hypersnatch.com/schemas/tear-v2.schema.json",
+  "title": "HyperSnatch Tear Data Pack v2",
+  "description": "Deterministic vault/evidence/save container",
+  "type": "object",
+  "required": [
+    "format",
+    "schemaVersion",
+    "app",
+    "appVersion",
+    "kind",
+    "createdAt",
+    "kdf",
+    "iterations",
+    "salt",
+    "iv",
+    "digest",
+    "data"
+  ],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "tear-v2",
+      "description": "Data pack format identifier"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 2,
+      "description": "Schema version number"
+    },
+    "app": {
+      "type": "string",
+      "const": "HyperSnatch",
+      "description": "Application identifier"
+    },
+    "appVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Application version (semantic versioning)"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["tear", "export", "snapshot", "vault"],
+      "description": "Data pack kind"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Pack creation timestamp"
+    },
+    "kdf": {
+      "type": "string",
+      "const": "PBKDF2-SHA256",
+      "description": "Key derivation function"
+    },
+    "iterations": {
+      "type": "integer",
+      "const": 120000,
+      "minimum": 10000,
+      "maximum": 1000000,
+      "description": "PBKDF2 iteration count"
+    },
+    "salt": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9+/]+=*$",
+      "description": "Base64 encoded salt for key derivation"
+    },
+    "iv": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9+/]+=*$",
+      "description": "Base64 encoded initialization vector"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$",
+      "description": "SHA-256 digest of encrypted data"
+    },
+    "data": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9+/]+=*$",
+      "description": "Base64 encoded encrypted payload"
+    },
+    "signature": {
+      "type": "object",
+      "description": "Optional ECDSA signature",
+      "required": [
+        "algorithm",
+        "publicKey",
+        "signature"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "ECDSA-SHA256",
+          "description": "Signature algorithm"
+        },
+        "publicKey": {
+          "type": "string",
+          "description": "Base64 encoded public key"
+        },
+        "signature": {
+          "type": "string",
+          "description": "Base64 encoded signature"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Signature timestamp"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional metadata about the pack",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Pack title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Pack description"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Pack tags"
+        },
+        "author": {
+          "type": "string",
+          "description": "Pack author"
+        },
+        "license": {
+          "type": "string",
+          "description": "Pack license"
+        }
+      }
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Pack expiration timestamp"
+    }
+  },
+  "additionalProperties": false
+}

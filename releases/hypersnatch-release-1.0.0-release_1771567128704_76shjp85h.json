@@ -1,0 +1,42 @@
+{
+  "manifest": {
+    "format": "hs-release-pack-1",
+    "schemaVersion": 1,
+    "releaseId": "release_1771567128704_76shjp85h",
+    "app": "HyperSnatch",
+    "appVersion": "1.0.0",
+    "createdAt": "2026-02-20T05:58:48.943Z",
+    "bundle": {
+      "format": "hs-tear-bundle-1",
+      "schemaVersion": 1,
+      "files": 73
+    },
+    "dataPacks": [],
+    "releaseNotes": {
+      "included": true,
+      "digest": "818f05247f980c6ae0d4e73f90b4791cfa3f9fe86bcaf48b08b66f1b97b1fe8a"
+    },
+    "trustStore": {
+      "format": "hs-trust-store-v2",
+      "schemaVersion": 2,
+      "digest": "8512540972ba03082d5c9fddb209ef8393f76ece78b2135966a3940928c4df52"
+    }
+  },
+  "digests": {
+    "dataPacks": {},
+    "releaseNotes": "818f05247f980c6ae0d4e73f90b4791cfa3f9fe86bcaf48b08b66f1b97b1fe8a",
+    "trustStore": "8512540972ba03082d5c9fddb209ef8393f76ece78b2135966a3940928c4df52"
+  },
+  "signature": {
+    "algorithm": "ECDSA-SHA256",
+    "publicKey": "unsigned-demo-key",
+    "signature": "unsigned-demo-signature",
+    "timestamp": "2026-02-20T05:58:48.943Z"
+  },
+  "files": {
+    "bundle": "bundle.tear",
+    "dataPacks": {},
+    "releaseNotes": "release-notes.json",
+    "trustStore": "truststore.json"
+  }
+}

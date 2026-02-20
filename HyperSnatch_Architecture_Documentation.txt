@@ -1,0 +1,220 @@
+HyperSnatch Architecture Documentation
+Date: 2026-02-18
+
+1) Input Artifact Ingestion
+- Loaded:
+  - HyperSnatch_SaveFile_0212.html
+  - HyperSnatch_Legacy_FullBundle_0212.zip
+  - HyperSnatch_IP_Archive_0212.txt (available variant of requested IP intel file)
+  - HyperSnatch_TechStack_0212.txt
+  - HyperSnatch_DevAgent_Continuation_0213.txt
+  - HyperSnatch_Final_Checklist_0213.txt
+  - HyperSnatch_PHASE_69_Final.html
+  - hypersnatch_phase_48_2_tactical_patch.html
+- Not found under requested names:
+  - HyperSnatch_Manifest_0212.txt
+  - HyperSnatch_IP_Intel_Final_0212.txt
+
+2) Extracted Modules (declared in artifacts)
+- SmartSnatch
+- ClipSnatch
+- TearDeck
+- DecodeGrid
+- ValidatorFrame
+- DragDropFX
+- .tear Exporter
+- Clipboard Monitor
+- DOM Scanner/Trace
+- SmartDecode Engine
+- Emload Decode Layer
+- Retry Memory
+- Tier Unlock Protocols
+- Clipboard Logger + DevLog Sync
+- RitualLoader / UI Skin Switcher (declared)
+
+3) Phase Definitions Found
+- Historical references: 0-69
+- Explicit roadmap after Phase 52:
+  - 53: Multi-Link & folder decode handler
+  - 54: Multi-host router (Kshared/Rapidgator parity)
+  - 55: Clipboard SmartQueue watcher
+  - 56: Retry memory + deferred queue
+  - 57: Metadata display
+  - 58: .tear export (encrypted)
+  - 59: UI FX layer
+  - 60: Tier gate architecture
+  - 61-65: UI polish/mobile/accessibility/stability
+  - 66-69: final stabilization/modularization/compression
+
+4) Declared Architecture (source-derived)
+- Offline-only single HTML execution model
+- Local clipboard ingestion path
+- Host-specific decode flow
+- Retry/deferred memory queue
+- Local export artifacts (.tear, .vault)
+- No server dependency
+
+5) Reconstructed Final Architecture
+- Single file runtime: HyperSnatch_Final_Fused.html
+- Internal module boundaries:
+  - ClipboardEngine: clipboard polling and queue feed
+  - SmartQueue + FolderParser: multi-link/folder tokenization and dedupe
+  - HostRouter: host detection and tier gate checks
+  - DecodeEngine: host decoders + metadata extraction
+  - RetrySystem: deferred queue with retry timing and attempt memory
+  - TearExport: AES-GCM encrypted .tear export (PBKDF2-derived key)
+  - Ui + UiFx: render, state transitions, cosmetic flash layer
+  - TierGate: feature flag unlock boundary
+- Storage:
+  - localStorage for decoded/deferred/tier persistence
+- Security posture:
+  - Offline operation only
+  - No remote calls
+
+6) Structured Representation (implementation truth)
+- Implemented features:
+  - Multi-link parsing and deduplication
+  - Folder token extraction
+  - Emload/Kshared/Rapidgator host routing
+  - Queue/decode/deferred workflows
+  - Retry memory with delayed readiness
+  - Metadata surface (name/size/type/host/timestamp)
+  - Encrypted .tear export
+  - Tier gating for advanced hosts
+  - Mobile-friendly responsive layout
+  - Keyboard and focus-accessible controls
+- Declared but not implemented in inherited artifacts:
+  - Real network-page DOM extraction for host pages (offline-only runtime cannot fetch host pages)
+  - QR unlock parsing beyond file-name heuristic in old phase-69 file
+  - Any executable wrapper packaging
+- Conflicts/inconsistencies resolved:
+  - SaveFile_0212 was a snapshot manifest, not executable decoder
+  - Legacy bundle claimed broad coverage but only contained phase 48.2 patch + nested prelim zip
+  - Earlier phase-69 build had synthetic metadata/random sizing and pseudo decode transforms
+
+7) Output Artifacts
+- HyperSnatch_Final_Fused.html
+- HyperSnatch_Modular_Source.zip
+- HyperSnatch_Architecture_Documentation.txt
+- HyperSnatch_Phase_Completion_Report.txt
+
+8) Verification Addendum (Autonomous Continuation)
+- Added modular test harness (`node --test`) in `HyperSnatch_Modular_Source`.
+- Test result: 12 passed, 0 failed.
+- Covered logic domains:
+  - parser extraction/dedupe/folder-id
+  - host routing + tier gating
+  - decode path behavior
+  - retry schedule and readiness
+  - encrypted export payload structure
+
+9) Continuation Log
+- Full 30-step autonomous execution trace captured in:
+  - HyperSnatch_Next30Steps_Execution_Log.txt
+  - HyperSnatch_Next30Steps_Execution_Log_2.txt
+
+10) Round 2 Hardening Addendum
+- Added reusable queue engine module in modular source (`src/engine.js`).
+- Added crypto decryption function for tear payload validation.
+- Added integration-grade tests for engine retry/decode behavior.
+- Updated fused HTML self-test to validate encryption roundtrip.
+- Latest automated result: 19 passed, 0 failed.
+
+11) Round 3 Authenticity Addendum
+- Added ECDSA signing primitives (`src/signing.js`).
+- Added signed `tear-v2` support with canonical pack signing.
+- Added signature verification in decrypt path.
+- Added strict behavior for signed packs missing verify key.
+- Added fused build signing + verify + tamper self-test.
+- Latest automated result: 29 passed, 0 failed.
+
+12) Round 4 Trust-Policy Addendum
+- Added trust-store module (`src/truststore.js`) with:
+  - trusted key registry
+  - active key rotation
+  - key revocation
+  - import/export for persistence
+- Decrypt verification now supports trust-store key lookup and revocation enforcement.
+- Fused build now persists trust-store and trust policy in local storage.
+- Added unsigned-import policy enforcement in fused import path.
+- Latest automated result: 34 passed, 0 failed.
+
+13) Round 5 Fuse-All Addendum
+- Added release-manifest module (`src/release.js`):
+  - artifact checksum generation
+  - deterministic canonical manifest serialization
+  - manifest signing and verification
+- Added trust-management UI in fused app:
+  - trust store import/export
+  - key rotation and revocation controls
+  - TOFU and signed-import policy toggles
+- Added release scripts:
+  - `scripts/release_manifest_generate.mjs`
+  - `scripts/release_manifest_verify.mjs`
+- Generated and verified real release manifest in `HyperSnatch_Work/release`.
+- Latest automated result: 37 passed, 0 failed.
+
+14) Round 6 Release-Audit Addendum
+- Added release artifact audit module (`src/release_audit.js`) for:
+  - missing/extra artifact detection
+  - hash/byte mismatch detection
+- Added standalone runtime audit script:
+  - `scripts/release_manifest_audit.mjs`
+- Updated release verify script to enforce checksum audit after signature verification.
+- Runtime release checks now validate:
+  - signature authenticity
+  - artifact integrity against manifest
+- Latest automated result: 40 passed, 0 failed.
+
+15) Round 7 E2E + Key-Handling Addendum
+- Added hardened release key export policy:
+  - private key is not exported unless `HS_EXPORT_PRIVATE_KEY=true`
+- Added key management operational playbook:
+  - `HyperSnatch_Key_Management_Playbook.txt`
+- Added browser E2E automation:
+  - `e2e/fused.spec.js`
+  - `e2e/playwright.config.js`
+  - `e2e/README.md`
+- Added trust-key metadata table and guarded rotate/revoke UX in fused build.
+- Test status:
+  - Modular suite: 40 passed, 0 failed
+  - Playwright E2E: 3 passed, 0 failed
+- Release runtime checks:
+  - generate: success
+  - verify: signature + checksum audit passed
+  - audit: passed
+
+16) Round 8 Adapter + CI Completion Addendum
+- Added optional online adapter module (`src/online_adapter.js`) and async fallback decode API.
+- Added online adapter unit tests and fixed extraction regex edge case.
+- Added CI workflow (`.github/workflows/verify.yml`) for:
+  - modular tests
+  - Playwright E2E
+  - release generate/verify/audit scripts
+- Added fused trust table visualization and guarded rotate/revoke UX.
+- Added hardened release key handling:
+  - private key not exported unless explicit env flag
+  - external key import paths supported
+- Latest test status:
+  - Modular: 42 passed, 0 failed
+  - E2E: 3 passed, 0 failed
+
+17) Round 9 Hard-Mode Foundation Addendum
+- Added strategy plugin architecture (`src/strategies.js`) with provenance/confidence outputs.
+- Added policy profiles and confidence gating (`src/policy.js`):
+  - strict / balanced / aggressive
+- Added concurrent hard-mode engine path with:
+  - circuit breaker (`src/circuit_breaker.js`)
+  - quarantine (`src/quarantine.js`)
+  - replay timeline (`src/replay.js`)
+  - anomaly detection (`src/anomaly.js`)
+  - provenance graph builder (`src/provenance_graph.js`)
+  - append-only hash-chain audit ledger (`src/ledger.js`)
+- Added release gate automation:
+  - `scripts/release_gate.mjs` (runs tests + e2e + release checks and emits signed report)
+- Added runbook executor:
+  - `scripts/runbook_execute.mjs`
+- Latest verification:
+  - Modular tests: 57 passed, 0 failed
+  - E2E: 3 passed, 0 failed
+  - release gate: passed

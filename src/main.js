@@ -1,0 +1,289 @@
+// ==================== ELECTRON MAIN PROCESS ====================
+"use strict";
+
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const path = require('path');
+const fs = require('fs');
+
+// ==================== CONSTANTS ====================
+const APP_NAME = 'HyperSnatch';
+const APP_VERSION = '1.0.0';
+
+// Security: Hardened defaults
+const SECURITY_CONFIG = {
+  contextIsolation: true,
+  nodeIntegration: false,
+  enableRemoteModule: false,
+  sandbox: true,
+  webSecurity: true
+};
+
+// Runtime paths
+const RUNTIME_DIR = path.join(app.getPath('userData'), 'HyperSnatch', 'runtime');
+const LOGS_DIR = path.join(RUNTIME_DIR, 'logs');
+const EVIDENCE_DIR = path.join(RUNTIME_DIR, 'evidence');
+const EXPORTS_DIR = path.join(RUNTIME_DIR, 'exports');
+const CONFIG_DIR = path.join(RUNTIME_DIR, 'config');
+const POLICY_FILE = path.join(CONFIG_DIR, 'policy.json');
+const ALLOWLIST_FILE = path.join(CONFIG_DIR, 'allowlist.json');
+
+// ==================== SECURITY ====================
+let securityEvents = [];
+
+function logSecurityEvent(event, details = {}) {
+  const timestamp = new Date().toISOString();
+  securityEvents.push({ timestamp, event, ...details });
+  
+  // Also log to file
+  const logEntry = `[${timestamp}] SECURITY: ${event} - ${JSON.stringify(details)}\n`;
+  fs.appendFileSync(path.join(LOGS_DIR, 'security.log'), logEntry);
+}
+
+function enforceSecurityPolicy(window, url) {
+  // Check allowlist
+  try {
+    const allowlist = JSON.parse(fs.readFileSync(ALLOWLIST_FILE, 'utf8'));
+    const urlObj = new URL(url);
+    
+    if (!allowlist.allowedHosts.includes(urlObj.hostname)) {
+      logSecurityEvent('BLOCKED_URL', { url, reason: 'Host not in allowlist' });
+      return { allowed: false, reason: 'Host not in allowlist' };
+    }
+    
+    logSecurityEvent('ALLOWED_URL', { url, reason: 'Host in allowlist' });
+    return { allowed: true };
+  } catch (error) {
+    logSecurityEvent('POLICY_ERROR', { error: error.message });
+    return { allowed: false, reason: 'Policy check failed' };
+  }
+}
+
+// ==================== IPC HANDLERS ====================
+ipcMain.handle('get-app-info', () => {
+  return {
+    name: APP_NAME,
+    version: APP_VERSION,
+    platform: process.platform,
+    securityConfig: SECURITY_CONFIG,
+    runtimeDir: RUNTIME_DIR
+  };
+});
+
+ipcMain.handle('open-logs-folder', () => {
+  shell.openPath(LOGS_DIR);
+});
+
+ipcMain.handle('open-evidence-folder', () => {
+  shell.openPath(EVIDENCE_DIR);
+});
+
+ipcMain.handle('get-security-events', () => {
+  return securityEvents.slice(-100); // Last 100 events
+});
+
+ipcMain.handle('clear-security-events', () => {
+  securityEvents = [];
+  try {
+    fs.writeFileSync(path.join(LOGS_DIR, 'security.log'), '');
+  } catch (error) {
+    logSecurityEvent('LOG_CLEAR_ERROR', { error: error.message });
+  }
+});
+
+ipcMain.handle('validate-url', async (event, url) => {
+  const result = enforceSecurityPolicy(null, url);
+  event.reply(result);
+});
+
+ipcMain.handle('import-evidence', async (event, evidenceData) => {
+  try {
+    // Validate evidence format
+    if (!evidenceData || typeof evidenceData !== 'object') {
+      event.reply({ success: false, error: 'Invalid evidence data' });
+      return;
+    }
+    
+    // Create evidence file with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const evidenceFile = path.join(EVIDENCE_DIR, `imported-${timestamp}.json`);
+    
+    fs.writeFileSync(evidenceFile, JSON.stringify(evidenceData, null, 2));
+    
+    logSecurityEvent('EVIDENCE_IMPORTED', { 
+      file: evidenceFile,
+      size: JSON.stringify(evidenceData).length 
+    });
+    
+    event.reply({ success: true, file: evidenceFile });
+  } catch (error) {
+    logSecurityEvent('EVIDENCE_IMPORT_ERROR', { error: error.message });
+    event.reply({ success: false, error: error.message });
+  }
+});
+
+// ==================== APP LIFECYCLE ====================
+function createRuntimeDirectories() {
+  const dirs = [RUNTIME_DIR, LOGS_DIR, EVIDENCE_DIR, EXPORTS_DIR, CONFIG_DIR];
+  
+  dirs.forEach(dir => {
+    try {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    } catch (error) {
+      logSecurityEvent('DIR_CREATE_ERROR', { dir, error: error.message });
+    }
+  });
+}
+
+function createDefaultConfig() {
+  const defaultConfig = {
+    version: '1.0.0',
+    mode: 'strict',
+    allowlistEnabled: true,
+    allowedHosts: ['localhost', '127.0.0.1'],
+    allowedPorts: [3000, 8000, 8080, 3001],
+    allowedContentTypes: [
+      'text/html',
+      'application/json', 
+      'text/plain'
+    ],
+    premiumMarkers: [
+      'subscribe', 'premium', 'login', 'paywall', 'purchase', 
+      'access denied', 'subscription', 'upgrade', 'payment'
+    ]
+  };
+  
+  try {
+    fs.writeFileSync(POLICY_FILE, JSON.stringify(defaultConfig, null, 2));
+    logSecurityEvent('DEFAULT_CONFIG_CREATED', { file: POLICY_FILE });
+  } catch (error) {
+    logSecurityEvent('CONFIG_CREATE_ERROR', { error: error.message });
+  }
+}
+
+function getRendererPath() {
+  // Determine if running in development or packaged mode
+  if (process.env.NODE_ENV === 'development') {
+    return path.join(__dirname, '..', 'hypersnatch.html');
+  }
+  
+  // Packaged mode - look for app.asar
+  const appPath = app.getAppPath();
+  const asarPath = path.join(appPath, 'app.asar');
+  
+  if (fs.existsSync(asarPath)) {
+    return path.join(asarPath, 'hypersnatch.html');
+  }
+  
+  // Fallback to development path
+  return path.join(__dirname, '..', 'hypersnatch.html');
+}
+
+// ==================== MAIN APP ====================
+app.whenReady().then(() => {
+  logSecurityEvent('APP_READY', { version: APP_VERSION });
+  
+  // Create runtime directories
+  createRuntimeDirectories();
+  
+  // Create default config if doesn't exist
+  if (!fs.existsSync(POLICY_FILE)) {
+    createDefaultConfig();
+  }
+  
+  // Security: Prevent multiple instances
+  const gotTheLock = app.requestSingleInstanceLock();
+  
+  if (!gotTheLock) {
+    logSecurityEvent('SINGLE_INSTANCE_ENFORCED');
+    app.quit();
+    return;
+  }
+  
+  // Create main window with hardened security
+  const mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    minWidth: 800,
+    minHeight: 600,
+    show: false,
+    webPreferences: {
+      ...SECURITY_CONFIG,
+      preload: path.join(__dirname, 'preload.js'),
+      // Additional security
+      additionalArguments: '--no-sandbox',
+      safeDialogs: true,
+      autoplayPolicy: 'document-user-activation-required',
+      backgroundThrottling: false
+    },
+    icon: path.join(__dirname, 'assets', 'icon.ico')
+  });
+  
+  // Security: Set window open handler after window creation
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      shell.openExternal(url);
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
+  });
+  
+  // Security: Log window creation
+  logSecurityEvent('WINDOW_CREATED', { 
+    securityConfig: SECURITY_CONFIG,
+    rendererPath: mainWindow.webContents.executeJavaScript(`window.rendererPath = '${getRendererPath().replace(/\\/g, '\\\\')}'`)
+  });
+  
+  // Load the app
+  mainWindow.loadFile(getRendererPath());
+  
+  // Security: Handle window closed
+  mainWindow.on('closed', () => {
+    logSecurityEvent('WINDOW_CLOSED');
+  });
+  
+  // Security: Handle certificate errors
+  mainWindow.webContents.on('certificate-error', (event, url, error) => {
+    logSecurityEvent('CERTIFICATE_ERROR', { url, error: error.message });
+  });
+  
+  // Security: Handle console messages
+  mainWindow.webContents.on('console-message', (event, level, message) => {
+    if (level === 'error') {
+      logSecurityEvent('RENDERER_ERROR', { message });
+    }
+  });
+  
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    logSecurityEvent('WINDOW_SHOWN');
+  });
+  
+  // Security: Handle unresponsive
+  mainWindow.on('unresponsive', () => {
+    logSecurityEvent('WINDOW_UNRESPONSIVE');
+  });
+  
+  // Security: Handle crashed
+  mainWindow.webContents.on('crashed', (event, killed) => {
+    logSecurityEvent('WINDOW_CRASHED', { killed });
+  });
+});
+
+// Security: Handle security events
+process.on('uncaughtException', (error) => {
+  logSecurityEvent('UNCAUGHT_EXCEPTION', { error: error.message, stack: error.stack });
+});
+
+process.on('unhandledRejection', (reason) => {
+  logSecurityEvent('UNHANDLED_REJECTION', { reason });
+});
+
+module.exports = {
+  app,
+  BrowserWindow,
+  logSecurityEvent,
+  enforceSecurityPolicy,
+  getRendererPath
+};

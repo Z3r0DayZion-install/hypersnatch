@@ -1,0 +1,11 @@
+{
+  "format": "hs-runbook-report-v1",
+  "scenario": "airgap-hardening",
+  "executedAt": "2026-02-18T04:01:45.549Z",
+  "steps": [
+    "Enable airgapped policy",
+    "Disable online adapter",
+    "Run self-test",
+    "Run release gate"
+  ]
+}

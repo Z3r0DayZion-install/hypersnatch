@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hypersnatch.com/schemas/hs-tear-bundle-1.schema.json",
+  "title": "HyperSnatch Tear Bundle v1",
+  "description": "Runtime cartridge bundle containing app, assets, and manifest",
+  "type": "object",
+  "required": [
+    "format",
+    "schemaVersion",
+    "app",
+    "appVersion",
+    "manifest",
+    "digest"
+  ],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "hs-tear-bundle-1",
+      "description": "Bundle format identifier"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version number"
+    },
+    "app": {
+      "type": "string",
+      "const": "HyperSnatch",
+      "description": "Application identifier"
+    },
+    "appVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Application version (semantic versioning)"
+    },
+    "manifest": {
+      "type": "object",
+      "description": "Runtime manifest containing bundle metadata",
+      "required": [
+        "name",
+        "description",
+        "version",
+        "permissions"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Bundle display name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Bundle description"
+        },
+        "version": {
+          "type": "string",
+          "description": "Bundle version"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Required permissions"
+        },
+        "author": {
+          "type": "string",
+          "description": "Bundle author"
+        },
+        "homepage": {
+          "type": "string",
+          "format": "uri",
+          "description": "Bundle homepage URL"
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "description": "Array of bundled assets",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "path",
+          "type",
+          "digest"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Asset name"
+          },
+          "path": {
+            "type": "string",
+            "description": "Relative path within bundle"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["script", "style", "image", "data", "config"],
+            "description": "Asset type"
+          },
+          "digest": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$",
+            "description": "SHA-256 digest of asset content"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Asset size in bytes"
+          }
+        }
+      }
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$",
+      "description": "SHA-256 digest of entire bundle"
+    },
+    "signature": {
+      "type": "object",
+      "description": "Optional ECDSA signature",
+      "required": [
+        "algorithm",
+        "publicKey",
+        "signature"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "ECDSA-SHA256",
+          "description": "Signature algorithm"
+        },
+        "publicKey": {
+          "type": "string",
+          "description": "Base64 encoded public key"
+        },
+        "signature": {
+          "type": "string",
+          "description": "Base64 encoded signature"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Signature timestamp"
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Bundle creation timestamp"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Bundle expiration timestamp"
+    }
+  },
+  "additionalProperties": false
+}
