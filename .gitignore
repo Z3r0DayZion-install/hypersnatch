@@ -1,8 +1,11 @@
 node_modules/
 dist/
 dist_test/
+RELEASE_EVIDENCE/
 PROOF_PACK/
 PROOF_PACK_FINAL/
+*.exe
+*.zip
 *.log
 *.tmp
 .DS_Store
