@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -44,6 +44,8 @@
     "files": [
       "src/main.js",
       "src/preload.js",
+      "src/security-crypto.js",
+      "src/dompurify.js",
       "hypersnatch.html",
       "package.json"
     ],

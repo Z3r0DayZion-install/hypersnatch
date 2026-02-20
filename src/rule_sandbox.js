@@ -121,7 +121,16 @@ const RuleSandbox = {
     
     // Create temporary DOM for testing
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = test.html;
+    tempDiv.textContent = '';
+    
+    // Parse HTML safely using DOMParser
+    const parser = new DOMParser();
+    const parsedDoc = parser.parseFromString(test.html, 'text/html');
+    
+    // Move parsed content to tempDiv
+    while (parsedDoc.body.firstChild) {
+      tempDiv.appendChild(parsedDoc.body.firstChild);
+    }
     
     // Run extraction rules
     const extracted = this.extractFromDOM(tempDiv);
@@ -304,9 +313,13 @@ const RuleSandbox = {
     // Update test selector
     const testSelect = document.getElementById('ruleTestSelect');
     if (testSelect) {
-      testSelect.innerHTML = this.testVectors.map((test, index) => 
-        `<option value="${index}">${test.name}</option>`
-      ).join('');
+      testSelect.textContent = '';
+      this.testVectors.forEach((test, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = test.name;
+        testSelect.appendChild(option);
+      });
       testSelect.value = this.currentTestIndex;
     }
     
@@ -320,18 +333,37 @@ const RuleSandbox = {
     const resultsArea = document.getElementById('ruleTestResults');
     if (resultsArea) {
       const statusClass = results.passed ? 'test-passed' : 'test-failed';
-      resultsArea.innerHTML = `
-        <div class="test-status ${statusClass}">
-          <h4>${results.passed ? '✅ PASSED' : '❌ FAILED'}</h4>
-          <div class="test-summary">
-            <div>Extracted: ${extracted.length} items</div>
-            <div>Expected: ${test.expected ? test.expected.items.length : 0} items</div>
-            <div>Matches: ${results.matches.length}</div>
-            <div>Missing: ${results.missing.length}</div>
-            <div>Extra: ${results.extra.length}</div>
-          </div>
-        </div>
-      `;
+      resultsArea.textContent = '';
+      
+      const statusDiv = document.createElement('div');
+      statusDiv.className = `test-status ${statusClass}`;
+      
+      const title = document.createElement('h4');
+      title.textContent = results.passed ? '✅ PASSED' : '❌ FAILED';
+      statusDiv.appendChild(title);
+      
+      const summaryDiv = document.createElement('div');
+      summaryDiv.className = 'test-summary';
+      
+      const expectedDiv = document.createElement('div');
+      expectedDiv.textContent = `Expected: ${test.expected ? test.expected.items.length : 0} items`;
+      summaryDiv.appendChild(expectedDiv);
+      
+      const matchesDiv = document.createElement('div');
+      matchesDiv.textContent = `Matches: ${results.matches.length}`;
+      summaryDiv.appendChild(matchesDiv);
+      
+      const missingDiv = document.createElement('div');
+      missingDiv.textContent = `Missing: ${results.missing.length}`;
+      summaryDiv.appendChild(missingDiv);
+      
+      const extraDiv = document.createElement('div');
+      extraDiv.textContent = `Extra: ${results.extra.length}`;
+      summaryDiv.appendChild(extraDiv);
+      
+      statusDiv.appendChild(summaryDiv);
+      
+      resultsArea.appendChild(statusDiv);
     }
   },
   

@@ -322,10 +322,21 @@ const NotificationSystem = {
       show: (message, type = 'info', duration = 5000) => {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-          <div class="notification-content">${message}</div>
-          <button class="notification-close" onclick="this.parentElement.remove()">×</button>
-        `;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'notification-content';
+        contentDiv.textContent = message;
+        notification.appendChild(contentDiv);
+        
+        const closeButton = document.createElement('button');
+        closeButton.className = 'notification-close';
+        closeButton.textContent = '×';
+        closeButton.addEventListener('click', () => {
+          if (notification.parentElement) {
+            notification.parentElement.removeChild(notification);
+          }
+        });
+        notification.appendChild(closeButton);
         
         container.appendChild(notification);
         notifications.push(notification);

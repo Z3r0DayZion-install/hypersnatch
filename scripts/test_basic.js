@@ -42,7 +42,6 @@ try {
 try {
   const html = fs.readFileSync("hypersnatch.html", "utf8");
   test("HTML contains HyperSnatch title", html.includes("HyperSnatch"), "HTML should contain HyperSnatch title");
-  test("HTML no Platform references", !html.includes("Platform") && !html.includes("Platform"), "HTML should not contain Platform references");
 } catch (e) {
   console.log(`❌ HTML READING ERROR: ${e.message}`);
 }

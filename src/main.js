@@ -4,6 +4,7 @@
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const secureCrypto = require('./security-crypto');
 
 // ==================== CONSTANTS ====================
 const APP_NAME = 'HyperSnatch';
@@ -42,6 +43,10 @@ function logSecurityEvent(event, details = {}) {
 function enforceSecurityPolicy(window, url) {
   // Check allowlist
   try {
+    const allowlistPath = path.resolve(ALLOWLIST_FILE);
+    if (!allowlistPath.startsWith(process.cwd())) {
+      throw new Error('Invalid allowlist path');
+    }
     const allowlist = JSON.parse(fs.readFileSync(ALLOWLIST_FILE, 'utf8'));
     const urlObj = new URL(url);
     
@@ -84,7 +89,11 @@ ipcMain.handle('get-security-events', () => {
 ipcMain.handle('clear-security-events', () => {
   securityEvents = [];
   try {
-    fs.writeFileSync(path.join(LOGS_DIR, 'security.log'), '');
+    const logPath = path.resolve(path.join(LOGS_DIR, 'security.log'));
+    if (!logPath.startsWith(process.cwd())) {
+      throw new Error('Invalid log path');
+    }
+    fs.writeFileSync(logPath, '');
   } catch (error) {
     logSecurityEvent('LOG_CLEAR_ERROR', { error: error.message });
   }
@@ -106,6 +115,11 @@ ipcMain.handle('import-evidence', async (event, evidenceData) => {
     // Create evidence file with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const evidenceFile = path.join(EVIDENCE_DIR, `imported-${timestamp}.json`);
+    const evidencePath = path.resolve(evidenceFile);
+    
+    if (!evidencePath.startsWith(process.cwd())) {
+      throw new Error('Invalid evidence path');
+    }
     
     fs.writeFileSync(evidenceFile, JSON.stringify(evidenceData, null, 2));
     
@@ -155,7 +169,11 @@ function createDefaultConfig() {
   };
   
   try {
-    fs.writeFileSync(POLICY_FILE, JSON.stringify(defaultConfig, null, 2));
+    const policyPath = path.resolve(POLICY_FILE);
+    if (!policyPath.startsWith(process.cwd())) {
+      throw new Error('Invalid policy path');
+    }
+    fs.writeFileSync(policyPath, JSON.stringify(defaultConfig, null, 2));
     logSecurityEvent('DEFAULT_CONFIG_CREATED', { file: POLICY_FILE });
   } catch (error) {
     logSecurityEvent('CONFIG_CREATE_ERROR', { error: error.message });

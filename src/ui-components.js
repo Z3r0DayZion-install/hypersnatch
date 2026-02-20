@@ -9,19 +9,40 @@ const ModalComponents = {
   createModal(options = {}) {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>${options.title || 'Modal'}</h3>
-          <button class="modal-close" onclick="this.parentElement.parentElement.remove()">×</button>
-        </div>
-        <div class="modal-body">
-          ${options.content || ''}
-        </div>
-        ${options.footer ? `<div class="modal-footer">${options.footer}</div>` : ''}
-      </div>
-    </div>
-    `;
+    modal.textContent = '';
+    
+    // Create safe HTML structure
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    
+    const modalHeader = document.createElement('div');
+    modalHeader.className = 'modal-header';
+    
+    const title = document.createElement('h3');
+    title.textContent = options.title || 'Modal';
+    modalHeader.appendChild(title);
+    
+    const closeButton = document.createElement('button');
+    closeButton.className = 'modal-close';
+    closeButton.textContent = '×';
+    closeButton.addEventListener('click', () => modal.remove());
+    modalHeader.appendChild(closeButton);
+    
+    const modalBody = document.createElement('div');
+    modalBody.className = 'modal-body';
+    modalBody.textContent = options.content || '';
+    
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    
+    if (options.footer) {
+      const modalFooter = document.createElement('div');
+      modalFooter.className = 'modal-footer';
+      modalFooter.textContent = options.footer;
+      modalContent.appendChild(modalFooter);
+    }
+    
+    modal.appendChild(modalContent);
 
     // Add styles
     const style = document.createElement('style');
@@ -306,7 +327,7 @@ const TableComponents = {
     });
 
     // Clear and re-append sorted rows
-    tbody.innerHTML = '';
+    tbody.textContent = '';
     rows.forEach(row => tbody.appendChild(row));
   },
 
@@ -319,7 +340,7 @@ const TableComponents = {
 
     // Update table
     const tbody = container.querySelector('tbody');
-    tbody.innerHTML = '';
+    tbody.textContent = '';
     pageData.forEach(row => {
       const tr = document.createElement('tr');
       Object.values(row).forEach(cell => {
