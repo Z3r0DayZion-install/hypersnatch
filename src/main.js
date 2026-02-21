@@ -223,6 +223,7 @@ function getRendererPath() {
 // ==================== MAIN APP ====================
 app.whenReady().then(() => {
   logSecurityEvent('APP_READY', { version: APP_VERSION });
+  log.info("SYSTEM_BOOTSTRAP_COMPLETE", { version: APP_VERSION });
 
   // Create runtime directories
   createRuntimeDirectories();
