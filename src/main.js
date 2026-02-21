@@ -7,10 +7,19 @@ const fs = require('fs');
 const secureCrypto = require('./security-crypto');
 const log = require('./utils/logger');
 
+// Security: Handle security events and crashes globally during bootstrap
+process.on("uncaughtException", (err) => {
+  log.error("UNCAUGHT_EXCEPTION", { message: err.message, stack: err.stack });
+});
+
+process.on("unhandledRejection", (reason) => {
+  log.error("UNHANDLED_REJECTION", { reason });
+});
+
 // Disable console logging in production
-if (process.env.NODE_ENV === "production") {
-  console.log = () => {};
-  console.warn = () => {};
+if (process.env.NODE_ENV === "production" || app.isPackaged) {
+  console.log = () => { };
+  console.warn = () => { };
 }
 
 // ==================== CONSTANTS ====================
@@ -41,10 +50,12 @@ let securityEvents = [];
 function logSecurityEvent(event, details = {}) {
   const timestamp = new Date().toISOString();
   securityEvents.push({ timestamp, event, ...details });
-  
-  // Also log to file
+
+  // Also log to file asynchronously
   const logEntry = `[${timestamp}] SECURITY: ${event} - ${JSON.stringify(details)}\n`;
-  fs.appendFileSync(path.join(LOGS_DIR, 'security.log'), logEntry);
+  fs.appendFile(path.join(LOGS_DIR, 'security.log'), logEntry, (err) => {
+    if (err) console.error('Failed to write security event', err);
+  });
 }
 
 function enforceSecurityPolicy(window, url) {
@@ -56,12 +67,12 @@ function enforceSecurityPolicy(window, url) {
     }
     const allowlist = JSON.parse(fs.readFileSync(ALLOWLIST_FILE, 'utf8'));
     const urlObj = new URL(url);
-    
+
     if (!allowlist.allowedHosts.includes(urlObj.hostname)) {
       logSecurityEvent('BLOCKED_URL', { url, reason: 'Host not in allowlist' });
       return { allowed: false, reason: 'Host not in allowlist' };
     }
-    
+
     logSecurityEvent('ALLOWED_URL', { url, reason: 'Host in allowlist' });
     return { allowed: true };
   } catch (error) {
@@ -118,23 +129,23 @@ ipcMain.handle('import-evidence', async (event, evidenceData) => {
       event.reply({ success: false, error: 'Invalid evidence data' });
       return;
     }
-    
+
     // Create evidence file with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const evidenceFile = path.join(EVIDENCE_DIR, `imported-${timestamp}.json`);
     const evidencePath = path.resolve(evidenceFile);
-    
+
     if (!evidencePath.startsWith(process.cwd())) {
       throw new Error('Invalid evidence path');
     }
-    
+
     fs.writeFileSync(evidenceFile, JSON.stringify(evidenceData, null, 2));
-    
-    logSecurityEvent('EVIDENCE_IMPORTED', { 
+
+    logSecurityEvent('EVIDENCE_IMPORTED', {
       file: evidenceFile,
-      size: JSON.stringify(evidenceData).length 
+      size: JSON.stringify(evidenceData).length
     });
-    
+
     event.reply({ success: true, file: evidenceFile });
   } catch (error) {
     logSecurityEvent('EVIDENCE_IMPORT_ERROR', { error: error.message });
@@ -149,7 +160,7 @@ ipcMain.on('log-message', (event, { level, message, meta }) => {
 // ==================== APP LIFECYCLE ====================
 function createRuntimeDirectories() {
   const dirs = [RUNTIME_DIR, LOGS_DIR, EVIDENCE_DIR, EXPORTS_DIR, CONFIG_DIR];
-  
+
   dirs.forEach(dir => {
     try {
       if (!fs.existsSync(dir)) {
@@ -170,15 +181,15 @@ function createDefaultConfig() {
     allowedPorts: [3000, 8000, 8080, 3001],
     allowedContentTypes: [
       'text/html',
-      'application/json', 
+      'application/json',
       'text/plain'
     ],
     premiumMarkers: [
-      'subscribe', 'premium', 'login', 'paywall', 'purchase', 
+      'subscribe', 'premium', 'login', 'paywall', 'purchase',
       'access denied', 'subscription', 'upgrade', 'payment'
     ]
   };
-  
+
   try {
     const policyPath = path.resolve(POLICY_FILE);
     if (!policyPath.startsWith(process.cwd())) {
@@ -196,15 +207,15 @@ function getRendererPath() {
   if (process.env.NODE_ENV === 'development') {
     return path.join(__dirname, '..', 'hypersnatch.html');
   }
-  
+
   // Packaged mode - look for app.asar
   const appPath = app.getAppPath();
   const asarPath = path.join(appPath, 'app.asar');
-  
+
   if (fs.existsSync(asarPath)) {
     return path.join(asarPath, 'hypersnatch.html');
   }
-  
+
   // Fallback to development path
   return path.join(__dirname, '..', 'hypersnatch.html');
 }
@@ -212,24 +223,24 @@ function getRendererPath() {
 // ==================== MAIN APP ====================
 app.whenReady().then(() => {
   logSecurityEvent('APP_READY', { version: APP_VERSION });
-  
+
   // Create runtime directories
   createRuntimeDirectories();
-  
+
   // Create default config if doesn't exist
   if (!fs.existsSync(POLICY_FILE)) {
     createDefaultConfig();
   }
-  
+
   // Security: Prevent multiple instances
   const gotTheLock = app.requestSingleInstanceLock();
-  
+
   if (!gotTheLock) {
     logSecurityEvent('SINGLE_INSTANCE_ENFORCED');
     app.quit();
     return;
   }
-  
+
   // Create main window with hardened security
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -248,7 +259,7 @@ app.whenReady().then(() => {
     },
     icon: path.join(__dirname, 'assets', 'icon.ico')
   });
-  
+
   // Security: Set window open handler after window creation
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -257,58 +268,48 @@ app.whenReady().then(() => {
     }
     return { action: 'allow' };
   });
-  
+
   // Security: Log window creation
-  logSecurityEvent('WINDOW_CREATED', { 
+  logSecurityEvent('WINDOW_CREATED', {
     securityConfig: SECURITY_CONFIG,
     rendererPath: mainWindow.webContents.executeJavaScript(`window.rendererPath = '${getRendererPath().replace(/\\/g, '\\\\')}'`)
   });
-  
+
   // Load the app
   mainWindow.loadFile(getRendererPath());
-  
+
   // Security: Handle window closed
   mainWindow.on('closed', () => {
     logSecurityEvent('WINDOW_CLOSED');
   });
-  
+
   // Security: Handle certificate errors
   mainWindow.webContents.on('certificate-error', (event, url, error) => {
     logSecurityEvent('CERTIFICATE_ERROR', { url, error: error.message });
   });
-  
+
   // Security: Handle console messages
   mainWindow.webContents.on('console-message', (event, level, message) => {
     if (level === 'error') {
       logSecurityEvent('RENDERER_ERROR', { message });
     }
   });
-  
+
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     logSecurityEvent('WINDOW_SHOWN');
   });
-  
+
   // Security: Handle unresponsive
   mainWindow.on('unresponsive', () => {
     logSecurityEvent('WINDOW_UNRESPONSIVE');
   });
-  
+
   // Security: Handle crashed
   mainWindow.webContents.on('crashed', (event, killed) => {
     logSecurityEvent('WINDOW_CRASHED', { killed });
   });
 });
-
-// Security: Handle security events
-process.on("uncaughtException", (err) => {
-  log.error("UNCAUGHT_EXCEPTION", { message: err.message, stack: err.stack });
-});
-
-process.on("unhandledRejection", (reason) => {
-  log.error("UNHANDLED_REJECTION", { reason });
-});
-
 module.exports = {
   app,
   BrowserWindow,
