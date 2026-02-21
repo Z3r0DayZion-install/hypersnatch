@@ -1,9 +1,12 @@
 node_modules/
 dist/
 dist_test/
+out/
+build/
 RELEASE_EVIDENCE/
 PROOF_PACK/
 PROOF_PACK_FINAL/
+release_handoff/**/*.zip
 *.exe
 *.zip
 *.log
