@@ -46,6 +46,8 @@
       "src/preload.js",
       "src/security-crypto.js",
       "src/dompurify.js",
+      "src/main/utils/logger.js",
+      "core/",
       "hypersnatch.html",
       "package.json"
     ],

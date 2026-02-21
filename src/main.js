@@ -5,10 +5,17 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const secureCrypto = require('./security-crypto');
+const log = require('./utils/logger');
+
+// Disable console logging in production
+if (process.env.NODE_ENV === "production") {
+  console.log = () => {};
+  console.warn = () => {};
+}
 
 // ==================== CONSTANTS ====================
 const APP_NAME = 'HyperSnatch';
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 
 // Security: Hardened defaults
 const SECURITY_CONFIG = {
@@ -133,6 +140,10 @@ ipcMain.handle('import-evidence', async (event, evidenceData) => {
     logSecurityEvent('EVIDENCE_IMPORT_ERROR', { error: error.message });
     event.reply({ success: false, error: error.message });
   }
+});
+
+ipcMain.on('log-message', (event, { level, message, meta }) => {
+  log[level.toLowerCase()](message, meta);
 });
 
 // ==================== APP LIFECYCLE ====================
@@ -290,12 +301,12 @@ app.whenReady().then(() => {
 });
 
 // Security: Handle security events
-process.on('uncaughtException', (error) => {
-  logSecurityEvent('UNCAUGHT_EXCEPTION', { error: error.message, stack: error.stack });
+process.on("uncaughtException", (err) => {
+  log.error("UNCAUGHT_EXCEPTION", { message: err.message, stack: err.stack });
 });
 
-process.on('unhandledRejection', (reason) => {
-  logSecurityEvent('UNHANDLED_REJECTION', { reason });
+process.on("unhandledRejection", (reason) => {
+  log.error("UNHANDLED_REJECTION", { reason });
 });
 
 module.exports = {
