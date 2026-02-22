@@ -4,6 +4,8 @@
  * High-performance regex-based AST-lite analysis. No live execution.
  */
 
+"use strict";
+
 const ScriptTracer = {
     // Patterns for variable assignments and simple transformations
     PATTERNS: {
@@ -89,11 +91,29 @@ const ScriptTracer = {
         try {
             if (func === 'atob') return typeof atob === 'function' ? atob(val) : Buffer.from(val, 'base64').toString('binary');
             if (func === 'decodeURIComponent') return decodeURIComponent(val);
-            if (func === 'unescape') return unescape(val);
+            if (func === 'unescape') return this._safeUnescape(val);
         } catch (e) {
             return null;
         }
         return null;
+    },
+
+    /**
+     * Safe replacement for the deprecated unescape() function.
+     * Handles %XX percent-encoded sequences for latin1/ASCII ranges.
+     * Unlike unescape(), this never crashes on malformed input.
+     */
+    _safeUnescape(str) {
+        if (!str || typeof str !== 'string') return str;
+        try {
+            // decodeURIComponent handles UTF-8 encoded %XX sequences
+            return decodeURIComponent(str.replace(/\+/g, ' '));
+        } catch (_) {
+            // Fallback: manually decode each %HH pair as latin1
+            return str.replace(/%([0-9A-Fa-f]{2})/g, (_, hex) =>
+                String.fromCharCode(parseInt(hex, 16))
+            );
+        }
     }
 };
 

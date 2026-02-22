@@ -11,11 +11,20 @@ function getLogPath() {
 }
 
 function write(level, message, meta = {}) {
+  const { redact } = require("./crash-logger");
+
+  let safeMeta = meta;
+  if (meta && typeof meta === "object") {
+    try {
+      safeMeta = JSON.parse(redact(JSON.stringify(meta)));
+    } catch (e) { }
+  }
+
   const entry = {
     timestamp: new Date().toISOString(),
     level,
-    message,
-    meta
+    message: String(message).includes("[object") ? message : redact(message),
+    meta: safeMeta
   };
 
   fs.appendFile(getLogPath(), JSON.stringify(entry) + "\n", (err) => {

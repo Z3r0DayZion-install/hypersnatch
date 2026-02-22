@@ -17,8 +17,15 @@ const Ranker = {
         const ranked = candidates.map(c => {
             let score = c.confidence || 0.5;
 
+            try {
+                c.host = new URL(c.url).hostname || "";
+            } catch (e) {
+                c.host = "";
+                score = 0; // Deterministically demote malformed URLs
+            }
+
             // 1. Type Boosts
-            if (c.type === 'hls') score += 0.2; // Master playlists are gold
+            if (c.type === 'hls' || c.type === 'm3u8') score += 0.2; // Master playlists are gold
             if (c.type === 'hls_variant') score += 0.15;
             if (c.type === 'mp4') score += 0.1;
 
@@ -40,7 +47,11 @@ const Ranker = {
             if (c.sourceLayer === 'unpacker_result') score += 0.05;
 
             // Final normalization
-            c.finalScore = Math.min(1, score);
+            if (c.host === "") {
+                c.finalScore = 0;
+            } else {
+                c.finalScore = Math.min(1, score);
+            }
             return c;
         });
 

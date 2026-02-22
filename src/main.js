@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const secureCrypto = require('./security-crypto');
 const log = require('./utils/logger');
+const licenseValidator = require('./core/security/license_validator');
 
 // Security: Handle security events and crashes globally during bootstrap
 process.on("uncaughtException", (err) => {
@@ -98,6 +99,93 @@ ipcMain.handle('open-logs-folder', () => {
 
 ipcMain.handle('open-evidence-folder', () => {
   shell.openPath(EVIDENCE_DIR);
+});
+
+ipcMain.handle('export-security-report', async (event) => {
+  try {
+    const reportPath = path.join(app.getPath("desktop"), "hyperSnatch_report.json");
+
+    // Read bridge.runtime.json
+    let bridgeAuth = { error: "Not spawned yet" };
+    try {
+      const bridgePath = path.join(process.cwd(), "bridge.runtime.json");
+      if (fs.existsSync(bridgePath)) {
+        bridgeAuth = JSON.parse(fs.readFileSync(bridgePath, "utf8"));
+        bridgeAuth.token = "[REDACTED]";
+      }
+    } catch (e) { }
+
+    // Check Authenticode (Windows only)
+    let authenticodeState = "Skipped (Not Windows)";
+    if (process.platform === "win32" && app.isPackaged) {
+      try {
+        const cp = require("child_process");
+        const pePath = process.execPath;
+        const psCmd = `powershell -NoProfile -Command "$sig = Get-AuthenticodeSignature -FilePath '${pePath}'; if ($sig.Status -eq 'NotSigned' -or -not $sig.SignerCertificate) { exit 1 }; if (-not $sig.TimeStamperCertificate) { exit 2 }; exit 0"`;
+        cp.execSync(psCmd);
+        authenticodeState = "Valid & RFC 3161 Timestamped";
+      } catch (e) {
+        authenticodeState = e.status === 1 ? "Missing Signature" : "Missing Timestamp";
+      }
+    } else if (process.platform === "win32") {
+      authenticodeState = "Skipped (Running from Source)";
+    }
+
+    const report = {
+      product: "HyperSnatch",
+      version: APP_VERSION,
+      platform: process.platform,
+      arch: process.arch,
+      securityConfig: SECURITY_CONFIG,
+      bridgeAuth,
+      authenticodeState,
+      timestamp: new Date().toISOString()
+    };
+
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: "Export Security Report",
+      defaultPath: reportPath,
+      filters: [{ name: "JSON Report", extensions: ["json"] }]
+    });
+
+    if (canceled || !filePath) return false;
+
+    fs.writeFileSync(filePath, JSON.stringify(report, null, 2), "utf8");
+    return true;
+  } catch (err) {
+    log.error("EXPORT_REPORT_ERROR", { err: err.message });
+    return false;
+  }
+});
+
+ipcMain.handle('validate-license', async (event) => {
+  try {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: 'Select HyperSnatch License File',
+      filters: [{ name: 'JSON License', extensions: ['json'] }],
+      properties: ['openFile']
+    });
+
+    if (canceled || filePaths.length === 0) {
+      return { canceled: true };
+    }
+
+    const licensePath = filePaths[0];
+    const result = licenseValidator.validateLicenseFile(licensePath);
+
+    // In a real app we'd copy this to CONFIG_DIR so it persists. For the demo, we just validate it.
+    if (result.valid) {
+      const storedLicense = path.join(CONFIG_DIR, 'license.json');
+      fs.copyFileSync(licensePath, storedLicense);
+      log.info("LICENSE_ACTIVATED", { edition: result.edition });
+    }
+
+    return result;
+
+  } catch (error) {
+    log.error("LICENSE_IMPORT_ERROR", { message: error.message });
+    return { valid: false, reason: "Internal error processing license" };
+  }
 });
 
 ipcMain.handle('get-security-events', () => {
@@ -224,6 +312,13 @@ function getRendererPath() {
 app.whenReady().then(() => {
   logSecurityEvent('APP_READY', { version: APP_VERSION });
   log.info("SYSTEM_BOOTSTRAP_COMPLETE", { version: APP_VERSION });
+
+  // HARD NETWORK LOCK: Cancel all http/https requests globally
+  const { session } = require('electron');
+  session.defaultSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
+    logSecurityEvent('NETWORK_BLOCK_TRIGGERED', { url: details.url });
+    callback({ cancel: true });
+  });
 
   // Create runtime directories
   createRuntimeDirectories();

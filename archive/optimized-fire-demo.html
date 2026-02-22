@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔥 HyperSnatch Optimized Fire Demo</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 25%, #fdc830 50%, #f37335 75%, #ff6b35 100%);
+            background-size: 400% 400%;
+            animation: fireGradient 15s ease infinite;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        @keyframes fireGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .fire-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-shadow: 0 0 10px #ff6b35, 0 0 20px #ff6b35, 0 0 30px #ff6b35;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .demo-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+        }
+        
+        .performance-section {
+            grid-column: span 2;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .url-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 14px;
+        }
+        
+        .fire-button {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(255, 107, 53, 0.75);
+        }
+        
+        .fire-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px 0 rgba(255, 107, 53, 0.9);
+        }
+        
+        .fire-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .batch-button {
+            background: linear-gradient(45deg, #8b5cf6, #7c3aed);
+        }
+        
+        .results {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .result-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ff6b35;
+        }
+        
+        .success {
+            border-left-color: #10b981;
+        }
+        
+        .error {
+            border-left-color: #ef4444;
+        }
+        
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .metric-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f7931e;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .fire-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background: #ff6b35;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(30px);
+        }
+        
+        .batch-input {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 14px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        
+        .batch-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #f7931e);
+            transition: width 0.3s ease;
+        }
+        
+        .optimization-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #10b981;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="fire-title">🔥 HYPERSNATCH OPTIMIZED</h1>
+            <p class="subtitle">Performance Optimized • Error Handling • Caching • Batch Processing</p>
+        </div>
+        
+        <div class="demo-grid">
+            <!-- Single URL Decode -->
+            <div class="demo-section">
+                <h3>⚡ Optimized Single Decode</h3>
+                <div class="fire-mode-toggle">
+                    <label>Fire Mode:</label>
+                    <div class="toggle-switch" id="fireToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                    <span id="fireStatus">OFF</span>
+                </div>
+                
+                <div class="input-group">
+                    <input type="url" class="url-input" id="singleUrlInput" 
+                           placeholder="Enter URL to decode (e.g., https://www.mediafire.com/file/abc123/video.mp4)">
+                    <button class="fire-button" id="singleDecodeBtn" onclick="decodeSingle()">
+                        🔥 DECODE
+                    </button>
+                </div>
+                
+                <div class="results" id="singleResults"></div>
+            </div>
+            
+            <!-- Batch Processing -->
+            <div class="demo-section">
+                <h3>🚀 Batch Processing</h3>
+                <div class="fire-mode-toggle">
+                    <label>Caching:</label>
+                    <div class="toggle-switch active" id="cacheToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                    <span id="cacheStatus">ON</span>
+                </div>
+                
+                <textarea class="batch-input" id="batchInput" 
+                          placeholder="Enter multiple URLs (one per line):
+https://www.mediafire.com/file/abc123/video.mp4
+https://mega.nz/file/xyz789#key123
+https://www.dropbox.com/s/def456/document.pdf"></textarea>
+                
+                <div class="input-group">
+                    <button class="fire-button batch-button" id="batchDecodeBtn" onclick="decodeBatch()">
+                        🚀 BATCH DECODE
+                    </button>
+                    <button class="fire-button" onclick="clearBatch()">
+                        🗑️ CLEAR
+                    </button>
+                </div>
+                
+                <div class="progress-bar" id="batchProgress" style="display: none;">
+                    <div class="progress-fill" id="batchProgressFill"></div>
+                </div>
+                
+                <div class="results" id="batchResults"></div>
+            </div>
+        </div>
+        
+        <!-- Performance Metrics -->
+        <div class="demo-section performance-section">
+            <h3>📊 Performance Metrics & Optimization</h3>
+            <div class="performance-metrics">
+                <div class="metric-card">
+                    <div class="metric-number" id="totalDecodes">0</div>
+                    <div class="metric-label">Total Decodes</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number" id="avgResponseTime">0ms</div>
+                    <div class="metric-label">Avg Response Time</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number" id="cacheHitRate">0%</div>
+                    <div class="metric-label">Cache Hit Rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number" id="successRate">0%</div>
+                    <div class="metric-label">Success Rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number" id="errorCount">0</div>
+                    <div class="metric-label">Errors Handled</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number" id="optimizationScore">0</div>
+                    <div class="metric-label">Optimization Score</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Performance monitoring
+        let fireMode = false;
+        let cachingEnabled = true;
+        let cache = new Map();
+        let metrics = {
+            totalDecodes: 0,
+            totalTime: 0,
+            cacheHits: 0,
+            cacheMisses: 0,
+            successes: 0,
+            errors: 0
+        };
+        
+        // Mock optimized decode function
+        async function optimizedDecode(url, options = {}) {
+            const startTime = performance.now();
+            const cacheKey = `${url}:${JSON.stringify(options)}`;
+            
+            // Check cache
+            if (cachingEnabled && cache.has(cacheKey)) {
+                metrics.cacheHits++;
+                return cache.get(cacheKey);
+            }
+            
+            metrics.cacheMisses++;
+            
+            // Simulate optimized decode
+            await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100));
+            
+            const patterns = {
+                'mediafire.com': { confidence: 0.95, category: 'direct-download' },
+                'mega.nz': { confidence: 0.90, category: 'cloud-storage' },
+                'dropbox.com': { confidence: 0.88, category: 'cloud-storage' },
+                'drive.google.com': { confidence: 0.92, category: 'cloud-storage' }
+            };
+            
+            let result = {
+                success: false,
+                url: '',
+                confidence: 0,
+                category: 'unknown',
+                method: 'optimized-decode',
+                timestamp: new Date().toISOString(),
+                cached: false,
+                responseTime: 0
+            };
+            
+            for (const [domain, pattern] of Object.entries(patterns)) {
+                if (url.includes(domain)) {
+                    result = {
+                        success: true,
+                        url: `https://decoded-${domain}/${Date.now()}`,
+                        confidence: pattern.confidence + (fireMode ? 0.05 : 0),
+                        category: pattern.category,
+                        method: fireMode ? 'fire-optimized-decode' : 'optimized-decode',
+                        timestamp: new Date().toISOString(),
+                        cached: false,
+                        responseTime: 0
+                    };
+                    break;
+                }
+            }
+            
+            const responseTime = performance.now() - startTime;
+            result.responseTime = Math.round(responseTime);
+            
+            // Cache result
+            if (cachingEnabled && result.success && cache.size < 100) {
+                cache.set(cacheKey, { ...result, cached: true });
+            }
+            
+            return result;
+        }
+        
+        // Single URL decode
+        async function decodeSingle() {
+            const url = document.getElementById('singleUrlInput').value;
+            if (!url) {
+                alert('Please enter a URL to decode');
+                return;
+            }
+            
+            const btn = document.getElementById('singleDecodeBtn');
+            btn.disabled = true;
+            btn.innerHTML = '⚡ DECODING...';
+            
+            try {
+                const result = await optimizedDecode(url, { fireMode });
+                displaySingleResult(result);
+                updateMetrics(result);
+            } catch (error) {
+                displaySingleError(error);
+                metrics.errors++;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔥 DECODE';
+                updateMetricsDisplay();
+            }
+        }
+        
+        // Batch processing
+        async function decodeBatch() {
+            const input = document.getElementById('batchInput').value;
+            const urls = input.split('\n').filter(url => url.trim());
+            
+            if (urls.length === 0) {
+                alert('Please enter at least one URL');
+                return;
+            }
+            
+            const btn = document.getElementById('batchDecodeBtn');
+            btn.disabled = true;
+            btn.innerHTML = '🚀 PROCESSING...';
+            
+            const progressBar = document.getElementById('batchProgress');
+            const progressFill = document.getElementById('batchProgressFill');
+            progressBar.style.display = 'block';
+            
+            const results = [];
+            
+            for (let i = 0; i < urls.length; i++) {
+                try {
+                    const result = await optimizedDecode(urls[i], { fireMode });
+                    results.push(result);
+                    updateMetrics(result);
+                } catch (error) {
+                    results.push({ success: false, error: error.message, url: urls[i] });
+                    metrics.errors++;
+                }
+                
+                // Update progress
+                const progress = ((i + 1) / urls.length) * 100;
+                progressFill.style.width = `${progress}%`;
+                
+                // Allow UI to update
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+            
+            displayBatchResults(results);
+            
+            progressBar.style.display = 'none';
+            btn.disabled = false;
+            btn.innerHTML = '🚀 BATCH DECODE';
+            updateMetricsDisplay();
+        }
+        
+        function displaySingleResult(result) {
+            const resultsDiv = document.getElementById('singleResults');
+            const resultCard = document.createElement('div');
+            resultCard.className = `result-card ${result.success ? 'success' : 'error'}`;
+            
+            if (result.success) {
+                resultCard.innerHTML = `
+                    <h4>✅ Decode Successful ${result.cached ? '<span class="optimization-badge">CACHED</span>' : ''}</h4>
+                    <p><strong>URL:</strong> ${result.url}</p>
+                    <p><strong>Category:</strong> ${result.category}</p>
+                    <p><strong>Method:</strong> ${result.method}</p>
+                    <p><strong>Confidence:</strong> ${Math.round(result.confidence * 100)}%</p>
+                    <p><strong>Response Time:</strong> ${result.responseTime}ms</p>
+                `;
+            } else {
+                resultCard.innerHTML = `
+                    <h4>❌ Decode Failed</h4>
+                    <p>Unsupported URL pattern</p>
+                `;
+            }
+            
+            resultsDiv.insertBefore(resultCard, resultsDiv.firstChild);
+            
+            // Keep only last 5 results
+            while (resultsDiv.children.length > 5) {
+                resultsDiv.removeChild(resultsDiv.lastChild);
+            }
+        }
+        
+        function displaySingleError(error) {
+            const resultsDiv = document.getElementById('singleResults');
+            const resultCard = document.createElement('div');
+            resultCard.className = 'result-card error';
+            resultCard.innerHTML = `
+                <h4>❌ Decode Error</h4>
+                <p>${error.message || 'Unknown error occurred'}</p>
+            `;
+            resultsDiv.insertBefore(resultCard, resultsDiv.firstChild);
+        }
+        
+        function displayBatchResults(results) {
+            const resultsDiv = document.getElementById('batchResults');
+            resultsDiv.innerHTML = '';
+            
+            const summary = document.createElement('div');
+            summary.className = 'result-card success';
+            summary.innerHTML = `
+                <h4>🚀 Batch Processing Complete</h4>
+                <p><strong>Total URLs:</strong> ${results.length}</p>
+                <p><strong>Successful:</strong> ${results.filter(r => r.success).length}</p>
+                <p><strong>Failed:</strong> ${results.filter(r => !r.success).length}</p>
+                <p><strong>Avg Response Time:</strong> ${Math.round(results.reduce((sum, r) => sum + (r.responseTime || 0), 0) / results.length)}ms</p>
+            `;
+            resultsDiv.appendChild(summary);
+            
+            // Show first few results
+            results.slice(0, 5).forEach(result => {
+                const resultCard = document.createElement('div');
+                resultCard.className = `result-card ${result.success ? 'success' : 'error'}`;
+                
+                if (result.success) {
+                    resultCard.innerHTML = `
+                        <p><strong>✅ ${result.url}</strong> - ${result.responseTime}ms ${result.cached ? '(CACHED)' : ''}</p>
+                    `;
+                } else {
+                    resultCard.innerHTML = `
+                        <p><strong>❌ ${result.url}</strong> - Failed</p>
+                    `;
+                }
+                
+                resultsDiv.appendChild(resultCard);
+            });
+        }
+        
+        function updateMetrics(result) {
+            metrics.totalDecodes++;
+            metrics.totalTime += result.responseTime || 0;
+            
+            if (result.success) {
+                metrics.successes++;
+            } else {
+                metrics.errors++;
+            }
+        }
+        
+        function updateMetricsDisplay() {
+            document.getElementById('totalDecodes').textContent = metrics.totalDecodes;
+            document.getElementById('avgResponseTime').textContent = 
+                metrics.totalDecodes > 0 ? `${Math.round(metrics.totalTime / metrics.totalDecodes)}ms` : '0ms';
+            document.getElementById('cacheHitRate').textContent = 
+                (metrics.cacheHits + metrics.cacheMisses) > 0 ? 
+                `${Math.round((metrics.cacheHits / (metrics.cacheHits + metrics.cacheMisses)) * 100)}%` : '0%';
+            document.getElementById('successRate').textContent = 
+                metrics.totalDecodes > 0 ? `${Math.round((metrics.successes / metrics.totalDecodes) * 100)}%` : '0%';
+            document.getElementById('errorCount').textContent = metrics.errors;
+            
+            // Calculate optimization score
+            const cacheScore = (metrics.cacheHits / (metrics.cacheHits + metrics.cacheMisses)) * 50;
+            const speedScore = Math.max(0, (200 - (metrics.totalTime / metrics.totalDecodes)) / 200) * 30;
+            const successScore = (metrics.successes / metrics.totalDecodes) * 20;
+            const optimizationScore = Math.round(cacheScore + speedScore + successScore);
+            
+            document.getElementById('optimizationScore').textContent = optimizationScore;
+        }
+        
+        function clearBatch() {
+            document.getElementById('batchInput').value = '';
+            document.getElementById('batchResults').innerHTML = '';
+        }
+        
+        // Toggle handlers
+        document.getElementById('fireToggle').addEventListener('click', function() {
+            fireMode = !fireMode;
+            this.classList.toggle('active');
+            document.getElementById('fireStatus').textContent = fireMode ? '🔥 ON' : 'OFF';
+        });
+        
+        document.getElementById('cacheToggle').addEventListener('click', function() {
+            cachingEnabled = !cachingEnabled;
+            this.classList.toggle('active');
+            document.getElementById('cacheStatus').textContent = cachingEnabled ? 'ON' : 'OFF';
+        });
+        
+        // Auto-demo
+        setTimeout(() => {
+            document.getElementById('singleUrlInput').value = 'https://www.mediafire.com/file/abc123/video.mp4';
+            decodeSingle();
+        }, 2000);
+    </script>
+</body>
+</html>

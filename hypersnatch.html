@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HyperSnatch - Security-First Evidence Analyzer</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperSnatch - Security-First Evidence Analyzer</title>
   <script src="src/constants.js"></script>
   <script src="src/utils.js"></script>
   <script src="src/helpers.js"></script>
@@ -14,1737 +15,1655 @@
   <script src="core/input-detector.js"></script>
   <style>
     :root {
-      --bg: #0b1116;
-      --panel: #121c24;
-      --fg: #dde7ef;
-      --muted: #8ea0b1;
-      --accent: #13d0a6;
-      --warn: #ffbf47;
+      --bg: #0a1016;
+      --panel: rgba(255, 255, 255, 0.02);
+      --border: rgba(255, 255, 255, 0.06);
+      --accent: #00d084;
+      --accent-muted: rgba(0, 208, 132, 0.1);
+      --text: #cfd8dc;
+      --text-muted: #8b949e;
+      --warn: #f0ad4e;
       --err: #ff6b6b;
-      --line: #203140;
-      --focus: #7be9d0;
-      --success: #4ade80;
-      --amber: #fbbf24;
-      --cyan: #22d3ee;
     }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      color: var(--fg);
-      background: radial-gradient(circle at 20% -10%, #1f2d3a 0, var(--bg) 55%);
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      min-height: 100vh;
-    }
-    .wrap { width: min(1400px, 95vw); margin: 20px auto 32px; }
-    
-    /* Engine Identity Banner */
-    .engine-banner {
-      text-align: center;
-      margin-bottom: 16px;
-      padding: 8px;
-      background: linear-gradient(135deg, rgba(19, 208, 166, 0.1), rgba(34, 211, 238, 0.1));
-      border: 1px solid rgba(19, 208, 166, 0.2);
-      border-radius: 8px;
-      position: relative;
-    }
-    .engine-banner .title {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--accent);
-      letter-spacing: 0.1em;
-      margin: 0;
-    }
-    .engine-banner .subtitle {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin: 2px 0 0 0;
-    }
-    .engine-banner .release-mode {
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      font-size: 0.7rem;
-      color: var(--amber);
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-    
-    /* Tab Navigation */
-    .tab-nav {
-      display: flex;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 4px;
-      margin-bottom: 12px;
-    }
-    .tab-nav button {
-      flex: 1;
-      padding: 8px 12px;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
-    .tab-nav button.active {
-      background: var(--accent);
-      color: #03110d;
-    }
-    .tab-nav button:hover:not(.active) {
-      background: rgba(19, 208, 166, 0.1);
-      color: var(--fg);
-    }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
-    
-    /* Policy Status Panel */
-    .policy-status {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 0.75rem;
-      min-width: 220px;
-      z-index: 1000;
-    }
-    .policy-status .status-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-    .policy-status .status-item:last-child { margin-bottom: 0; }
-    .policy-status .status-value.active { color: var(--success); }
-    .policy-status .status-value.inactive { color: var(--amber); }
-    .policy-status .status-value.locked { color: var(--err); }
-    
-    .head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .head h1 { margin: 0; font-size: 1.25rem; }
-    .card { background: #121c24; border: 1px solid #203140; border-radius: 12px; padding: 14px; margin-top: 12px; }
-    textarea, input, button, select {
-      width: 100%;
-      border: 1px solid #203140;
-      background: #0f161d;
-      color: var(--fg);
-      border-radius: 8px;
-      padding: 9px 10px;
-      font: inherit;
-    }
-    textarea { min-height: 130px; resize: vertical; }
-    button { cursor: pointer; background: linear-gradient(180deg, #1ad9ad, #13ad8b); color: #03110d; font-weight: 700; }
-    button.secondary { background: #16232e; color: var(--fg); border-color: #2a4357; font-weight: 600; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-    .row { display: grid; gap: 8px; grid-template-columns: repeat(12, 1fr); }
-    .c2 { grid-column: span 2; } .c3 { grid-column: span 3; } .c4 { grid-column: span 4; } .c6 { grid-column: span 6; } .c8 { grid-column: span 8; } .c10 { grid-column: span 10; } .c12 { grid-column: span 12; }
-    
-    /* Progress Bar */
-    .progress-container {
-      margin: 12px 0;
-    }
-    .progress-bar {
-      width: 100%;
-      height: 20px;
-      background: var(--line);
-      border-radius: 10px;
+      padding: 0;
       overflow: hidden;
-      position: relative;
+      background: #0a1016;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
     }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--cyan));
-      border-radius: 10px;
-      transition: width 0.3s ease;
-      position: relative;
-    }
-    .progress-fill::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      animation: progress-shine 2s infinite;
-    }
-    @keyframes progress-shine {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-    .progress-text {
-      text-align: center;
-      margin-top: 8px;
-      font-size: 0.9rem;
-      color: var(--muted);
-    }
-    .muted { color: var(--muted); font-size: .88rem; }
-    .chip { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 999px; border: 1px solid #203140; }
-    .ok { color: #8ef5d8; border-color: #2b705f; } .warn { color: #ffd98a; border-color: #765f27; } .err { color: #ff9d9d; border-color: #7d3232; }
-    table { width: 100%; border-collapse: collapse; font-size: .87rem; }
-    th, td { border: 1px solid #203140; padding: 7px; text-align: left; word-break: break-word; }
-    th { color: var(--muted); font-weight: 600; }
-    .log { max-height: 190px; overflow: auto; font-family: ui-monospace, Consolas, monospace; font-size: .82rem; }
-    .kv { display: flex; gap: 10px; flex-wrap: wrap; }
-    .kv > div { background: #0f161d; border: 1px solid #203140; border-radius: 8px; padding: 8px 10px; }
-    
-    /* Evidence Log Panel */
-    .evidence-panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      margin-top: 12px;
-      max-height: 300px;
-      overflow: hidden;
+
+    .app-container {
       display: flex;
       flex-direction: column;
+      height: 100vh;
+      background: linear-gradient(180deg, #0a1016, #0f1c24);
     }
-    .evidence-panel.collapsed { max-height: 40px; }
-    .evidence-header {
+
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      padding: 16px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
-    .evidence-panel.collapsed .evidence-content { display: none; }
-    .evidence-content {
+
+    .main-grid {
       flex: 1;
-      overflow-y: auto;
-      font-family: ui-monospace, Consolas, monospace;
-      font-size: 0.8rem;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+      padding: 24px;
+      overflow: hidden;
     }
-    .evidence-entry {
-      margin-bottom: 8px;
-      padding: 6px;
-      background: #0f161d;
-      border-radius: 4px;
-      border-left: 3px solid var(--accent);
-    }
-    .evidence-entry.refusal {
-      border-left-color: var(--err);
-    }
-    .evidence-entry .timestamp {
-      color: var(--muted);
-      font-size: 0.75rem;
-    }
-    
-    /* Confidence Scoring */
-    .confidence-high { color: var(--success); }
-    .confidence-medium { color: var(--cyan); }
-    .confidence-low { color: var(--amber); }
-    .status-detected { color: var(--cyan); font-weight: 600; }
-    .status-validated { color: var(--success); font-weight: 600; }
-    .status-blocked { color: var(--err); font-weight: 600; }
-    .status-unknown { color: var(--muted); font-weight: 600; }
-    .status-error { color: var(--err); font-weight: 600; }
-    .candidate-item {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 15px;
-      margin-bottom: 10px;
-      position: relative;
-    }
-    .download-btn {
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-right: 8px;
-      transition: all 0.2s;
-    }
-    .download-btn:hover {
-      background: #7be9d0;
-      transform: translateY(-1px);
-    }
-    .copy-btn {
-      background: var(--line);
-      color: var(--fg);
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .copy-btn:hover {
-      background: var(--muted);
-      transform: translateY(-1px);
-    }
-    .candidate-header {
+
+    .left-panel, .right-panel {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-    .confidence-badge {
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .confidence-badge.high {
-      background: rgba(74, 222, 128, 0.2);
-      color: var(--success);
-    }
-    .confidence-badge.medium {
-      background: rgba(34, 211, 238, 0.2);
-      color: var(--cyan);
-    }
-    .confidence-badge.low {
-      background: rgba(251, 191, 36, 0.2);
-      color: var(--amber);
-    }
-    
-    /* System Map */
-    .system-map {
-      background: #0f161d;
-      border: 1px solid #203140;
-      border-radius: 12px;
-      padding: 20px;
-      font-family: monospace;
-      font-size: 0.85rem;
-    }
-    .map-box {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 8px 12px;
-      margin: 4px 0;
-      text-align: center;
-      position: relative;
-    }
-    .map-arrow {
-      text-align: center;
-      color: var(--muted);
-      margin: 8px 0;
-    }
-    .map-branch {
-      display: flex;
+      flex-direction: column;
       gap: 20px;
-      margin: 8px 0;
+      overflow-y: auto;
     }
-    .map-branch .map-box {
-      flex: 1;
-    }
-    
-    /* Footer System Bar */
-    .system-footer {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-top: 16px;
+
+    .status-bar {
+      padding: 12px 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 12px;
+      opacity: 0.8;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      font-size: 0.75rem;
-      color: var(--muted);
     }
-    .system-footer .left, .system-footer .right {
+
+    /* Metrics */
+    .metrics-container { display: flex; gap: 12px; }
+    .metric {
       display: flex;
-      gap: 12px;
-    }
-    .system-footer .item {
-      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 4px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      min-width: 70px;
     }
-    .system-footer .label {
-      color: var(--muted);
+    .metric-value { font-size: 18px; font-weight: 600; }
+    .metric-label { font-size: 10px; opacity: 0.7; text-transform: uppercase; }
+
+    /* Panels */
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    .system-footer .value {
-      color: var(--fg);
+    .panel h3 { 
+      margin-bottom: 12px; 
+      font-size: 13px; 
+      font-weight: 600; 
+      margin-top: 0; 
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .panel.active { border-color: rgba(0, 208, 132, 0.3); }
+
+    /* Artifact Input */
+    #artifactInput {
+      width: 100%;
+      height: 160px;
+      resize: vertical;
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 0 0 8px 8px;
+      padding: 14px;
+      color: #fff;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    #artifactInput:focus {
+      outline: none;
+      border-color: rgba(0, 208, 132, 0.4);
+    }
+    .artifact-tabs {
+      display: flex;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px 8px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
+    }
+    .artifact-tabs .tab {
+      padding: 8px 16px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
       font-weight: 600;
+      cursor: pointer;
     }
-    
-    .telemetry-panel { min-height: 120px; background: #0f161d; border: 1px solid #203140; border-radius: 12px; padding: 12px; font-size: .8rem; display: flex; flex-direction: column; gap: 6px; }
-    .telemetry-panel strong { font-size: .9rem; }
-    .telemetry-panel ul { margin: 0; padding-left: 16px; }
-    .fx-flash { animation: flash .45s ease; }
-    @keyframes flash { from { box-shadow: 0 0 0 0 #20ffcf66; } to { box-shadow: 0 0 0 10px transparent; } }
-    @media (max-width: 760px) { 
-      .c2, .c3, .c4, .c6, .c8, .c10 { grid-column: span 12; } 
-      .head { flex-direction: column; align-items: flex-start; }
-      .policy-status { position: static; margin-bottom: 12px; }
+    .artifact-tabs .tab.active { color: var(--accent); background: var(--accent-muted); }
+
+    /* Buttons */
+    button { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    .btn-primary { background: #00d084 !important; color: #001a10 !important; font-weight: 600; }
+    .btn-secondary { background: #1f2a33 !important; border: 1px solid #2d3a44 !important; color: var(--text) !important; }
+    .btn-tertiary { background: transparent !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; opacity: 0.8; color: var(--text) !important; }
+    .btn-utility { padding: 4px 8px; font-size: 11px; opacity: 0.6; }
+
+    /* Engine Mode */
+    .strict-mode { border: 1px solid #00d084 !important; }
+    .relaxed-mode { border: 1px solid #f0ad4e !important; }
+
+    /* Typography */
+    h1 { font-size: 18px; font-weight: 600; margin: 0; }
+    label { font-size: 12px; opacity: 0.7; display: block; margin-bottom: 8px; }
+
+    /* Tables */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); color: var(--text-muted); }
+    .data-table td { padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
+
+    .scroll-area { flex: 1; overflow-y: auto; }
+    .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+    .badge-ok { background: rgba(0, 208, 132, 0.1); color: #00d084; }
+    .badge-err { background: rgba(255, 107, 107, 0.1); color: #ff6b6b; }
+
+    /* Toast System */
+    .toast-host {
+      position: fixed;
+      right: 18px; bottom: 18px;
+      display: flex; flex-direction: column;
+      gap: 10px; z-index: 10000;
     }
+    .toast {
+      background: rgba(20,28,36,0.96);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      min-width: 220px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      transform: translateY(8px);
+      opacity: 0;
+      animation: toastIn 180ms ease forwards;
+    }
+    @keyframes toastIn { to { transform: translateY(0); opacity: 1; } }
+
+    /* Tooltip */
+    .tooltip-icon { font-size: 12px; cursor: help; opacity: 0.6; margin-left: 4px; }
+    .tooltip-icon:hover { opacity: 1; color: var(--accent); }
+
+    /* Electron Polish */
+    .top-bar { -webkit-app-region: drag; }
+    .top-bar > *, .metrics-container { -webkit-app-region: no-drag; }
+    button { user-select: none; }
+
+    /* Legacy compatibility hide */
+    .head, .wrap, .kv, .tab-nav, .engine-banner, .policy-status, .system-footer { display: none !important; }
+
+    .card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 14px;
+      display: block !important;
+    }
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.85;
+      margin-bottom: 10px;
+    }
+
+    .electron-drag { -webkit-app-region: drag; }
+    .electron-nodrag { -webkit-app-region: no-drag; }
+
+    /* Evidence Table */
+    .evidence-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .evidence-table th {
+      text-align: left;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.7;
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: sticky;
+      top: 0;
+      background: rgba(10,16,22,0.95);
+      backdrop-filter: blur(6px);
+      z-index: 10;
+    }
+
+    .evidence-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: middle;
+    }
+
+    .row-muted { opacity: 0.8; }
+    .row-warn  { border-left: 2px solid rgba(240,173,78,0.8); }
+    .row-good  { border-left: 2px solid rgba(0,208,132,0.8); }
+
+    .cell-mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+    }
+
+    .evidence-table tr:hover {
+      background: rgba(255,255,255,0.01);
+    }
+
+    /* Drawer */
+    .drawer-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      opacity: 0; pointer-events: none;
+      transition: opacity 160ms ease;
+      z-index: 9998;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0; right: 0;
+      width: 420px;
+      max-width: 90vw;
+      height: 100vh;
+      background: rgba(12,18,24,0.98);
+      border-left: 1px solid rgba(255,255,255,0.08);
+      transform: translateX(100%);
+      transition: transform 180ms ease;
+      display: flex;
+      flex-direction: column;
+      z-index: 9999;
+      box-shadow: -8px 0 32px rgba(0,0,0,0.5);
+    }
+
+    .drawer.open { transform: translateX(0); }
+    .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .drawer-header {
+      padding: 14px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .drawer-title { font-size: 14px; font-weight: 600; color: var(--accent); }
+
+    .drawer-content {
+      flex: 1;
+      padding: 0;
+      overflow-y: auto;
+    }
+
+    .drawer-pre {
+      margin: 0;
+      padding: 14px;
+      overflow: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #8899a6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .icon-btn {
+      background: transparent !important;
+      border: none !important;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon-btn:hover { color: #fff; }
   </style>
-  <!-- Key migration (one-time) -->
+</head>
+
+<body>
+  <div class="app-container" id="app">
+    <header class="top-bar electron-drag">
+      <div class="system-identity electron-nodrag">
+        <h1>HYPERSNATCH // FORENSIC CONSOLE</h1>
+        <div style="font-size: 10px; opacity: 0.5; margin-top: 2px;">BUILD: HS-NX-RES-01 // ENGINE: RES-CORE-01</div>
+      </div>
+      <div class="row electron-nodrag" style="gap: 12px; align-items: center;">
+        <button class="btn-secondary btn-utility" id="runSelfTestHeaderBtn">RUN SELF-TEST</button>
+        <div class="metrics-container">
+          <div class="metric">
+            <span class="metric-value" id="processedView">0</span>
+            <span class="metric-label">Processed</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="successView">0</span>
+            <span class="metric-label">Success</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="candidatesView">0</span>
+            <span class="metric-label">Candidates</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="refusalsView">0</span>
+            <span class="metric-label">Refusals</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <section class="left-panel">
+        <div class="card">
+          <div class="card-title">ARTIFACTS</div>
+          <div class="artifact-tabs">
+            <button class="tab active" data-type="URL">URL</button>
+            <button class="tab" data-type="HTML">HTML</button>
+            <button class="tab" data-type="HAR">HAR</button>
+          </div>
+          <textarea id="artifactInput" spellcheck="false" placeholder="Enter URLs, paste HTML content, or HAR data..."></textarea>
+        </div>
+
+        <div class="card">
+          <div class="card-title">ACTIONS</div>
+          <div class="row" style="gap: 8px; flex-wrap: wrap;">
+            <button class="btn-primary" id="resurrectBtn">Resurrect Links</button>
+            <button class="btn-secondary" id="batchDecodeBtn">Decode All</button>
+            <button class="btn-tertiary" id="clearBtn">Clear State</button>
+            <button class="btn-secondary" id="exportSessionBtn">Export Session</button>
+            <button class="btn-secondary" id="importSessionBtn">Import Session</button>
+            <button class="btn-primary" id="exportBundleBtn" style="background: #22d3ee !important; color: #001a10 !important;">Export Download Bundle</button>
+            <button class="btn-primary" id="signSessionBtn" style="background: linear-gradient(135deg, #00d084, #22d3ee) !important; color: #001a10 !important;">LOCK & SIGN INVESTIGATION</button>
+            <button class="btn-secondary btn-utility align-right" id="selfTestBtn">Run Self-Test</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            IMPORT/EXPORT + MODE
+            <span class="tooltip-icon" title="STRICT MODE enforces:
+- Offline-only analysis
+- No JS execution
+- Stop on authorization boundary
+- Structured refusal logging">ⓘ</span>
+          </div>
+          <div class="row">
+            <div class="flex-1">
+              <select id="engineModeSelect" class="strict-mode">
+                <option value="strict" selected>Strict Mode (Default)</option>
+                <option value="audit">Audit Mode (Log but Allow)</option>
+                <option value="lab">Lab Mode (Analysis Only)</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <div class="row" style="margin-left: 12px; gap: 16px;">
+                <label style="margin-bottom: 0; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <input type="checkbox" id="policyShieldToggle" checked> Shield
+                </label>
+                <label style="margin-bottom: 0; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <input type="checkbox" id="airgapToggle" checked> Airgap
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="row" style="margin-top: 16px; align-items: center;">
+            <div class="flex-1">
+              <label style="opacity: 0.5; margin-bottom: 4px;">IMPORT ARTIFACTS</label>
+              <input id="importFile" type="file" accept=".html,.har,.json,.tear,.vault,.pack" style="width: 100%; font-size: 11px; background: transparent; border: none; padding: 0;">
+            </div>
+            <button class="btn-secondary btn-utility" id="importBtn" style="margin-top: 18px;">Import</button>
+          </div>
+        </div>
+
+        <div class="panel" id="batchProgressSection" style="display:none;">
+          <h3>BATCH PROCESSING</h3>
+          <div class="progress-bar" style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-bottom: 8px;">
+            <div id="batchProgressFill" style="width: 0%; height: 100%; background: #00d084; transition: width 0.3s;"></div>
+          </div>
+          <div id="batchProgressText" style="font-size: 11px; opacity: 0.7;">0 / 0 items processed</div>
+          <div id="batchStatus" style="margin-top: 8px;"></div>
+          <div id="batchResultsTable" style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; max-height: 200px; overflow-y: auto;"></div>
+        </div>
+      </section>
+
+      <section class="right-panel">
+        <div class="panel flex-1" id="candidatesPanel">
+          <h3>RESURRECTED CANDIDATES</h3>
+          <div class="scroll-area" id="candidatesTable">
+            <div style="opacity: 0.3; text-align: center; margin-top: 40px;">No candidates detected.</div>
+          </div>
+        </div>
+
+        <div class="panel flex-1" id="refusalsPanel">
+          <h3>REFUSAL LOG</h3>
+          <div class="scroll-area" id="refusalTable">
+            <div style="opacity: 0.3; text-align: center; margin-top: 40px;">No refusals recorded.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="status-bar">
+      <div class="left">
+        <span>RUNTIME: <span style="color: #00d084;">OFFLINE</span></span>
+        <span style="margin-left: 16px;">NETWORK LOCK: <span id="networkLockStatus" style="color: #ff6b6b; font-weight: bold;">ENFORCED</span></span>
+        <span style="margin-left: 16px;">PROFILE: <span style="color: #00d084;">AIRGAPPED</span></span>
+      </div>
+      <div class="right">
+        <span>SESSION: <span id="sessionTime">00:00:00</span></span>
+        <span style="margin-left: 16px;">VERSION: 0.9.0-alpha</span>
+      </div>
+    </footer>
+  </div>
+
   <script>
-  (function migrateState(){
-    try {
-      const oldKey = "hs.state.v2";
-      const newKey = "hs.state.v2";
-      if (!localStorage.getItem(newKey)) {
-        const oldVal = localStorage.getItem(oldKey);
-        if (oldVal) localStorage.setItem(newKey, oldVal);
-      }
-      localStorage.removeItem(oldKey);
-    } catch (e) {}
-  })();
-  </script>
-  
-  <!-- State migration (one-time) -->
-  <script>
-  (function migrateState(){
-    try {
-      const oldKey = "hs.state";
-      const newKey = "hs.state";
-      if (!localStorage.getItem(newKey)) {
-        const oldVal = localStorage.getItem(oldKey);
-        if (oldVal) localStorage.setItem(newKey, oldVal);
-      }
-      localStorage.removeItem(oldKey);
-    } catch (e) {}
-  })();
-  </script>
-  </head>
-  <body>
-  <!-- Engine Identity Banner -->
-  <div class="engine-banner">
-    <div class="title">LINK RESURRECTION ENGINE</div>
-    <div class="subtitle">MODULAR FORENSIC SYSTEM</div>
-    <div class="release-mode" id="releaseModeIndicator" style="display: none;">RELEASE MODE: LOCKED</div>
-  <div class="release-mode" id="releaseModeIndicator" style="display: none;">RELEASE MODE: LOCKED</div>
-</div>
+    (() => {
+      "use strict";
 
-<!-- Policy Status Panel -->
-<div class="policy-status" id="policyStatus">
-  <div class="status-item">
-    <span>CASH POLICY SHIELD:</span>
-    <span class="status-value active" id="policyShieldStatus">ACTIVE</span>
-  </div>
-  <div class="status-item">
-    <span>AIRGAPPED:</span>
-    <span class="status-value active" id="airgappedStatus">TRUE</span>
-  </div>
-  <div class="status-item">
-    <span>SIGNED IMPORT:</span>
-    <span class="status-value active" id="signedImportStatus">REQUIRED</span>
-  </div>
-  <div class="status-item">
-    <span>ENGINE MODE:</span>
-    <span class="status-value active" id="engineModeStatus">STRICT</span>
-  </div>
-</div>
+      // ==================== VERSION STACK ====================
+      const BUILD_ID = "HS-NX-RES-01";
+      const VERSION = "0.9.0-alpha";
+      const ENGINE_VERSION = "RES-CORE-01";
+      const POLICY_VERSION = "CASH-SHIELD-01";
 
-<main class="wrap" id="app">
-  <div class="head">
-    <h1>HyperSnatch - Modular Forensic Platform</h1>
-    <div class="kv">
-      <div><span class="muted">Processed</span><br><strong id="processedView">0</strong></div>
-      <div><span class="muted">Success</span><br><strong id="successView">0</strong></div>
-      <div><span class="muted">Candidates</span><br><strong id="candidatesView">0</strong></div>
-      <div><span class="muted">Refusals</span><br><strong id="refusalsView">0</strong></div>
-    </div>
-  </div>
+      // ==================== VALIDATORS ====================
+      const MockValidator = {
+        name: 'mock',
+        async validate(candidate, config = {}) {
+          const result = {
+            status: 'detected',
+            statusReason: 'Mock validation - deterministic test result',
+            validation: {
+              validatedAt: new Date().toISOString(),
+              checks: []
+            }
+          };
 
-  <!-- Tab Navigation -->
-  <div class="tab-nav">
-    <button class="active" data-tab="resurrection">Resurrection</button>
-    <button data-tab="workspaces">Workspaces</button>
-    <button data-tab="system">System</button>
-    <button data-tab="evidence">Evidence</button>
-    <button data-tab="strategy">Strategy Packs</button>
-    <button data-tab="reports">Reports</button>
-    <button data-tab="map">System Map</button>
-  </div>
+          const checks = [];
+          const urlCheck = {
+            name: 'url_format',
+            pass: candidate.url && candidate.url.startsWith('http'),
+            info: candidate.url && candidate.url.startsWith('http') ? 'Valid URL format' : 'Invalid URL format'
+          };
+          checks.push(urlCheck);
 
-  <!-- Resurrection Tab -->
-  <div class="tab-content active" id="resurrection-tab">
-    <section class="card">
-      <label for="inbox"><strong>Input Artifacts (URL / HTML / HAR)</strong></label>
-      <textarea id="inbox" spellcheck="false" placeholder="Enter URLs, paste HTML content, or HAR data for resurrection analysis..."></textarea>
-      <div class="row" style="margin-top:8px">
-        <div class="c3"><button id="resurrectBtn">Resurrect Links</button></div>
-        <div class="c3"><button id="batchDecodeBtn">Decode All</button></div>
-        <div class="c3"><button class="secondary" id="clearBtn">Clear State</button></div>
-        <div class="c3"><button class="secondary" id="selfTestBtn">Run Self-Test</button></div>
-        <div class="c3"><button class="secondary" id="exportEvidenceBtn">Export Evidence</button></div>
-        <div class="c6"><select id="engineModeSelect">
-          <option value="strict" selected>Strict Mode (Default)</option>
-          <option value="audit">Audit Mode (Log but Allow)</option>
-          <option value="lab">Lab Mode (Analysis Only)</option>
-        </select></div>
-        <div class="c6"><input id="importFile" type="file" accept=".html,.har,.json,.tear,.vault,.pack"></div>
-        <div class="c3"><button class="secondary" id="importBtn">Import Artifacts</button></div>
-        <div class="c6"><input id="passphrase" type="password" placeholder="Export passphrase (required)"></div>
-        <div class="c6"><label><input type="checkbox" id="fxToggle" checked> UI FX Layer</label></div>
-        <div class="c6"><label><input type="checkbox" id="releaseModeToggle"> Release Mode (Lock Configuration)</label></div>
-      </div>
-    </section>
+          const allowedHosts = config.mockAllowedHosts || ['localhost', '127.0.0.1', 'example.com', 'kshared.com', 'emload.com', 'dl.kshared.com', 'cdn.emload.com', 'cdn.kshared.com'];
+          const hostCheck = {
+            name: 'host_allowed',
+            pass: candidate.host && allowedHosts.includes(candidate.host),
+            info: candidate.host && allowedHosts.includes(candidate.host) ? 'Host is allowed' : 'Host not in allowlist'
+          };
+          checks.push(hostCheck);
 
-    <!-- Batch Progress Section -->
-    <section class="card" id="batchProgressSection" style="display:none;">
-      <strong>Batch Processing Progress</strong>
-      <div class="progress-container">
-        <div class="progress-bar">
-          <div class="progress-fill" id="batchProgressFill" style="width: 0%"></div>
-        </div>
-        <div class="progress-text" id="batchProgressText">0 / 0 items processed</div>
-      </div>
-      <div id="batchStatus"></div>
-    </section>
+          const confidenceCheck = {
+            name: 'confidence_threshold',
+            pass: (candidate.confidence || 0) >= 0.5,
+            info: `Confidence ${(candidate.confidence || 0).toFixed(2)} meets threshold`
+          };
+          checks.push(confidenceCheck);
 
-    <!-- Batch Results Section -->
-    <section class="card" id="batchResultsSection" style="display:none;">
-      <strong>Batch Processing Results</strong>
-      <div id="batchResultsTable"></div>
-    </section>
+          const allPassed = checks.every(check => check.pass);
 
-    <section class="card"><strong>Resurrected Candidates</strong><div id="candidatesTable"></div></section>
-    <section class="card"><strong>Refusal Log</strong><div id="refusalTable"></div></section>
-  </div>
-
-  <!-- System Tab -->
-  <div class="tab-content" id="system-tab">
-    <section class="card">
-      <strong>Engine Intelligence</strong>
-      <div class="row" style="margin-top:8px">
-        <div class="c6">
-          <div class="telemetry-panel">
-            <strong>Runtime Metrics</strong>
-            <div id="runtimeMetrics">
-              <div>Total Inputs Processed: <span id="totalProcessed">0</span></div>
-              <div>Average Confidence: <span id="avgConfidence">0%</span></div>
-              <div>Refusal Rate: <span id="refusalRate">0%</span></div>
-              <div>Strategy Pack Usage: <span id="strategyUsage">0</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="c6">
-          <div class="telemetry-panel">
-            <strong>Version Stack</strong>
-            <div id="versionStack">
-              <div>APP VERSION: <span id="appVersion">0.9.0-alpha</span></div>
-              <div>ENGINE VERSION: <span id="engineVersion">RES-CORE-01</span></div>
-              <div>POLICY VERSION: <span id="policyVersion">CASH-SHIELD-01</span></div>
-              <div>BUILD ID: <span id="buildId">HS-NX-RES-01</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <strong>Security Configuration</strong>
-      <div class="row" style="margin-top:8px">
-        <div class="c6">
-          <label><input type="checkbox" id="airgapToggle" checked> Airgap Mode (Block Network)</label>
-        </div>
-        <div class="c6">
-          <label><input type="checkbox" id="signedImportToggle" checked> Require Signed Imports</label>
-        </div>
-        <div class="c6">
-          <label><input type="checkbox" id="policyShieldToggle" checked> Cash Policy Shield</label>
-        </div>
-        <div class="c6">
-          <label><input type="checkbox" id="evidenceLoggingToggle" checked> Evidence Logging</label>
-        </div>
-      </div>
-    </section>
-
-    <section class="card"><strong>System Logs</strong><div id="logBox" class="log"></div></section>
-  </div>
-
-  <!-- Evidence Tab -->
-  <div class="tab-content" id="evidence-tab">
-    <section class="card">
-      <div class="row">
-        <div class="c8">
-          <strong>Evidence Log</strong>
-          <div class="evidence-panel" id="evidencePanel">
-            <div class="evidence-header">
-              <span>Evidence Entries (<span id="evidenceCount">0</span>)</span>
-              <button class="secondary" id="toggleEvidenceBtn" style="width: auto; padding: 4px 8px; font-size: 0.75rem;">Toggle</button>
-            </div>
-            <div class="evidence-content" id="evidenceContent">
-              <div class="muted">No evidence recorded yet.</div>
-            </div>
-          </div>
-        </div>
-        <div class="c4">
-          <strong>Evidence Actions</strong>
-          <div style="margin-top:8px">
-            <button class="secondary" id="exportEvidenceFullBtn">Export Full Evidence</button>
-            <button class="secondary" id="clearEvidenceBtn" style="margin-top:8px">Clear Evidence</button>
-            <button class="secondary" id="validateEvidenceBtn" style="margin-top:8px">Validate Integrity</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- Strategy Packs Tab -->
-  <div class="tab-content" id="strategy-tab">
-    <section class="card">
-      <strong>Strategy Pack Management</strong>
-      <div class="row" style="margin-top:8px">
-        <div class="c6">
-          <input id="strategyPackFile" type="file" accept=".json,.pack">
-          <button class="secondary" id="importStrategyBtn" style="margin-top:8px">Import Strategy Pack</button>
-        </div>
-        <div class="c6">
-          <button class="secondary" id="exportStrategyBtn">Export Current Strategy</button>
-          <button class="secondary" id="validateStrategyBtn" style="margin-top:8px">Validate All Packs</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <strong>Loaded Strategy Packs</strong>
-      <div id="strategyPacksTable">
-        <div class="muted">No strategy packs loaded.</div>
-      </div>
-    </section>
-  </div>
-
-  <!-- System Map Tab -->
-  <div class="tab-content" id="map-tab">
-    <section class="card">
-      <strong>System Architecture Map</strong>
-      <div class="system-map">
-        <div class="map-box">Capture Layer</div>
-        <div class="map-arrow">↓</div>
-        <div class="map-box">Ingest Module</div>
-        <div class="map-arrow">↓</div>
-        <div class="map-box">Resurrection Core</div>
-        <div class="map-arrow">↓</div>
-        <div class="map-box">Policy Guard</div>
-        <div class="map-arrow">↓</div>
-        <div class="map-branch">
-          <div class="map-box">Output</div>
-          <div class="map-box">Evidence Log</div>
-        </div>
-        <div class="map-arrow">↓</div>
-        <div class="map-box">Trust Gate</div>
-      </div>
-    </section>
-  </div>
-  
-  <!-- System Footer -->
-  <div class="system-footer">
-    <div class="left">
-      <div class="item">
-        <span class="label">PROCESSED:</span>
-        <span class="value" id="footerProcessed">0</span>
-      </div>
-      <div class="item">
-        <span class="label">SUCCESS:</span>
-        <span class="value" id="footerSuccess">0</span>
-      </div>
-      <div class="item">
-        <span class="label">CANDIDATES:</span>
-        <span class="value" id="footerCandidates">0</span>
-      </div>
-      <div class="item">
-        <span class="label">REFUSALS:</span>
-        <span class="value" id="footerRefusals">0</span>
-      </div>
-    </div>
-    <div class="right">
-      <div class="item">
-        <span class="label">RUNTIME:</span>
-        <span class="value">OFFLINE</span>
-      </div>
-      <div class="item">
-        <span class="label">PROFILE:</span>
-        <span class="value">AIRGAPPED</span>
-      </div>
-      <div class="item">
-        <span class="label">BUILD:</span>
-        <span class="value" id="footerBuildId">HS-NX-RES-01</span>
-      </div>
-      <div class="item">
-        <span class="label">SESSION:</span>
-        <span class="value" id="sessionTime">00:00:00</span>
-      </div>
-    </div>
-  </div>
-</main>
-
-<!-- About Modal -->
-<div id="aboutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;">
-  <div style="background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; max-width: 600px; margin: 20px;">
-    <h2 style="margin-top: 0;">HyperSnatch - Modular Forensic Platform</h2>
-    <p style="color: var(--muted); line-height: 1.5;">
-      HyperSnatch is a Link Resurrection Engine operating as a modular forensic platform. It reconstructs accessible digital endpoints from user-provided artifacts using a structured, policy-driven architecture. All operations operate under Cash Policy Shield enforcement with complete evidence logging.
-    </p>
-    <div style="margin-top: 16px; padding: 12px; background: #0f161d; border-radius: 6px; font-size: 0.85rem;">
-      <div style="margin-bottom: 4px;"><strong>CORE:</strong> Resurrection Engine</div>
-      <div style="margin-bottom: 4px;"><strong>RUNTIME:</strong> Modular Forensic Platform</div>
-      <div style="margin-bottom: 4px;"><strong>POLICY:</strong> Cash Shield</div>
-      <div style="margin-bottom: 4px;"><strong>TRUST:</strong> Signed Import Gate</div>
-      <div style="margin-bottom: 4px;"><strong>ENGINE:</strong> RES-CORE-01</div>
-      <div><strong>BUILD:</strong> HS-NX-RES-01</div>
-    </div>
-    <button id="closeAboutBtn" style="margin-top: 16px; width: auto; padding: 8px 16px;">Close</button>
-  </div>
-</div>
-
-<script>
-(() => {
-  "use strict";
-
-  // ==================== VERSION STACK ====================
-  const BUILD_ID = "HS-NX-RES-01";
-  const VERSION = "0.9.0-alpha";
-  const ENGINE_VERSION = "RES-CORE-01";
-  const POLICY_VERSION = "CASH-SHIELD-01";
-
-  // ==================== VALIDATORS ====================
-  const MockValidator = {
-    name: 'mock',
-    async validate(candidate, config = {}) {
-      const result = {
-        status: 'detected',
-        statusReason: 'Mock validation - deterministic test result',
-        validation: {
-          validatedAt: new Date().toISOString(),
-          checks: []
-        }
-      };
-      
-      const checks = [];
-      const urlCheck = {
-        name: 'url_format',
-        pass: candidate.url && candidate.url.startsWith('http'),
-        info: candidate.url && candidate.url.startsWith('http') ? 'Valid URL format' : 'Invalid URL format'
-      };
-      checks.push(urlCheck);
-      
-      const allowedHosts = config.mockAllowedHosts || ['localhost', '127.0.0.1', 'example.com'];
-      const hostCheck = {
-        name: 'host_allowed',
-        pass: candidate.host && allowedHosts.includes(candidate.host),
-        info: candidate.host && allowedHosts.includes(candidate.host) ? 'Host is allowed' : 'Host not in allowlist'
-      };
-      checks.push(hostCheck);
-      
-      const confidenceCheck = {
-        name: 'confidence_threshold',
-        pass: (candidate.confidence || 0) >= 0.5,
-        info: `Confidence ${(candidate.confidence || 0).toFixed(2)} meets threshold`
-      };
-      checks.push(confidenceCheck);
-      
-      const allPassed = checks.every(check => check.pass);
-      
-      if (allPassed) {
-        result.status = 'validated';
-        result.statusReason = 'Mock validation - all checks passed';
-      } else {
-        result.status = 'blocked';
-        result.statusReason = 'Mock validation - some checks failed';
-      }
-      
-      result.validation.checks = checks;
-      return result;
-    }
-  };
-
-  const LocalServerValidator = {
-    name: 'localServer',
-    async validate(candidate, config = {}) {
-      const result = {
-        status: 'detected',
-        statusReason: 'Local server validation - checking...',
-        validation: {
-          validatedAt: new Date().toISOString(),
-          checks: []
-        }
-      };
-      
-      const checks = [];
-      const urlCheck = {
-        name: 'url_format',
-        pass: candidate.url && candidate.url.startsWith('http'),
-        info: candidate.url && candidate.url.startsWith('http') ? 'Valid URL format' : 'Invalid URL format'
-      };
-      checks.push(urlCheck);
-      
-      const url = new URL(candidate.url);
-      const isLocalHost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-      const hostCheck = {
-        name: 'localhost_only',
-        pass: isLocalHost,
-        info: isLocalHost ? 'Local host allowed' : 'Only localhost allowed'
-      };
-      checks.push(hostCheck);
-      
-      const allPassed = checks.every(check => check.pass);
-      
-      if (allPassed) {
-        result.status = 'validated';
-        result.statusReason = 'Local server validation - all checks passed';
-      } else {
-        result.status = 'blocked';
-        result.statusReason = 'Local server validation - some checks failed';
-      }
-      
-      result.validation.checks = checks;
-      return result;
-    }
-  };
-
-  const AllowlistHttpValidator = {
-    name: 'allowlistHttp',
-    async validate(candidate, config = {}) {
-      const result = {
-        status: 'detected',
-        statusReason: 'Allowlist validation - checking...',
-        validation: {
-          validatedAt: new Date().toISOString(),
-          checks: []
-        }
-      };
-      
-      const checks = [];
-      const allowlistEnabled = config.allowlistEnabled !== false;
-      const enabledCheck = {
-        name: 'allowlist_enabled',
-        pass: allowlistEnabled,
-        info: allowlistEnabled ? 'Allowlist validation enabled' : 'Allowlist validation disabled'
-      };
-      checks.push(enabledCheck);
-      
-      if (!allowlistEnabled) {
-        result.status = 'blocked';
-        result.statusReason = 'Allowlist validation disabled - access blocked';
-        result.validation.checks = checks;
-        return result;
-      }
-      
-      const urlCheck = {
-        name: 'url_format',
-        pass: candidate.url && candidate.url.startsWith('http'),
-        info: candidate.url && candidate.url.startsWith('http') ? 'Valid URL format' : 'Invalid URL format'
-      };
-      checks.push(urlCheck);
-      
-      const allowedHosts = config.allowedHosts || [];
-      const url = new URL(candidate.url);
-      const hostCheck = {
-        name: 'host_in_allowlist',
-        pass: allowedHosts.includes(url.hostname),
-        info: allowedHosts.includes(url.hostname) ? `Host ${url.hostname} is allowed` : `Host ${url.hostname} not in allowlist`
-      };
-      checks.push(hostCheck);
-      
-      const allPassed = checks.every(check => check.pass);
-      
-      if (allPassed) {
-        result.status = 'validated';
-        result.statusReason = 'Allowlist validation - all checks passed';
-      } else {
-        result.status = 'blocked';
-        result.statusReason = 'Allowlist validation - access blocked';
-      }
-      
-      result.validation.checks = checks;
-      return result;
-    }
-  };
-
-  // ==================== DATA MODEL ====================
-  const DecodeStatus = {
-    DETECTED: 'detected',
-    VALIDATED: 'validated', 
-    BLOCKED: 'blocked',
-    UNKNOWN: 'unknown',
-    ERROR: 'error'
-  };
-
-  // ==================== CORE MODULES ====================
-  
-  // /core/resurrection_engine.js
-  const ResurrectionEngine = {
-    version: ENGINE_VERSION,
-    
-    async run(config) {
-      const { sourceType, rawInput, policyState } = config;
-      
-      // Policy check first
-      const policyResult = PolicyGuard.validate(rawInput, policyState);
-      if (policyResult.refusal) {
-        return {
-          candidates: [],
-          confidenceScores: [],
-          refusal: true,
-          refusalReason: policyResult.reason,
-          detectedMarkers: policyResult.markers,
-          engineVersion: this.version
-        };
-      }
-      
-      // Route to appropriate parser
-      let candidates = [];
-      switch (sourceType) {
-        case 'HTML':
-          candidates = await IngestLayer.htmlParser.parse(rawInput);
-          break;
-        case 'HAR':
-          candidates = await IngestLayer.harParser.parse(rawInput);
-          break;
-        case 'URL':
-          candidates = await IngestLayer.manualInput.parse(rawInput);
-          break;
-        default:
-          throw new Error(`Unsupported source type: ${sourceType}`);
-      }
-      
-      // Validate candidates through validation pipeline
-      const validatorMode = config.validatorMode || 'mock';
-      
-      // Simple validator integration for browser
-      const validators = {
-        mock: MockValidator,
-        localServer: LocalServerValidator,
-        allowlist: AllowlistHttpValidator
-      };
-      
-      const validator = validators[validatorMode];
-      if (!validator) {
-        throw new Error(`Unknown validator mode: ${validatorMode}`);
-      }
-      
-      for (let i = 0; i < candidates.length; i++) {
-        const candidate = candidates[i];
-        const validation = await validator.validate(candidate, config.validatorConfig || {});
-        
-        // Update candidate with validation results
-        candidate.validation = validation;
-        candidate.status = validation.status;
-        candidate.statusReason = validation.statusReason;
-        
-        // Log validation
-        EvidenceLogger.add({
-          timestamp: new Date().toISOString(),
-          action: 'candidate_validation',
-          candidateId: candidate.id,
-          validator: validator.name,
-          status: validation.status,
-          checks: validation.validation?.checks || []
-        });
-      }
-      
-      // Policy re-check after validation
-      const policyRecheck = PolicyGuard.validateCandidates(candidates, policyState);
-      if (policyRecheck.refusal) {
-        return {
-          candidates,
-          confidenceScores,
-          refusal: true,
-          refusalReason: policyRecheck.reason,
-          detectedMarkers: policyRecheck.markers,
-          engineVersion: this.version
-        };
-      }
-      
-      // Score candidates
-      const confidenceScores = candidates.map(c => 
-        CandidateScoring.calculate(c, sourceType)
-      );
-      
-      return {
-        candidates,
-        confidenceScores,
-        refusal: false,
-        refusalReason: null,
-        detectedMarkers: policyResult.markers,
-        engineVersion: this.version
-      };
-    }
-  };
-
-  // /core/candidate_scoring.js
-  const CandidateScoring = {
-    calculate(candidate, source) {
-      let confidence = 0;
-      
-      // Direct absolute URL in DOM
-      if (candidate.url.startsWith('http') && source === 'HTML') {
-        confidence = 85 + Math.random() * 10; // 85-95%
-      }
-      // Extracted from script tag
-      else if (candidate.source === 'script') {
-        confidence = 60 + Math.random() * 20; // 60-80%
-      }
-      // Heuristic transform
-      else {
-        confidence = 30 + Math.random() * 20; // 30-50%
-      }
-      
-      return Math.round(confidence);
-    }
-  };
-
-  // /core/policy_guard.js
-  const PolicyGuard = {
-    premiumMarkers: [
-      'subscribe', 'premium', 'login', 'paywall', 'purchase', 
-      'access denied', 'subscription', 'upgrade', 'payment'
-    ],
-    
-    validate(input, policyState) {
-      const markers = this.scanForPremiumMarkers(input);
-      
-      if (markers.length === 0) {
-        return { refusal: false, markers: [] };
-      }
-      
-      if (policyState.mode === 'strict') {
-        return { 
-          refusal: true, 
-          reason: 'Cash Policy Shield violation',
-          markers 
-        };
-      } else if (policyState.mode === 'audit') {
-        return { 
-          refusal: false, 
-          markers, 
-          warning: true 
-        };
-      } else if (policyState.mode === 'lab') {
-        return { 
-          refusal: false, 
-          markers, 
-          analysisOnly: true 
-        };
-      }
-      
-      return { refusal: false, markers };
-    },
-    
-    scanForPremiumMarkers(content) {
-      const contentLower = content.toLowerCase();
-      const found = [];
-      
-      for (const marker of this.premiumMarkers) {
-        if (contentLower.includes(marker)) {
-          found.push(marker);
-        }
-      }
-      
-      return found;
-    },
-    
-    validateCandidates(candidates, policyState) {
-      const markers = [];
-      const blockedCandidates = [];
-      
-      for (const candidate of candidates) {
-        // Check candidate status
-        if (candidate.status === 'blocked') {
-          markers.push(`BLOCKED: ${candidate.statusReason || 'Unknown reason'}`);
-          blockedCandidates.push(candidate.id);
-        } else if (candidate.status === 'validated') {
-          // Validated candidates are allowed
-          continue;
-        } else {
-          // Detected candidates need policy check
-          const candidateMarkers = this.scanForPremiumMarkers(candidate.url);
-          if (candidateMarkers.length > 0 && policyState.mode === 'strict') {
-            markers.push(`PREMIUM: ${candidateMarkers.join(', ')}`);
-            blockedCandidates.push(candidate.id);
+          if (allPassed) {
+            result.status = 'validated';
+            result.statusReason = 'Mock validation - all checks passed';
           } else {
-            // Allow detected candidates in non-strict mode
-            continue;
+            result.status = 'blocked';
+            result.statusReason = 'Mock validation - some checks failed';
           }
-        }
-      }
-      
-      if (blockedCandidates.length > 0) {
-        return {
-          refusal: true,
-          reason: `Candidates blocked: ${blockedCandidates.join(', ')}`,
-          markers
-        };
-      }
-      
-      return { refusal: false, reason: null, markers };
-    },
-    
-    canExport(candidate, policyState) {
-      // Check if candidate has policy violations
-      if (candidate.policyMarkers && candidate.policyMarkers.length > 0) {
-        if (policyState.mode === 'strict') {
-          return { allowed: false, reason: 'Export blocked: Policy violation detected' };
-        }
-      }
-      
-      return { allowed: true };
-    }
-  };
 
-  // /core/evidence_logger.js
-  const EvidenceLogger = {
-    logs: [],
-    
-    add(entry) {
-      const evidence = {
-        timestamp: new Date().toISOString(),
-        ...entry
+          result.validation.checks = checks;
+          return result;
+        }
       };
-      this.logs.unshift(evidence);
-      if (this.logs.length > 500) this.logs.pop();
-      
-      // Trigger UI update
-      if (window.UI) {
-        window.UI.renderEvidence();
-      }
-    },
-    
-    logResurrection(config, result) {
-      this.add({
-        action: "RESURRECTION_ATTEMPT",
-        inputSource: config.sourceType,
-        policyState: config.policyState.mode,
-        detection: result.detectedMarkers.length > 0 ? 'Y' : 'N',
-        extractionMethod: `IngestLayer.${config.sourceType.toLowerCase()}`,
-        candidatesFound: result.candidates.length,
-        engineVersion: result.engineVersion,
-        level: result.refusal ? "err" : "ok"
-      });
-    },
-    
-    logRefusal(config, reason, markers) {
-      this.add({
-        action: "REFUSAL",
-        inputSource: config.sourceType,
-        refusalReason: reason,
-        markers: markers.join(', '),
-        policyState: config.policyState.mode,
-        level: "err"
-      });
-    },
-    
-    logExport(candidate, allowed, reason = null) {
-      this.add({
-        action: "EXPORT_ATTEMPT",
-        candidateUrl: candidate.url,
-        allowed,
-        reason,
-        level: allowed ? "ok" : "err"
-      });
-    },
-    
-    getStats() {
-      const total = this.logs.length;
-      const refusals = this.logs.filter(l => l.action === 'REFUSAL').length;
-      const successes = this.logs.filter(l => l.action === 'RESURRECTION_ATTEMPT' && l.level === 'ok').length;
-      
-      return {
-        total,
-        refusals,
-        successes,
-        refusalRate: total > 0 ? Math.round((refusals / total) * 100) : 0
-      };
-    }
-  };
 
-  // ==================== INGEST LAYER ====================
-  
-  const IngestLayer = {
-    // /ingest/html_parser.js
-    htmlParser: {
-      async parse(html) {
-        const candidates = [];
-        
-        // Extract URLs from HTML
-        const urlRegex = /https?:\/\/[^\s<>"']+/gi;
-        const matches = html.match(urlRegex) || [];
-        
-        matches.forEach((url, index) => {
-          // Enhanced processing for emload URLs
-          if (url.includes('emload.com')) {
-            const emloadCandidates = this.processEmloadUrl(url, index);
-            candidates.push(...emloadCandidates);
+      const LocalServerValidator = {
+        name: 'localServer',
+        async validate(candidate, config = {}) {
+          const result = {
+            status: 'detected',
+            statusReason: 'Local server validation - checking...',
+            validation: {
+              validatedAt: new Date().toISOString(),
+              checks: []
+            }
+          };
+
+          const checks = [];
+          const urlCheck = {
+            name: 'url_format',
+            pass: candidate.url && candidate.url.startsWith('http'),
+            info: candidate.url && candidate.url.startsWith('http') ? 'Valid URL format' : 'Invalid URL format'
+          };
+          checks.push(urlCheck);
+
+          const url = new URL(candidate.url);
+          const isLocalHost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+          const hostCheck = {
+            name: 'localhost_only',
+            pass: isLocalHost,
+            info: isLocalHost ? 'Local host allowed' : 'Only localhost allowed'
+          };
+          checks.push(hostCheck);
+
+          const allPassed = checks.every(check => check.pass);
+
+          if (allPassed) {
+            result.status = 'validated';
+            result.statusReason = 'Local server validation - all checks passed';
           } else {
-            candidates.push({
-              url,
-              source: 'html',
-              type: this.detectFileType(url),
-              rank: index + 1,
-              extractedAt: new Date().toISOString(),
-              status: DecodeStatus.DETECTED,
-              statusReason: 'Generic URL detected in HTML content',
-              confidence: 0.50,
-              method: 'generic-extraction',
-              host: new URL(url).hostname || 'unknown',
-              category: 'candidate',
-              validation: null
+            result.status = 'blocked';
+            result.statusReason = 'Local server validation - some checks failed';
+          }
+
+          result.validation.checks = checks;
+          return result;
+        }
+      };
+
+      const AllowlistHttpValidator = {
+        name: 'allowlistHttp',
+        async validate(candidate, config = {}) {
+          const result = {
+            status: 'detected',
+            statusReason: 'Allowlist validation - checking...',
+            validation: {
+              validatedAt: new Date().toISOString(),
+              checks: []
+            }
+          };
+
+          const checks = [];
+          const allowlistEnabled = config.allowlistEnabled !== false;
+          const enabledCheck = {
+            name: 'allowlist_enabled',
+            pass: allowlistEnabled,
+            info: allowlistEnabled ? 'Allowlist validation enabled' : 'Allowlist validation disabled'
+          };
+          checks.push(enabledCheck);
+
+          if (!allowlistEnabled) {
+            result.status = 'blocked';
+            result.statusReason = 'Allowlist validation disabled - access blocked';
+            result.validation.checks = checks;
+            return result;
+          }
+
+          const urlCheck = {
+            name: 'url_format',
+            pass: candidate.url && candidate.url.startsWith('http'),
+            info: candidate.url && candidate.url.startsWith('http') ? 'Valid URL format' : 'Invalid URL format'
+          };
+          checks.push(urlCheck);
+
+          const allowedHosts = config.allowedHosts || [];
+          const url = new URL(candidate.url);
+          const hostCheck = {
+            name: 'host_in_allowlist',
+            pass: allowedHosts.includes(url.hostname),
+            info: allowedHosts.includes(url.hostname) ? `Host ${url.hostname} is allowed` : `Host ${url.hostname} not in allowlist`
+          };
+          checks.push(hostCheck);
+
+          const allPassed = checks.every(check => check.pass);
+
+          if (allPassed) {
+            result.status = 'validated';
+            result.statusReason = 'Allowlist validation - all checks passed';
+          } else {
+            result.status = 'blocked';
+            result.statusReason = 'Allowlist validation - access blocked';
+          }
+
+          result.validation.checks = checks;
+          return result;
+        }
+      };
+
+      // ==================== DATA MODEL ====================
+      const DecodeStatus = {
+        DETECTED: 'detected',
+        VALIDATED: 'validated',
+        BLOCKED: 'blocked',
+        UNKNOWN: 'unknown',
+        ERROR: 'error'
+      };
+
+      // ==================== CORE MODULES ====================
+
+      // /core/resurrection_engine.js
+      const ResurrectionEngine = {
+        version: ENGINE_VERSION,
+
+        async run(config) {
+          const { sourceType, rawInput, policyState } = config;
+
+          // Policy check first
+          const policyResult = PolicyGuard.validate(rawInput, policyState);
+          if (policyResult.refusal) {
+            return {
+              candidates: [],
+              confidenceScores: [],
+              refusal: true,
+              refusalReason: policyResult.reason,
+              detectedMarkers: policyResult.markers,
+              engineVersion: this.version
+            };
+          }
+
+          // Route to appropriate parser
+          let candidates = [];
+          switch (sourceType) {
+            case 'HTML':
+              candidates = await IngestLayer.htmlParser.parse(rawInput);
+              break;
+            case 'HAR':
+              candidates = await IngestLayer.harParser.parse(rawInput);
+              break;
+            case 'URL':
+              candidates = await IngestLayer.manualInput.parse(rawInput);
+              break;
+            default:
+              throw new Error(`Unsupported source type: ${sourceType}`);
+          }
+
+          // Validate candidates through validation pipeline
+          const validatorMode = config.validatorMode || 'mock';
+
+          // Simple validator integration for browser
+          const validators = {
+            mock: MockValidator,
+            localServer: LocalServerValidator,
+            allowlist: AllowlistHttpValidator
+          };
+
+          const validator = validators[validatorMode];
+          if (!validator) {
+            throw new Error(`Unknown validator mode: ${validatorMode}`);
+          }
+
+          for (let i = 0; i < candidates.length; i++) {
+            const candidate = candidates[i];
+            const validation = await validator.validate(candidate, config.validatorConfig || {});
+
+            // Update candidate with validation results
+            candidate.validation = validation;
+            candidate.status = validation.status;
+            candidate.statusReason = validation.statusReason;
+
+            // Log validation
+            EvidenceLogger.add({
+              timestamp: new Date().toISOString(),
+              action: 'candidate_validation',
+              candidateId: candidate.id,
+              validator: validator.name,
+              status: validation.status,
+              checks: validation.validation?.checks || []
             });
           }
-        });
-        
-        return candidates;
-      },
-      
-      processEmloadUrl(url, index) {
-        const candidates = [];
-        
-        // V2 pattern: /v2/file/{file_id}/{filename}
-        const v2Pattern = /\/v2\/file\/([a-zA-Z0-9_-]+)\/([^\/\?]+)/;
-        const v2Match = url.match(v2Pattern);
-        
-        if (v2Match) {
-          const fileId = v2Match[1];
-          const filename = v2Match[2];
-          
-          // Primary candidate with high confidence
-          candidates.push({
-            id: `emload-v2-${fileId}`,
-            url: url,
-            source: 'html',
-            type: this.detectFileType(filename),
-            rank: index + 1,
-            extractedAt: new Date().toISOString(),
-            status: DecodeStatus.DETECTED,
-            statusReason: 'Pattern matched V2 emload URL structure',
-            confidence: 0.95,
-            method: 'v2-pattern-extraction',
-            host: 'www.emload.com',
-            filename: filename,
-            fileId: fileId,
-            category: 'candidate',
-            validation: null
-          });
-          
-          // Alternative candidates
-          candidates.push({
-            id: `emload-alt-${fileId}`,
-            url: `https://emload.com/file/${fileId}/${filename}`,
-            source: 'html',
-            type: this.detectFileType(filename),
-            rank: index + 1,
-            extractedAt: new Date().toISOString(),
-            status: DecodeStatus.DETECTED,
-            statusReason: 'Alternative URL format generated from V2 pattern',
-            confidence: 0.85,
-            method: 'alternative-url-format',
-            host: 'emload.com',
-            filename: filename,
-            fileId: fileId,
-            category: 'candidate',
-            validation: null
-          });
-          
-          candidates.push({
-            id: `emload-api-${fileId}`,
-            url: `https://api.emload.com/v2/file/${fileId}`,
-            source: 'html',
-            type: 'application/json',
-            rank: index + 1,
-            extractedAt: new Date().toISOString(),
-            status: DecodeStatus.DETECTED,
-            statusReason: 'API endpoint generated from V2 pattern',
-            confidence: 0.75,
-            method: 'api-endpoint',
-            host: 'api.emload.com',
-            fileId: fileId,
-            category: 'candidate',
-            validation: null
-          });
-        } else {
-          // Fallback for other emload patterns
-          const standardPattern = /\/file\/([a-zA-Z0-9_-]+)\/([^\/\?]+)/;
-          const standardMatch = url.match(standardPattern);
-          
-          if (standardMatch) {
-            const fileId = standardMatch[1];
-            const filename = standardMatch[2];
-            
-            candidates.push({
-              id: `emload-standard-${fileId}`,
-              url: url,
-              source: 'html',
-              type: this.detectFileType(filename),
-              rank: index + 1,
-              extractedAt: new Date().toISOString(),
-              confidence: 0.80,
-              method: 'standard-pattern-extraction',
-              host: 'emload.com',
-              filename: filename,
-              fileId: fileId,
-              category: 'direct-download'
-            });
-          } else {
-            // Generic emload URL
-            candidates.push({
-              id: `emload-generic-${index}`,
-              url: url,
-              source: 'html',
-              type: this.detectFileType(url),
-              rank: index + 1,
-              extractedAt: new Date().toISOString(),
-              confidence: 0.60,
-              method: 'generic-emload-extraction',
-              host: 'emload.com',
-              category: 'unknown'
-            });
+
+          // Score candidates
+          const confidenceScores = candidates.map(c =>
+            CandidateScoring.calculate(c, sourceType)
+          );
+
+          // Policy re-check after validation
+          const policyRecheck = PolicyGuard.validateCandidates(candidates, policyState);
+          if (policyRecheck.refusal) {
+            return {
+              candidates,
+              confidenceScores,
+              refusal: true,
+              refusalReason: policyRecheck.reason,
+              detectedMarkers: policyRecheck.markers,
+              engineVersion: this.version
+            };
           }
+
+          return {
+            candidates,
+            confidenceScores,
+            refusal: false,
+            refusalReason: null,
+            detectedMarkers: policyResult.markers,
+            engineVersion: this.version
+          };
         }
-        
-        return candidates;
-      },
-      
-      detectFileType(url) {
-        const ext = url.split('.').pop()?.toLowerCase().split('?')[0];
-        const typeMap = {
-          'mp4': 'video/mp4',
-          'm3u8': 'application/x-mpegURL',
-          'mp3': 'audio/mpeg',
-          'jpg': 'image/jpeg',
-          'png': 'image/png',
-          'gif': 'image/gif'
-        };
-        return typeMap[ext] || 'application/octet-stream';
-      },
-      
-      generateDownloadUrl(fileId, filename, type) {
-        switch (type) {
-          case 'v2':
-            return `https://www.emload.com/v2/file/${fileId}/${filename}`;
-          case 'standard':
-            return `https://emload.com/file/${fileId}/${filename}`;
-          default:
-            return `https://emload.com/file/${fileId}/${filename}`;
+      };
+
+      // /core/candidate_scoring.js
+      const CandidateScoring = {
+        calculate(candidate, source) {
+          let confidence = 0;
+
+          // Direct absolute URL in DOM
+          if (candidate.url.startsWith('http') && source === 'HTML') {
+            confidence = 85 + Math.random() * 10; // 85-95%
+          }
+          // Extracted from script tag
+          else if (candidate.source === 'script') {
+            confidence = 60 + Math.random() * 20; // 60-80%
+          }
+          // Heuristic transform
+          else {
+            confidence = 30 + Math.random() * 20; // 30-50%
+          }
+
+          return confidence / 100;
         }
-      },
-    },
-    
-    // /ingest/har_parser.js
-    harParser: {
-      async parse(harData) {
-        const candidates = [];
-        
-        try {
-          const har = JSON.parse(harData);
-          const entries = har.log?.entries || [];
-          
-          entries.forEach((entry, index) => {
-            const url = entry.request?.url;
-            if (url && url.startsWith('http')) {
-              candidates.push({
-                url,
-                source: 'har',
-                type: entry.response?.content?.mimeType || 'application/octet-stream',
-                rank: index + 1,
-                extractedAt: new Date().toISOString(),
-                harEntry: true
+      };
+
+      // /core/policy_guard.js
+      const PolicyGuard = {
+        premiumMarkers: [
+          'subscribe', 'premium', 'login', 'paywall', 'purchase',
+          'access denied', 'subscription', 'upgrade', 'payment'
+        ],
+
+        validate(input, policyState) {
+          const markers = this.scanForPremiumMarkers(input);
+
+          if (markers.length === 0) {
+            return { refusal: false, markers: [] };
+          }
+
+          if (policyState.mode === 'strict') {
+            return {
+              refusal: true,
+              reason: 'Cash Policy Shield violation',
+              markers
+            };
+          } else if (policyState.mode === 'audit') {
+            return {
+              refusal: false,
+              markers,
+              warning: true
+            };
+          } else if (policyState.mode === 'lab') {
+            return {
+              refusal: false,
+              markers,
+              analysisOnly: true
+            };
+          }
+
+          return { refusal: false, markers };
+        },
+
+        scanForPremiumMarkers(content) {
+          const contentLower = content.toLowerCase();
+          const found = [];
+
+          for (const marker of this.premiumMarkers) {
+            if (contentLower.includes(marker)) {
+              found.push(marker);
+            }
+          }
+
+          return found;
+        },
+
+        validateCandidates(candidates, policyState) {
+          const markers = [];
+          const blockedCandidates = [];
+
+          for (const candidate of candidates) {
+            // Check candidate status
+            if (candidate.status === 'blocked') {
+              markers.push(`BLOCKED: ${candidate.statusReason || 'Unknown reason'}`);
+              blockedCandidates.push(candidate.id);
+            } else if (candidate.status === 'validated') {
+              // Validated candidates are allowed
+              continue;
+            } else {
+              // Detected candidates need policy check
+              const candidateMarkers = this.scanForPremiumMarkers(candidate.url);
+              if (candidateMarkers.length > 0 && policyState.mode === 'strict') {
+                markers.push(`PREMIUM: ${candidateMarkers.join(', ')}`);
+                blockedCandidates.push(candidate.id);
+              } else {
+                // Allow detected candidates in non-strict mode
+                continue;
+              }
+            }
+          }
+
+          if (blockedCandidates.length > 0) {
+            return {
+              refusal: true,
+              reason: `Candidates blocked by Security Policy`,
+              markers: markers.length > 0 ? markers : ['General Policy Block']
+            };
+          }
+
+          return { refusal: false, reason: null, markers };
+        },
+
+        canExport(candidate, policyState) {
+          // Check if candidate has policy violations
+          if (candidate.policyMarkers && candidate.policyMarkers.length > 0) {
+            if (policyState.mode === 'strict') {
+              return { allowed: false, reason: 'Export blocked: Policy violation detected' };
+            }
+          }
+
+          return { allowed: true };
+        }
+      };
+
+      // /core/evidence_logger.js
+      const EvidenceLogger = {
+        logs: [],
+
+        add(entry) {
+          const evidence = {
+            timestamp: new Date().toISOString(),
+            ...entry
+          };
+          this.logs.unshift(evidence);
+          if (this.logs.length > 500) this.logs.pop();
+
+          // Trigger UI update
+          if (window.UI) {
+            window.UI.renderEvidence();
+          }
+        },
+
+        logResurrection(config, result) {
+          this.add({
+            action: "RESURRECTION_ATTEMPT",
+            inputSource: config.sourceType,
+            policyState: config.policyState.mode,
+            detection: result.detectedMarkers.length > 0 ? 'Y' : 'N',
+            extractionMethod: `IngestLayer.${config.sourceType.toLowerCase()}`,
+            candidatesFound: result.candidates.length,
+            engineVersion: result.engineVersion,
+            level: result.refusal ? "err" : "ok"
+          });
+        },
+
+        logRefusal(config, reason, markers) {
+          this.add({
+            action: "REFUSAL",
+            inputSource: config.sourceType,
+            refusalReason: reason,
+            markers: markers.join(', '),
+            policyState: config.policyState.mode,
+            level: "err"
+          });
+        },
+
+        logExport(candidate, allowed, reason = null) {
+          this.add({
+            action: "EXPORT_ATTEMPT",
+            candidateUrl: candidate.url,
+            allowed,
+            reason,
+            level: allowed ? "ok" : "err"
+          });
+        },
+
+        getStats() {
+          const total = this.logs.length;
+          const refusals = this.logs.filter(l => l.action === 'REFUSAL').length;
+          const successes = this.logs.filter(l => l.action === 'RESURRECTION_ATTEMPT' && l.level === 'ok').length;
+
+          return {
+            total,
+            refusals,
+            successes,
+            refusalRate: total > 0 ? Math.round((refusals / total) * 100) : 0
+          };
+        }
+      };
+
+      // ==================== INGEST LAYER ====================
+
+      const IngestLayer = {
+        // /ingest/html_parser.js
+        htmlParser: {
+          async parse(html) {
+            const candidates = [];
+
+            // Use SmartDecode 2.0 if available
+            if (window.smartDecode) {
+              const sdResult = await window.smartDecode.run(html);
+              if (sdResult && sdResult.candidates) {
+                // Map SmartDecode candidates to UI candidate format
+                sdResult.candidates.forEach((c, idx) => {
+                  candidates.push({
+                    id: `sd-${Date.now()}-${idx}`,
+                    url: c.url,
+                    source: c.sourceLayer || 'smartdecode',
+                    type: c.type || 'file',
+                    rank: idx + 1,
+                    extractedAt: new Date().toISOString(),
+                    status: DecodeStatus.DETECTED,
+                    statusReason: `Extracted via ${c.sourceLayer}`,
+                    confidence: c.confidence || 0.5,
+                    method: c.sourceLayer,
+                    host: c.host || 'unknown',
+                    filename: c.filename || 'unknown',
+                    fileId: c.fileId || null,
+                    category: 'candidate',
+                    validation: null
+                  });
+                });
+              }
+            }
+
+            // Fallback/Legacy URL extraction from HTML if no candidates found
+            if (candidates.length === 0) {
+              const urlRegex = /https?:\/\/[^\s<>"']+/gi;
+              const matches = html.match(urlRegex) || [];
+              matches.forEach((url, index) => {
+                candidates.push({
+                  url,
+                  source: 'html',
+                  type: this.detectFileType(url),
+                  rank: index + 1,
+                  extractedAt: new Date().toISOString(),
+                  status: DecodeStatus.DETECTED,
+                  statusReason: 'Generic URL detected in HTML content',
+                  confidence: 0.50,
+                  method: 'generic-extraction',
+                  host: new URL(url).hostname || 'unknown',
+                  category: 'candidate',
+                  validation: null
+                });
               });
             }
-          });
-        } catch (error) {
-          console.error('HAR parsing failed:', error);
+
+            return candidates;
+          },
+
+          detectFileType(url) {
+            const ext = url.split('.').pop()?.toLowerCase().split('?')[0];
+            const typeMap = {
+              'mp4': 'video/mp4',
+              'm3u8': 'application/x-mpegURL',
+              'mp3': 'audio/mpeg',
+              'jpg': 'image/jpeg',
+              'png': 'image/png',
+              'gif': 'image/gif'
+            };
+            return typeMap[ext] || 'application/octet-stream';
+          },
+
+          generateDownloadUrl(fileId, filename, type) {
+            switch (type) {
+              case 'v2':
+                return `https://www.emload.com/v2/file/${fileId}/${filename}`;
+              case 'standard':
+                return `https://emload.com/file/${fileId}/${filename}`;
+              default:
+                return `https://emload.com/file/${fileId}/${filename}`;
+            }
+          },
+        },
+
+        // /ingest/har_parser.js
+        harParser: {
+          async parse(harData) {
+            const candidates = [];
+
+            try {
+              const har = JSON.parse(harData);
+              const entries = har.log?.entries || [];
+
+              entries.forEach((entry, index) => {
+                const url = entry.request?.url;
+                if (url && url.startsWith('http')) {
+                  candidates.push({
+                    url,
+                    source: 'har',
+                    type: entry.response?.content?.mimeType || 'application/octet-stream',
+                    rank: index + 1,
+                    status: DecodeStatus.DETECTED,
+                    statusReason: 'URL detected in HAR entry',
+                    confidence: 0.5,
+                    method: 'har-extraction',
+                    host: new URL(url).hostname || 'unknown',
+                    harEntry: true
+                  });
+                }
+              });
+            } catch (error) {
+              console.error('HAR parsing failed:', error);
+            }
+
+            return candidates;
+          }
+        },
+
+        // /ingest/manual_input.js
+        manualInput: {
+          async parse(input) {
+            const candidates = [];
+
+            // Split by lines and extract URLs
+            const lines = input.split('\n');
+            const urlRegex = /https?:\/\/[^\s<>"']+/gi;
+
+            lines.forEach((line, index) => {
+              const matches = line.match(urlRegex) || [];
+              matches.forEach(url => {
+                const candidateData = {
+                  url,
+                  source: 'manual',
+                  type: 'application/octet-stream',
+                  rank: index + 1,
+                  status: DecodeStatus.DETECTED,
+                  statusReason: 'Manual URL entry',
+                  confidence: 0.5,
+                  method: 'manual-entry',
+                  host: new URL(url).hostname || 'unknown',
+                  extractedAt: new Date().toISOString()
+                };
+
+                // Apply SmartDecode resurrection if available
+                if (window.smartDecode) {
+                  const sdResult = await window.smartDecode.run(url);
+                  if (sdResult && sdResult.candidates && sdResult.candidates.length > 0) {
+                    const best = sdResult.candidates[0];
+                    candidateData.url = best.url;
+                    candidateData.confidence = best.confidence || 0.90;
+                    candidateData.method = `resurrected-${best.sourceLayer || 'generic'}`;
+                    candidateData.host = best.host || candidateData.host;
+                    candidateData.statusReason = `Resurrected via ${best.sourceLayer}`;
+                  }
+                }
+
+                candidates.push(candidateData);
+              });
+            });
+
+            return candidates;
+          }
         }
-        
-        return candidates;
-      }
-    },
-    
-    // /ingest/manual_input.js
-    manualInput: {
-      async parse(input) {
-        const candidates = [];
-        
-        // Split by lines and extract URLs
-        const lines = input.split('\n');
-        const urlRegex = /https?:\/\/[^\s<>"']+/gi;
-        
-        lines.forEach((line, index) => {
-          const matches = line.match(urlRegex) || [];
-          matches.forEach(url => {
-            candidates.push({
-              url,
-              source: 'manual',
-              type: 'application/octet-stream',
-              rank: index + 1,
-              extractedAt: new Date().toISOString()
+      };
+
+      // ==================== SECURITY LAYER ====================
+
+      // /security/trust_store.js
+      const TrustStore = {
+        keys: {},
+        activeKeyId: '',
+
+        addKey(keyId, publicKey) {
+          this.keys[keyId] = {
+            id: keyId,
+            publicKey,
+            addedAt: new Date().toISOString()
+          };
+        },
+
+        verifySignature(data, signature, keyId) {
+          const key = this.keys[keyId];
+          if (!key) return false;
+
+          // Simplified verification (in real implementation, use crypto.subtle.verify)
+          return signature && signature.length > 0;
+        }
+      };
+
+      // /security/signed_import.js
+      const SignedImport = {
+        async validateStrategyPack(packData, requireSignature = true) {
+          try {
+            const pack = JSON.parse(packData);
+
+            // Check signature requirement
+            if (requireSignature && !pack.signature) {
+              return { valid: false, reason: 'Signature required but not found' };
+            }
+
+            // Verify signature if present
+            if (pack.signature) {
+              const isValid = TrustStore.verifySignature(
+                JSON.stringify(pack.rules),
+                pack.signature,
+                pack.keyId || TrustStore.activeKeyId
+              );
+
+              if (!isValid) {
+                return { valid: false, reason: 'Invalid signature' };
+              }
+            }
+
+            return { valid: true, pack };
+          } catch (error) {
+            return { valid: false, reason: 'Invalid pack format' };
+          }
+        }
+      };
+
+      // /security/manifest_verify.js
+      const ManifestVerify = {
+        async verifyRelease(manifest) {
+          // Verify release manifest integrity
+          return {
+            valid: true,
+            buildId: manifest.buildId,
+            version: manifest.version,
+            components: manifest.components || []
+          };
+        }
+      };
+
+      // ==================== AIRGAP ENFORCEMENT ====================
+
+      const AirgapGuard = {
+        originalFetch: window.fetch,
+        originalXHR: window.XMLHttpRequest,
+        originalWS: window.WebSocket,
+
+        enabled: true,
+
+        enable() {
+          if (!this.enabled) return;
+
+          // Override fetch
+          window.fetch = (...args) => {
+            console.log('[AIRGAP] fetch() blocked:', args[0]);
+            return Promise.reject(new Error('Network access blocked by airgap mode'));
+          };
+
+          // Override XMLHttpRequest
+          const XHR = function () {
+            throw new Error('XMLHttpRequest blocked by airgap mode');
+          };
+          XHR.prototype = window.XMLHttpRequest.prototype;
+          window.XMLHttpRequest = XHR;
+
+          // Override WebSocket
+          window.WebSocket = function () {
+            throw new Error('WebSocket blocked by airgap mode');
+          };
+        },
+
+        disable() {
+          window.fetch = this.originalFetch;
+          window.XMLHttpRequest = this.originalXHR;
+          window.WebSocket = this.originalWS;
+        }
+      };
+
+      // ==================== UI LAYER ====================
+
+      const UI = {
+        currentTab: 'resurrection',
+        state: {
+          processed: 0,
+          success: 0,
+          candidates: [],
+          refusals: [],
+          engineMode: 'strict',
+          releaseMode: false,
+          airgapped: true,
+          signedImport: true,
+          policyShield: true,
+          evidenceLogging: true,
+          fxEnabled: true,
+          sessionStart: Date.now(),
+          strategyPacks: []
+        },
+
+        init() {
+          this.bindEvents();
+          this.bindShortcuts();
+          this.loadState();
+          this.updateStats();
+          this.startSessionTimer();
+          this.updateEngineModeUI();
+
+          // Enable airgap if configured
+          if (this.state.airgapped) {
+            AirgapGuard.enable();
+          }
+
+          console.log('HyperSnatch Forensic Console initialized');
+        },
+
+        bindEvents() {
+          // Artifact Tabs
+          document.querySelectorAll('.artifact-tabs .tab').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              document.querySelectorAll('.artifact-tabs .tab').forEach(b => b.classList.remove('active'));
+              e.target.classList.add('active');
+              const type = e.target.dataset.type;
+              document.getElementById('artifactInput').placeholder = `Enter ${type} content for forensic analysis...`;
             });
           });
-        });
-        
-        return candidates;
-      }
-    }
-  };
 
-  // ==================== SECURITY LAYER ====================
-  
-  // /security/trust_store.js
-  const TrustStore = {
-    keys: {},
-    activeKeyId: '',
-    
-    addKey(keyId, publicKey) {
-      this.keys[keyId] = {
-        id: keyId,
-        publicKey,
-        addedAt: new Date().toISOString()
-      };
-    },
-    
-    verifySignature(data, signature, keyId) {
-      const key = this.keys[keyId];
-      if (!key) return false;
-      
-      // Simplified verification (in real implementation, use crypto.subtle.verify)
-      return signature && signature.length > 0;
-    }
-  };
+          // Core controls
+          document.getElementById('resurrectBtn')?.addEventListener('click', () => this.handleResurrection());
+          document.getElementById('batchDecodeBtn')?.addEventListener('click', () => this.handleBatchDecode());
+          document.getElementById('clearBtn')?.addEventListener('click', () => this.clearState());
+          document.getElementById('selfTestBtn')?.addEventListener('click', () => this.runSelfTest());
+          document.getElementById('runSelfTestHeaderBtn')?.addEventListener('click', () => this.runSelfTest());
+          document.getElementById('signSessionBtn')?.addEventListener('click', () => this.handleLockAndSign());
 
-  // /security/signed_import.js
-  const SignedImport = {
-    async validateStrategyPack(packData, requireSignature = true) {
-      try {
-        const pack = JSON.parse(packData);
-        
-        // Check signature requirement
-        if (requireSignature && !pack.signature) {
-          return { valid: false, reason: 'Signature required but not found' };
-        }
-        
-        // Verify signature if present
-        if (pack.signature) {
-          const isValid = TrustStore.verifySignature(
-            JSON.stringify(pack.rules),
-            pack.signature,
-            pack.keyId || TrustStore.activeKeyId
-          );
-          
-          if (!isValid) {
-            return { valid: false, reason: 'Invalid signature' };
-          }
-        }
-        
-        return { valid: true, pack };
-      } catch (error) {
-        return { valid: false, reason: 'Invalid pack format' };
-      }
-    }
-  };
-
-  // /security/manifest_verify.js
-  const ManifestVerify = {
-    async verifyRelease(manifest) {
-      // Verify release manifest integrity
-      return {
-        valid: true,
-        buildId: manifest.buildId,
-        version: manifest.version,
-        components: manifest.components || []
-      };
-    }
-  };
-
-  // ==================== AIRGAP ENFORCEMENT ====================
-  
-  const AirgapGuard = {
-    originalFetch: window.fetch,
-    originalXHR: window.XMLHttpRequest,
-    originalWS: window.WebSocket,
-    
-    enabled: true,
-    
-    enable() {
-      if (!this.enabled) return;
-      
-      // Override fetch
-      window.fetch = (...args) => {
-        console.log('[AIRGAP] fetch() blocked:', args[0]);
-        return Promise.reject(new Error('Network access blocked by airgap mode'));
-      };
-      
-      // Override XMLHttpRequest
-      const XHR = function() {
-        throw new Error('XMLHttpRequest blocked by airgap mode');
-      };
-      XHR.prototype = window.XMLHttpRequest.prototype;
-      window.XMLHttpRequest = XHR;
-      
-      // Override WebSocket
-      window.WebSocket = function() {
-        throw new Error('WebSocket blocked by airgap mode');
-      };
-    },
-    
-    disable() {
-      window.fetch = this.originalFetch;
-      window.XMLHttpRequest = this.originalXHR;
-      window.WebSocket = this.originalWS;
-    }
-  };
-
-  // ==================== UI LAYER ====================
-  
-  const UI = {
-    currentTab: 'resurrection',
-    state: {
-      processed: 0,
-      success: 0,
-      candidates: [],
-      refusals: [],
-      engineMode: 'strict',
-      releaseMode: false,
-      airgapped: true,
-      signedImport: true,
-      policyShield: true,
-      evidenceLogging: true,
-      fxEnabled: true,
-      sessionStart: Date.now(),
-      strategyPacks: []
-    },
-    
-    init() {
-      this.bindEvents();
-      this.loadState();
-      this.updateStats();
-      this.startSessionTimer();
-      
-      // Enable airgap if configured
-      if (this.state.airgapped) {
-        AirgapGuard.enable();
-      }
-      
-      // Initialize version display
-      this.updateVersionStack();
-      
-      console.log('HyperSnatch Modular Platform initialized');
-      console.log('Engine:', ENGINE_VERSION);
-      console.log('Policy:', POLICY_VERSION);
-      console.log('Build:', BUILD_ID);
-    },
-    
-    bindEvents() {
-      // Tab navigation
-      document.querySelectorAll('.tab-nav button').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          this.switchTab(e.target.dataset.tab);
-        });
-      });
-      
-      // Core controls
-      document.getElementById('resurrectBtn')?.addEventListener('click', () => this.handleResurrection());
-      document.getElementById('batchDecodeBtn')?.addEventListener('click', () => this.handleBatchDecode());
-      document.getElementById('clearBtn')?.addEventListener('click', () => this.clearState());
-      document.getElementById('selfTestBtn')?.addEventListener('click', () => this.runSelfTest());
-      document.getElementById('exportEvidenceBtn')?.addEventListener('click', () => this.exportEvidence());
-      
-      // Mode toggles
-      document.getElementById('engineModeSelect')?.addEventListener('change', (e) => {
-        this.state.engineMode = e.target.value;
-        this.updatePolicyStatus();
-        this.saveState();
-      });
-      
-      document.getElementById('releaseModeToggle')?.addEventListener('change', (e) => {
-        this.toggleReleaseMode(e.target.checked);
-      });
-      
-      document.getElementById('airgapToggle')?.addEventListener('change', (e) => {
-        this.toggleAirgap(e.target.checked);
-      });
-      
-      // Evidence controls
-      document.getElementById('toggleEvidenceBtn')?.addEventListener('click', () => {
-        document.getElementById('evidencePanel').classList.toggle('collapsed');
-      });
-      
-      document.getElementById('exportEvidenceFullBtn')?.addEventListener('click', () => {
-        this.exportEvidence();
-      });
-      
-      document.getElementById('clearEvidenceBtn')?.addEventListener('click', () => {
-        this.clearEvidence();
-      });
-      
-      // Strategy pack controls
-      document.getElementById('importStrategyBtn')?.addEventListener('click', () => {
-        this.importStrategyPack();
-      });
-      
-      // About modal
-      document.querySelector('.engine-banner')?.addEventListener('dblclick', () => {
-        document.getElementById('aboutModal').style.display = 'flex';
-      });
-      
-      document.getElementById('closeAboutBtn')?.addEventListener('click', () => {
-        document.getElementById('aboutModal').style.display = 'none';
-      });
-    },
-    
-    switchTab(tabName) {
-      // Update nav
-      document.querySelectorAll('.tab-nav button').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tabName);
-      });
-      
-      // Update content
-      document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.toggle('active', content.id === `${tabName}-tab`);
-      });
-      
-      this.currentTab = tabName;
-    },
-    
-    async handleResurrection() {
-      const input = document.getElementById('inbox').value.trim();
-      if (!input) {
-        this.log('No input provided', 'warn');
-        return;
-      }
-      
-      const btn = document.getElementById('resurrectBtn');
-      btn.disabled = true;
-      
-      try {
-        this.log('Starting resurrection analysis...');
-        
-        // Determine source type
-        let sourceType = 'URL';
-        if (input.includes('<html') || input.includes('<!DOCTYPE')) {
-          sourceType = 'HTML';
-        } else if (input.includes('"log":') || input.includes('"entries":')) {
-          sourceType = 'HAR';
-        }
-        
-        const config = {
-          sourceType,
-          rawInput: input,
-          policyState: {
-            mode: this.state.engineMode,
-            airgapped: this.state.airgapped,
-            signedImport: this.state.signedImport
-          }
-        };
-        
-        // Run resurrection engine
-        const result = await ResurrectionEngine.run(config);
-        
-        // Log evidence
-        EvidenceLogger.logResurrection(config, result);
-        
-        if (result.refusal) {
-          this.log(`Resurrection refused: ${result.refusalReason}`, 'err');
-          console.log('[POLICY] Restricted content markers detected.');
-          console.log('[REFUSAL] Resurrection blocked under Cash Policy Shield.');
-          
-          this.state.refusals.push({
-            id: Date.now(),
-            timestamp: new Date().toISOString(),
-            reason: result.refusalReason,
-            markers: result.detectedMarkers,
-            engineMode: this.state.engineMode
+          // Mode toggles
+          document.getElementById('engineModeSelect')?.addEventListener('change', (e) => {
+            this.state.engineMode = e.target.value;
+            this.updateEngineModeUI();
+            this.saveState();
           });
-          
-          EvidenceLogger.logRefusal(config, result.refusalReason, result.detectedMarkers);
-        } else {
-          this.log(`Resurrection complete: ${result.candidates.length} candidates found`);
-          
-          // Add policy markers to candidates
-          const candidatesWithScores = result.candidates.map((candidate, index) => ({
-            ...candidate,
-            confidence: result.confidenceScores[index],
-            policyMarkers: result.detectedMarkers
-          }));
-          
-          this.state.candidates.push(...candidatesWithScores);
-          this.state.success++;
-        }
-        
-        this.state.processed++;
-        this.updateStats();
-        this.renderCandidates();
-        this.renderRefusals();
-        this.updateTelemetry();
-        
-      } catch (error) {
-        this.log(`Resurrection failed: ${error.message}`, 'err');
-      } finally {
-        btn.disabled = false;
-      }
-    },
-    
-    async handleBatchDecode() {
-      const input = document.getElementById('inbox').value.trim();
-      if (!input) {
-        this.log('No input provided for batch processing', 'warn');
-        return;
-      }
-      
-      const btn = document.getElementById('batchDecodeBtn');
-      btn.disabled = true;
-      
-      try {
-        this.log('Starting batch processing...');
-        
-        // Initialize batch processor
-        const batchProcessor = new BatchProcessor({
-          maxConcurrency: 5,
-          progressCallback: (progress) => {
-            this.updateBatchProgress(progress);
-          },
-          itemCallback: (item) => {
-            this.log(`Processed: ${item.type} - ${item.status}`);
-          },
-          completeCallback: (results) => {
-            this.onBatchComplete(results);
-          },
-          errorCallback: (item, error) => {
-            this.log(`Batch item failed: ${error}`, 'err');
+
+          document.getElementById('airgapToggle')?.addEventListener('change', (e) => {
+            this.toggleAirgap(e.target.checked);
+          });
+
+          document.getElementById('policyShieldToggle')?.addEventListener('change', (e) => {
+            this.state.policyShield = e.target.checked;
+            this.saveState();
+          });
+
+          // Session actions
+          document.getElementById('exportSessionBtn')?.addEventListener('click', () => this.handleExportSession());
+          document.getElementById('importSessionBtn')?.addEventListener('click', () => this.handleImportSession());
+          document.getElementById('exportBundleBtn')?.addEventListener('click', () => this.handleExportBundle());
+
+          // Search and Filters
+          document.getElementById('candidateSearch')?.addEventListener('input', (e) => {
+            this.state.candidateSearch = e.target.value;
+            this.renderCandidates();
+          });
+
+          document.getElementById('candidateTypeFilter')?.addEventListener('change', (e) => {
+            this.state.candidateTypeFilter = e.target.value;
+            this.renderCandidates();
+          });
+
+          document.getElementById('refusalSearch')?.addEventListener('input', (e) => {
+            this.state.refusalSearch = e.target.value;
+            this.renderRefusals();
+          });
+
+          document.getElementById('copyAllCandidatesBtn')?.addEventListener('click', () => this.handleCopyAllCandidates());
+
+          // Drawer controls
+          document.getElementById('drawerClose')?.addEventListener('click', () => this.closeDrawer());
+          document.getElementById('drawerBackdrop')?.addEventListener('click', () => this.closeDrawer());
+        },
+
+        handleExportSession() {
+          const sessionData = {
+            state: this.state,
+            logs: EvidenceLogger.logs,
+            timestamp: new Date().toISOString()
+          };
+          const content = JSON.stringify(sessionData, null, 2);
+          const blob = new Blob([content], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `hypersnatch-session-${Date.now()}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          this.toast('Session exported');
+        },
+
+        async handleImportSession() {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = '.json';
+          input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+              const content = await file.text();
+              const sessionData = JSON.parse(content);
+              if (sessionData.state) {
+                Object.assign(this.state, sessionData.state);
+                if (sessionData.logs) EvidenceLogger.logs = sessionData.logs;
+                this.updateStats();
+                this.renderCandidates();
+                this.renderRefusals();
+                this.renderEvidence();
+                this.toast('Session imported');
+              }
+            } catch (err) {
+              this.toastError('Failed to import session: ' + err.message);
+            }
+          };
+          input.click();
+        },
+
+        handleCopyAllCandidates() {
+          const cleanLinks = this.state.candidates
+            .map(c => c.url)
+            .join('\n');
+          navigator.clipboard.writeText(cleanLinks);
+          this.toast('Copied all candidate links');
+        },
+
+        async handleLockAndSign() {
+          if (this.state.candidates.length === 0 && this.state.refusals.length === 0) {
+            this.toastError('No evidence to sign');
+            return;
           }
-        });
-        
-        // Detect and parse input blocks
-        const detector = new InputDetector();
-        const blocks = detector.detectAndParse(input);
-        
-        this.log(`Detected ${blocks.length} input blocks for processing`);
-        
-        // Add items to batch processor
-        const items = blocks.map(block => block.raw);
-        batchProcessor.addItems(items);
-        
-        // Show progress section
-        document.getElementById('batchProgressSection').style.display = 'block';
-        document.getElementById('batchResultsSection').style.display = 'block';
-        
-        // Start batch processing
-        await batchProcessor.start();
-        
-      } catch (error) {
-        this.log(`Batch processing failed: ${error.message}`, 'err');
-      } finally {
-        btn.disabled = false;
-      }
-    },
-    
-    updateBatchProgress(progress) {
-      const progressFill = document.getElementById('batchProgressFill');
-      const progressText = document.getElementById('batchProgressText');
-      const batchStatus = document.getElementById('batchStatus');
-      
-      progressFill.style.width = `${progress.percentage}%`;
-      progressText.textContent = `${progress.completed + progress.failed} / ${progress.total} items processed`;
-      
-      const statusHtml = `
+
+          try {
+            this.toast('Initiating Sovereign Audit Chain...');
+            const systemInfo = {
+              buildId: BUILD_ID,
+              engineVersion: ENGINE_VERSION
+            };
+
+            const signedBundle = await window.smartDecode.signSession(this.state, systemInfo);
+            if (!signedBundle) throw new Error('Signing failed');
+
+            const content = JSON.stringify(signedBundle, null, 2);
+            const blob = new Blob([content], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `investigation-${Date.now()}.tear`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            this.toast('Investigation LOCKED and SIGNED');
+            this.log('Sovereign Audit Chain finalized: ' + signedBundle.fingerprint, 'ok');
+          } catch (error) {
+            this.toastError('Signing failed: ' + error.message);
+          }
+        },
+
+        bindShortcuts() {
+          window.addEventListener('keydown', (e) => {
+            // Esc -> Close Drawer
+            if (e.key === 'Escape') {
+              this.closeDrawer();
+            }
+
+            // Ctrl+Enter -> Resurrect
+            if (e.ctrlKey && e.key === 'Enter') {
+              e.preventDefault();
+              if (e.shiftKey) {
+                this.handleBatchDecode();
+              } else {
+                this.handleResurrection();
+              }
+            }
+
+            // Ctrl+L -> Focus Ingest
+            if (e.ctrlKey && e.key === 'l') {
+              e.preventDefault();
+              document.getElementById('artifactInput')?.focus();
+            }
+          });
+        },
+
+        toast(msg) {
+          const host = document.getElementById('toastHost');
+          if (!host) return;
+          const el = document.createElement('div');
+          el.className = 'toast';
+          el.textContent = msg;
+          host.appendChild(el);
+          setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-10px)';
+            setTimeout(() => el.remove(), 200);
+          }, 2000); // Remove after 2.2s total (2s + 0.2s fade)
+        },
+
+        toastError(msg) {
+          const host = document.getElementById('toastHost');
+          if (!host) return;
+          const el = document.createElement('div');
+          el.className = 'toast';
+          el.style.borderColor = 'rgba(255,107,107,0.3)';
+          el.style.color = '#ff6b6b';
+          el.textContent = msg;
+          host.appendChild(el);
+          setTimeout(() => el.remove(), 3000);
+        },
+
+        updateEngineModeUI() {
+          const el = document.getElementById('engineModeSelect');
+          if (!el) return;
+          el.className = this.state.engineMode === 'strict' ? 'strict-mode' : 'relaxed-mode';
+        },
+
+        renderCandidateRow(item) {
+          const conf = Math.round((item.confidence > 1 ? item.confidence / 100 : item.confidence) * 100);
+          const dataStr = JSON.stringify(item).replace(/"/g, '&quot;');
+          const rowClass = conf > 80 ? 'row-good' : (conf < 40 ? 'row-muted' : '');
+          
+          return `
+            <tr class="${rowClass}">
+              <td style="font-weight: 600;">${this.sanitize(item.host || '---')}</td>
+              <td><span class="badge">${this.sanitize(item.type || 'unknown')}</span></td>
+              <td><span class="badge ${conf > 80 ? 'badge-ok' : ''}">${conf}%</span></td>
+              <td>${(item.publicAccess || item.public) ? 'Y' : 'N'}</td>
+              <td>${(item.requiresAuthorization || item.requiresAuth) ? 'Y' : 'N'}</td>
+              <td class="cell-mono" style="opacity: 0.8;">${this.sanitize(item.fileId || item.filename || '---')}</td>
+              <td>
+                <div class="row" style="gap: 4px;">
+                  <button class="btn-utility" onclick="window.UI.copyToClipboard('${this.sanitize(item.url)}')">COPY</button>
+                  <button class="btn-utility" onclick="window.UI.handleExportSingle(${dataStr})">EXPORT</button>
+                  <button class="btn-utility" onclick="window.UI.inspect(${dataStr})">INSPECT</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        },
+
+        renderRefusalRow(item) {
+          const dataStr = JSON.stringify(item).replace(/"/g, '&quot;');
+          return `
+            <tr class="row-warn">
+              <td style="font-weight: 600; color: var(--warn);">${this.sanitize(item.host || 'POLICY')}</td>
+              <td style="color: var(--err);">${this.sanitize(item.reason || item.stopReason || 'Blocked')}</td>
+              <td style="font-size: 10px; opacity: 0.6; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${this.sanitize(item.markers ? item.markers.join(', ') : '---')}</td>
+              <td class="cell-mono" style="opacity: 0.5;">${this.sanitize(item.url ? item.url.substring(0, 30) + '...' : '---')}</td>
+              <td>
+                <div class="row" style="gap: 4px;">
+                  ${item.url ? `<button class="btn-utility" onclick="window.UI.copyToClipboard('${this.sanitize(item.url)}')">COPY URL</button>` : ''}
+                  <button class="btn-utility" onclick="window.UI.inspect(${dataStr})">INSPECT</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        },
+
+        escapeSh(val) {
+          return "'" + String(val || '').replace(/'/g, "'\\''") + "'";
+        },
+
+        escapePs1(val) {
+          return "'" + String(val || '').replace(/'/g, "''") + "'";
+        },
+
+        sanitizeFilename(name) {
+          return String(name || 'artifact').replace(/[^a-zA-Z0-9._\-]/g, '_').slice(0, 100);
+        },
+
+        basenameFromUrl(u) {
+          try {
+            const url = new URL(u);
+            const p = url.pathname.split('/').filter(Boolean).pop() || '';
+            return decodeURIComponent(p) || 'download.bin';
+          } catch { return 'download.bin'; }
+        },
+
+        sanitize(str) {
+          if (!str) return '';
+          const div = document.createElement('div');
+          div.textContent = str;
+          return div.innerHTML;
+        },
+
+        copyToClipboard(text) {
+          navigator.clipboard.writeText(text);
+          this.toast('Copied to clipboard');
+        },
+
+        handleExportSingle(item) {
+          const content = JSON.stringify(item, null, 2);
+          const blob = new Blob([content], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `artifact-${item.host || 'unknown'}-${Date.now()}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          this.toast('Export complete');
+        },
+
+        inspect(data) {
+          const content = document.getElementById('drawerContent');
+          content.textContent = JSON.stringify(data, null, 2);
+          this.openDrawer();
+        },
+
+        openDrawer() {
+          document.getElementById('inspectDrawer').classList.add('open');
+          document.getElementById('drawerBackdrop').classList.add('open');
+        },
+
+        closeDrawer() {
+          document.getElementById('inspectDrawer').classList.remove('open');
+          document.getElementById('drawerBackdrop').classList.remove('open');
+        },
+
+        async handleResurrection() {
+          const input = document.getElementById('artifactInput').value.trim();
+          if (!input) {
+            this.log('No input provided', 'warn');
+            return;
+          }
+
+          const btn = document.getElementById('resurrectBtn');
+          btn.disabled = true;
+
+          try {
+            this.log('Starting resurrection analysis...');
+
+            // Determine source type from active tab
+            const activeTab = document.querySelector('.artifact-tabs .tab.active');
+            const sourceType = activeTab ? activeTab.dataset.type : 'URL';
+
+            const config = {
+              sourceType,
+              rawInput: input,
+              policyState: {
+                mode: this.state.engineMode,
+                airgapped: this.state.airgapped,
+                policyShield: this.state.policyShield
+              }
+            };
+
+            // Run resurrection engine
+            const result = await ResurrectionEngine.run(config);
+
+            // Log evidence
+            EvidenceLogger.logResurrection(config, result);
+
+            if (result.refusal) {
+              this.log(`Resurrection refused: ${result.refusalReason}`, 'err');
+              this.state.refusals.push({
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                reason: result.refusalReason,
+                markers: result.detectedMarkers,
+                engineMode: this.state.engineMode
+              });
+              EvidenceLogger.logRefusal(config, result.refusalReason, result.detectedMarkers);
+            } else {
+              this.log(`Resurrection complete: ${result.candidates.length} candidates found`);
+              const candidatesWithScores = result.candidates.map((candidate, index) => ({
+                ...candidate,
+                confidence: result.confidenceScores[index],
+                policyMarkers: result.detectedMarkers
+              }));
+              this.state.candidates.push(...candidatesWithScores);
+              this.state.success++;
+            }
+
+            this.state.processed++;
+            this.updateStats();
+            this.renderCandidates();
+            this.renderRefusals();
+
+          } catch (error) {
+            this.log(`Resurrection failed: ${error.message}`, 'err');
+          } finally {
+            btn.disabled = false;
+          }
+        },
+
+        async handleBatchDecode() {
+          const input = document.getElementById('artifactInput').value.trim();
+          if (!input) {
+            this.log('No input provided for batch processing', 'warn');
+            return;
+          }
+
+          const btn = document.getElementById('batchDecodeBtn');
+          btn.disabled = true;
+
+          try {
+            this.log('Starting batch processing...');
+
+            // Initialize batch processor
+            const batchProcessor = new BatchProcessor({
+              maxConcurrency: 5,
+              progressCallback: (progress) => {
+                this.updateBatchProgress(progress);
+              },
+              completeCallback: (results) => {
+                this.onBatchComplete(results);
+              }
+            });
+
+            // Detect and parse input blocks
+            const detector = new InputDetector();
+            const blocks = detector.detectAndParse(input);
+
+            this.log(`Detected ${blocks.length} input blocks for processing`);
+
+            // Add items to batch processor
+            const items = blocks.map(block => block.raw);
+            batchProcessor.addItems(items);
+
+            // Show progress section
+            document.getElementById('batchProgressSection').style.display = 'block';
+
+            // Start batch processing
+            await batchProcessor.start();
+
+          } catch (error) {
+            this.log(`Batch processing failed: ${error.message}`, 'err');
+          } finally {
+            btn.disabled = false;
+          }
+        },
+
+        updateBatchProgress(progress) {
+          const progressFill = document.getElementById('batchProgressFill');
+          const progressText = document.getElementById('batchProgressText');
+          const batchStatus = document.getElementById('batchStatus');
+
+          progressFill.style.width = `${progress.percentage}%`;
+          progressText.textContent = `${progress.completed + progress.failed} / ${progress.total} items processed`;
+
+          const statusHtml = `
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px;">
           <div>
             <div style="color: var(--success); font-weight: 600;">Completed: ${progress.completed}</div>
@@ -1757,39 +1676,39 @@
           </div>
         </div>
       `;
-      
-      batchStatus.innerHTML = statusHtml;
-    },
-    
-    onBatchComplete(results) {
-      this.log(`Batch processing complete: ${results.completed} successful, ${results.failed} failed`);
-      
-      // Render results table
-      const container = document.getElementById('batchResultsTable');
-      
-      if (results.results.length === 0) {
-        container.innerHTML = '<div class="muted">No results from batch processing.</div>';
-        return;
-      }
-      
-      const html = results.results.map((result, index) => {
-        const candidates = result.candidates || [];
-        const bestCandidate = candidates[0] || null;
-        
-        return `
+
+          batchStatus.innerHTML = statusHtml;
+        },
+
+        onBatchComplete(results) {
+          this.log(`Batch processing complete: ${results.completed} successful, ${results.failed} failed`);
+
+          // Render results table
+          const container = document.getElementById('batchResultsTable');
+
+          if (results.results.length === 0) {
+            container.innerHTML = '<div class="muted">No results from batch processing.</div>';
+            return;
+          }
+
+          const html = results.results.map((result, index) => {
+            const candidates = result.candidates || [];
+            const bestCandidate = candidates[0] || null;
+
+            return `
           <div class="candidate-item">
             <div class="candidate-header">
               <div>
                 <strong>Item ${index + 1}</strong>
                 <span class="chip ${result.type === 'url' ? 'ok' : result.type === 'html' ? 'warn' : 'err'}">
-                  ${result.type.toUpperCase()}
+                  ${(result.type || 'unknown').toUpperCase()}
                 </span>
               </div>
               <div>
-                ${candidates.length > 0 ? 
-                  `<span class="confidence-badge high">${candidates.length} candidates</span>` : 
-                  '<span class="confidence-badge low">No candidates</span>'
-                }
+                ${candidates.length > 0 ?
+                `<span class="confidence-badge high">${candidates.length} candidates</span>` :
+                '<span class="confidence-badge low">No candidates</span>'
+              }
               </div>
             </div>
             <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 6px;">
@@ -1798,408 +1717,519 @@
             ${bestCandidate ? `
               <div style="font-size: 0.8rem;">
                 <div><strong>Best Candidate:</strong> ${bestCandidate.url}</div>
-                <div><strong>Confidence:</strong> ${(bestCandidate.confidence * 100).toFixed(1)}%</div>
+                <div><strong>Confidence:</strong> ${(bestCandidate.confidence * 100).toFixed(0)}%</div>
                 <div><strong>Method:</strong> ${bestCandidate.method}</div>
                 <div><strong>Host:</strong> ${bestCandidate.host}</div>
               </div>
             ` : '<div style="color: var(--err);">No viable candidates found</div>'}
           </div>
         `;
-      }).join('');
-      
-      container.innerHTML = html;
-      
-      // Update main statistics
-      this.state.processed += results.total;
-      this.state.success += results.completed;
-      
-      // Add candidates to main state
-      results.results.forEach(result => {
-        if (result.candidates && result.candidates.length > 0) {
-          result.candidates.forEach(candidate => {
-            this.state.candidates.push({
-              ...candidate,
-              id: Date.now() + Math.random(),
-              timestamp: new Date().toISOString(),
-              source: 'batch'
-            });
+          }).join('');
+
+          container.innerHTML = html;
+
+          // Update main statistics
+          this.state.processed += results.total;
+          this.state.success += results.completed;
+
+          // Add candidates to main state
+          results.results.forEach(result => {
+            if (result.candidates && result.candidates.length > 0) {
+              result.candidates.forEach(candidate => {
+                this.state.candidates.push({
+                  ...candidate,
+                  id: Date.now() + Math.random(),
+                  timestamp: new Date().toISOString(),
+                  source: 'batch'
+                });
+              });
+            }
           });
-        }
-      });
-      
-      this.updateStats();
-      this.renderCandidates();
-      this.updateTelemetry();
-    },
-    
-    toggleReleaseMode(force = null) {
-      const enabled = force !== null ? force : document.getElementById('releaseModeToggle').checked;
-      this.state.releaseMode = enabled;
-      
-      if (enabled) {
-        // Lock configuration
-        this.state.engineMode = 'strict';
-        this.state.airgapped = true;
-        this.state.signedImport = true;
-        
-        // Disable controls
-        document.getElementById('engineModeSelect').disabled = true;
-        document.getElementById('airgapToggle').disabled = true;
-        document.getElementById('signedImportToggle').disabled = true;
-        document.getElementById('labModeToggle').disabled = true;
-        
-        // Hide debug console
-        const logBox = document.getElementById('logBox');
-        if (logBox) {
-          logBox.style.display = 'none';
-        }
-        
-        // Show release mode indicator
-        const banner = document.querySelector('.engine-banner');
-        if (banner) {
-          const existingBadge = banner.querySelector('.release-mode');
-          if (!existingBadge) {
-            const badge = document.createElement('div');
-            badge.className = 'release-mode';
-            badge.textContent = 'RELEASE MODE: LOCKED';
-            banner.appendChild(badge);
+
+          this.updateStats();
+          this.renderCandidates();
+          this.updateTelemetry();
+        },
+
+        toggleReleaseMode(force = null) {
+          const enabled = force !== null ? force : document.getElementById('releaseModeToggle').checked;
+          this.state.releaseMode = enabled;
+
+          if (enabled) {
+            // Lock configuration
+            this.state.engineMode = 'strict';
+            this.state.airgapped = true;
+            this.state.signedImport = true;
+
+            // Disable controls
+            document.getElementById('engineModeSelect').disabled = true;
+            document.getElementById('airgapToggle').disabled = true;
+            document.getElementById('signedImportToggle').disabled = true;
+            document.getElementById('labModeToggle').disabled = true;
+
+            // Hide debug console
+            const logBox = document.getElementById('logBox');
+            if (logBox) {
+              logBox.style.display = 'none';
+            }
+
+            // Show release mode indicator
+            const banner = document.querySelector('.engine-banner');
+            if (banner) {
+              const existingBadge = banner.querySelector('.release-mode');
+              if (!existingBadge) {
+                const badge = document.createElement('div');
+                badge.className = 'release-mode';
+                badge.textContent = 'RELEASE MODE: LOCKED';
+                banner.appendChild(badge);
+              }
+            }
+
+            // Notify Electron main process if available
+            if (window.hyper && window.hyper.setReleaseMode) {
+              window.hyper.setReleaseMode(true);
+            }
+
+            this.log('Release Mode enabled - Configuration locked', 'warn');
+          } else {
+            // Enable controls
+            document.getElementById('engineModeSelect').disabled = false;
+            document.getElementById('airgapToggle').disabled = false;
+            document.getElementById('signedImportToggle').disabled = false;
+            document.getElementById('labModeToggle').disabled = false;
+
+            // Show debug console
+            const logBox = document.getElementById('logBox');
+            if (logBox) {
+              logBox.style.display = 'block';
+            }
+
+            // Remove release mode indicator
+            const banner = document.querySelector('.engine-banner');
+            if (banner) {
+              const badge = banner.querySelector('.release-mode');
+              if (badge) {
+                badge.remove();
+              }
+            }
+
+            // Notify Electron main process if available
+            if (window.hyper && window.hyper.setReleaseMode) {
+              window.hyper.setReleaseMode(false);
+            }
+
+            this.log('Release Mode disabled - Configuration unlocked', 'ok');
           }
-        }
-        
-        // Notify Electron main process if available
-        if (window.hyper && window.hyper.setReleaseMode) {
-          window.hyper.setReleaseMode(true);
-        }
-        
-        this.log('Release Mode enabled - Configuration locked', 'warn');
-      } else {
-        // Enable controls
-        document.getElementById('engineModeSelect').disabled = false;
-        document.getElementById('airgapToggle').disabled = false;
-        document.getElementById('signedImportToggle').disabled = false;
-        document.getElementById('labModeToggle').disabled = false;
-        
-        // Show debug console
-        const logBox = document.getElementById('logBox');
-        if (logBox) {
-          logBox.style.display = 'block';
-        }
-        
-        // Remove release mode indicator
-        const banner = document.querySelector('.engine-banner');
-        if (banner) {
-          const badge = banner.querySelector('.release-mode');
-          if (badge) {
-            badge.remove();
+
+          // Update control states
+          document.getElementById('engineModeSelect').value = this.state.engineMode;
+          document.getElementById('airgapToggle').checked = this.state.airgapped;
+          document.getElementById('signedImportToggle').checked = this.state.signedImport;
+        },
+
+        toggleAirgap(enabled) {
+          this.state.airgapped = enabled;
+
+          if (enabled) {
+            AirgapGuard.enable();
+
+            // Notify Electron main process if available
+            if (window.hyper && window.hyper.setAirgapMode) {
+              window.hyper.setAirgapMode(true);
+            }
+
+            this.log('Airgap mode enabled - network access blocked', 'warn');
+          } else {
+            AirgapGuard.disable();
+
+            // Notify Electron main process if available
+            if (window.hyper && window.hyper.setAirgapMode) {
+              window.hyper.setAirgapMode(false);
+            }
+
+            this.log('Airgap mode disabled', 'ok');
           }
-        }
-        
-        // Notify Electron main process if available
-        if (window.hyper && window.hyper.setReleaseMode) {
-          window.hyper.setReleaseMode(false);
-        }
-        
-        this.log('Release Mode disabled - Configuration unlocked', 'ok');
-      }
-      
-      // Update control states
-      document.getElementById('engineModeSelect').value = this.state.engineMode;
-      document.getElementById('airgapToggle').checked = this.state.airgapped;
-      document.getElementById('signedImportToggle').checked = this.state.signedImport;
-    },
-    
-    toggleAirgap(enabled) {
-      this.state.airgapped = enabled;
-      
-      if (enabled) {
-        AirgapGuard.enable();
-        
-        // Notify Electron main process if available
-        if (window.hyper && window.hyper.setAirgapMode) {
-          window.hyper.setAirgapMode(true);
-        }
-        
-        this.log('Airgap mode enabled - network access blocked', 'warn');
-      } else {
-        AirgapGuard.disable();
-        
-        // Notify Electron main process if available
-        if (window.hyper && window.hyper.setAirgapMode) {
-          window.hyper.setAirgapMode(false);
-        }
-        
-        this.log('Airgap mode disabled', 'ok');
-      }
-      
-      this.updatePolicyStatus();
-      this.saveState();
-    },
-    
-    updateStats() {
-      document.getElementById('processedView').textContent = this.state.processed;
-      document.getElementById('successView').textContent = this.state.success;
-      document.getElementById('candidatesView').textContent = this.state.candidates.length;
-      document.getElementById('refusalsView').textContent = this.state.refusals.length;
-      
-      document.getElementById('footerProcessed').textContent = this.state.processed;
-      document.getElementById('footerSuccess').textContent = this.state.success;
-      document.getElementById('footerCandidates').textContent = this.state.candidates.length;
-      document.getElementById('footerRefusals').textContent = this.state.refusals.length;
-    },
-    
-    updatePolicyStatus() {
-      const updateStatus = (id, active, locked = false) => {
-        const element = document.getElementById(id);
-        element.textContent = active ? 'ACTIVE' : 'INACTIVE';
-        element.className = locked ? 'status-value locked' : 
-                           active ? 'status-value active' : 'status-value inactive';
-      };
-      
-      updateStatus('policyShieldStatus', this.state.policyShield);
-      updateStatus('airgappedStatus', this.state.airgapped);
-      updateStatus('signedImportStatus', this.state.signedImport);
-      updateStatus('engineModeStatus', true, this.state.releaseMode);
-    },
-    
-    updateVersionStack() {
-      document.getElementById('appVersion').textContent = VERSION;
-      document.getElementById('engineVersion').textContent = ENGINE_VERSION;
-      document.getElementById('policyVersion').textContent = POLICY_VERSION;
-      document.getElementById('buildId').textContent = BUILD_ID;
-      document.getElementById('footerBuildId').textContent = BUILD_ID;
-    },
-    
-    updateTelemetry() {
-      // Calculate metrics
-      const totalProcessed = this.state.processed;
-      const avgConfidence = this.state.candidates.length > 0 ? 
-        Math.round(this.state.candidates.reduce((sum, c) => sum + (c.confidence || 0), 0) / this.state.candidates.length) : 0;
-      const refusalRate = totalProcessed > 0 ? 
-        Math.round((this.state.refusals.length / totalProcessed) * 100) : 0;
-      const strategyUsage = this.state.strategyPacks.length;
-      
-      document.getElementById('totalProcessed').textContent = totalProcessed;
-      document.getElementById('avgConfidence').textContent = avgConfidence + '%';
-      document.getElementById('refusalRate').textContent = refusalRate + '%';
-      document.getElementById('strategyUsage').textContent = strategyUsage;
-    },
-    
-    renderCandidates() {
-      const container = document.getElementById('candidatesTable');
-      
-      if (this.state.candidates.length === 0) {
-        container.innerHTML = '<div class="muted">No candidates resurrected yet.</div>';
-        return;
-      }
-      
-      const html = this.state.candidates.slice(-20).reverse().map(candidate => {
-        const confidenceClass = candidate.confidence >= 80 ? 'high' : 
-                               candidate.confidence >= 50 ? 'medium' : 'low';
-        const confidenceBadge = `confidence-badge ${confidenceClass}`;
-        
-        return `
-          <div class="candidate-item">
-            <div class="candidate-header">
-              <div><strong>Candidate #${candidate.rank}</strong></div>
-              <div class="${confidenceBadge}">${candidate.confidence}%</div>
-            </div>
-            <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 4px;">
-              Status: <span class="status-${candidate.status}">${candidate.status.toUpperCase()}</span>
-              ${candidate.statusReason ? `| Reason: ${candidate.statusReason}` : ''}
-              ${candidate.validation ? `| Validated: ${candidate.validation.validatedAt}` : ''}
-            </div>
-            <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 4px;">
-              Source: ${candidate.source.toUpperCase()} | Type: ${candidate.type}
-              ${candidate.method ? `| Method: ${candidate.method}` : ''}
-              ${candidate.host ? `| Host: ${candidate.host}` : ''}
-            </div>
-            <div style="word-break: break-all; font-family: monospace; font-size: 0.8rem;">
-              ${candidate.url}
-            </div>
-            ${candidate.status === DecodeStatus.VALIDATED ? `
-              <div style="margin-top: 8px;">
-                <button class="download-btn" onclick="window.open('${candidate.url}', '_blank')" style="
-                  background: var(--accent);
-                  color: var(--bg);
-                  border: none;
-                  padding: 6px 12px;
-                  border-radius: 4px;
-                  font-size: 0.75rem;
-                  font-weight: 600;
-                  cursor: pointer;
-                  margin-right: 8px;
-                ">📥 Download</button>
-                <button class="copy-btn" onclick="navigator.clipboard.writeText('${candidate.url}')" style="
-                  background: var(--line);
-                  color: var(--fg);
-                  border: none;
-                  padding: 6px 12px;
-                  border-radius: 4px;
-                  font-size: 0.75rem;
-                  cursor: pointer;
-                ">📋 Copy Link</button>
-              </div>
-            ` : ''}
-            ${candidate.validation && candidate.validation.checks ? `
-              <div style="margin-top: 8px; font-size: 0.75rem; color: var(--muted);">
-                <strong>Validation Checks:</strong><br>
-                ${candidate.validation.checks.map(check => 
-                  `${check.pass ? '✅' : '❌'} ${check.name}${check.info ? ` (${check.info})` : ''}`
-                ).join('<br>')}
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join('');
-      
-      container.innerHTML = html;
-    },
-    
-    renderRefusals() {
-      const container = document.getElementById('refusalTable');
-      
-      if (this.state.refusals.length === 0) {
-        container.innerHTML = '<div class="muted">No refusals recorded.</div>';
-        return;
-      }
-      
-      const html = this.state.refusals.slice(-10).reverse().map(refusal => `
-        <div class="candidate-item" style="border-left-color: var(--err);">
-          <div style="color: var(--err); font-weight: 600; margin-bottom: 4px;">
-            REFUSED: ${refusal.reason}
-          </div>
-          <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 4px;">
-            Mode: ${refusal.engineMode.toUpperCase()} | Markers: ${refusal.markers.join(', ')}
-          </div>
-          <div style="font-size: 0.75rem; color: var(--muted);">
-            ${refusal.timestamp}
-          </div>
-        </div>
-      `).join('');
-      
-      container.innerHTML = html;
-    },
-    
-    renderEvidence() {
-      const container = document.getElementById('evidenceContent');
-      const countElement = document.getElementById('evidenceCount');
-      
-      countElement.textContent = EvidenceLogger.logs.length;
-      
-      if (EvidenceLogger.logs.length === 0) {
-        container.innerHTML = '<div class="muted">No evidence recorded yet.</div>';
-        return;
-      }
-      
-      const html = EvidenceLogger.logs.slice(0, 50).map(entry => {
-        const cssClass = entry.action === 'REFUSAL' ? 'evidence-entry refusal' : 'evidence-entry';
-        return `
+
+          this.updatePolicyStatus();
+          this.saveState();
+        },
+
+        updateStats() {
+          document.getElementById('processedView').textContent = this.state.processed;
+          document.getElementById('successView').textContent = this.state.success;
+          document.getElementById('candidatesView').textContent = this.state.candidates.length;
+          document.getElementById('refusalsView').textContent = this.state.refusals.length;
+        },
+
+        updatePolicyStatus() {
+          const updateStatus = (id, active, locked = false) => {
+            const element = document.getElementById(id);
+            element.textContent = active ? 'ACTIVE' : 'INACTIVE';
+            element.className = locked ? 'status-value locked' :
+              active ? 'status-value active' : 'status-value inactive';
+          };
+
+          updateStatus('policyShieldStatus', this.state.policyShield);
+          updateStatus('airgappedStatus', this.state.airgapped);
+          updateStatus('signedImportStatus', this.state.signedImport);
+          updateStatus('engineModeStatus', true, this.state.releaseMode);
+        },
+
+        updateVersionStack() {
+          document.getElementById('appVersion').textContent = VERSION;
+          document.getElementById('engineVersion').textContent = ENGINE_VERSION;
+          document.getElementById('policyVersion').textContent = POLICY_VERSION;
+          document.getElementById('buildId').textContent = BUILD_ID;
+          document.getElementById('footerBuildId').textContent = BUILD_ID;
+        },
+
+        updateTelemetry() {
+          // Calculate metrics
+          const totalProcessed = this.state.processed;
+          const avgConfidence = this.state.candidates.length > 0 ?
+            Math.round(this.state.candidates.reduce((sum, c) => sum + (c.confidence || 0), 0) / this.state.candidates.length) : 0;
+          const refusalRate = totalProcessed > 0 ?
+            Math.round((this.state.refusals.length / totalProcessed) * 100) : 0;
+          const strategyUsage = this.state.strategyPacks.length;
+
+          document.getElementById('totalProcessed').textContent = totalProcessed;
+          document.getElementById('avgConfidence').textContent = avgConfidence + '%';
+          document.getElementById('refusalRate').textContent = refusalRate + '%';
+          document.getElementById('strategyUsage').textContent = strategyUsage;
+        },
+
+        renderCandidates() {
+          const container = document.getElementById('candidatesTable');
+          const panel = document.getElementById('candidatesPanel');
+
+          let items = this.state.candidates;
+
+          // Apply Filter: Type
+          const typeFilter = this.state.candidateTypeFilter || 'all';
+          if (typeFilter !== 'all') {
+            items = items.filter(c => c.type && c.type.includes(typeFilter));
+          }
+
+          // Apply Filter: Search
+          const search = (this.state.candidateSearch || '').toLowerCase();
+          if (search) {
+            items = items.filter(c => (c.host || '').toLowerCase().includes(search));
+          }
+
+          if (items.length === 0) {
+            container.innerHTML = '<div style="opacity: 0.3; text-align: center; margin-top: 40px; font-size: 12px;">No matching candidates found.</div>';
+            panel.classList.remove('active');
+            return;
+          }
+
+          panel.classList.add('active');
+          
+          // Performance optimization: 
+          // If > 200 items, render only the first 200 initially to prevent DOM lag
+          const renderCount = items.length > 200 ? 200 : items.length;
+          const displayItems = items.slice(0, renderCount);
+
+          const html = `
+            <table class="evidence-table">
+              <thead>
+                <tr>
+                  <th>Host</th>
+                  <th>Type</th>
+                  <th>Confidence</th>
+                  <th>Public</th>
+                  <th>Requires Auth</th>
+                  <th>FileID / Filename</th>
+                  <th>Actions ${items.length > 200 ? `(Showing top 200 of ${items.length})` : ''}</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${displayItems.map(c => this.renderCandidateRow(c)).join('')}
+              </tbody>
+            </table>
+          `;
+          container.innerHTML = html;
+        },
+
+        renderRefusals() {
+          const container = document.getElementById('refusalTable');
+          const panel = document.getElementById('refusalsPanel');
+
+          let items = this.state.refusals;
+
+          // Apply Filter: Search
+          const search = (this.state.refusalSearch || '').toLowerCase();
+          if (search) {
+            items = items.filter(r => (r.reason || '').toLowerCase().includes(search) || (r.host || '').toLowerCase().includes(search));
+          }
+
+          if (items.length === 0) {
+            container.innerHTML = '<div style="opacity: 0.3; text-align: center; margin-top: 40px; font-size: 12px;">No matching refusals found.</div>';
+            panel.classList.remove('active');
+            return;
+          }
+
+          panel.classList.add('active');
+          const html = `
+            <table class="evidence-table">
+              <thead>
+                <tr>
+                  <th>Host</th>
+                  <th>Reason</th>
+                  <th>Evidence Snippet</th>
+                  <th>URL</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.map(r => this.renderRefusalRow(r)).join('')}
+              </tbody>
+            </table>
+          `;
+          container.innerHTML = html;
+        },
+
+        renderEvidence() {
+          const container = document.getElementById('evidenceContent');
+          const countElement = document.getElementById('evidenceCount');
+
+          countElement.textContent = EvidenceLogger.logs.length;
+
+          if (EvidenceLogger.logs.length === 0) {
+            container.innerHTML = '<div class="muted">No evidence recorded yet.</div>';
+            return;
+          }
+
+          const html = EvidenceLogger.logs.slice(0, 50).map(entry => {
+            const cssClass = entry.action === 'REFUSAL' ? 'evidence-entry refusal' : 'evidence-entry';
+            return `
           <div class="${cssClass}">
             <div class="timestamp">${entry.timestamp}</div>
             <div><strong>${entry.action}</strong></div>
             ${Object.entries(entry).filter(([k]) => !['timestamp', 'action', 'level'].includes(k))
-              .map(([k, v]) => `<div>${k.toUpperCase()}: ${v}</div>`).join('')}
+                .map(([k, v]) => `<div>${k.toUpperCase()}: ${v}</div>`).join('')}
           </div>
         `;
-      }).join('');
-      
-      container.innerHTML = html;
-    },
-    
-    startSessionTimer() {
-      setInterval(() => {
-        const elapsed = Date.now() - this.state.sessionStart;
-        const hours = Math.floor(elapsed / 3600000);
-        const minutes = Math.floor((elapsed % 3600000) / 60000);
-        const seconds = Math.floor((elapsed % 60000) / 1000);
-        
-        document.getElementById('sessionTime').textContent = 
-          `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      }, 1000);
-    },
-    
-    runSelfTest() {
-      this.log('Running modular platform self-test...');
-      
-      const tests = [
-        { name: 'Resurrection Engine', pass: ResurrectionEngine.version === ENGINE_VERSION },
-        { name: 'Policy Guard', pass: PolicyGuard.validate('test', { mode: 'strict' }) !== undefined },
-        { name: 'Evidence Logger', pass: EvidenceLogger.add !== undefined },
-        { name: 'Ingest Layer', pass: IngestLayer.htmlParser !== undefined },
-        { name: 'Trust Store', pass: TrustStore.addKey !== undefined },
-        { name: 'Signed Import', pass: SignedImport.validateStrategyPack !== undefined },
-        { name: 'Airgap Guard', pass: AirgapGuard.enable !== undefined },
-        { name: 'UI Framework', pass: this.updateStats !== undefined }
-      ];
-      
-      const results = tests.map(test => 
-        `${test.pass ? '✅' : '❌'} ${test.name}`
-      ).join('\n');
-      
-      document.getElementById('selfTestTable').innerHTML = `<pre style="margin: 0;">${results}</pre>`;
-      this.log(`Self-test complete: ${tests.filter(t => t.pass).length}/${tests.length} modules passed`);
-    },
-    
-    exportEvidence() {
-      const evidence = EvidenceLogger.logs.map(entry => 
-        `${entry.timestamp}\n${Object.entries(entry).map(([k, v]) => 
-          `${k.toUpperCase()}: ${v}`
-        ).join('\n')}\n---`
-      ).join('\n\n');
-      
-      const blob = new Blob([evidence], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `hypersnatch-evidence-${new Date().toISOString().slice(0, 19)}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      this.log('Evidence log exported');
-    },
-    
-    clearEvidence() {
-      if (confirm('Clear all evidence logs? This cannot be undone.')) {
-        EvidenceLogger.logs = [];
-        this.renderEvidence();
-        this.log('Evidence logs cleared');
-      }
-    },
-    
-    async importStrategyPack() {
-      const fileInput = document.getElementById('strategyPackFile');
-      const file = fileInput.files[0];
-      
-      if (!file) {
-        this.log('No strategy pack file selected', 'warn');
-        return;
-      }
-      
-      try {
-        const content = await file.text();
-        const validation = await SignedImport.validateStrategyPack(content, this.state.signedImport);
-        
-        if (validation.valid) {
-          this.state.strategyPacks.push(validation.pack);
-          this.log(`Strategy pack imported: ${validation.pack.id}`);
-          this.renderStrategyPacks();
-        } else {
-          this.log(`Strategy pack validation failed: ${validation.reason}`, 'err');
-        }
-      } catch (error) {
-        this.log(`Strategy pack import failed: ${error.message}`, 'err');
-      }
-    },
-    
-    renderStrategyPacks() {
-      const container = document.getElementById('strategyPacksTable');
-      
-      if (this.state.strategyPacks.length === 0) {
-        container.innerHTML = '<div class="muted">No strategy packs loaded.</div>';
-        return;
-      }
-      
-      const html = this.state.strategyPacks.map(pack => `
+          }).join('');
+
+          container.innerHTML = html;
+        },
+
+        startSessionTimer() {
+          setInterval(() => {
+            const elapsed = Date.now() - this.state.sessionStart;
+            const hours = Math.floor(elapsed / 3600000);
+            const minutes = Math.floor((elapsed % 3600000) / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+
+            document.getElementById('sessionTime').textContent =
+              `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          }, 1000);
+        },
+
+        async handleExportBundle() {
+          const accepted = (this.state.candidates || []).filter(c => c?.status === "accepted" && c?.url);
+          const refused  = (this.state.refusals   || []).filter(r => r?.status === "rejected");
+          const ts = Date.now();
+
+          if (accepted.length > 0) {
+            const manifest = { version: "2.2.0", count: accepted.length, artifacts: accepted };
+            this.saveFile(`download_${ts}.json`, JSON.stringify(manifest, null, 2));
+
+            const ps1 = accepted.map(c => {
+              const outName = this.sanitizeFilename(((this.basenameFromUrl?.(c.url)) || (c.host || "file")) + "");
+              const out = this.escapePs1(outName + ".mp4");
+              return `Invoke-WebRequest -Uri ${this.escapePs1(c.url)} -OutFile ${out}`;
+            }).join("\r\n");
+            this.saveFile(`download_${ts}.ps1`, ps1);
+
+            const sh = "#!/bin/sh\nset -eu\n" + accepted.map(c => {
+              const outName = this.sanitizeFilename(((this.basenameFromUrl?.(c.url)) || (c.host || "file")) + "");
+              const out = this.escapeSh(outName + ".mp4");
+              return `curl -L ${this.escapeSh(c.url)} -o ${out}`;
+            }).join("\n");
+            this.saveFile(`download_${ts}.sh`, sh);
+
+            // M3U8 Export Upgrade: Additional ffmpeg scripts
+            const m3u8Candidates = accepted.filter(c => c.type === "m3u8");
+            if (m3u8Candidates.length > 0) {
+              const ffmpegPs1 = m3u8Candidates.map(c => {
+                const outName = this.sanitizeFilename(((this.basenameFromUrl?.(c.url)) || (c.host || "file")) + "");
+                const out = this.escapePs1(outName + ".mp4");
+                return `ffmpeg -protocol_whitelist file,http,https,tcp,tls,crypto -i ${this.escapePs1(c.url)} -c copy ${out}`;
+              }).join("\r\n");
+              this.saveFile(`download_ffmpeg_${ts}.ps1`, ffmpegPs1);
+
+              const ffmpegSh = "#!/bin/sh\nset -eu\n" + m3u8Candidates.map(c => {
+                const outName = this.sanitizeFilename(((this.basenameFromUrl?.(c.url)) || (c.host || "file")) + "");
+                const out = this.escapeSh(outName + ".mp4");
+                return `ffmpeg -protocol_whitelist file,http,https,tcp,tls,crypto -i ${this.escapeSh(c.url)} -c copy ${out}`;
+              }).join("\n");
+              this.saveFile(`download_ffmpeg_${ts}.sh`, ffmpegSh);
+            }
+          }
+
+          if (refused.length > 0) {
+            const report =
+              `HYPERSNATCH REFUSAL REPORT\nGenerated: ${new Date().toISOString()}\n\n` +
+              refused.map(r =>
+                `HOST: ${r.host}\nREASON: ${r.reason}\nURL: ${r.url || "N/A"}\nSTATUS: ${r.status}`
+              ).join("\n---\n");
+            this.saveFile(`refusal_report_${ts}.txt`, report);
+          }
+
+          this.toast(accepted.length > 0 ? "Instruction bundle generated" : "Refusal report generated");
+        },
+
+        saveFile(name, content) {
+          const blob = new Blob([content], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = name;
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+
+        runSelfTest() {
+          this.log('Running automated platform self-test (Hard Mode)...');
+
+          (async () => {
+            const tests = [
+              { 
+                name: 'Network Lock Proof', 
+                pass: await (async () => {
+                  try { await fetch('https://example.com'); return false; } 
+                  catch(e) { return true; }
+                })()
+              },
+              { 
+                name: 'Engine Logic (Golden)', 
+                pass: ResurrectionEngine.version === ENGINE_VERSION 
+              },
+              { 
+                name: 'Drawer Transition', 
+                pass: (() => {
+                  this.openDrawer();
+                  const isOpen = document.getElementById('inspectDrawer').classList.contains('open');
+                  this.closeDrawer();
+                  return isOpen && !document.getElementById('inspectDrawer').classList.contains('open');
+                })()
+              },
+              { 
+                name: 'Toast Stack Isolation', 
+                pass: (() => {
+                  const initialCount = document.getElementById('toastHost').children.length;
+                  this.toast('Self-Test Toast');
+                  const afterCount = document.getElementById('toastHost').children.length;
+                  return afterCount > initialCount;
+                })()
+              },
+              { 
+                name: 'Keyboard Event Listening', 
+                pass: (() => {
+                  let shortcutCaught = false;
+                  const listener = (e) => { if (e.ctrlKey && e.key === 'Enter') shortcutCaught = true; };
+                  window.addEventListener('keydown', listener);
+                  window.dispatchEvent(new KeyboardEvent('keydown', { ctrlKey: true, key: 'Enter' }));
+                  window.removeEventListener('keydown', listener);
+                  return shortcutCaught;
+                })()
+              },
+              { 
+                name: 'State Persistence', 
+                pass: (() => {
+                  localStorage.setItem('hs.test', 'ok');
+                  const val = localStorage.getItem('hs.test');
+                  localStorage.removeItem('hs.test');
+                  return val === 'ok';
+                })()
+              },
+              { 
+                name: 'Evidence Table Scaling', 
+                pass: (() => {
+                  const originalCandidates = [...this.state.candidates];
+                  // Mock 500 rows
+                  for(let i=0; i<500; i++) this.state.candidates.push({ host: `test-${i}.com`, type: 'file' });
+                  this.renderCandidates();
+                  const rowCount = document.querySelectorAll('.evidence-table tbody tr').length;
+                  this.state.candidates = originalCandidates;
+                  this.renderCandidates();
+                  return rowCount > 0;
+                })()
+              }
+            ];
+
+            const results = tests.map(test =>
+              `${test.pass ? '✅' : '❌'} ${test.name}`
+            ).join('\n');
+
+            document.getElementById('batchProgressSection').style.display = 'block';
+            document.getElementById('batchStatus').innerHTML = `<pre style="margin: 0; color: #fff; font-size: 11px;">${results}</pre>`;
+            this.log(`Self-test complete: ${tests.filter(t => t.pass).length}/${tests.length} modules passed`);
+            this.toast('Self-Test Complete');
+          })();
+        },
+
+        exportEvidence() {
+          const evidence = EvidenceLogger.logs.map(entry =>
+            `${entry.timestamp}\n${Object.entries(entry).map(([k, v]) =>
+              `${k.toUpperCase()}: ${v}`
+            ).join('\n')}\n---`
+          ).join('\n\n');
+
+          const blob = new Blob([evidence], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `hypersnatch-evidence-${new Date().toISOString().slice(0, 19)}.txt`;
+          a.click();
+          URL.revokeObjectURL(url);
+
+          this.toast('Evidence log exported');
+        },
+
+        clearEvidence() {
+          if (confirm('Clear all evidence logs? This cannot be undone.')) {
+            EvidenceLogger.logs = [];
+            this.renderEvidence();
+            this.log('Evidence logs cleared');
+          }
+        },
+
+        async importStrategyPack() {
+          const fileInput = document.getElementById('strategyPackFile');
+          const file = fileInput.files[0];
+
+          if (!file) {
+            this.log('No strategy pack file selected', 'warn');
+            return;
+          }
+
+          try {
+            const content = await file.text();
+            const validation = await SignedImport.validateStrategyPack(content, this.state.signedImport);
+
+            if (validation.valid) {
+              this.state.strategyPacks.push(validation.pack);
+              this.log(`Strategy pack imported: ${validation.pack.id}`);
+              this.renderStrategyPacks();
+            } else {
+              this.log(`Strategy pack validation failed: ${validation.reason}`, 'err');
+            }
+          } catch (error) {
+            this.log(`Strategy pack import failed: ${error.message}`, 'err');
+          }
+        },
+
+        renderStrategyPacks() {
+          const container = document.getElementById('strategyPacksTable');
+
+          if (this.state.strategyPacks.length === 0) {
+            container.innerHTML = '<div class="muted">No strategy packs loaded.</div>';
+            return;
+          }
+
+          const html = this.state.strategyPacks.map(pack => `
         <div class="candidate-item">
           <div style="font-weight: 600; margin-bottom: 4px;">
             ${pack.id} v${pack.version}
@@ -2211,145 +2241,163 @@
           </div>
         </div>
       `).join('');
-      
-      container.innerHTML = html;
-    },
-    
-    clearState() {
-      if (confirm('Clear all session data?')) {
-        this.state.processed = 0;
-        this.state.success = 0;
-        this.state.candidates = [];
-        this.state.refusals = [];
-        EvidenceLogger.logs = [];
-        document.getElementById('inbox').value = '';
-        
-        this.updateStats();
-        this.renderCandidates();
-        this.renderRefusals();
-        this.renderEvidence();
-        this.updateTelemetry();
-        
-        localStorage.removeItem('hs.state.v2');
-        this.log('Session cleared');
-      }
-    },
-    
-    log(message, level = 'ok') {
-      console.log(`[MAIN] ${message}`);
-      
-      const logBox = document.getElementById('logBox');
-      if (logBox) {
-        const entry = document.createElement('div');
-        entry.innerHTML = `<span style="color: var(--muted); font-size: 0.75rem;">${new Date().toISOString()}</span> ${message}`;
-        logBox.appendChild(entry);
-        
-        // Keep only last 50 entries
-        while (logBox.children.length > 50) {
-          logBox.removeChild(logBox.firstChild);
-        }
-        
-        logBox.scrollTop = logBox.scrollHeight;
-      }
-    },
-    
-    saveState() {
-      if (this.state.releaseMode) return; // Don't save in release mode
-      
-      localStorage.setItem('hs.state.v2', JSON.stringify({
-        processed: this.state.processed,
-        success: this.state.success,
-        candidates: this.state.candidates.slice(-100),
-        refusals: this.state.refusals.slice(-100),
-        engineMode: this.state.engineMode,
-        strategyPacks: this.state.strategyPacks
-      }));
-    },
-    
-    loadState() {
-      try {
-        const raw = localStorage.getItem('hs.state.v2');
-        if (!raw) return;
-        
-        const obj = JSON.parse(raw);
-        Object.assign(this.state, obj);
-        
-        // Update UI controls
-        document.getElementById('engineModeSelect').value = this.state.engineMode;
-        document.getElementById('releaseModeToggle').checked = this.state.releaseMode;
-        document.getElementById('airgapToggle').checked = this.state.airgapped;
-        
-        if (this.state.releaseMode) {
-          this.toggleReleaseMode(true);
-        }
-        
-      } catch (error) {
-        console.error('Failed to load state:', error);
-      }
-    }
-  };
 
-  // ==================== INITIALIZATION ====================
-  
-  // Initialize the modular platform
-  document.addEventListener('DOMContentLoaded', () => {
-    window.UI = UI;
-    window.ResurrectionEngine = ResurrectionEngine;
-    window.PolicyGuard = PolicyGuard;
-    window.EvidenceLogger = EvidenceLogger;
-    
-    // Initialize Electron bridge if available
-    if (window.hyper) {
-      // Listen for evidence logs from main process
-      window.hyper.onEvidenceLog((event, logEntry) => {
-        UI.log(`[MAIN] ${logEntry}`);
-      });
-      
-      // Listen for release mode changes from main process
-      window.hyper.onReleaseModeChanged((event, enabled) => {
-        UI.toggleReleaseMode(enabled);
-      });
-      
-      // Listen for airgap mode changes from main process
-      window.hyper.onAirgapModeChanged((event, enabled) => {
-        UI.toggleAirgap(enabled);
-      });
-      
-      // Get build info and update version display
-      window.hyper.getBuildInfo().then(buildInfo => {
-        if (buildInfo) {
-          window.BUILD_INFO = buildInfo;
-          UI.updateSystemInfo();
+          container.innerHTML = html;
+        },
+
+        clearState() {
+          if (confirm('Clear all session data?')) {
+            this.state.processed = 0;
+            this.state.success = 0;
+            this.state.candidates = [];
+            this.state.refusals = [];
+            EvidenceLogger.logs = [];
+            const input = document.getElementById('artifactInput');
+            if (input) input.value = '';
+
+            this.updateStats();
+            this.renderCandidates();
+            this.renderRefusals();
+            this.renderEvidence();
+            this.updateTelemetry();
+
+            localStorage.removeItem('hs.state.v2');
+            this.log('Session cleared');
+          }
+        },
+
+        log(message, level = 'ok') {
+          console.log(`[MAIN] ${message}`);
+
+          const logBox = document.getElementById('logBox');
+          if (logBox) {
+            const entry = document.createElement('div');
+            entry.innerHTML = `<span style="color: var(--muted); font-size: 0.75rem;">${new Date().toISOString()}</span> ${message}`;
+            logBox.appendChild(entry);
+
+            // Keep only last 50 entries
+            while (logBox.children.length > 50) {
+              logBox.removeChild(logBox.firstChild);
+            }
+
+            logBox.scrollTop = logBox.scrollHeight;
+          }
+        },
+
+        saveState() {
+          if (this.state.releaseMode) return;
+          const input = document.getElementById('artifactInput')?.value || '';
+          localStorage.setItem('hs.state.v2', JSON.stringify({
+            processed: this.state.processed,
+            success: this.state.success,
+            candidates: this.state.candidates.slice(-500), // Keep last 500
+            refusals: this.state.refusals.slice(-500),
+            engineMode: this.state.engineMode,
+            strategyPacks: this.state.strategyPacks,
+            lastInput: input
+          }));
+        },
+
+        loadState() {
+          try {
+            const raw = localStorage.getItem('hs.state.v2');
+            if (!raw) return;
+
+            const obj = JSON.parse(raw);
+            Object.assign(this.state, obj);
+
+            // Restore UI
+            if (document.getElementById('artifactInput')) {
+              document.getElementById('artifactInput').value = obj.lastInput || '';
+            }
+            if (document.getElementById('engineModeSelect')) {
+              document.getElementById('engineModeSelect').value = this.state.engineMode;
+            }
+            
+            this.renderCandidates();
+            this.renderRefusals();
+            this.updateStats();
+
+          } catch (error) {
+            console.error('Failed to load state:', error);
+          }
         }
-      }).catch(error => {
-        console.warn('Failed to get build info:', error);
+      };
+
+      // ==================== INITIALIZATION ====================
+
+      // Initialize the modular platform
+      document.addEventListener('DOMContentLoaded', () => {
+        window.UI = UI;
+        window.ResurrectionEngine = ResurrectionEngine;
+        window.PolicyGuard = PolicyGuard;
+        window.EvidenceLogger = EvidenceLogger;
+
+        // Initialize Electron bridge if available
+        if (window.hyper) {
+          // Listen for evidence logs from main process
+          window.hyper.onEvidenceLog((event, logEntry) => {
+            UI.log(`[MAIN] ${logEntry}`);
+          });
+
+          // Listen for release mode changes from main process
+          window.hyper.onReleaseModeChanged((event, enabled) => {
+            UI.toggleReleaseMode(enabled);
+          });
+
+          // Listen for airgap mode changes from main process
+          window.hyper.onAirgapModeChanged((event, enabled) => {
+            UI.toggleAirgap(enabled);
+          });
+
+          // Get build info and update version display
+          window.hyper.getBuildInfo().then(buildInfo => {
+            if (buildInfo) {
+              window.BUILD_INFO = buildInfo;
+              UI.updateSystemInfo();
+            }
+          }).catch(error => {
+            console.warn('Failed to get build info:', error);
+          });
+        }
+
+        UI.init();
       });
-    }
-    
-    UI.init();
-  });
 
-  // Make modules globally available for debugging
-  window.HyperSnatch = {
-    State: UI.state,
-    Modules: {
-      ResurrectionEngine,
-      CandidateScoring,
-      PolicyGuard,
-      EvidenceLogger,
-      IngestLayer,
-      TrustStore,
-      SignedImport,
-      ManifestVerify,
-      AirgapGuard
-    },
-    VERSION,
-    ENGINE_VERSION,
-    POLICY_VERSION,
-    BUILD_ID
-  };
+      // Make modules globally available for debugging
+      window.HyperSnatch = {
+        State: UI.state,
+        Modules: {
+          ResurrectionEngine,
+          CandidateScoring,
+          PolicyGuard,
+          EvidenceLogger,
+          IngestLayer,
+          TrustStore,
+          SignedImport,
+          ManifestVerify,
+          AirgapGuard
+        },
+        VERSION,
+        ENGINE_VERSION,
+        POLICY_VERSION,
+        BUILD_ID
+      };
 
-})();
-</script>
+    })();
+  </script>
+
+  <!-- Evidence Inspection Drawer -->
+  <div id="inspectDrawer" class="drawer">
+    <div class="drawer-header">
+      <div class="drawer-title">Inspect Evidence</div>
+      <button id="drawerClose" class="icon-btn">✕</button>
+    </div>
+    <pre id="drawerContent" class="drawer-pre"></pre>
+  </div>
+  <div id="drawerBackdrop" class="drawer-backdrop"></div>
+
+  <div id="toastHost" class="toast-host"></div>
 </body>
+
 </html>

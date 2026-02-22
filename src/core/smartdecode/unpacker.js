@@ -1,7 +1,9 @@
 /**
  * SmartDecode 2.0 - Deanonymizer / Unpacker Module
- * Deterministic reversal of P.A.C.K.E.R. (Dean Edwards) obfuscation without using eval().
+ * Deterministic reversal of P.A.C.K.E.R. (Dean Edwards) obfuscation without using eval.
  */
+
+"use strict";
 
 const Unpacker = {
     // Regex for finding packer blocks: eval(function(p,a,c,k,e,d)...)
@@ -18,9 +20,11 @@ const Unpacker = {
 
         const candidates = new Map();
         let match;
-        this.PACKER_PATTERN.lastIndex = 0;
+        // BUGFIX: always create a fresh regex instance to avoid stateful lastIndex
+        // leakage across multiple calls with the same input.
+        const packerRegex = new RegExp(this.PACKER_PATTERN.source, 'gi');
 
-        while ((match = this.PACKER_PATTERN.exec(input)) !== null) {
+        while ((match = packerRegex.exec(input)) !== null) {
             const p = match[1]; // The payload
             const k = match[2] ? match[2].split('|') : []; // The key mapping
 

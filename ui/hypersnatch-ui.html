@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HyperSnatch — Offline Decode UI</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, Arial;
+      background: #0b0f14;
+      color: #e7eef7;
+    }
+
+    header {
+      padding: 16px 18px;
+      border-bottom: 1px solid #1d2a38;
+      background: #0d121a;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: .4px;
+    }
+
+    .wrap {
+      padding: 14px 18px 28px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 12px;
+    }
+
+    .card {
+      border: 1px solid #1d2a38;
+      border-radius: 14px;
+      background: #0d121a;
+      padding: 12px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button,
+    input[type="file"],
+    select,
+    input[type="number"] {
+      background: #121a24;
+      color: #e7eef7;
+      border: 1px solid #223244;
+      border-radius: 10px;
+      padding: 9px 10px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    button:hover {
+      border-color: #355372;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      resize: vertical;
+      box-sizing: border-box;
+      background: #0a0f16;
+      color: #d9e6f2;
+      border: 1px solid #223244;
+      border-radius: 12px;
+      padding: 10px;
+      line-height: 1.35;
+      font-family: inherit;
+    }
+
+    .muted {
+      color: #9bb0c5;
+      font-size: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      padding: 5px 9px;
+      border: 1px solid #223244;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #162232;
+      padding: 8px 6px;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    th {
+      text-align: left;
+      color: #b9cde2;
+      font-weight: 600;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .ok {
+      color: #68f0a6;
+    }
+
+    .bad {
+      color: #ff7b7b;
+    }
+
+    .warn {
+      color: #ffd36a;
+    }
+
+    .cmdBox {
+      background: #0a0f16;
+      border: 1px solid #223244;
+      border-radius: 12px;
+      padding: 10px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .tiny {
+      font-size: 12px;
+    }
+
+    .spacer {
+      height: 8px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 15, 20, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal {
+      background: #0d121a;
+      border: 1px solid #223244;
+      border-radius: 14px;
+      padding: 24px;
+      max-width: 500px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal h2 {
+      margin-top: 0;
+      color: #e7eef7;
+      font-size: 20px;
+    }
+
+    .modal ul {
+      color: #b9cde2;
+      line-height: 1.6;
+      padding-left: 20px;
+    }
+
+    .modal-btn {
+      background: #355372;
+      color: #fff;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      width: 100%;
+      margin-top: 14px;
+      transition: 0.2s;
+    }
+
+    .modal-btn:hover {
+      background: #45678b;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="row" style="justify-content:space-between;">
+      <h1>HyperSnatch — Offline Decode UI</h1>
+      <div class="row" style="justify-content:space-between;">
+        <div class="row">
+          <span class="pill" id="bridgePill"><span class="warn" id="bridgeDot">●</span><span class="muted"
+              id="bridgeText">Bridge: Checking...</span></span>
+          <span class="pill"><span class="ok">●</span><span class="muted">Offline UI</span></span>
+          <span class="pill"><span class="warn">●</span><span class="muted">Commands only</span></span>
+          <button id="btnCheckUpdates" class="pill"
+            style="border-radius:6px; background: none; border: 1px solid #355372; color:#b9cde2;">Check for
+            Updates</button>
+          <button id="btnActivate" class="pill"
+            style="border-radius:6px; background: none; border: 1px solid #68f0a6; color:#68f0a6;">Activate
+            Edition</button>
+        </div>
+        <button id="btnExportReport" class="pill"
+          style="border-radius:6px; font-weight:bold; background:#162436;">Export Security Report</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- First Run Trust UI -->
+  <div id="onboardingModal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <h2>Welcome to HyperSnatch</h2>
+      <p class="muted">Your deterministic, offline-first extraction engine.</p>
+      <ul>
+        <li><b>100% Offline:</b> No tracking, no telemetry, no cloud APIs. Your data never leaves this machine.</li>
+        <li><b>Deterministic Proof:</b> Every URL extraction is rigorously ranked and strictly validated locally.</li>
+        <li><b>Bridge Architecture:</b> This UI communicates securely over IPC via a local authenticated daemon.</li>
+      </ul>
+      <p class="muted tiny" style="margin-top:20px;">We've pre-loaded a demo payload below so you can verify the engine
+        immediately.</p>
+      <button class="modal-btn" id="btnStartDemo">Acknowledge & Start Demo</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="grid">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <div style="font-weight:600;">Input</div>
+            <div class="muted">Paste HTML/page source/logs OR load a file. Then Decode.</div>
+          </div>
+          <div class="row">
+            <button id="btnDemo">Load Demo Fixture</button>
+            <input id="file" type="file" />
+            <button id="btnClear">Clear</button>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <textarea id="input" placeholder="Paste page source, HTML, logs, or any captured text here…"></textarea>
+        <div class="spacer"></div>
+        <div class="row">
+          <button id="btnDecode">Decode</button>
+          <select id="mode">
+            <option value="bridge">Bridge mode (local server)</option>
+            <option value="offline">Offline-only (no decode)</option>
+          </select>
+          <span class="muted">Bridge mode endpoint: <span class="mono"
+              id="bridgeUrlTxt">http://127.0.0.1:4179/decode</span></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:600;">Status</div>
+        <div id="status" class="muted">Idle.</div>
+        <div class="spacer"></div>
+
+        <div style="font-weight:600;">Download Plan</div>
+        <div class="muted">Generated command for the selected/best candidate.</div>
+        <div class="spacer"></div>
+        <div id="cmd" class="cmdBox muted">No plan yet.</div>
+        <div class="spacer"></div>
+        <div class="row">
+          <button id="btnCopyCmd" disabled>Copy Cmd</button>
+          <button id="btnCopyJson" disabled>Copy JSON</button>
+          <button id="btnSavePlan" disabled>Save plan.json</button>
+          <button id="btnSaveCands" disabled>Save candidates.json</button>
+          <button id="btnSaveRefs" disabled>Save refusals.json</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <div style="font-weight:600;">Candidates</div>
+          <div class="muted">Pick one to generate a plan. “Best” is pinned.</div>
+        </div>
+        <div class="row">
+          <input type="number" id="pickIndex" placeholder="Idx" min="0" style="width:60px;" />
+          <button id="btnPickIdx">Pick Idx</button>
+          <button id="btnUseBest">Use Best</button>
+          <button id="btnCopyBestUrl">Copy Best URL</button>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <div class="row">
+        <span class="pill">Best: <span id="bestTag" class="muted">none</span></span>
+        <span class="pill">Count: <span id="countTag" class="muted">0</span></span>
+        <span class="pill">Refusals: <span id="refTag" class="muted">0</span></span>
+      </div>
+
+      <div class="spacer"></div>
+      <div style="overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50px;">Idx</th>
+              <th style="width:180px;">Host</th>
+              <th style="width:150px;">Type</th>
+              <th style="width:70px;">Conf</th>
+              <th style="width:90px;">Status</th>
+              <th>URL</th>
+              <th style="width:90px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="candBody">
+            <tr>
+              <td colspan="7" class="muted">No candidates yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="spacer"></div>
+      <div style="font-weight:600;">Refusals</div>
+      <div class="muted">Auth/premium/login boundaries and other rejections.</div>
+      <div class="spacer"></div>
+      <div id="refusals" class="muted">None.</div>
+    </div>
+  </div>
+  <div class="wrap">
+    <!-- Rest of UI remains the same inside logic -->
+    <div style="text-align:center; padding-top:20px;" class="muted mono tiny">HyperSnatch UI <span id="uiVer">v?</span>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    const el = (id) => document.getElementById(id);
+
+    const state = {
+      lastJson: null,
+      lastCmd: null,
+      selectedIndex: null,
+      bridgePort: 4179,
+      token: null,
+    };
+
+    function setStatus(text, kind = "muted") {
+      const s = el("status");
+      s.className = kind;
+      s.textContent = text;
+    }
+
+    function safeStr(x) { return String(x ?? ""); }
+
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    async function findBridge() {
+      try {
+        const url = window.location.href.includes('/ui/') ? "../bridge.runtime.json" : "bridge.runtime.json";
+        const rJson = await fetch(url, { cache: "no-store" });
+        if (rJson.ok) {
+          const data = await rJson.json();
+          if (data.chosenPort && data.token) {
+            state.bridgePort = data.chosenPort;
+            state.token = data.token;
+            el("bridgeUrlTxt").textContent = `http://127.0.0.1:${data.chosenPort}/decode`;
+            el("uiVer").textContent = `v${data.version || "1.0.0"}`;
+            return data.chosenPort;
+          }
+        }
+      } catch (e) {
+        console.warn("Could not read bridge.runtime.json directly. Falling back to port scan.");
+      }
+
+      let bestPort = null;
+      let highestVer = "0.0.0";
+
+      const checkPort = async (p) => {
+        try {
+          const res = await fetch(`http://127.0.0.1:${p}/health`, { method: "GET", cache: "no-store" });
+          if (res && res.ok) {
+            const data = await res.json();
+            return { port: p, version: data.version || "1.0.0" };
+          }
+        } catch (e) { }
+        return null;
+      };
+
+      const promises = [];
+      for (let p = 4179; p <= 4190; p++) {
+        promises.push(checkPort(p));
+      }
+
+      const results = await Promise.all(promises);
+      for (const res of results) {
+        if (res) {
+          // Simple semver comparison logic
+          if (!bestPort || res.version.localeCompare(highestVer, undefined, { numeric: true, sensitivity: 'base' }) > 0) {
+            bestPort = res.port;
+            highestVer = res.version;
+          }
+        }
+      }
+
+      if (bestPort) {
+        state.bridgePort = bestPort;
+        el("bridgeUrlTxt").textContent = `http://127.0.0.1:${bestPort}/decode`;
+        el("uiVer").textContent = `v${highestVer}`;
+        return bestPort;
+      }
+      return null;
+    }
+
+    async function checkBridgeHealth() {
+      try {
+        const res = await fetch(`http://127.0.0.1:${state.bridgePort}/health`, { method: "GET" }).catch(() => null);
+        if (res && res.ok) {
+          const data = await res.json();
+          el("bridgeDot").className = "ok";
+          el("bridgeText").textContent = `Bridge: Online (${state.bridgePort})`;
+          if (data.version) el("uiVer").textContent = `v${data.version}`;
+        } else {
+          throw new Error();
+        }
+      } catch (e) {
+        if (el("mode").value === "offline") {
+          el("bridgeDot").className = "warn";
+          el("bridgeText").textContent = "Bridge: Offline Mode";
+        } else {
+          el("bridgeDot").className = "bad";
+          el("bridgeText").textContent = `Bridge: Unreachable Server`;
+          findBridge(); // attempt to rediscover
+        }
+      }
+    }
+
+    async function initUI() {
+      await findBridge();
+      checkBridgeHealth();
+      setInterval(checkBridgeHealth, 3000);
+      el("mode").addEventListener("change", checkBridgeHealth);
+
+      // Trust UX Onboarding
+      if (!localStorage.getItem("hs_first_run")) {
+        el("onboardingModal").style.display = "flex";
+        el("btnStartDemo").addEventListener("click", () => {
+          localStorage.setItem("hs_first_run", "true");
+          el("onboardingModal").style.display = "none";
+          el("btnDemo").click(); // Trigger demo payload
+        });
+      }
+    }
+    initUI();
+
+    function render(result) {
+      state.lastJson = result || null;
+
+      const candidates = Array.isArray(result?.candidates) ? result.candidates : [];
+      const refusals = Array.isArray(result?.refusals) ? result.refusals : [];
+      const best = result?.best || null;
+
+      el("countTag").textContent = String(candidates.length);
+      el("refTag").textContent = String(refusals.length);
+      el("bestTag").textContent = best?.host ? `${best.host}` : "none";
+
+      const body = el("candBody");
+      body.innerHTML = "";
+      if (!candidates.length) {
+        body.innerHTML = `<tr><td colspan="7" class="muted">No candidates returned.</td></tr>`;
+      } else {
+        const bestUrl = best?.url || null;
+
+        candidates.forEach((c, idx) => {
+          const isBest = bestUrl && safeStr(c.url) === safeStr(bestUrl);
+          const host = safeStr(c.host || "unknown");
+          const type = safeStr(c.type || "unknown");
+          const conf = typeof c.confidence === "number" ? c.confidence.toFixed(2) : "0.00";
+          const status = safeStr(c.status || "unknown");
+          const url = safeStr(c.url || "");
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td><span class="muted">[${idx}]</span></td>
+            <td>${isBest ? "<span class='ok'>★</span> " : ""}<span class="mono">${escapeHtml(host)}</span></td>
+            <td><span class="mono">${escapeHtml(type)}</span></td>
+            <td class="mono">${escapeHtml(conf)}</td>
+            <td>${escapeHtml(status)}</td>
+            <td class="mono" style="max-width:350px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(url)}">${escapeHtml(url)}</td>
+            <td><button data-pick="${idx}">Pick</button></td>
+          `;
+          body.appendChild(row);
+        });
+
+        body.querySelectorAll("button[data-pick]").forEach((b) => {
+          b.addEventListener("click", () => {
+            const idx = Number(b.getAttribute("data-pick"));
+            pickCandidate(idx);
+          });
+        });
+      }
+
+      const rEl = el("refusals");
+      if (!refusals.length) {
+        rEl.textContent = "None.";
+      } else {
+        rEl.innerHTML = refusals.map(r => {
+          const host = escapeHtml(safeStr(r.host || "unknown"));
+          const reason = escapeHtml(safeStr(r.reason || "unknown"));
+          const markers = Array.isArray(r.markers) ? r.markers.map(m => escapeHtml(String(m))) : [];
+          return `<div class="cmdBox"><div><b>${host}</b> — <span class="bad">${reason}</span></div><div class="muted tiny">markers: ${markers.length ? markers.join(", ") : "none"}</div></div>`;
+        }).join("<div class='spacer'></div>");
+      }
+
+      const plan = result?.downloadPlan || null;
+      const cmd = plan?.command || plan?.cmd || null;
+      if (cmd) {
+        state.lastCmd = cmd;
+        el("cmd").textContent = cmd;
+        el("btnCopyCmd").disabled = false;
+      } else {
+        state.lastCmd = null;
+        el("cmd").textContent = "No plan yet.";
+        el("btnCopyCmd").disabled = true;
+      }
+
+      const hasRes = !!state.lastJson;
+      el("btnCopyJson").disabled = !hasRes;
+      el("btnSavePlan").disabled = !hasRes || !plan;
+      el("btnSaveCands").disabled = !hasRes || !candidates.length;
+      el("btnSaveRefs").disabled = !hasRes || !refusals.length;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    async function decodeViaBridge(text, pickIndex = null) {
+      const headers = { "content-type": "application/json" };
+      if (state.token) {
+        headers["X-HyperSnatch-Token"] = state.token;
+      }
+      const res = await fetch(`http://127.0.0.1:${state.bridgePort}/decode`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ input: text, pickIndex })
+      });
+      if (!res.ok) throw new Error("Bridge decode failed: HTTP " + res.status);
+      return await res.json();
+    }
+
+    async function pickCandidate(idx) {
+      const mode = el("mode").value;
+      const input = el("input").value;
+
+      if (mode !== "bridge") {
+        setStatus("Target selection requires active Bridge connection.", "warn");
+        return;
+      }
+      setStatus("Analyzing target and generating execution plan...", "muted");
+      try {
+        const out = await decodeViaBridge(input, idx);
+        render(out);
+        setStatus(idx === null ? "Optimized plan generated." : "Assigned target plan generated.", "ok");
+      } catch (e) {
+        setStatus("Analysis failed: The host may have updated or the input is malformed. (" + (e.message || "Unknown error") + ")", "bad");
+      }
+    }
+
+    async function onDecode() {
+      const mode = el("mode").value;
+      const input = el("input").value;
+
+      if (!input.trim()) {
+        setStatus("Awaiting payload. Please paste HTML or log data.", "warn");
+        return;
+      }
+
+      if (mode === "offline") {
+        setStatus("Offline Mode Active. Engine paused.", "warn");
+        return;
+      }
+
+      setStatus(`Executing SmartDecode sequence via native bridge...`, "muted");
+      try {
+        const out = await decodeViaBridge(input, null);
+        render(out);
+        setStatus("Decode execution completed successfully.", "ok");
+      } catch (e) {
+        setStatus("Extraction engine encountered an unexpected layout. Host may have updated.", "bad");
+      }
+    }
+
+    async function copyText(txt) {
+      await navigator.clipboard.writeText(String(txt || ""));
+    }
+
+    el("file").addEventListener("change", async (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      const text = await f.text();
+      el("input").value = text;
+      setStatus(`Loaded file: ${f.name}`, "ok");
+    });
+
+    el("btnDemo").addEventListener("click", () => {
+      el("input").value = '[\n  "https://emload.com/file/123/file.mp4",\n  "<iframe src=\\"data:text/html;base64,PGh0bWw+PGJvZHk+PHZpZGVvIHNyYz0iaHR0cHM6Ly9rc2hhcmVkLmNvbS9maWxlLzQ1Ni9hcmNoaXZlLnppcCI+PC92aWRlbz48L2JvZHk+PC9odG1sPg==\\"></iframe>",\n  "https://example.com/login?redirect=premium"\n]';
+      setStatus("Injected Demo HTML. Press Decode!", "ok");
+    });
+
+    el("btnDecode").addEventListener("click", onDecode);
+    el("btnClear").addEventListener("click", () => {
+      el("input").value = "";
+      render(null);
+      setStatus("Cleared.", "muted");
+    });
+
+    el("btnCopyCmd").addEventListener("click", async () => {
+      if (!state.lastCmd) return;
+      await copyText(state.lastCmd);
+      setStatus("Command copied.", "ok");
+    });
+
+    el("btnCopyJson").addEventListener("click", async () => {
+      if (!state.lastJson) return;
+      await copyText(JSON.stringify(state.lastJson, null, 2));
+      setStatus("JSON copied.", "ok");
+    });
+
+    el("btnSavePlan").addEventListener("click", () => {
+      if (state.lastJson?.downloadPlan) {
+        downloadFile(JSON.stringify(state.lastJson.downloadPlan, null, 2), "plan.json", "application/json");
+      }
+    });
+
+    el("btnSaveCands").addEventListener("click", () => {
+      if (state.lastJson?.candidates) {
+        downloadFile(JSON.stringify(state.lastJson.candidates, null, 2), "candidates.json", "application/json");
+      }
+    });
+
+    el("btnSaveRefs").addEventListener("click", () => {
+      if (state.lastJson?.refusals) {
+        downloadFile(JSON.stringify(state.lastJson.refusals, null, 2), "refusals.json", "application/json");
+      }
+    });
+
+    el("btnExportReport").addEventListener("click", async () => {
+      setStatus("Generating Security Report via native bridge...", "muted");
+      try {
+        if (window.electronAPI && window.electronAPI.exportSecurityReport) {
+          const success = await window.electronAPI.exportSecurityReport();
+          if (success) setStatus("Security Report exported successfully.", "ok");
+          else setStatus("Report export cancelled.", "muted");
+        } else {
+          setStatus("Export Security Report requires native Electron context.", "warn");
+        }
+      } catch (err) {
+        setStatus("Export failed: " + err.message, "bad");
+      }
+    });
+
+    el("btnCheckUpdates").addEventListener("click", async () => {
+      setStatus("Checking for updates...", "muted");
+      el("btnCheckUpdates").textContent = "Checking...";
+      el("btnCheckUpdates").disabled = true;
+      try {
+        // Mocking an update check against a static JSON
+        const response = await fetch("https://raw.githubusercontent.com/hypersnatch-security/hypersnatch/main/VERSION.json", { cache: "no-store" }).catch(() => null);
+        if (response && response.ok) {
+          const data = await response.json();
+          // Assuming UI version might be outdated
+          const currentVer = el("uiVer").textContent.replace("v", "");
+          if (data.version && currentVer && data.version !== currentVer) {
+            setStatus("Update available: v" + data.version + ". Please download the latest installer from your portal.", "ok");
+            el("btnCheckUpdates").textContent = "Update Available!";
+            el("btnCheckUpdates").style.borderColor = "#68f0a6";
+            el("btnCheckUpdates").style.color = "#68f0a6";
+          } else {
+            setStatus("HyperSnatch is up to date.", "ok");
+            el("btnCheckUpdates").textContent = "Up to date";
+          }
+        } else {
+          throw new Error("Could not reach update server.");
+        }
+      } catch (e) {
+        setStatus("Update check failed (Offline or blocked).", "warn");
+        el("btnCheckUpdates").textContent = "Check Failed";
+      }
+      setTimeout(() => {
+        el("btnCheckUpdates").disabled = false;
+        if (el("btnCheckUpdates").textContent === "Check Failed") el("btnCheckUpdates").textContent = "Check for Updates";
+      }, 4000);
+    });
+
+    el("btnActivate").addEventListener("click", async () => {
+      setStatus("Awaiting secure license file selection...", "muted");
+      try {
+        if (window.electronAPI && window.electronAPI.validateLicense) {
+          const result = await window.electronAPI.validateLicense();
+          if (result.canceled) {
+            setStatus("License selection canceled by user.", "muted");
+            return;
+          }
+          if (result.valid) {
+            setStatus("Vanguard Active: Welcome, " + result.email.split('@')[0], "ok");
+            el("btnActivate").textContent = result.edition + " Edition";
+            el("btnActivate").style.borderColor = "#68f0a6";
+            el("btnActivate").style.color = "#68f0a6";
+            el("btnActivate").disabled = true; // Activated for this session
+          } else {
+            // Avoid technical raw output, map common errors to user friendly terms
+            let friendlyError = "Invalid standard signature. File may be corrupted or tampered.";
+            if (result.reason.includes("Malformed")) friendlyError = "License file is malformed. Ensure it is a valid .json key.";
+
+            setStatus("Activation Rejected: " + friendlyError, "bad");
+          }
+        } else {
+          setStatus("Secure license activation requires native Electron context.", "warn");
+        }
+      } catch (err) {
+        setStatus("Bridge communication failure. Please restart HyperSnatch.", "bad");
+      }
+    });
+
+    el("btnUseBest").addEventListener("click", () => pickCandidate(null));
+
+    el("btnPickIdx").addEventListener("click", () => {
+      const val = parseInt(el("pickIndex").value, 10);
+      if (!isNaN(val)) pickCandidate(val);
+    });
+    el("btnCopyBestUrl").addEventListener("click", async () => {
+      const bestUrl = state.lastJson?.best?.url || "";
+      if (bestUrl) {
+        await copyText(bestUrl);
+        setStatus("Best URL copied.", "ok");
+      } else {
+        setStatus("No Best URL available.", "warn");
+      }
+    });
+
+    render(null);
+  </script>
+</body>
+
+</html>

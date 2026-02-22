@@ -12,3 +12,29 @@ release_handoff/**/*.zip
 *.log
 *.tmp
 .DS_Store
+# audit outputs
+ops/reports/
+_TRASH/
+
+# build outputs
+dist/
+release/
+build/
+out/
+coverage/
+logs/
+
+# temp + caches
+.vite/
+.cache/
+tmp/
+temp/
+.tear_runtime/
+
+# junk
+*.log
+*.tmp
+*.bak
+*.old
+Thumbs.db
+.DS_Store

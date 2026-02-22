@@ -19,7 +19,7 @@ const IframeExtractor = {
      * @param {number} depth Current recursion depth
      * @returns {Array} List of candidate objects
      */
-    extract(input, masterPipeline, depth = 0) {
+    async extract(input, masterPipeline, depth = 0) {
         if (!input || typeof input !== 'string' || depth >= this.MAX_DEPTH) return [];
 
         const candidates = new Map();
@@ -30,7 +30,7 @@ const IframeExtractor = {
         while ((srcdocMatch = srcdocRegex.exec(input)) !== null) {
             const html = this._unescapeHtml(srcdocMatch[1]);
             if (html) {
-                const found = masterPipeline(html, depth + 1);
+                const found = await masterPipeline(html, depth + 1);
                 this._mergeCandidates(candidates, found, 'iframe_srcdoc');
             }
         }
@@ -42,7 +42,7 @@ const IframeExtractor = {
             const b64 = dataMatch[1];
             const html = this._decodeBase64(b64);
             if (html) {
-                const found = masterPipeline(html, depth + 1);
+                const found = await masterPipeline(html, depth + 1);
                 this._mergeCandidates(candidates, found, 'iframe_data_uri');
             }
         }

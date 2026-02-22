@@ -12,7 +12,9 @@ const ALLOWED_IPC_CHANNELS = new Set([
   'clear-security-events',
   'validate-url',
   'import-evidence',
-  'log-message'
+  'log-message',
+  'export-security-report',
+  'validate-license'
 ]);
 
 // ==================== SECURE CONTEXT BRIDGE ====================
@@ -105,6 +107,16 @@ window.electronAPI = {
       this.logMessage('ERROR', 'CLIPBOARD_WRITE_FAILURE', { error: err.message });
       return false;
     }
+  },
+
+  exportSecurityReport: () => {
+    validateIPCChannel('export-security-report');
+    return ipcRenderer.invoke('export-security-report');
+  },
+
+  validateLicense: () => {
+    validateIPCChannel('validate-license');
+    return ipcRenderer.invoke('validate-license');
   }
 };
 
@@ -147,18 +159,36 @@ console.error = (...args) => {
   originalConsole.log(...args);
 };
 
+const SmartDecode = require('./core/smartdecode');
+
+// Extraneous block removed
+
+// ... (existing console interception)
+
 // ==================== INITIALIZATION ====================
 // Expose the secure API to the renderer
 contextBridge.exposeInMainWorld('electronAPI', window.electronAPI);
 
+// Expose SmartDecode 2.0 Engine
+contextBridge.exposeInMainWorld('smartDecode', {
+  run: async (input) => {
+    try {
+      return await SmartDecode.run(input);
+    } catch (err) {
+      console.error('SmartDecode Execution Error:', err);
+      return null;
+    }
+  },
+  signSession: async (sessionState, systemInfo) => {
+    try {
+      const AuditChain = require('./core/smartdecode/audit-chain');
+      return await AuditChain.signSession(sessionState, systemInfo);
+    } catch (err) {
+      console.error('AuditChain Signing Error:', err);
+      return null;
+    }
+  }
+});
+
 // Security: Prevent access to Node APIs
-delete window.require;
-delete window.exports;
-delete window.process;
-
-// Security: Remove dangerous globals
-delete window.eval;
-delete window.Function;
-delete window.setTimeout;
-
-console.log('HyperSnatch preload script loaded securely');
+// ...

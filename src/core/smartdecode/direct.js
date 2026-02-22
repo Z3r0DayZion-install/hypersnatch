@@ -6,9 +6,9 @@
 const DirectExtractor = {
     // Common stream extensions and patterns
     PATTERNS: {
-        STREAM: /(https?:\/\/[^\s"'`<>]+?\.(mp4|m3u8|ts)(?:\?[^\s"'`<>]+)?)/gi,
+        STREAM: /(https?:\/\/[^\s"'`<>]+?\.(mp4|m3u8|ts|zip)(?:\?[^\s"'`<>]+)?)/gi,
         HLS_PLAYLIST: /(https?:\/\/[^\s"'`<>]+?playlist\.m3u8(?:\?[^\s"'`<>]+)?)/gi,
-        BURIED_URL: /["'](https?:\/\/[^"']+?\.(?:mp4|m3u8|ts)[^"']*?)["']/gi
+        BURIED_URL: /["'](https?:\/\/[^"']+?\.(?:mp4|m3u8|ts|zip)[^"']*?)["']/gi
     },
 
     /**

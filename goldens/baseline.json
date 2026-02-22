@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "host": "[2001:db8::1]",
+      "type": "video/mp4",
+      "confidence": 0.9,
+      "status": "validated"
+    },
+    {
+      "host": "emload.com",
+      "type": "video/mp4",
+      "confidence": 0.9,
+      "status": "validated"
+    },
+    {
+      "host": "kshared.com",
+      "type": "application/octet-stream",
+      "confidence": 0.9,
+      "status": "validated"
+    },
+    {
+      "host": "xn--sterreich-z7a.at",
+      "type": "video/mp4",
+      "confidence": 0.9,
+      "status": "validated"
+    }
+  ],
+  "refusals": [
+    {
+      "host": "example.com",
+      "reason": "Cash Policy Shield violation",
+      "markers": [
+        "premium"
+      ]
+    }
+  ]
+}

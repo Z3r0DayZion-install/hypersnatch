@@ -1,0 +1,23 @@
+{
+  "candidates": [
+    {
+      "host": "emload.com",
+      "type": "video/mp4",
+      "confidence": 0.90,
+      "status": "validated"
+    },
+    {
+      "host": "kshared.com",
+      "type": "application/octet-stream",
+      "confidence": 0.90,
+      "status": "validated"
+    }
+  ],
+  "refusals": [
+    {
+      "host": "example.com",
+      "reason": "Cash Policy Shield violation",
+      "markers": ["premium"]
+    }
+  ]
+}

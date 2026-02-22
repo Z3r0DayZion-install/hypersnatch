@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,7 +17,11 @@
       --line: #203140;
       --focus: #7be9d0;
     }
-    * { box-sizing: border-box; }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       color: var(--fg);
@@ -24,11 +29,35 @@
       font-family: "Segoe UI", Tahoma, sans-serif;
       min-height: 100vh;
     }
-    .wrap { width: min(1000px, 95vw); margin: 20px auto 32px; }
-    .head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .head h1 { margin: 0; font-size: 1.25rem; }
-    .card { background: #121c24; border: 1px solid #203140; border-radius: 12px; padding: 14px; margin-top: 12px; }
-    textarea, input, button {
+
+    .wrap {
+      width: min(1000px, 95vw);
+      margin: 20px auto 32px;
+    }
+
+    .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .head h1 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .card {
+      background: #121c24;
+      border: 1px solid #203140;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    textarea,
+    input,
+    button {
       width: 100%;
       border: 1px solid #203140;
       background: #0f161d;
@@ -37,1024 +66,1197 @@
       padding: 9px 10px;
       font: inherit;
     }
-    textarea { min-height: 130px; resize: vertical; }
-    button { cursor: pointer; background: linear-gradient(180deg, #1ad9ad, #13ad8b); color: #03110d; font-weight: 700; }
-    button.secondary { background: #16232e; color: var(--fg); border-color: #2a4357; font-weight: 600; }
-    button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-    .row { display: grid; gap: 8px; grid-template-columns: repeat(12, 1fr); }
-    .c3 { grid-column: span 3; } .c4 { grid-column: span 4; } .c6 { grid-column: span 6; } .c12 { grid-column: span 12; }
-    .muted { color: var(--muted); font-size: .88rem; }
-    .chip { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 999px; border: 1px solid #203140; }
-    .ok { color: #8ef5d8; border-color: #2b705f; } .warn { color: #ffd98a; border-color: #765f27; } .err { color: #ff9d9d; border-color: #7d3232; }
-    table { width: 100%; border-collapse: collapse; font-size: .87rem; }
-    th, td { border: 1px solid #203140; padding: 7px; text-align: left; word-break: break-word; }
-    th { color: var(--muted); font-weight: 600; }
-    .log { max-height: 190px; overflow: auto; font-family: ui-monospace, Consolas, monospace; font-size: .82rem; }
-    .kv { display: flex; gap: 10px; flex-wrap: wrap; }
-    .kv > div { background: #0f161d; border: 1px solid #203140; border-radius: 8px; padding: 8px 10px; }
-    .telemetry-panel { min-height: 120px; background: #0f161d; border: 1px solid #203140; border-radius: 12px; padding: 12px; font-size: .8rem; display: flex; flex-direction: column; gap: 6px; }
-    .telemetry-panel strong { font-size: .9rem; }
-    .telemetry-panel ul { margin: 0; padding-left: 16px; }
-    .fx-flash { animation: flash .45s ease; }
-    @keyframes flash { from { box-shadow: 0 0 0 0 #20ffcf66; } to { box-shadow: 0 0 0 10px transparent; } }
-    @media (max-width: 760px) { .c3, .c4, .c6 { grid-column: span 12; } .head { flex-direction: column; align-items: flex-start; } }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(180deg, #1ad9ad, #13ad8b);
+      color: #03110d;
+      font-weight: 700;
+    }
+
+    button.secondary {
+      background: #16232e;
+      color: var(--fg);
+      border-color: #2a4357;
+      font-weight: 600;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .row {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+
+    .c3 {
+      grid-column: span 3;
+    }
+
+    .c4 {
+      grid-column: span 4;
+    }
+
+    .c6 {
+      grid-column: span 6;
+    }
+
+    .c12 {
+      grid-column: span 12;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .chip {
+      display: inline-block;
+      font-size: .75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #203140;
+    }
+
+    .ok {
+      color: #8ef5d8;
+      border-color: #2b705f;
+    }
+
+    .warn {
+      color: #ffd98a;
+      border-color: #765f27;
+    }
+
+    .err {
+      color: #ff9d9d;
+      border-color: #7d3232;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .87rem;
+    }
+
+    th,
+    td {
+      border: 1px solid #203140;
+      padding: 7px;
+      text-align: left;
+      word-break: break-word;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .log {
+      max-height: 190px;
+      overflow: auto;
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: .82rem;
+    }
+
+    .kv {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .kv>div {
+      background: #0f161d;
+      border: 1px solid #203140;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+
+    .telemetry-panel {
+      min-height: 120px;
+      background: #0f161d;
+      border: 1px solid #203140;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: .8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .telemetry-panel strong {
+      font-size: .9rem;
+    }
+
+    .telemetry-panel ul {
+      margin: 0;
+      padding-left: 16px;
+    }
+
+    .fx-flash {
+      animation: flash .45s ease;
+    }
+
+    @keyframes flash {
+      from {
+        box-shadow: 0 0 0 0 #20ffcf66;
+      }
+
+      to {
+        box-shadow: 0 0 0 10px transparent;
+      }
+    }
+
+    @media (max-width: 760px) {
+
+      .c3,
+      .c4,
+      .c6 {
+        grid-column: span 12;
+      }
+
+      .head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
+
 <body>
-<main class="wrap" id="app">
-  <div class="head">
-    <h1>HyperSnatch Final Fused (Offline)</h1>
-    <div class="kv">
-      <div><span class="muted">Tier</span><br><strong id="tierView">basic</strong></div>
-      <div><span class="muted">Queue</span><br><strong id="queueView">0</strong></div>
-      <div><span class="muted">Decoded</span><br><strong id="decodedView">0</strong></div>
-      <div><span class="muted">Deferred</span><br><strong id="deferredView">0</strong></div>
-    </div>
-  </div>
-
-  <section class="card">
-    <label for="inbox"><strong>Paste links / folder-list payload</strong></label>
-    <textarea id="inbox" spellcheck="false" placeholder="One or many links."></textarea>
-    <div class="row" style="margin-top:8px">
-      <div class="c3"><button id="decodeBtn">Decode Queue</button></div>
-      <div class="c3"><button class="secondary" id="retryBtn">Retry Deferred</button></div>
-      <div class="c3"><button class="secondary" id="clearBtn">Clear State</button></div>
-      <div class="c3"><button class="secondary" id="selfTestBtn">Run Self-Test</button></div>
-      <div class="c3"><button class="secondary" id="exportTearBtn">Export .tear</button></div>
-      <div class="c3"><button class="secondary" id="exportVaultBtn">Export .vault</button></div>
-      <div class="c6"><input id="importFile" type="file" accept=".tear,.vault,application/json"></div>
-      <div class="c3"><button class="secondary" id="importBtn">Import Encrypted</button></div>
-      <div class="c6"><label><input type="checkbox" id="clipToggle"> Clipboard SmartQueue</label></div>
-      <div class="c6"><label><input type="checkbox" id="fxToggle" checked> UI FX Layer</label></div>
-      <div class="c6"><label><input type="checkbox" id="onlineAdapterToggle"> Online Adapter (experimental)</label></div>
-      <div class="c6"><input id="passphrase" type="password" placeholder="Export passphrase (required)"></div>
-      <div class="c6"><input id="tierKey" type="password" placeholder="Tier unlock key (advanced)"></div>
-      <div class="c3"><button class="secondary" id="unlockBtn">Unlock Tier</button></div>
-      <div class="c9 muted" id="tierInfo">Advanced hosts gated in basic tier.</div>
-    </div>
-  </section>
-
-  <section class="card">
-    <strong>Trust Management</strong>
-    <div class="row" style="margin-top:8px">
-      <div class="c4"><button class="secondary" id="trustExportBtn">Export Trust Store</button></div>
-      <div class="c4"><input id="trustImportFile" type="file" accept=".json,application/json"></div>
-      <div class="c4"><button class="secondary" id="trustImportBtn">Import Trust Store</button></div>
-      <div class="c4"><input id="trustRotateKeyId" type="text" placeholder="Rotate active keyId"></div>
-      <div class="c4"><button class="secondary" id="trustRotateBtn">Rotate Active</button></div>
-      <div class="c4"><input id="trustRevokeKeyId" type="text" placeholder="Revoke keyId"></div>
-      <div class="c4"><button class="secondary" id="trustRevokeBtn">Revoke Key</button></div>
-      <div class="c4"><label><input type="checkbox" id="policyTofuToggle" checked> TOFU on import</label></div>
-      <div class="c4"><label><input type="checkbox" id="policyRequireSigToggle" checked> Require signed import</label></div>
-    </div>
-    <div id="trustSummary" class="muted" style="margin-top:8px">No trust keys loaded.</div>
-    <div id="trustTable" style="margin-top:8px"></div>
-  </section>
-
-  <section class="card">
-    <strong>Hard-mode Telemetry</strong>
-    <div class="row" style="margin-top:8px">
-      <div class="c6">
-        <div id="replayPanel" class="telemetry-panel">
-          <strong>Replay Timeline</strong>
-          <p class="muted">Recent decode/defer events.</p>
-        </div>
-      </div>
-      <div class="c6">
-        <div id="anomalyPanel" class="telemetry-panel">
-          <strong>Anomalies</strong>
-          <p class="muted">Detected deviations.</p>
-        </div>
-      </div>
-      <div class="c6">
-        <div id="circuitPanel" class="telemetry-panel">
-          <strong>Circuit Breaker</strong>
-          <p class="muted">Host success/failure summary.</p>
-        </div>
-      </div>
-      <div class="c6">
-        <div id="ledgerPanel" class="telemetry-panel">
-          <strong>Audit Ledger</strong>
-          <p class="muted">Hash chain tail entries.</p>
-        </div>
+  <main class="wrap" id="app">
+    <div class="head">
+      <h1>HyperSnatch Final Fused (Offline)</h1>
+      <div class="kv">
+        <div><span class="muted">Tier</span><br><strong id="tierView">basic</strong></div>
+        <div><span class="muted">Queue</span><br><strong id="queueView">0</strong></div>
+        <div><span class="muted">Decoded</span><br><strong id="decodedView">0</strong></div>
+        <div><span class="muted">Deferred</span><br><strong id="deferredView">0</strong></div>
       </div>
     </div>
-  </section>
 
-  <section class="card"><strong>Decoded Results</strong><div id="decodedTable"></div></section>
-  <section class="card"><strong>Deferred / Retry Memory</strong><div id="deferredTable"></div></section>
-  <section class="card"><strong>Self-Test Report</strong><div id="selfTestTable" class="muted">No tests run yet.</div></section>
-  <section class="card"><strong>Logs</strong><div id="logBox" class="log"></div></section>
-</main>
+    <section class="card">
+      <label for="inbox"><strong>Paste links / folder-list payload</strong></label>
+      <textarea id="inbox" spellcheck="false" placeholder="One or many links."></textarea>
+      <div class="row" style="margin-top:8px">
+        <div class="c3"><button id="decodeBtn">Decode Queue</button></div>
+        <div class="c3"><button class="secondary" id="retryBtn">Retry Deferred</button></div>
+        <div class="c3"><button class="secondary" id="clearBtn">Clear State</button></div>
+        <div class="c3"><button class="secondary" id="selfTestBtn">Run Self-Test</button></div>
+        <div class="c3"><button class="secondary" id="exportTearBtn">Export .tear</button></div>
+        <div class="c3"><button class="secondary" id="exportVaultBtn">Export .vault</button></div>
+        <div class="c6"><input id="importFile" type="file" accept=".tear,.vault,application/json"></div>
+        <div class="c3"><button class="secondary" id="importBtn">Import Encrypted</button></div>
+        <div class="c6"><label><input type="checkbox" id="clipToggle"> Clipboard SmartQueue</label></div>
+        <div class="c6"><label><input type="checkbox" id="fxToggle" checked> UI FX Layer</label></div>
+        <div class="c6"><label><input type="checkbox" id="onlineAdapterToggle"> Online Adapter (experimental)</label>
+        </div>
+        <div class="c6"><input id="passphrase" type="password" placeholder="Export passphrase (required)"></div>
+        <div class="c6"><input id="tierKey" type="password" placeholder="Tier unlock key (advanced)"></div>
+        <div class="c3"><button class="secondary" id="unlockBtn">Unlock Tier</button></div>
+        <div class="c9 muted" id="tierInfo">Advanced hosts gated in basic tier.</div>
+      </div>
+    </section>
 
-<script>
-(() => {
-  "use strict";
+    <section class="card">
+      <strong>Trust Management</strong>
+      <div class="row" style="margin-top:8px">
+        <div class="c4"><button class="secondary" id="trustExportBtn">Export Trust Store</button></div>
+        <div class="c4"><input id="trustImportFile" type="file" accept=".json,application/json"></div>
+        <div class="c4"><button class="secondary" id="trustImportBtn">Import Trust Store</button></div>
+        <div class="c4"><input id="trustRotateKeyId" type="text" placeholder="Rotate active keyId"></div>
+        <div class="c4"><button class="secondary" id="trustRotateBtn">Rotate Active</button></div>
+        <div class="c4"><input id="trustRevokeKeyId" type="text" placeholder="Revoke keyId"></div>
+        <div class="c4"><button class="secondary" id="trustRevokeBtn">Revoke Key</button></div>
+        <div class="c4"><label><input type="checkbox" id="policyTofuToggle" checked> TOFU on import</label></div>
+        <div class="c4"><label><input type="checkbox" id="policyRequireSigToggle" checked> Require signed import</label>
+        </div>
+      </div>
+      <div id="trustSummary" class="muted" style="margin-top:8px">No trust keys loaded.</div>
+      <div id="trustTable" style="margin-top:8px"></div>
+    </section>
 
-  const Dom = {
-    app: document.getElementById("app"),
-    inbox: document.getElementById("inbox"),
-    decodeBtn: document.getElementById("decodeBtn"),
-    retryBtn: document.getElementById("retryBtn"),
-    clearBtn: document.getElementById("clearBtn"),
-    selfTestBtn: document.getElementById("selfTestBtn"),
-    exportTearBtn: document.getElementById("exportTearBtn"),
-    exportVaultBtn: document.getElementById("exportVaultBtn"),
-    importFile: document.getElementById("importFile"),
-    importBtn: document.getElementById("importBtn"),
-    trustExportBtn: document.getElementById("trustExportBtn"),
-    trustImportFile: document.getElementById("trustImportFile"),
-    trustImportBtn: document.getElementById("trustImportBtn"),
-    trustRotateKeyId: document.getElementById("trustRotateKeyId"),
-    trustRotateBtn: document.getElementById("trustRotateBtn"),
-    trustRevokeKeyId: document.getElementById("trustRevokeKeyId"),
-    trustRevokeBtn: document.getElementById("trustRevokeBtn"),
-    policyTofuToggle: document.getElementById("policyTofuToggle"),
-    policyRequireSigToggle: document.getElementById("policyRequireSigToggle"),
-    trustSummary: document.getElementById("trustSummary"),
-    trustTable: document.getElementById("trustTable"),
-    unlockBtn: document.getElementById("unlockBtn"),
-    clipToggle: document.getElementById("clipToggle"),
-    fxToggle: document.getElementById("fxToggle"),
-    onlineAdapterToggle: document.getElementById("onlineAdapterToggle"),
-    passphrase: document.getElementById("passphrase"),
-    tierKey: document.getElementById("tierKey"),
-    tierInfo: document.getElementById("tierInfo"),
-    tierView: document.getElementById("tierView"),
-    queueView: document.getElementById("queueView"),
-    decodedView: document.getElementById("decodedView"),
-    deferredView: document.getElementById("deferredView"),
-    decodedTable: document.getElementById("decodedTable"),
-    deferredTable: document.getElementById("deferredTable"),
-    selfTestTable: document.getElementById("selfTestTable"),
-    logBox: document.getElementById("logBox"),
-    replayPanel: document.getElementById("replayPanel"),
-    anomalyPanel: document.getElementById("anomalyPanel"),
-    circuitPanel: document.getElementById("circuitPanel"),
-    ledgerPanel: document.getElementById("ledgerPanel")
-  };
+    <section class="card">
+      <strong>Hard-mode Telemetry</strong>
+      <div class="row" style="margin-top:8px">
+        <div class="c6">
+          <div id="replayPanel" class="telemetry-panel">
+            <strong>Replay Timeline</strong>
+            <p class="muted">Recent decode/defer events.</p>
+          </div>
+        </div>
+        <div class="c6">
+          <div id="anomalyPanel" class="telemetry-panel">
+            <strong>Anomalies</strong>
+            <p class="muted">Detected deviations.</p>
+          </div>
+        </div>
+        <div class="c6">
+          <div id="circuitPanel" class="telemetry-panel">
+            <strong>Circuit Breaker</strong>
+            <p class="muted">Host success/failure summary.</p>
+          </div>
+        </div>
+        <div class="c6">
+          <div id="ledgerPanel" class="telemetry-panel">
+            <strong>Audit Ledger</strong>
+            <p class="muted">Hash chain tail entries.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  const State = {
-    tier: "basic",
-    queue: [],
-    decoded: [],
-    deferred: [],
-    logs: [],
-    clipEnabled: false,
-    fxEnabled: true,
-    onlineAdapterEnabled: false,
-    lastClip: "",
-    retryMemory: new Map(),
-    signing: null,
-    trustStore: { schemaVersion: 1, activeKeyId: "", keys: {} },
-    trustPolicy: { tofu: true, requireSignatureForImport: true }
-  };
+    <section class="card"><strong>Decoded Results</strong>
+      <div id="decodedTable"></div>
+    </section>
+    <section class="card"><strong>Deferred / Retry Memory</strong>
+      <div id="deferredTable"></div>
+    </section>
+    <section class="card"><strong>Self-Test Report</strong>
+      <div id="selfTestTable" class="muted">No tests run yet.</div>
+    </section>
+    <section class="card"><strong>Logs</strong>
+      <div id="logBox" class="log"></div>
+    </section>
+  </main>
 
-  const Storage = {
-    key: "hs.state.v3",
-    load() {
-      try {
-        const raw = localStorage.getItem(this.key);
-        if (!raw) return;
-        const obj = JSON.parse(raw);
-        if (Array.isArray(obj.decoded)) State.decoded = obj.decoded;
-        if (Array.isArray(obj.deferred)) State.deferred = obj.deferred;
-        if (obj.tier === "advanced") State.tier = "advanced";
-        if (obj.trustStore && typeof obj.trustStore === "object") State.trustStore = obj.trustStore;
-        if (obj.trustPolicy && typeof obj.trustPolicy === "object") State.trustPolicy = obj.trustPolicy;
-      } catch {}
-    },
-    save() {
-      localStorage.setItem(this.key, JSON.stringify({
-        decoded: State.decoded.slice(-500),
-        deferred: State.deferred.slice(-500),
-        tier: State.tier,
-        trustStore: State.trustStore,
-        trustPolicy: State.trustPolicy
-      }));
-    },
-    clear() { localStorage.removeItem(this.key); }
-  };
+  <script>
+    (() => {
+      "use strict";
 
-  const Logger = {
-    add(msg, level = "ok") {
-      State.logs.push({ stamp: new Date().toISOString(), msg, level });
-      if (State.logs.length > 700) State.logs.shift();
-      Ui.renderLog();
-    }
-  };
-
-  const HardTelemetry = {
-    events: [],
-    anomalies: [],
-    circuit: {},
-    ledger: [],
-    maxEvents: 60,
-    maxAnomalies: 8,
-    maxLedger: 8,
-    async record(event) {
-      const entry = { stamp: new Date().toISOString(), ...event };
-      this.events.unshift(entry);
-      while (this.events.length > this.maxEvents) this.events.pop();
-      this.evaluateAnomaly(entry);
-      await this.appendLedger(entry);
-    },
-    async appendLedger(entry) {
-      const prev = this.ledger[0];
-      const prevHash = prev ? prev.hash : "";
-      const payload = `${prevHash}|${entry.type}|${entry.url || entry.host || ""}|${entry.reason || ""}|${entry.stamp}`;
-      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payload));
-      const hash = this.toB64(new Uint8Array(digest)).slice(0, 16);
-      this.ledger.unshift({ hash, entry, stamp: entry.stamp });
-      if (this.ledger.length > this.maxLedger) this.ledger.pop();
-    },
-    toB64(bytes) {
-      let s = "";
-      bytes.forEach(b => { s += String.fromCharCode(b); });
-      return btoa(s);
-    },
-    recordCircuit(host, outcome, reason = "") {
-      const key = host || "unknown";
-      const rec = this.circuit[key] || { host: key, success: 0, failure: 0, lastActivity: "", reason: "" };
-      if (outcome === "success") rec.success += 1;
-      else rec.failure += 1;
-      rec.lastActivity = new Date().toISOString();
-      rec.reason = reason || rec.reason;
-      this.circuit[key] = rec;
-    },
-    evaluateAnomaly(entry) {
-      if (entry.type !== "deferred") return;
-      if (entry.reason && entry.reason.toLowerCase().includes("confidence")) {
-        this.pushAnomaly("Confidence below threshold", entry);
-      }
-      if (entry.reason && entry.reason.toLowerCase().includes("tier gate")) {
-        this.pushAnomaly("Tier gate triggered", entry);
-      }
-      const repeated = this.events.filter(e => e.type === "deferred" && e.url === entry.url).length;
-      if (repeated > 2) {
-        this.pushAnomaly("Persistent retry", { ...entry, note: "multiple defer attempts" });
-      }
-    },
-    pushAnomaly(label, entry) {
-      const existing = this.anomalies.find(a => a.label === label && a.url === entry.url);
-      if (existing) return;
-      const record = {
-        label,
-        url: entry.url,
-        host: entry.host,
-        reason: entry.reason,
-        note: entry.note,
-        stamp: entry.stamp
+      const Dom = {
+        app: document.getElementById("app"),
+        inbox: document.getElementById("inbox"),
+        decodeBtn: document.getElementById("decodeBtn"),
+        retryBtn: document.getElementById("retryBtn"),
+        clearBtn: document.getElementById("clearBtn"),
+        selfTestBtn: document.getElementById("selfTestBtn"),
+        exportTearBtn: document.getElementById("exportTearBtn"),
+        exportVaultBtn: document.getElementById("exportVaultBtn"),
+        importFile: document.getElementById("importFile"),
+        importBtn: document.getElementById("importBtn"),
+        trustExportBtn: document.getElementById("trustExportBtn"),
+        trustImportFile: document.getElementById("trustImportFile"),
+        trustImportBtn: document.getElementById("trustImportBtn"),
+        trustRotateKeyId: document.getElementById("trustRotateKeyId"),
+        trustRotateBtn: document.getElementById("trustRotateBtn"),
+        trustRevokeKeyId: document.getElementById("trustRevokeKeyId"),
+        trustRevokeBtn: document.getElementById("trustRevokeBtn"),
+        policyTofuToggle: document.getElementById("policyTofuToggle"),
+        policyRequireSigToggle: document.getElementById("policyRequireSigToggle"),
+        trustSummary: document.getElementById("trustSummary"),
+        trustTable: document.getElementById("trustTable"),
+        unlockBtn: document.getElementById("unlockBtn"),
+        clipToggle: document.getElementById("clipToggle"),
+        fxToggle: document.getElementById("fxToggle"),
+        onlineAdapterToggle: document.getElementById("onlineAdapterToggle"),
+        passphrase: document.getElementById("passphrase"),
+        tierKey: document.getElementById("tierKey"),
+        tierInfo: document.getElementById("tierInfo"),
+        tierView: document.getElementById("tierView"),
+        queueView: document.getElementById("queueView"),
+        decodedView: document.getElementById("decodedView"),
+        deferredView: document.getElementById("deferredView"),
+        decodedTable: document.getElementById("decodedTable"),
+        deferredTable: document.getElementById("deferredTable"),
+        selfTestTable: document.getElementById("selfTestTable"),
+        logBox: document.getElementById("logBox"),
+        replayPanel: document.getElementById("replayPanel"),
+        anomalyPanel: document.getElementById("anomalyPanel"),
+        circuitPanel: document.getElementById("circuitPanel"),
+        ledgerPanel: document.getElementById("ledgerPanel")
       };
-      this.anomalies.unshift(record);
-      if (this.anomalies.length > this.maxAnomalies) this.anomalies.pop();
-    }
-  };
 
-  const FolderParser = {
-    extract(text) {
-      const rx = /https?:\/\/[^\s"'<>]+/gi;
-      const found = String(text || "").match(rx) || [];
-      return found.map(v => v.trim().replace(/[),.;]+$/, "")).filter(Boolean);
-    },
-    folderId(url) {
-      const m = url.match(/\/folder\/([a-z0-9_-]+)/i) || url.match(/[?&]folder=([a-z0-9_-]+)/i);
-      return m ? m[1] : "";
-    },
-    parse(text, source = "manual") {
-      const out = [];
-      const seen = new Set();
-      for (const url of this.extract(text)) {
-        if (seen.has(url)) continue;
-        seen.add(url);
-        out.push({ original: url, folderId: this.folderId(url), source });
-      }
-      return out;
-    }
-  };
+      const State = {
+        tier: "basic",
+        queue: [],
+        decoded: [],
+        deferred: [],
+        logs: [],
+        clipEnabled: false,
+        fxEnabled: true,
+        onlineAdapterEnabled: false,
+        lastClip: "",
+        retryMemory: new Map(),
+        signing: null,
+        trustStore: { schemaVersion: 1, activeKeyId: "", keys: {} },
+        trustPolicy: { tofu: true, requireSignatureForImport: true }
+      };
 
-  const HostRouter = {
-    host(url) {
-      try { return new URL(url).hostname.replace(/^www\./i, "").toLowerCase(); }
-      catch { return ""; }
-    },
-    supported(host) { return host === "emload.com" || host === "kshared.com" || host === "rapidgator.net"; },
-    gate(host) {
-      if (State.tier === "advanced") return { ok: true };
-      if (host === "kshared.com" || host === "rapidgator.net") return { ok: false, reason: "Tier gate" };
-      return { ok: true };
-    }
-  };
-
-  const DecodeEngine = {
-    decode(url) {
-      const host = HostRouter.host(url);
-      if (!host) return { ok: false, reason: "Malformed URL" };
-      if (!HostRouter.supported(host)) return { ok: false, reason: "Unsupported host" };
-      const gate = HostRouter.gate(host);
-      if (!gate.ok) return { ok: false, reason: gate.reason };
-      const u = new URL(url);
-      let decoded = this.fromQuery(u);
-      if (!decoded) {
-        if (host === "rapidgator.net") {
-          const id = (u.pathname.match(/\/file\/([a-f0-9]+)/i) || [,""])[1];
-          if (id) decoded = "https://rapidgator.net/download/" + id;
-        } else {
-          const id = (u.pathname.match(/\/file\/([a-z0-9_-]+)/i) || [,""])[1];
-          if (id && host === "emload.com") decoded = "https://cdn.emload.com/stream/" + id + ".mp4";
-          if (id && host === "kshared.com") decoded = "https://dl.kshared.com/content/" + id;
-        }
-      }
-      if (!decoded) return { ok: false, reason: "No local decode path" };
-      return { ok: true, host, decoded, meta: this.meta(decoded, host, u) };
-    },
-    fromQuery(u) {
-      const raw = u.searchParams.get("stream") || u.searchParams.get("src") || u.searchParams.get("url") || "";
-      if (!raw) return "";
-      try {
-        const d = decodeURIComponent(raw);
-        if (/^https?:\/\//i.test(d)) return d;
-      } catch {}
-      try {
-        const b = atob(raw.replace(/-/g, "+").replace(/_/g, "/"));
-        if (/^https?:\/\//i.test(b)) return b;
-      } catch {}
-      return "";
-    },
-    meta(decodedUrl, host, sourceUrlObj) {
-      const ext = (decodedUrl.match(/\.([a-z0-9]{2,5})(?:[?#]|$)/i) || [,"bin"])[1].toLowerCase();
-      const filename = decodedUrl.split("/").pop().split("?")[0] || host + "-asset." + ext;
-      const n = Number(sourceUrlObj.searchParams.get("size") || "");
-      const size = Number.isFinite(n) && n > 0 ? (n / (1024 * 1024)).toFixed(2) + " MB" : "unknown";
-      const type = ext === "mp4" ? "video/mp4" : (ext === "m3u8" ? "application/x-mpegURL" : "application/octet-stream");
-      return { filename, size, type, host, detectedAt: new Date().toISOString() };
-    }
-  };
-
-  const OnlineAdapter = {
-    extract(html, baseUrl) {
-      const text = String(html || "");
-      const out = new Set();
-      const rxList = [
-        /https?:\/\/[^\s"'<>]+?\.(mp4|m3u8)(?:\?[^\s"'<>]*)?/gi,
-        /["'](\/[^"']+\.(mp4|m3u8)(?:\?[^"']*)?)["']/gi
-      ];
-      for (const rx of rxList) {
-        let m;
-        while ((m = rx.exec(text))) {
-          const raw = m[1] || m[0];
-          if (!raw) continue;
-          if (raw.startsWith("/")) {
-            try { out.add(new URL(raw, baseUrl).href); } catch {}
-          } else {
-            out.add(raw);
-          }
-        }
-      }
-      return [...out];
-    },
-    async decode(url) {
-      const resp = await fetch(url, { method: "GET" });
-      if (!resp.ok) return { ok: false, reason: "Adapter fetch failed" };
-      const html = await resp.text();
-      const candidates = this.extract(html, url);
-      if (!candidates.length) return { ok: false, reason: "Adapter found no stream candidates" };
-      return { ok: true, decoded: candidates[0], candidates };
-    }
-  };
-
-  const RetrySystem = {
-    nextDelayMs(attempts) { return Math.min(120000, Math.max(1, attempts) * 5000); },
-    defer(url, reason, now = Date.now(), host = HostRouter.host(url)) {
-      const prev = State.retryMemory.get(url) || { attempts: 0 };
-      const attempts = prev.attempts + 1;
-      const nextTryAt = now + this.nextDelayMs(attempts);
-      const rec = { url, reason, attempts, nextTryAt };
-      State.retryMemory.set(url, rec);
-      State.deferred = Array.from(State.retryMemory.values()).filter(v => v.nextTryAt > Date.now());
-      HardTelemetry.record({ type: "deferred", url, host, reason }).catch(() => {});
-      HardTelemetry.recordCircuit(host, "failure", reason);
-    },
-    queueReady(now = Date.now()) {
-      let moved = 0;
-      for (const rec of State.retryMemory.values()) {
-        if (rec.nextTryAt <= now) {
-          State.queue.push({ original: rec.url, source: "retry", folderId: "" });
-          HardTelemetry.record({ type: "retry-ready", url: rec.url, host: HostRouter.host(rec.url), reason: "retry-ready" }).catch(() => {});
-          moved += 1;
-        }
-      }
-      if (moved) Logger.add("Retry moved to queue: " + moved);
-      State.deferred = Array.from(State.retryMemory.values()).filter(v => v.nextTryAt > Date.now());
-    }
-  };
-
-  const SmartQueue = {
-    enqueue(text, source = "manual") {
-      const items = FolderParser.parse(text, source);
-      if (!items.length) return Logger.add("No links found in input", "warn");
-      const seen = new Set(State.queue.map(q => q.original));
-      let added = 0;
-      for (const item of items) {
-        if (seen.has(item.original)) continue;
-        seen.add(item.original);
-        State.queue.push(item);
-        added += 1;
-      }
-      Logger.add("Queue loaded: " + added + " token(s)");
-      Ui.refresh();
-    },
-    async process() {
-      const batch = State.queue.splice(0, State.queue.length);
-      if (!batch.length) return Logger.add("Queue is empty", "warn");
-      for (const q of batch) {
-        const host = HostRouter.host(q.original);
-        let out = DecodeEngine.decode(q.original);
-        if (!out.ok && out.reason === "No local decode path" && State.onlineAdapterEnabled) {
+      const Storage = {
+        key: "hs.state.v3",
+        load() {
           try {
-            const adapted = await OnlineAdapter.decode(q.original);
-          if (adapted.ok) {
-            out = {
-              ok: true,
-              decoded: adapted.decoded,
-              meta: DecodeEngine.meta(adapted.decoded, host || "unknown", new URL(q.original))
-            };
-          } else {
-              out = { ok: false, reason: adapted.reason };
-            }
-          } catch (e) {
-            out = { ok: false, reason: "Adapter error: " + e.message };
+            const raw = localStorage.getItem(this.key);
+            if (!raw) return;
+            const obj = JSON.parse(raw);
+            if (Array.isArray(obj.decoded)) State.decoded = obj.decoded;
+            if (Array.isArray(obj.deferred)) State.deferred = obj.deferred;
+            if (obj.tier === "advanced") State.tier = "advanced";
+            if (obj.trustStore && typeof obj.trustStore === "object") State.trustStore = obj.trustStore;
+            if (obj.trustPolicy && typeof obj.trustPolicy === "object") State.trustPolicy = obj.trustPolicy;
+          } catch { }
+        },
+        save() {
+          localStorage.setItem(this.key, JSON.stringify({
+            decoded: State.decoded.slice(-500),
+            deferred: State.deferred.slice(-500),
+            tier: State.tier,
+            trustStore: State.trustStore,
+            trustPolicy: State.trustPolicy
+          }));
+        },
+        clear() { localStorage.removeItem(this.key); }
+      };
+
+      const Logger = {
+        add(msg, level = "ok") {
+          State.logs.push({ stamp: new Date().toISOString(), msg, level });
+          if (State.logs.length > 700) State.logs.shift();
+          Ui.renderLog();
+        }
+      };
+
+      const HardTelemetry = {
+        events: [],
+        anomalies: [],
+        circuit: {},
+        ledger: [],
+        maxEvents: 60,
+        maxAnomalies: 8,
+        maxLedger: 8,
+        async record(event) {
+          const entry = { stamp: new Date().toISOString(), ...event };
+          this.events.unshift(entry);
+          while (this.events.length > this.maxEvents) this.events.pop();
+          this.evaluateAnomaly(entry);
+          await this.appendLedger(entry);
+        },
+        async appendLedger(entry) {
+          const prev = this.ledger[0];
+          const prevHash = prev ? prev.hash : "";
+          const payload = `${prevHash}|${entry.type}|${entry.url || entry.host || ""}|${entry.reason || ""}|${entry.stamp}`;
+          const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payload));
+          const hash = this.toB64(new Uint8Array(digest)).slice(0, 16);
+          this.ledger.unshift({ hash, entry, stamp: entry.stamp });
+          if (this.ledger.length > this.maxLedger) this.ledger.pop();
+        },
+        toB64(bytes) {
+          let s = "";
+          bytes.forEach(b => { s += String.fromCharCode(b); });
+          return btoa(s);
+        },
+        recordCircuit(host, outcome, reason = "") {
+          const key = host || "unknown";
+          const rec = this.circuit[key] || { host: key, success: 0, failure: 0, lastActivity: "", reason: "" };
+          if (outcome === "success") rec.success += 1;
+          else rec.failure += 1;
+          rec.lastActivity = new Date().toISOString();
+          rec.reason = reason || rec.reason;
+          this.circuit[key] = rec;
+        },
+        evaluateAnomaly(entry) {
+          if (entry.type !== "deferred") return;
+          if (entry.reason && entry.reason.toLowerCase().includes("confidence")) {
+            this.pushAnomaly("Confidence below threshold", entry);
           }
+          if (entry.reason && entry.reason.toLowerCase().includes("tier gate")) {
+            this.pushAnomaly("Tier gate triggered", entry);
+          }
+          const repeated = this.events.filter(e => e.type === "deferred" && e.url === entry.url).length;
+          if (repeated > 2) {
+            this.pushAnomaly("Persistent retry", { ...entry, note: "multiple defer attempts" });
+          }
+        },
+        pushAnomaly(label, entry) {
+          const existing = this.anomalies.find(a => a.label === label && a.url === entry.url);
+          if (existing) return;
+          const record = {
+            label,
+            url: entry.url,
+            host: entry.host,
+            reason: entry.reason,
+            note: entry.note,
+            stamp: entry.stamp
+          };
+          this.anomalies.unshift(record);
+          if (this.anomalies.length > this.maxAnomalies) this.anomalies.pop();
         }
-        if (out.ok) {
-          State.decoded.push({ original: q.original, decoded: out.decoded, meta: out.meta, folderId: q.folderId, source: q.source });
-          Logger.add("Decoded " + q.original);
-          await HardTelemetry.record({ type: "decoded", url: q.original, host, note: q.source }).catch(() => {});
-          HardTelemetry.recordCircuit(host, "success");
-        } else {
-          RetrySystem.defer(q.original, out.reason, Date.now(), host);
-          Logger.add("Deferred " + q.original + " (" + out.reason + ")", "err");
+      };
+
+      const FolderParser = {
+        extract(text) {
+          const rx = /https?:\/\/[^\s"'<>]+/gi;
+          const found = String(text || "").match(rx) || [];
+          return found.map(v => v.trim().replace(/[),.;]+$/, "")).filter(Boolean);
+        },
+        folderId(url) {
+          const m = url.match(/\/folder\/([a-z0-9_-]+)/i) || url.match(/[?&]folder=([a-z0-9_-]+)/i);
+          return m ? m[1] : "";
+        },
+        parse(text, source = "manual") {
+          const out = [];
+          const seen = new Set();
+          for (const url of this.extract(text)) {
+            if (seen.has(url)) continue;
+            seen.add(url);
+            out.push({ original: url, folderId: this.folderId(url), source });
+          }
+          return out;
         }
-      }
-      Storage.save();
-      Ui.refresh();
-    }
-  };
-
-  const ExportLayer = {
-    normalizePack(pack) {
-      if (!pack || typeof pack !== "object") throw new Error("Pack must be an object");
-      if (pack.format === "tear-v2" && pack.schemaVersion === 2) return pack;
-      if (pack.format === "tear-v1") {
-        return {
-          format: "tear-v2",
-          schemaVersion: 2,
-          app: pack.app || "HyperSnatch",
-          appVersion: "legacy-import",
-          kind: pack.kind || "tear",
-          createdAt: new Date().toISOString(),
-          migratedFrom: "tear-v1",
-          kdf: pack.kdf || "PBKDF2-SHA256",
-          iterations: Number(pack.iterations || 120000),
-          salt: pack.salt,
-          iv: pack.iv,
-          digest: pack.digest,
-          data: pack.data
-        };
-      }
-      throw new Error("Unknown pack format");
-    },
-    fromB64(str) {
-      const bin = atob(str);
-      const out = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
-      return out;
-    },
-    async deriveKey(passphrase, salt, iterations) {
-      const enc = new TextEncoder();
-      const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
-      return crypto.subtle.deriveKey(
-        { name: "PBKDF2", hash: "SHA-256", salt, iterations },
-        keyMaterial,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["encrypt", "decrypt"]
-      );
-    },
-    canonicalPackString(pack) {
-      return [
-        pack.format,
-        pack.schemaVersion,
-        pack.kind,
-        pack.kdf,
-        pack.iterations,
-        pack.salt,
-        pack.iv,
-        pack.digest,
-        pack.data
-      ].join("|");
-    },
-    ensureTrustStore() {
-      if (!State.trustStore || typeof State.trustStore !== "object") {
-        State.trustStore = { schemaVersion: 1, activeKeyId: "", keys: {} };
-      }
-      if (!State.trustStore.keys) State.trustStore.keys = {};
-      return State.trustStore;
-    },
-    addTrustedPublicKey(keyId, publicJwk, status = "active") {
-      const store = this.ensureTrustStore();
-      if (!keyId || !publicJwk) throw new Error("Invalid trust key");
-      store.keys[keyId] = {
-        keyId,
-        status,
-        createdAt: new Date().toISOString(),
-        publicJwk
       };
-      if (!store.activeKeyId || status === "active") store.activeKeyId = keyId;
-      Storage.save();
-      return store.keys[keyId];
-    },
-    rotateActiveKey(nextKeyId) {
-      const store = this.ensureTrustStore();
-      if (!store.keys[nextKeyId]) throw new Error("Rotation target key missing");
-      const prev = store.activeKeyId;
-      if (prev && store.keys[prev] && store.keys[prev].status === "active") {
-        store.keys[prev].status = "rotated";
-        store.keys[prev].rotatedAt = new Date().toISOString();
-      }
-      store.keys[nextKeyId].status = "active";
-      delete store.keys[nextKeyId].revokedAt;
-      delete store.keys[nextKeyId].revocationReason;
-      store.activeKeyId = nextKeyId;
-      Storage.save();
-    },
-    revokeKey(keyId, reason = "unspecified") {
-      const store = this.ensureTrustStore();
-      const rec = store.keys[keyId];
-      if (!rec) throw new Error("Key not found");
-      rec.status = "revoked";
-      rec.revokedAt = new Date().toISOString();
-      rec.revocationReason = reason;
-      if (store.activeKeyId === keyId) store.activeKeyId = "";
-      Storage.save();
-    },
-    exportTrustStore() {
-      const text = JSON.stringify(this.ensureTrustStore(), null, 2);
-      this.download("HyperSnatch_trust_store.json", text, "application/json");
-      Logger.add("Exported trust store");
-    },
-    async importTrustStore(file) {
-      if (!file) throw new Error("No trust store file selected");
-      const parsed = JSON.parse(await file.text());
-      if (!parsed || typeof parsed !== "object" || parsed.schemaVersion !== 1 || typeof parsed.keys !== "object") {
-        throw new Error("Invalid trust store payload");
-      }
-      State.trustStore = parsed;
-      Storage.save();
-      Logger.add("Imported trust store");
-      Ui.refresh();
-    },
-    async ensureSigningKeys() {
-      if (State.signing && State.signing.privateKey && State.signing.publicKey) return State.signing;
-      const pair = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
-      const keyId = "local-" + Date.now().toString(36);
-      State.signing = { privateKey: pair.privateKey, publicKey: pair.publicKey, keyId };
-      const publicJwk = await crypto.subtle.exportKey("jwk", pair.publicKey);
-      this.addTrustedPublicKey(keyId, publicJwk, "active");
-      return State.signing;
-    },
-    async signPack(pack) {
-      const keys = await this.ensureSigningKeys();
-      const text = this.canonicalPackString(pack);
-      const sigBuf = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, keys.privateKey, new TextEncoder().encode(text));
-      const publicJwk = await crypto.subtle.exportKey("jwk", keys.publicKey);
-      pack.signature = {
-        alg: "ECDSA-P256-SHA256",
-        keyId: keys.keyId,
-        sig: this.toB64(new Uint8Array(sigBuf)),
-        publicJwk
+
+      const HostRouter = {
+        host(url) {
+          try { return new URL(url).hostname.replace(/^www\./i, "").toLowerCase(); }
+          catch { return ""; }
+        },
+        supported(host) {
+          const hosts = [
+            'emload.com', 'kshared.com', 'rapidgator.net', 'turbobit.net', 'nitroflare.com',
+            'mega.nz', 'mediafire.com', 'pixeldrain.com', 'hexupload.net', 'krakenfiles.com',
+            'filefactory.com', 'uploadgig.com', 'ddownload.com', 'katfile.com', 'doodstream.com',
+            'streamtape.com', 'mixdrop.co', 'voe.sx', 'vidoza.net', 'gofile.io', '1fichier.com',
+            'uptobox.com', 'userscloud.com', 'upfiles.com', 'userload.co', 'vudeo.net',
+            'vidmoly.to', 'upstream.to', 'lulustream.com', 'vidlox.me', 'streamwish.to',
+            'filelion.live', 'vidguard.to', 'faststream.pw', 'vtube.to', 'veestream.to',
+            'rosefile.net', 'daofile.com', 'filespace.com', 'hotlink.cc'
+          ];
+          return hosts.includes(host);
+        },
+        gate(host) {
+          if (State.tier === "advanced") return { ok: true };
+          if (host === "kshared.com" || host === "rapidgator.net") return { ok: false, reason: "Tier gate" };
+          return { ok: true };
+        }
       };
-      return pack;
-    },
-    async verifyPackSignature(pack) {
-      if (!pack.signature) return true;
-      const store = this.ensureTrustStore();
-      let jwk = null;
-      const trusted = store.keys?.[pack.signature.keyId];
-      if (trusted && trusted.status !== "revoked") jwk = trusted.publicJwk;
-      if (!jwk && State.trustPolicy.tofu && pack.signature.publicJwk) {
-        this.addTrustedPublicKey(pack.signature.keyId || ("imported-" + Date.now().toString(36)), pack.signature.publicJwk, "active");
-        jwk = pack.signature.publicJwk;
-      }
-      if (!jwk) throw new Error("Signature key is not trusted");
-      const publicKey = await crypto.subtle.importKey("jwk", jwk, { name: "ECDSA", namedCurve: "P-256" }, true, ["verify"]);
-      const text = this.canonicalPackString(pack);
-      const sig = this.fromB64(pack.signature.sig);
-      const ok = await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, publicKey, sig, new TextEncoder().encode(text));
-      if (!ok) throw new Error("Signature verification failed");
-      return true;
-    },
-    async encryptPayload(payload, passphrase) {
-      if (!passphrase) throw new Error("Passphrase required");
-      const enc = new TextEncoder();
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const key = await this.deriveKey(passphrase, salt, 120000);
-      const json = JSON.stringify(payload);
-      const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc.encode(json));
-      const digest = await this.sha256B64(json);
-      const pack = {
-        format: "tear-v2",
-        schemaVersion: 2,
-        app: "HyperSnatch",
-        appVersion: "1.3.0",
-        kind: payload.kind || "tear",
-        createdAt: new Date().toISOString(),
-        kdf: "PBKDF2-SHA256",
-        iterations: 120000,
-        salt: this.toB64(salt),
-        iv: this.toB64(iv),
-        digest,
-        data: this.toB64(new Uint8Array(cipher))
+
+      const DecodeEngine = {
+        decode(url) {
+          const host = HostRouter.host(url);
+          if (!host) return { ok: false, reason: "Malformed URL" };
+          if (!HostRouter.supported(host)) return { ok: false, reason: "Unsupported host" };
+          const gate = HostRouter.gate(host);
+          if (!gate.ok) return { ok: false, reason: gate.reason };
+          const u = new URL(url);
+          let decoded = this.fromQuery(u);
+          if (!decoded) {
+            if (host === "rapidgator.net") {
+              const id = (u.pathname.match(/\/file\/([a-f0-9]+)/i) || [, ""])[1];
+              if (id) decoded = "https://rapidgator.net/download/" + id;
+            } else if (host === "emload.com") {
+              const id = (u.pathname.match(/\/file\/([a-z0-9_-]+)/i) || [, ""])[1];
+              if (id) decoded = "https://cdn.emload.com/stream/" + id + ".mp4";
+            } else if (host === "kshared.com") {
+              const id = (u.pathname.match(/\/file\/([a-z0-9_-]+)/i) || [, ""])[1];
+              if (id) decoded = "https://dl.kshared.com/content/" + id;
+            } else {
+              const fileId = (u.pathname.match(/\/file\/([a-z0-9_-]+)/i) ||
+                u.pathname.match(/\/([a-z0-9]{5,})/i) || [, ""])[1];
+              if (fileId) decoded = `https://${host}/download/${fileId}`;
+            }
+          }
+          if (!decoded) return { ok: false, reason: "No local decode path" };
+          return { ok: true, host, decoded, meta: this.meta(decoded, host, u) };
+        },
+        fromQuery(u) {
+          const raw = u.searchParams.get("stream") || u.searchParams.get("src") || u.searchParams.get("url") || "";
+          if (!raw) return "";
+          try {
+            const d = decodeURIComponent(raw);
+            if (/^https?:\/\//i.test(d)) return d;
+          } catch { }
+          try {
+            const b = atob(raw.replace(/-/g, "+").replace(/_/g, "/"));
+            if (/^https?:\/\//i.test(b)) return b;
+          } catch { }
+          return "";
+        },
+        meta(decodedUrl, host, sourceUrlObj) {
+          const ext = (decodedUrl.match(/\.([a-z0-9]{2,5})(?:[?#]|$)/i) || [, "bin"])[1].toLowerCase();
+          const filename = decodedUrl.split("/").pop().split("?")[0] || host + "-asset." + ext;
+          const n = Number(sourceUrlObj.searchParams.get("size") || "");
+          const size = Number.isFinite(n) && n > 0 ? (n / (1024 * 1024)).toFixed(2) + " MB" : "unknown";
+          const type = ext === "mp4" ? "video/mp4" : (ext === "m3u8" ? "application/x-mpegURL" : "application/octet-stream");
+          return { filename, size, type, host, detectedAt: new Date().toISOString() };
+        }
       };
-      await this.signPack(pack);
-      return pack;
-    },
-    async decryptPayload(pack, passphrase) {
-      const normalized = this.normalizePack(pack);
-      await this.verifyPackSignature(normalized);
-      const salt = this.fromB64(normalized.salt);
-      const iv = this.fromB64(normalized.iv);
-      const data = this.fromB64(normalized.data);
-      const key = await this.deriveKey(passphrase, salt, Number(normalized.iterations || 120000));
-      const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
-      const text = new TextDecoder().decode(plain);
-      if (normalized.digest) {
-        const digest = await this.sha256B64(text);
-        if (digest !== normalized.digest) throw new Error("Integrity check failed");
-      }
-      return JSON.parse(text);
-    },
-    toB64(bytes) {
-      let s = "";
-      bytes.forEach(b => { s += String.fromCharCode(b); });
-      return btoa(s);
-    },
-    async sha256B64(text) {
-      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-      return this.toB64(new Uint8Array(digest));
-    },
-    async exportTear(passphrase) {
-      const payload = { app: "HyperSnatch", kind: "tear", decoded: State.decoded, deferred: State.deferred, exportedAt: new Date().toISOString() };
-      const pack = await this.encryptPayload(payload, passphrase);
-      this.download("HyperSnatch_export.tear", JSON.stringify(pack, null, 2), "application/json");
-      Logger.add("Exported encrypted .tear");
-      Ui.refresh();
-    },
-    async exportVault(passphrase) {
-      const payload = { app: "HyperSnatch", kind: "vault", logs: State.logs, decoded: State.decoded, exportedAt: new Date().toISOString() };
-      const pack = await this.encryptPayload(payload, passphrase);
-      this.download("HyperSnatch_export.vault", JSON.stringify(pack, null, 2), "application/json");
-      Logger.add("Exported encrypted .vault");
-      Ui.refresh();
-    },
-    download(name, text, type) {
-      const blob = new Blob([text], { type });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = name;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    },
-    async importFromFile(file, passphrase) {
-      if (!file) throw new Error("No import file selected");
-      if (!passphrase) throw new Error("Passphrase required");
-      const pack = JSON.parse(await file.text());
-      if (State.trustPolicy.requireSignatureForImport && !pack.signature) {
-        throw new Error("Unsigned imports are blocked by policy");
-      }
-      const payload = await this.decryptPayload(pack, passphrase);
-      if (payload.kind === "tear") {
-        if (Array.isArray(payload.decoded)) State.decoded = payload.decoded;
-        if (Array.isArray(payload.deferred)) State.deferred = payload.deferred;
-        Logger.add("Imported tear payload");
-      } else if (payload.kind === "vault") {
-        if (Array.isArray(payload.decoded)) State.decoded = payload.decoded;
-        if (Array.isArray(payload.logs)) State.logs = payload.logs;
-        Logger.add("Imported vault payload");
-      } else {
-        throw new Error("Unsupported payload kind");
-      }
-      Storage.save();
-      Ui.refresh();
-    }
-  };
 
-  const TierGate = {
-    unlock(key) {
-      if (key === "hyperfounder") {
-        State.tier = "advanced";
-        Logger.add("Tier unlocked: advanced");
-      } else {
-        Logger.add("Tier unlock failed", "err");
-      }
-      Storage.save();
-      Ui.refresh();
-    }
-  };
-
-  const ClipboardEngine = {
-    start() {
-      setInterval(async () => {
-        if (!State.clipEnabled) return;
-        try {
-          const txt = await navigator.clipboard.readText();
-          if (!txt || txt === State.lastClip) return;
-          State.lastClip = txt;
-          SmartQueue.enqueue(txt, "clipboard");
-          await SmartQueue.process();
-        } catch {}
-      }, 2500);
-    }
-  };
-
-  const UiFx = {
-    flash() {
-      if (!State.fxEnabled) return;
-      Dom.app.classList.remove("fx-flash");
-      void Dom.app.offsetWidth;
-      Dom.app.classList.add("fx-flash");
-    }
-  };
-
-  const SelfTests = {
-    async run() {
-      const out = [];
-      const push = (name, pass, details = "") => out.push({ name, pass, details });
-      try { push("Parser extracts 2 urls", FolderParser.parse("https://emload.com/file/a x https://kshared.com/file/b").length === 2); } catch (e) { push("Parser extracts 2 urls", false, String(e)); }
-      try { push("Tier gate blocks kshared in basic", DecodeEngine.decode("https://kshared.com/file/x").ok === false); } catch (e) { push("Tier gate blocks kshared in basic", false, String(e)); }
-      try { push("Emload decode path", DecodeEngine.decode("https://emload.com/file/abc").decoded === "https://cdn.emload.com/stream/abc.mp4"); } catch (e) { push("Emload decode path", false, String(e)); }
-      try {
-        const passphrase = "self-test-pass";
-        const pack = await ExportLayer.encryptPayload({ x: 1 }, passphrase);
-        const plain = await ExportLayer.decryptPayload(pack, passphrase);
-        push("Encryption roundtrip", pack.format === "tear-v2" && plain.x === 1);
-      } catch (e) { push("Encryption roundtrip", false, String(e)); }
-      try {
-        const passphrase = "self-test-pass";
-        const pack = await ExportLayer.encryptPayload({ x: 2 }, passphrase);
-        pack.digest = "tampered";
-        let failed = false;
-        try { await ExportLayer.decryptPayload(pack, passphrase); } catch { failed = true; }
-        push("Integrity tamper detection", failed);
-      } catch (e) { push("Integrity tamper detection", false, String(e)); }
-      try {
-        const passphrase = "self-test-pass";
-        const pack = await ExportLayer.encryptPayload({ x: 3 }, passphrase);
-        if (pack.signature) pack.signature.sig = "tampered";
-        let failed = false;
-        try { await ExportLayer.decryptPayload(pack, passphrase); } catch { failed = true; }
-        push("Signature tamper detection", failed);
-      } catch (e) { push("Signature tamper detection", false, String(e)); }
-      try {
-        const passphrase = "self-test-pass";
-        const pack = await ExportLayer.encryptPayload({ x: 4 }, passphrase);
-        const keyId = pack.signature?.keyId;
-        if (!keyId) throw new Error("Missing test keyId");
-        ExportLayer.revokeKey(keyId, "self-test");
-        let failed = false;
-        try { await ExportLayer.decryptPayload(pack, passphrase); } catch { failed = true; }
-        push("Revoked key blocked", failed);
-      } catch (e) { push("Revoked key blocked", false, String(e)); }
-      try {
-        RetrySystem.defer("https://emload.com/file/test", "x", 1000);
-        const rec = State.retryMemory.get("https://emload.com/file/test");
-        push("Retry memory increments attempts", rec && rec.attempts >= 1);
-      } catch (e) { push("Retry memory increments attempts", false, String(e)); }
-      Ui.renderSelfTests(out);
-      const passCount = out.filter(v => v.pass).length;
-      Logger.add("Self-tests: " + passCount + "/" + out.length + " passed");
-      return out;
-    }
-  };
-
-  const Ui = {
-    refresh() {
-      Dom.tierView.textContent = State.tier;
-      Dom.queueView.textContent = String(State.queue.length);
-      Dom.decodedView.textContent = String(State.decoded.length);
-      Dom.deferredView.textContent = String(State.deferred.length);
-      Dom.tierInfo.textContent = State.tier === "advanced" ? "Advanced hosts are enabled." : "Advanced hosts gated in basic tier.";
-      Dom.policyTofuToggle.checked = !!State.trustPolicy.tofu;
-      Dom.policyRequireSigToggle.checked = !!State.trustPolicy.requireSignatureForImport;
-      Dom.onlineAdapterToggle.checked = !!State.onlineAdapterEnabled;
-      this.renderTrustSummary();
-      this.renderTrustTable();
-      this.renderDecoded();
-      this.renderDeferred();
-      this.renderTelemetry();
-      this.renderLog();
-      UiFx.flash();
-    },
-    esc(v) { return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll("\"","&quot;"); },
-    renderDecoded() {
-      if (!State.decoded.length) return Dom.decodedTable.innerHTML = "<p class='muted'>No decoded items.</p>";
-      let html = "<table><thead><tr><th>Status</th><th>Original</th><th>Decoded</th><th>Filename</th><th>Size</th><th>Type</th><th>Host</th></tr></thead><tbody>";
-      for (const r of State.decoded.slice().reverse()) {
-        html += "<tr><td><span class='chip ok'>IMPLEMENTED</span></td><td>" + this.esc(r.original) + "</td><td>" + this.esc(r.decoded) + "</td><td>" + this.esc(r.meta.filename) + "</td><td>" + this.esc(r.meta.size) + "</td><td>" + this.esc(r.meta.type) + "</td><td>" + this.esc(r.meta.host) + "</td></tr>";
-      }
-      Dom.decodedTable.innerHTML = html + "</tbody></table>";
-    },
-    renderDeferred() {
-      const list = Array.from(State.retryMemory.values()).filter(v => v.nextTryAt > Date.now());
-      State.deferred = list;
-      if (!list.length) return Dom.deferredTable.innerHTML = "<p class='muted'>No deferred items.</p>";
-      let html = "<table><thead><tr><th>Status</th><th>URL</th><th>Reason</th><th>Attempts</th><th>Next Try</th></tr></thead><tbody>";
-      for (const d of list.slice().reverse()) {
-        html += "<tr><td><span class='chip warn'>PARTIAL</span></td><td>" + this.esc(d.url) + "</td><td>" + this.esc(d.reason) + "</td><td>" + this.esc(d.attempts) + "</td><td>" + this.esc(new Date(d.nextTryAt).toLocaleTimeString()) + "</td></tr>";
-      }
-      Dom.deferredTable.innerHTML = html + "</tbody></table>";
-    },
-    renderTelemetry() {
-      this.renderReplay();
-      this.renderAnomalies();
-      this.renderCircuit();
-      this.renderLedger();
-    },
-    renderReplay() {
-      const items = HardTelemetry.events.slice(0, 4);
-      if (!items.length) {
-        Dom.replayPanel.innerHTML = "<strong>Replay Timeline</strong><p class='muted'>waiting for activity...</p>";
-        return;
-      }
-      const list = items.map(e => {
-        const cls = e.type === "decoded" ? "ok" : "warn";
-        const target = e.url || e.host || "unknown";
-        const detail = e.reason ? " (" + this.esc(e.reason) + ")" : "";
-        return `<div><span class='chip ${cls}'>${this.esc(e.type)}</span> ${this.esc(target)}${detail} <small>${this.esc(new Date(e.stamp).toLocaleTimeString())}</small></div>`;
-      });
-      Dom.replayPanel.innerHTML = "<strong>Replay Timeline</strong>" + list.join("");
-    },
-    renderAnomalies() {
-      if (!HardTelemetry.anomalies.length) {
-        Dom.anomalyPanel.innerHTML = "<strong>Anomalies</strong><p class='muted'>none detected.</p>";
-        return;
-      }
-      const list = HardTelemetry.anomalies.slice(0, 5).map(a => {
-        return `<div><span class='chip warn'>${this.esc(a.label)}</span> ${this.esc(a.host || a.url || "unknown")} ${this.esc(a.note || a.reason || "")} <small>${this.esc(new Date(a.stamp).toLocaleTimeString())}</small></div>`;
-      });
-      Dom.anomalyPanel.innerHTML = "<strong>Anomalies</strong>" + list.join("");
-    },
-    renderCircuit() {
-      const entries = Object.values(HardTelemetry.circuit);
-      if (!entries.length) {
-        Dom.circuitPanel.innerHTML = "<strong>Circuit Breaker</strong><p class='muted'>no host activity yet.</p>";
-        return;
-      }
-      const lines = entries.map(e => {
-        const status = e.failure > e.success ? "warn" : "ok";
-        return `<div><span class='chip ${status}'>${this.esc(e.host)}</span> success ${e.success} / failure ${e.failure} <small>${this.esc(e.lastActivity)}</small></div>`;
-      });
-      Dom.circuitPanel.innerHTML = "<strong>Circuit Breaker</strong>" + lines.join("");
-    },
-    renderLedger() {
-      if (!HardTelemetry.ledger.length) {
-        Dom.ledgerPanel.innerHTML = "<strong>Audit Ledger</strong><p class='muted'>awaiting entries.</p>";
-        return;
-      }
-      const entries = HardTelemetry.ledger.slice(0, 4).map(e => {
-        return `<div><span class='chip ok'>${this.esc(e.hash.slice(0, 6))}</span> ${this.esc(e.entry.type)} <small>${this.esc(new Date(e.stamp).toLocaleTimeString())}</small></div>`;
-      });
-      Dom.ledgerPanel.innerHTML = "<strong>Audit Ledger</strong>" + entries.join("");
-    },
-    renderLog() {
-      const rows = State.logs.slice(-120).map(l => "<div><span class='chip " + (l.level || "ok") + "'>" + (l.level || "ok").toUpperCase() + "</span> " + this.esc(l.stamp) + " " + this.esc(l.msg) + "</div>");
-      Dom.logBox.innerHTML = rows.join("");
-    },
-    renderSelfTests(results) {
-      let html = "<table><thead><tr><th>Test</th><th>Result</th><th>Details</th></tr></thead><tbody>";
-      for (const r of results) {
-        const cls = r.pass ? "ok" : "err";
-        html += "<tr><td>" + this.esc(r.name) + "</td><td><span class='chip " + cls + "'>" + (r.pass ? "PASS" : "FAIL") + "</span></td><td>" + this.esc(r.details || "") + "</td></tr>";
-      }
-      Dom.selfTestTable.innerHTML = html + "</tbody></table>";
-    },
-    renderTrustSummary() {
-      const keys = Object.values(State.trustStore?.keys || {});
-      if (!keys.length) {
-        Dom.trustSummary.textContent = "No trust keys loaded.";
-        return;
-      }
-      const active = State.trustStore.activeKeyId || "(none)";
-      const counts = {
-        active: keys.filter(k => k.status === "active").length,
-        rotated: keys.filter(k => k.status === "rotated").length,
-        revoked: keys.filter(k => k.status === "revoked").length
+      const OnlineAdapter = {
+        extract(html, baseUrl) {
+          const text = String(html || "");
+          const out = new Set();
+          const rxList = [
+            /https?:\/\/[^\s"'<>]+?\.(mp4|m3u8)(?:\?[^\s"'<>]*)?/gi,
+            /["'](\/[^"']+\.(mp4|m3u8)(?:\?[^"']*)?)["']/gi
+          ];
+          for (const rx of rxList) {
+            let m;
+            while ((m = rx.exec(text))) {
+              const raw = m[1] || m[0];
+              if (!raw) continue;
+              if (raw.startsWith("/")) {
+                try { out.add(new URL(raw, baseUrl).href); } catch { }
+              } else {
+                out.add(raw);
+              }
+            }
+          }
+          return [...out];
+        },
+        async decode(url) {
+          const resp = await fetch(url, { method: "GET" });
+          if (!resp.ok) return { ok: false, reason: "Adapter fetch failed" };
+          const html = await resp.text();
+          const candidates = this.extract(html, url);
+          if (!candidates.length) return { ok: false, reason: "Adapter found no stream candidates" };
+          return { ok: true, decoded: candidates[0], candidates };
+        }
       };
-      Dom.trustSummary.textContent =
-        `Keys: ${keys.length} | activeId: ${active} | active=${counts.active} rotated=${counts.rotated} revoked=${counts.revoked}`;
-    },
-    renderTrustTable() {
-      const keys = Object.values(State.trustStore?.keys || {});
-      if (!keys.length) {
-        Dom.trustTable.innerHTML = "<p class='muted'>No key records.</p>";
-        return;
-      }
-      let html = "<table><thead><tr><th>keyId</th><th>Status</th><th>Created</th><th>Rotated</th><th>Revoked</th><th>Reason</th></tr></thead><tbody>";
-      for (const k of keys) {
-        html += "<tr>" +
-          "<td>" + this.esc(k.keyId || "") + "</td>" +
-          "<td>" + this.esc(k.status || "") + "</td>" +
-          "<td>" + this.esc(k.createdAt || "") + "</td>" +
-          "<td>" + this.esc(k.rotatedAt || "") + "</td>" +
-          "<td>" + this.esc(k.revokedAt || "") + "</td>" +
-          "<td>" + this.esc(k.revocationReason || "") + "</td>" +
-        "</tr>";
-      }
-      Dom.trustTable.innerHTML = html + "</tbody></table>";
-    }
-  };
 
-  function bind() {
-    Dom.decodeBtn.addEventListener("click", async () => { SmartQueue.enqueue(Dom.inbox.value, "manual"); await SmartQueue.process(); });
-    Dom.retryBtn.addEventListener("click", async () => { RetrySystem.queueReady(); await SmartQueue.process(); });
-    Dom.clearBtn.addEventListener("click", () => {
-      State.queue = [];
-      State.decoded = [];
-      State.deferred = [];
-      State.retryMemory.clear();
-      Storage.clear();
-      Logger.add("State cleared");
-      Ui.refresh();
-    });
-    Dom.selfTestBtn.addEventListener("click", async () => { await SelfTests.run(); });
-    Dom.exportTearBtn.addEventListener("click", async () => {
-      try { await ExportLayer.exportTear(Dom.passphrase.value.trim()); } catch (e) { Logger.add("Export failed: " + e.message, "err"); }
-    });
-    Dom.exportVaultBtn.addEventListener("click", async () => {
-      try { await ExportLayer.exportVault(Dom.passphrase.value.trim()); } catch (e) { Logger.add("Export failed: " + e.message, "err"); }
-    });
-    Dom.importBtn.addEventListener("click", async () => {
-      try { await ExportLayer.importFromFile(Dom.importFile.files[0], Dom.passphrase.value.trim()); } catch (e) { Logger.add("Import failed: " + e.message, "err"); }
-    });
-    Dom.trustExportBtn.addEventListener("click", () => {
-      try { ExportLayer.exportTrustStore(); } catch (e) { Logger.add("Trust export failed: " + e.message, "err"); }
-    });
-    Dom.trustImportBtn.addEventListener("click", async () => {
-      try { await ExportLayer.importTrustStore(Dom.trustImportFile.files[0]); } catch (e) { Logger.add("Trust import failed: " + e.message, "err"); }
-    });
-    Dom.trustRotateBtn.addEventListener("click", () => {
-      try {
-        const keyId = Dom.trustRotateKeyId.value.trim();
-        if (!keyId) throw new Error("KeyId required");
-        if (!confirm("Rotate active key to " + keyId + "?")) return;
-        ExportLayer.rotateActiveKey(keyId);
-        Logger.add("Rotated active key");
+      const RetrySystem = {
+        nextDelayMs(attempts) { return Math.min(120000, Math.max(1, attempts) * 5000); },
+        defer(url, reason, now = Date.now(), host = HostRouter.host(url)) {
+          const prev = State.retryMemory.get(url) || { attempts: 0 };
+          const attempts = prev.attempts + 1;
+          const nextTryAt = now + this.nextDelayMs(attempts);
+          const rec = { url, reason, attempts, nextTryAt };
+          State.retryMemory.set(url, rec);
+          State.deferred = Array.from(State.retryMemory.values()).filter(v => v.nextTryAt > Date.now());
+          HardTelemetry.record({ type: "deferred", url, host, reason }).catch(() => { });
+          HardTelemetry.recordCircuit(host, "failure", reason);
+        },
+        queueReady(now = Date.now()) {
+          let moved = 0;
+          for (const rec of State.retryMemory.values()) {
+            if (rec.nextTryAt <= now) {
+              State.queue.push({ original: rec.url, source: "retry", folderId: "" });
+              HardTelemetry.record({ type: "retry-ready", url: rec.url, host: HostRouter.host(rec.url), reason: "retry-ready" }).catch(() => { });
+              moved += 1;
+            }
+          }
+          if (moved) Logger.add("Retry moved to queue: " + moved);
+          State.deferred = Array.from(State.retryMemory.values()).filter(v => v.nextTryAt > Date.now());
+        }
+      };
+
+      const SmartQueue = {
+        enqueue(text, source = "manual") {
+          const items = FolderParser.parse(text, source);
+          if (!items.length) return Logger.add("No links found in input", "warn");
+          const seen = new Set(State.queue.map(q => q.original));
+          let added = 0;
+          for (const item of items) {
+            if (seen.has(item.original)) continue;
+            seen.add(item.original);
+            State.queue.push(item);
+            added += 1;
+          }
+          Logger.add("Queue loaded: " + added + " token(s)");
+          Ui.refresh();
+        },
+        async process() {
+          const batch = State.queue.splice(0, State.queue.length);
+          if (!batch.length) return Logger.add("Queue is empty", "warn");
+          for (const q of batch) {
+            const host = HostRouter.host(q.original);
+            let out = DecodeEngine.decode(q.original);
+            if (!out.ok && out.reason === "No local decode path" && State.onlineAdapterEnabled) {
+              try {
+                const adapted = await OnlineAdapter.decode(q.original);
+                if (adapted.ok) {
+                  out = {
+                    ok: true,
+                    decoded: adapted.decoded,
+                    meta: DecodeEngine.meta(adapted.decoded, host || "unknown", new URL(q.original))
+                  };
+                } else {
+                  out = { ok: false, reason: adapted.reason };
+                }
+              } catch (e) {
+                out = { ok: false, reason: "Adapter error: " + e.message };
+              }
+            }
+            if (out.ok) {
+              State.decoded.push({ original: q.original, decoded: out.decoded, meta: out.meta, folderId: q.folderId, source: q.source });
+              Logger.add("Decoded " + q.original);
+              await HardTelemetry.record({ type: "decoded", url: q.original, host, note: q.source }).catch(() => { });
+              HardTelemetry.recordCircuit(host, "success");
+            } else {
+              RetrySystem.defer(q.original, out.reason, Date.now(), host);
+              Logger.add("Deferred " + q.original + " (" + out.reason + ")", "err");
+            }
+          }
+          Storage.save();
+          Ui.refresh();
+        }
+      };
+
+      const ExportLayer = {
+        normalizePack(pack) {
+          if (!pack || typeof pack !== "object") throw new Error("Pack must be an object");
+          if (pack.format === "tear-v2" && pack.schemaVersion === 2) return pack;
+          if (pack.format === "tear-v1") {
+            return {
+              format: "tear-v2",
+              schemaVersion: 2,
+              app: pack.app || "HyperSnatch",
+              appVersion: "legacy-import",
+              kind: pack.kind || "tear",
+              createdAt: new Date().toISOString(),
+              migratedFrom: "tear-v1",
+              kdf: pack.kdf || "PBKDF2-SHA256",
+              iterations: Number(pack.iterations || 120000),
+              salt: pack.salt,
+              iv: pack.iv,
+              digest: pack.digest,
+              data: pack.data
+            };
+          }
+          throw new Error("Unknown pack format");
+        },
+        fromB64(str) {
+          const bin = atob(str);
+          const out = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+          return out;
+        },
+        async deriveKey(passphrase, salt, iterations) {
+          const enc = new TextEncoder();
+          const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
+          return crypto.subtle.deriveKey(
+            { name: "PBKDF2", hash: "SHA-256", salt, iterations },
+            keyMaterial,
+            { name: "AES-GCM", length: 256 },
+            false,
+            ["encrypt", "decrypt"]
+          );
+        },
+        canonicalPackString(pack) {
+          return [
+            pack.format,
+            pack.schemaVersion,
+            pack.kind,
+            pack.kdf,
+            pack.iterations,
+            pack.salt,
+            pack.iv,
+            pack.digest,
+            pack.data
+          ].join("|");
+        },
+        ensureTrustStore() {
+          if (!State.trustStore || typeof State.trustStore !== "object") {
+            State.trustStore = { schemaVersion: 1, activeKeyId: "", keys: {} };
+          }
+          if (!State.trustStore.keys) State.trustStore.keys = {};
+          return State.trustStore;
+        },
+        addTrustedPublicKey(keyId, publicJwk, status = "active") {
+          const store = this.ensureTrustStore();
+          if (!keyId || !publicJwk) throw new Error("Invalid trust key");
+          store.keys[keyId] = {
+            keyId,
+            status,
+            createdAt: new Date().toISOString(),
+            publicJwk
+          };
+          if (!store.activeKeyId || status === "active") store.activeKeyId = keyId;
+          Storage.save();
+          return store.keys[keyId];
+        },
+        rotateActiveKey(nextKeyId) {
+          const store = this.ensureTrustStore();
+          if (!store.keys[nextKeyId]) throw new Error("Rotation target key missing");
+          const prev = store.activeKeyId;
+          if (prev && store.keys[prev] && store.keys[prev].status === "active") {
+            store.keys[prev].status = "rotated";
+            store.keys[prev].rotatedAt = new Date().toISOString();
+          }
+          store.keys[nextKeyId].status = "active";
+          delete store.keys[nextKeyId].revokedAt;
+          delete store.keys[nextKeyId].revocationReason;
+          store.activeKeyId = nextKeyId;
+          Storage.save();
+        },
+        revokeKey(keyId, reason = "unspecified") {
+          const store = this.ensureTrustStore();
+          const rec = store.keys[keyId];
+          if (!rec) throw new Error("Key not found");
+          rec.status = "revoked";
+          rec.revokedAt = new Date().toISOString();
+          rec.revocationReason = reason;
+          if (store.activeKeyId === keyId) store.activeKeyId = "";
+          Storage.save();
+        },
+        exportTrustStore() {
+          const text = JSON.stringify(this.ensureTrustStore(), null, 2);
+          this.download("HyperSnatch_trust_store.json", text, "application/json");
+          Logger.add("Exported trust store");
+        },
+        async importTrustStore(file) {
+          if (!file) throw new Error("No trust store file selected");
+          const parsed = JSON.parse(await file.text());
+          if (!parsed || typeof parsed !== "object" || parsed.schemaVersion !== 1 || typeof parsed.keys !== "object") {
+            throw new Error("Invalid trust store payload");
+          }
+          State.trustStore = parsed;
+          Storage.save();
+          Logger.add("Imported trust store");
+          Ui.refresh();
+        },
+        async ensureSigningKeys() {
+          if (State.signing && State.signing.privateKey && State.signing.publicKey) return State.signing;
+          const pair = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+          const keyId = "local-" + Date.now().toString(36);
+          State.signing = { privateKey: pair.privateKey, publicKey: pair.publicKey, keyId };
+          const publicJwk = await crypto.subtle.exportKey("jwk", pair.publicKey);
+          this.addTrustedPublicKey(keyId, publicJwk, "active");
+          return State.signing;
+        },
+        async signPack(pack) {
+          const keys = await this.ensureSigningKeys();
+          const text = this.canonicalPackString(pack);
+          const sigBuf = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, keys.privateKey, new TextEncoder().encode(text));
+          const publicJwk = await crypto.subtle.exportKey("jwk", keys.publicKey);
+          pack.signature = {
+            alg: "ECDSA-P256-SHA256",
+            keyId: keys.keyId,
+            sig: this.toB64(new Uint8Array(sigBuf)),
+            publicJwk
+          };
+          return pack;
+        },
+        async verifyPackSignature(pack) {
+          if (!pack.signature) return true;
+          const store = this.ensureTrustStore();
+          let jwk = null;
+          const trusted = store.keys?.[pack.signature.keyId];
+          if (trusted && trusted.status !== "revoked") jwk = trusted.publicJwk;
+          if (!jwk && State.trustPolicy.tofu && pack.signature.publicJwk) {
+            this.addTrustedPublicKey(pack.signature.keyId || ("imported-" + Date.now().toString(36)), pack.signature.publicJwk, "active");
+            jwk = pack.signature.publicJwk;
+          }
+          if (!jwk) throw new Error("Signature key is not trusted");
+          const publicKey = await crypto.subtle.importKey("jwk", jwk, { name: "ECDSA", namedCurve: "P-256" }, true, ["verify"]);
+          const text = this.canonicalPackString(pack);
+          const sig = this.fromB64(pack.signature.sig);
+          const ok = await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, publicKey, sig, new TextEncoder().encode(text));
+          if (!ok) throw new Error("Signature verification failed");
+          return true;
+        },
+        async encryptPayload(payload, passphrase) {
+          if (!passphrase) throw new Error("Passphrase required");
+          const enc = new TextEncoder();
+          const salt = crypto.getRandomValues(new Uint8Array(16));
+          const iv = crypto.getRandomValues(new Uint8Array(12));
+          const key = await this.deriveKey(passphrase, salt, 120000);
+          const json = JSON.stringify(payload);
+          const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc.encode(json));
+          const digest = await this.sha256B64(json);
+          const pack = {
+            format: "tear-v2",
+            schemaVersion: 2,
+            app: "HyperSnatch",
+            appVersion: "1.3.0",
+            kind: payload.kind || "tear",
+            createdAt: new Date().toISOString(),
+            kdf: "PBKDF2-SHA256",
+            iterations: 120000,
+            salt: this.toB64(salt),
+            iv: this.toB64(iv),
+            digest,
+            data: this.toB64(new Uint8Array(cipher))
+          };
+          await this.signPack(pack);
+          return pack;
+        },
+        async decryptPayload(pack, passphrase) {
+          const normalized = this.normalizePack(pack);
+          await this.verifyPackSignature(normalized);
+          const salt = this.fromB64(normalized.salt);
+          const iv = this.fromB64(normalized.iv);
+          const data = this.fromB64(normalized.data);
+          const key = await this.deriveKey(passphrase, salt, Number(normalized.iterations || 120000));
+          const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
+          const text = new TextDecoder().decode(plain);
+          if (normalized.digest) {
+            const digest = await this.sha256B64(text);
+            if (digest !== normalized.digest) throw new Error("Integrity check failed");
+          }
+          return JSON.parse(text);
+        },
+        toB64(bytes) {
+          let s = "";
+          bytes.forEach(b => { s += String.fromCharCode(b); });
+          return btoa(s);
+        },
+        async sha256B64(text) {
+          const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+          return this.toB64(new Uint8Array(digest));
+        },
+        async exportTear(passphrase) {
+          const payload = { app: "HyperSnatch", kind: "tear", decoded: State.decoded, deferred: State.deferred, exportedAt: new Date().toISOString() };
+          const pack = await this.encryptPayload(payload, passphrase);
+          this.download("HyperSnatch_export.tear", JSON.stringify(pack, null, 2), "application/json");
+          Logger.add("Exported encrypted .tear");
+          Ui.refresh();
+        },
+        async exportVault(passphrase) {
+          const payload = { app: "HyperSnatch", kind: "vault", logs: State.logs, decoded: State.decoded, exportedAt: new Date().toISOString() };
+          const pack = await this.encryptPayload(payload, passphrase);
+          this.download("HyperSnatch_export.vault", JSON.stringify(pack, null, 2), "application/json");
+          Logger.add("Exported encrypted .vault");
+          Ui.refresh();
+        },
+        download(name, text, type) {
+          const blob = new Blob([text], { type });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = name;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        },
+        async importFromFile(file, passphrase) {
+          if (!file) throw new Error("No import file selected");
+          if (!passphrase) throw new Error("Passphrase required");
+          const pack = JSON.parse(await file.text());
+          if (State.trustPolicy.requireSignatureForImport && !pack.signature) {
+            throw new Error("Unsigned imports are blocked by policy");
+          }
+          const payload = await this.decryptPayload(pack, passphrase);
+          if (payload.kind === "tear") {
+            if (Array.isArray(payload.decoded)) State.decoded = payload.decoded;
+            if (Array.isArray(payload.deferred)) State.deferred = payload.deferred;
+            Logger.add("Imported tear payload");
+          } else if (payload.kind === "vault") {
+            if (Array.isArray(payload.decoded)) State.decoded = payload.decoded;
+            if (Array.isArray(payload.logs)) State.logs = payload.logs;
+            Logger.add("Imported vault payload");
+          } else {
+            throw new Error("Unsupported payload kind");
+          }
+          Storage.save();
+          Ui.refresh();
+        }
+      };
+
+      const TierGate = {
+        unlock(key) {
+          if (key === "hyperfounder") {
+            State.tier = "advanced";
+            Logger.add("Tier unlocked: advanced");
+          } else {
+            Logger.add("Tier unlock failed", "err");
+          }
+          Storage.save();
+          Ui.refresh();
+        }
+      };
+
+      const ClipboardEngine = {
+        start() {
+          setInterval(async () => {
+            if (!State.clipEnabled) return;
+            try {
+              const txt = await navigator.clipboard.readText();
+              if (!txt || txt === State.lastClip) return;
+              State.lastClip = txt;
+              SmartQueue.enqueue(txt, "clipboard");
+              await SmartQueue.process();
+            } catch { }
+          }, 2500);
+        }
+      };
+
+      const UiFx = {
+        flash() {
+          if (!State.fxEnabled) return;
+          Dom.app.classList.remove("fx-flash");
+          void Dom.app.offsetWidth;
+          Dom.app.classList.add("fx-flash");
+        }
+      };
+
+      const SelfTests = {
+        async run() {
+          const out = [];
+          const push = (name, pass, details = "") => out.push({ name, pass, details });
+          try { push("Parser extracts 2 urls", FolderParser.parse("https://emload.com/file/a x https://kshared.com/file/b").length === 2); } catch (e) { push("Parser extracts 2 urls", false, String(e)); }
+          try { push("Tier gate blocks kshared in basic", DecodeEngine.decode("https://kshared.com/file/x").ok === false); } catch (e) { push("Tier gate blocks kshared in basic", false, String(e)); }
+          try { push("Emload decode path", DecodeEngine.decode("https://emload.com/file/abc").decoded === "https://cdn.emload.com/stream/abc.mp4"); } catch (e) { push("Emload decode path", false, String(e)); }
+          try {
+            const passphrase = "self-test-pass";
+            const pack = await ExportLayer.encryptPayload({ x: 1 }, passphrase);
+            const plain = await ExportLayer.decryptPayload(pack, passphrase);
+            push("Encryption roundtrip", pack.format === "tear-v2" && plain.x === 1);
+          } catch (e) { push("Encryption roundtrip", false, String(e)); }
+          try {
+            const passphrase = "self-test-pass";
+            const pack = await ExportLayer.encryptPayload({ x: 2 }, passphrase);
+            pack.digest = "tampered";
+            let failed = false;
+            try { await ExportLayer.decryptPayload(pack, passphrase); } catch { failed = true; }
+            push("Integrity tamper detection", failed);
+          } catch (e) { push("Integrity tamper detection", false, String(e)); }
+          try {
+            const passphrase = "self-test-pass";
+            const pack = await ExportLayer.encryptPayload({ x: 3 }, passphrase);
+            if (pack.signature) pack.signature.sig = "tampered";
+            let failed = false;
+            try { await ExportLayer.decryptPayload(pack, passphrase); } catch { failed = true; }
+            push("Signature tamper detection", failed);
+          } catch (e) { push("Signature tamper detection", false, String(e)); }
+          try {
+            const passphrase = "self-test-pass";
+            const pack = await ExportLayer.encryptPayload({ x: 4 }, passphrase);
+            const keyId = pack.signature?.keyId;
+            if (!keyId) throw new Error("Missing test keyId");
+            ExportLayer.revokeKey(keyId, "self-test");
+            let failed = false;
+            try { await ExportLayer.decryptPayload(pack, passphrase); } catch { failed = true; }
+            push("Revoked key blocked", failed);
+          } catch (e) { push("Revoked key blocked", false, String(e)); }
+          try {
+            RetrySystem.defer("https://emload.com/file/test", "x", 1000);
+            const rec = State.retryMemory.get("https://emload.com/file/test");
+            push("Retry memory increments attempts", rec && rec.attempts >= 1);
+          } catch (e) { push("Retry memory increments attempts", false, String(e)); }
+          Ui.renderSelfTests(out);
+          const passCount = out.filter(v => v.pass).length;
+          Logger.add("Self-tests: " + passCount + "/" + out.length + " passed");
+          return out;
+        }
+      };
+
+      const Ui = {
+        refresh() {
+          Dom.tierView.textContent = State.tier;
+          Dom.queueView.textContent = String(State.queue.length);
+          Dom.decodedView.textContent = String(State.decoded.length);
+          Dom.deferredView.textContent = String(State.deferred.length);
+          Dom.tierInfo.textContent = State.tier === "advanced" ? "Advanced hosts are enabled." : "Advanced hosts gated in basic tier.";
+          Dom.policyTofuToggle.checked = !!State.trustPolicy.tofu;
+          Dom.policyRequireSigToggle.checked = !!State.trustPolicy.requireSignatureForImport;
+          Dom.onlineAdapterToggle.checked = !!State.onlineAdapterEnabled;
+          this.renderTrustSummary();
+          this.renderTrustTable();
+          this.renderDecoded();
+          this.renderDeferred();
+          this.renderTelemetry();
+          this.renderLog();
+          UiFx.flash();
+        },
+        esc(v) { return String(v).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;"); },
+        renderDecoded() {
+          if (!State.decoded.length) return Dom.decodedTable.innerHTML = "<p class='muted'>No decoded items.</p>";
+          let html = "<table><thead><tr><th>Status</th><th>Original</th><th>Decoded</th><th>Filename</th><th>Size</th><th>Type</th><th>Host</th></tr></thead><tbody>";
+          for (const r of State.decoded.slice().reverse()) {
+            html += "<tr><td><span class='chip ok'>IMPLEMENTED</span></td><td>" + this.esc(r.original) + "</td><td>" + this.esc(r.decoded) + "</td><td>" + this.esc(r.meta.filename) + "</td><td>" + this.esc(r.meta.size) + "</td><td>" + this.esc(r.meta.type) + "</td><td>" + this.esc(r.meta.host) + "</td></tr>";
+          }
+          Dom.decodedTable.innerHTML = html + "</tbody></table>";
+        },
+        renderDeferred() {
+          const list = Array.from(State.retryMemory.values()).filter(v => v.nextTryAt > Date.now());
+          State.deferred = list;
+          if (!list.length) return Dom.deferredTable.innerHTML = "<p class='muted'>No deferred items.</p>";
+          let html = "<table><thead><tr><th>Status</th><th>URL</th><th>Reason</th><th>Attempts</th><th>Next Try</th></tr></thead><tbody>";
+          for (const d of list.slice().reverse()) {
+            html += "<tr><td><span class='chip warn'>PARTIAL</span></td><td>" + this.esc(d.url) + "</td><td>" + this.esc(d.reason) + "</td><td>" + this.esc(d.attempts) + "</td><td>" + this.esc(new Date(d.nextTryAt).toLocaleTimeString()) + "</td></tr>";
+          }
+          Dom.deferredTable.innerHTML = html + "</tbody></table>";
+        },
+        renderTelemetry() {
+          this.renderReplay();
+          this.renderAnomalies();
+          this.renderCircuit();
+          this.renderLedger();
+        },
+        renderReplay() {
+          const items = HardTelemetry.events.slice(0, 4);
+          if (!items.length) {
+            Dom.replayPanel.innerHTML = "<strong>Replay Timeline</strong><p class='muted'>waiting for activity...</p>";
+            return;
+          }
+          const list = items.map(e => {
+            const cls = e.type === "decoded" ? "ok" : "warn";
+            const target = e.url || e.host || "unknown";
+            const detail = e.reason ? " (" + this.esc(e.reason) + ")" : "";
+            return `<div><span class='chip ${cls}'>${this.esc(e.type)}</span> ${this.esc(target)}${detail} <small>${this.esc(new Date(e.stamp).toLocaleTimeString())}</small></div>`;
+          });
+          Dom.replayPanel.innerHTML = "<strong>Replay Timeline</strong>" + list.join("");
+        },
+        renderAnomalies() {
+          if (!HardTelemetry.anomalies.length) {
+            Dom.anomalyPanel.innerHTML = "<strong>Anomalies</strong><p class='muted'>none detected.</p>";
+            return;
+          }
+          const list = HardTelemetry.anomalies.slice(0, 5).map(a => {
+            return `<div><span class='chip warn'>${this.esc(a.label)}</span> ${this.esc(a.host || a.url || "unknown")} ${this.esc(a.note || a.reason || "")} <small>${this.esc(new Date(a.stamp).toLocaleTimeString())}</small></div>`;
+          });
+          Dom.anomalyPanel.innerHTML = "<strong>Anomalies</strong>" + list.join("");
+        },
+        renderCircuit() {
+          const entries = Object.values(HardTelemetry.circuit);
+          if (!entries.length) {
+            Dom.circuitPanel.innerHTML = "<strong>Circuit Breaker</strong><p class='muted'>no host activity yet.</p>";
+            return;
+          }
+          const lines = entries.map(e => {
+            const status = e.failure > e.success ? "warn" : "ok";
+            return `<div><span class='chip ${status}'>${this.esc(e.host)}</span> success ${e.success} / failure ${e.failure} <small>${this.esc(e.lastActivity)}</small></div>`;
+          });
+          Dom.circuitPanel.innerHTML = "<strong>Circuit Breaker</strong>" + lines.join("");
+        },
+        renderLedger() {
+          if (!HardTelemetry.ledger.length) {
+            Dom.ledgerPanel.innerHTML = "<strong>Audit Ledger</strong><p class='muted'>awaiting entries.</p>";
+            return;
+          }
+          const entries = HardTelemetry.ledger.slice(0, 4).map(e => {
+            return `<div><span class='chip ok'>${this.esc(e.hash.slice(0, 6))}</span> ${this.esc(e.entry.type)} <small>${this.esc(new Date(e.stamp).toLocaleTimeString())}</small></div>`;
+          });
+          Dom.ledgerPanel.innerHTML = "<strong>Audit Ledger</strong>" + entries.join("");
+        },
+        renderLog() {
+          const rows = State.logs.slice(-120).map(l => "<div><span class='chip " + (l.level || "ok") + "'>" + (l.level || "ok").toUpperCase() + "</span> " + this.esc(l.stamp) + " " + this.esc(l.msg) + "</div>");
+          Dom.logBox.innerHTML = rows.join("");
+        },
+        renderSelfTests(results) {
+          let html = "<table><thead><tr><th>Test</th><th>Result</th><th>Details</th></tr></thead><tbody>";
+          for (const r of results) {
+            const cls = r.pass ? "ok" : "err";
+            html += "<tr><td>" + this.esc(r.name) + "</td><td><span class='chip " + cls + "'>" + (r.pass ? "PASS" : "FAIL") + "</span></td><td>" + this.esc(r.details || "") + "</td></tr>";
+          }
+          Dom.selfTestTable.innerHTML = html + "</tbody></table>";
+        },
+        renderTrustSummary() {
+          const keys = Object.values(State.trustStore?.keys || {});
+          if (!keys.length) {
+            Dom.trustSummary.textContent = "No trust keys loaded.";
+            return;
+          }
+          const active = State.trustStore.activeKeyId || "(none)";
+          const counts = {
+            active: keys.filter(k => k.status === "active").length,
+            rotated: keys.filter(k => k.status === "rotated").length,
+            revoked: keys.filter(k => k.status === "revoked").length
+          };
+          Dom.trustSummary.textContent =
+            `Keys: ${keys.length} | activeId: ${active} | active=${counts.active} rotated=${counts.rotated} revoked=${counts.revoked}`;
+        },
+        renderTrustTable() {
+          const keys = Object.values(State.trustStore?.keys || {});
+          if (!keys.length) {
+            Dom.trustTable.innerHTML = "<p class='muted'>No key records.</p>";
+            return;
+          }
+          let html = "<table><thead><tr><th>keyId</th><th>Status</th><th>Created</th><th>Rotated</th><th>Revoked</th><th>Reason</th></tr></thead><tbody>";
+          for (const k of keys) {
+            html += "<tr>" +
+              "<td>" + this.esc(k.keyId || "") + "</td>" +
+              "<td>" + this.esc(k.status || "") + "</td>" +
+              "<td>" + this.esc(k.createdAt || "") + "</td>" +
+              "<td>" + this.esc(k.rotatedAt || "") + "</td>" +
+              "<td>" + this.esc(k.revokedAt || "") + "</td>" +
+              "<td>" + this.esc(k.revocationReason || "") + "</td>" +
+              "</tr>";
+          }
+          Dom.trustTable.innerHTML = html + "</tbody></table>";
+        }
+      };
+
+      function bind() {
+        Dom.decodeBtn.addEventListener("click", async () => { SmartQueue.enqueue(Dom.inbox.value, "manual"); await SmartQueue.process(); });
+        Dom.retryBtn.addEventListener("click", async () => { RetrySystem.queueReady(); await SmartQueue.process(); });
+        Dom.clearBtn.addEventListener("click", () => {
+          State.queue = [];
+          State.decoded = [];
+          State.deferred = [];
+          State.retryMemory.clear();
+          Storage.clear();
+          Logger.add("State cleared");
+          Ui.refresh();
+        });
+        Dom.selfTestBtn.addEventListener("click", async () => { await SelfTests.run(); });
+        Dom.exportTearBtn.addEventListener("click", async () => {
+          try { await ExportLayer.exportTear(Dom.passphrase.value.trim()); } catch (e) { Logger.add("Export failed: " + e.message, "err"); }
+        });
+        Dom.exportVaultBtn.addEventListener("click", async () => {
+          try { await ExportLayer.exportVault(Dom.passphrase.value.trim()); } catch (e) { Logger.add("Export failed: " + e.message, "err"); }
+        });
+        Dom.importBtn.addEventListener("click", async () => {
+          try { await ExportLayer.importFromFile(Dom.importFile.files[0], Dom.passphrase.value.trim()); } catch (e) { Logger.add("Import failed: " + e.message, "err"); }
+        });
+        Dom.trustExportBtn.addEventListener("click", () => {
+          try { ExportLayer.exportTrustStore(); } catch (e) { Logger.add("Trust export failed: " + e.message, "err"); }
+        });
+        Dom.trustImportBtn.addEventListener("click", async () => {
+          try { await ExportLayer.importTrustStore(Dom.trustImportFile.files[0]); } catch (e) { Logger.add("Trust import failed: " + e.message, "err"); }
+        });
+        Dom.trustRotateBtn.addEventListener("click", () => {
+          try {
+            const keyId = Dom.trustRotateKeyId.value.trim();
+            if (!keyId) throw new Error("KeyId required");
+            if (!confirm("Rotate active key to " + keyId + "?")) return;
+            ExportLayer.rotateActiveKey(keyId);
+            Logger.add("Rotated active key");
+            Ui.refresh();
+          } catch (e) { Logger.add("Rotate failed: " + e.message, "err"); }
+        });
+        Dom.trustRevokeBtn.addEventListener("click", () => {
+          try {
+            const keyId = Dom.trustRevokeKeyId.value.trim();
+            if (!keyId) throw new Error("KeyId required");
+            if (!confirm("Revoke key " + keyId + "?")) return;
+            ExportLayer.revokeKey(keyId, "manual");
+            Logger.add("Revoked key");
+            Ui.refresh();
+          } catch (e) { Logger.add("Revoke failed: " + e.message, "err"); }
+        });
+        Dom.policyTofuToggle.addEventListener("change", () => {
+          State.trustPolicy.tofu = Dom.policyTofuToggle.checked;
+          Storage.save();
+          Logger.add("Trust policy TOFU " + (State.trustPolicy.tofu ? "enabled" : "disabled"));
+          Ui.refresh();
+        });
+        Dom.policyRequireSigToggle.addEventListener("change", () => {
+          State.trustPolicy.requireSignatureForImport = Dom.policyRequireSigToggle.checked;
+          Storage.save();
+          Logger.add("Trust policy require-signature " + (State.trustPolicy.requireSignatureForImport ? "enabled" : "disabled"));
+          Ui.refresh();
+        });
+        Dom.unlockBtn.addEventListener("click", () => TierGate.unlock(Dom.tierKey.value.trim()));
+        Dom.clipToggle.addEventListener("change", () => { State.clipEnabled = Dom.clipToggle.checked; Logger.add("Clipboard SmartQueue " + (State.clipEnabled ? "enabled" : "disabled")); Ui.refresh(); });
+        Dom.fxToggle.addEventListener("change", () => { State.fxEnabled = Dom.fxToggle.checked; Logger.add("UI FX " + (State.fxEnabled ? "enabled" : "disabled")); Ui.refresh(); });
+        Dom.onlineAdapterToggle.addEventListener("change", () => {
+          State.onlineAdapterEnabled = Dom.onlineAdapterToggle.checked;
+          Logger.add("Online adapter " + (State.onlineAdapterEnabled ? "enabled" : "disabled"));
+          Ui.refresh();
+        });
+      }
+
+      function init() {
+        Storage.load();
+        bind();
+        ClipboardEngine.start();
+        Logger.add("HyperSnatch final fused initialized");
         Ui.refresh();
-      } catch (e) { Logger.add("Rotate failed: " + e.message, "err"); }
-    });
-    Dom.trustRevokeBtn.addEventListener("click", () => {
-      try {
-        const keyId = Dom.trustRevokeKeyId.value.trim();
-        if (!keyId) throw new Error("KeyId required");
-        if (!confirm("Revoke key " + keyId + "?")) return;
-        ExportLayer.revokeKey(keyId, "manual");
-        Logger.add("Revoked key");
-        Ui.refresh();
-      } catch (e) { Logger.add("Revoke failed: " + e.message, "err"); }
-    });
-    Dom.policyTofuToggle.addEventListener("change", () => {
-      State.trustPolicy.tofu = Dom.policyTofuToggle.checked;
-      Storage.save();
-      Logger.add("Trust policy TOFU " + (State.trustPolicy.tofu ? "enabled" : "disabled"));
-      Ui.refresh();
-    });
-    Dom.policyRequireSigToggle.addEventListener("change", () => {
-      State.trustPolicy.requireSignatureForImport = Dom.policyRequireSigToggle.checked;
-      Storage.save();
-      Logger.add("Trust policy require-signature " + (State.trustPolicy.requireSignatureForImport ? "enabled" : "disabled"));
-      Ui.refresh();
-    });
-    Dom.unlockBtn.addEventListener("click", () => TierGate.unlock(Dom.tierKey.value.trim()));
-    Dom.clipToggle.addEventListener("change", () => { State.clipEnabled = Dom.clipToggle.checked; Logger.add("Clipboard SmartQueue " + (State.clipEnabled ? "enabled" : "disabled")); Ui.refresh(); });
-    Dom.fxToggle.addEventListener("change", () => { State.fxEnabled = Dom.fxToggle.checked; Logger.add("UI FX " + (State.fxEnabled ? "enabled" : "disabled")); Ui.refresh(); });
-    Dom.onlineAdapterToggle.addEventListener("change", () => {
-      State.onlineAdapterEnabled = Dom.onlineAdapterToggle.checked;
-      Logger.add("Online adapter " + (State.onlineAdapterEnabled ? "enabled" : "disabled"));
-      Ui.refresh();
-    });
-  }
+      }
 
-  function init() {
-    Storage.load();
-    bind();
-    ClipboardEngine.start();
-    Logger.add("HyperSnatch final fused initialized");
-    Ui.refresh();
-  }
-
-  init();
-})();
-</script>
+      init();
+    })();
+  </script>
 </body>
+
 </html>
