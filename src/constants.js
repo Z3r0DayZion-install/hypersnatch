@@ -4,7 +4,7 @@
 "use strict";
 
 // ==================== VERSION INFO ====================
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.0-rc.1';
 export const ENGINE_VERSION = '14.0.0';
 export const POLICY_VERSION = '2.1.0';
 export const BUILD_ID = 'release_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -132,7 +132,7 @@ export const NETWORK_CONFIG = {
   },
 
   // User agent
-  USER_AGENT: 'HyperSnatch/1.0.0 (Evidence Analyzer)',
+  USER_AGENT: 'HyperSnatch/1.0.0-rc.1 (Evidence Analyzer)',
 
   // Allowed protocols
   ALLOWED_PROTOCOLS: ['http:', 'https:'],

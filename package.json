@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.0.1",
+  "version": "1.0.0-rc.1",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -18,9 +18,17 @@
   "engines": {
     "node": ">=14.0.0"
   },
+  "bin": {
+    "hypersnatch": "src/cli/hypersnatch-bin.js"
+  },
+  "dependencies": {
+    "ajv": "^6.14.0"
+  },
   "devDependencies": {
     "electron": "^28.3.3",
-    "electron-builder": "^26.8.1"
+    "electron-builder": "^24.13.3",
+    "nexe": "^4.0.0-rc.3",
+    "pkg": "^5.8.1"
   },
   "scripts": {
     "start": "electron .",
@@ -29,8 +37,26 @@
     "dist": "electron-builder --publish=never",
     "pack": "electron-builder --dir=dist",
     "verify": "node scripts/verify_release.js",
-    "test": "node scripts/test_basic.js",
+    "verify:golden": "node verify_golden.js",
+    "verify:schema": "node scripts/verify_schema.cjs",
+    "verify:release": "node ./scripts/verify_release.cjs",
+    "ui:bridge": "node ./src/bridge/ui-bridge.js",
+    "ui:open": "start ui/hypersnatch-ui.html",
+    "build:exe": "pkg -t node18-win-x64 -o dist/hypersnatch.exe src/cli/hypersnatch-bin.js",
+    "release:pack": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Compress-Archive -Path release\\* -DestinationPath dist\\HyperSnatch_release.zip -Force\"",
+    "test": "node tests/smartdecode.test.js",
+    "test:ci": "node tests/smartdecode.test.js",
+    "test:online": "node scripts/verify_smartdecode.js --online",
     "postinstall": "npx --yes electron-builder install-app-deps"
+  },
+  "pkg": {
+    "scripts": [
+      "src/**/*.js"
+    ],
+    "assets": [
+      "fixtures/**/*",
+      "goldens/**/*"
+    ]
   },
   "build": {
     "appId": "com.hypersnatch.platform",
@@ -47,7 +73,9 @@
       "src/security-crypto.js",
       "src/dompurify.js",
       "src/utils/logger.js",
+      "src/core/",
       "core/",
+      "modules/",
       "hypersnatch.html",
       "package.json"
     ],
@@ -66,10 +94,14 @@
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "HyperSnatch"
+      "shortcutName": "HyperSnatch",
+      "uninstallDisplayName": "HyperSnatch",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "publish": {
       "provider": "github",
