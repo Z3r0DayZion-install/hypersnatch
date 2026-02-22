@@ -1,0 +1,61 @@
+{
+    "tool": "HyperSnatch",
+    "version": "1.0.0-rc.1",
+    "mode": "static-analysis-demo",
+    "source": "sample-payload.html",
+    "summary": {
+        "resource_declarations": 6,
+        "encoded_structures_normalized": 1,
+        "notes": "Output is produced from locally provided HTML only."
+    },
+    "resources": [
+        {
+            "kind": "css",
+            "value": "/assets/app.min.css",
+            "confidence": 0.98,
+            "origin": "link[rel=stylesheet]"
+        },
+        {
+            "kind": "js",
+            "value": "/assets/runtime.min.js",
+            "confidence": 0.98,
+            "origin": "script[src]"
+        },
+        {
+            "kind": "img",
+            "value": "/assets/img/logo.svg",
+            "confidence": 0.95,
+            "origin": "img[src]"
+        },
+        {
+            "kind": "doc",
+            "value": "/docs/spec",
+            "confidence": 0.90,
+            "origin": "a[href]"
+        },
+        {
+            "kind": "api",
+            "value": "/api/demo/status",
+            "confidence": 0.85,
+            "origin": "inline-js:string-literal"
+        },
+        {
+            "kind": "api",
+            "value": "/api/demo/config?mode=static",
+            "confidence": 0.85,
+            "origin": "inline-js:string-literal"
+        }
+    ],
+    "normalized": [
+        {
+            "kind": "base64-json",
+            "key": "window.__HS_DEMO__.enc",
+            "decoded_preview": "{\"refs\":[\"/assets/app.min.css\",\"/assets/runtime.min.js\"]}",
+            "confidence": 0.90
+        }
+    ],
+    "limits": {
+        "no_js_execution": true,
+        "no_network_required": true
+    }
+}

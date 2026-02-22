@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>HyperSnatch Demo Payload (Safe Sample)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- structural resource declarations -->
+    <link rel="preload" as="script" href="/assets/runtime.min.js" />
+    <link rel="stylesheet" href="/assets/app.min.css" />
+
+    <!-- encoded/minified-ish variables (safe) -->
+    <script>
+        // Example: encoded declaration block (benign)
+        window.__HS_DEMO__ = {
+            ver: "1.0.0-rc.1",
+            build: "demo",
+            // base64 of: {"refs":["/assets/app.min.css","/assets/runtime.min.js"]}
+            enc: "eyJyZWZzIjpbIi9hc3NldHMvYXBwLm1pbi5jc3MiLCIvYXNzZXRzL3J1bnRpbWUubWluLmpzIl19"
+        };
+    </script>
+
+    <script src="/assets/runtime.min.js" defer></script>
+</head>
+
+<body>
+    <main id="content">
+        <h1>Demo Payload</h1>
+        <p>This HTML is a static sample for structural mapping verification.</p>
+
+        <!-- embedded declarations -->
+        <img alt="logo" src="/assets/img/logo.svg" />
+        <a href="/docs/spec">Docs</a>
+
+        <!-- inline data declaration (safe) -->
+        <script type="application/json" id="hs-demo-manifest">
+      {
+        "resources": [
+          {"type":"css","href":"/assets/app.min.css"},
+          {"type":"js","src":"/assets/runtime.min.js"},
+          {"type":"img","src":"/assets/img/logo.svg"},
+          {"type":"doc","href":"/docs/spec"}
+        ],
+        "notes": "This is static demo data only."
+      }
+    </script>
+
+        <!-- AST-friendly function wrapper (benign) -->
+        <script>
+            (function () {
+                const a = "/api/demo/status";
+                const b = "/api/demo/config?mode=static";
+                window.__HS_DEMO_LINKS__ = [a, b];
+            })();
+        </script>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperSnatch - Public Demo Sample</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+            --surface: #161b22;
+            --alert-bg: #2d2613;
+            --alert-border: #d29922;
+            --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            margin-bottom: 0.2em;
+            color: #fff;
+        }
+
+        p.lead {
+            font-size: 1.1em;
+            color: var(--text-muted);
+            margin-bottom: 2em;
+        }
+
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            border-color: var(--text-muted);
+            color: #fff;
+        }
+
+        .alert-box {
+            background-color: var(--alert-bg);
+            border-left: 4px solid var(--alert-border);
+            padding: 16px 20px;
+            border-radius: 0 6px 6px 0;
+            margin: 32px 0;
+        }
+
+        .alert-box h3 {
+            margin-top: 0;
+            color: var(--alert-border);
+            font-size: 1em;
+        }
+
+        .alert-box p {
+            margin-bottom: 0;
+            font-size: 0.9em;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            background-color: rgba(240, 246, 252, 0.1);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 85%;
+        }
+
+        .visual-placeholder {
+            width: 100%;
+            height: 300px;
+            background-color: #0f1419;
+            border: 1px dashed var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Public Demo Sample</h1>
+        <p class="lead">Static Analysis Verification</p>
+
+        <div class="card">
+            <p>This demo is a safe, static HTML payload designed to show exactly what HyperSnatch produces from locally
+                provided markup.</p>
+            <p>The engine maps structural resource declarations and normalizes simple encoded structures into a
+                deterministic JSON manifest. <strong>No remote code is executed.</strong></p>
+
+            <div class="buttons">
+                <a href="sample-payload.html" download class="btn">
+                    <svg style="width:16px;height:16px;margin-right:8px;" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Download sample-payload.html
+                </a>
+                <a href="manifest.json" download class="btn">
+                    <svg style="width:16px;height:16px;margin-right:8px;" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    View Expected manifest.json
+                </a>
+            </div>
+
+            <div class="visual-placeholder">
+                [ Screenshot Placeholder: Split-screen showing Input Payload → Output Manifest ]
+            </div>
+        </div>
+
+        <div class="alert-box">
+            <h3>Handling Client-Side Frameworks (React, Vue, SPAs)</h3>
+            <p>JavaScript-rendered applications often return minimal initial HTML when sequentially requested over the
+                network (e.g., <code>&lt;div id="root"&gt;&lt;/div&gt;</code>). HyperSnatch strictly dictates
+                <strong>what you provide is what it parses.</strong> For SPAs, you must provide the fully rendered DOM
+                (`outerHTML`) using your browser's DevTools instead of the initial HTTP response.</p>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
