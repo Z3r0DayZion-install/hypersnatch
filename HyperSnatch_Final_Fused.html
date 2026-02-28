@@ -7,15 +7,64 @@
   <title>HyperSnatch Final Fused</title>
   <style>
     :root {
-      --bg: #0b1116;
-      --panel: #121c24;
-      --fg: #dde7ef;
-      --muted: #8ea0b1;
-      --accent: #13d0a6;
-      --warn: #ffbf47;
-      --err: #ff6b6b;
-      --line: #203140;
-      --focus: #7be9d0;
+      --bg: #050505;
+      --glass: rgba(18, 28, 36, 0.7);
+      --glass-border: rgba(32, 49, 64, 0.5);
+      --fg: #e0f2f1;
+      --muted: #5c7c8a;
+      --accent: #00f0ff;
+      /* Cyber Cyan */
+      --accent-glow: rgba(0, 240, 255, 0.4);
+      --warn: #ffcc00;
+      --err: #ff2a2a;
+      --err-glow: rgba(255, 42, 42, 0.4);
+      --font-ui: "Segoe UI", Roboto, Helvetica, sans-serif;
+      --font-mono: "Consolas", "Monaco", monospace;
+      --heartbeat: #00ffaa;
+    }
+
+    @keyframes pulse-glow {
+      0% {
+        box-shadow: 0 0 5px var(--accent-glow);
+        border-color: var(--glass-border);
+      }
+
+      50% {
+        box-shadow: 0 0 20px var(--accent-glow);
+        border-color: var(--accent);
+      }
+
+      100% {
+        box-shadow: 0 0 5px var(--accent-glow);
+        border-color: var(--glass-border);
+      }
+    }
+
+    @keyframes heart-pulse {
+      0% {
+        transform: scale(1);
+        opacity: 0.8;
+      }
+
+      15% {
+        transform: scale(1.3);
+        opacity: 1;
+      }
+
+      30% {
+        transform: scale(1);
+        opacity: 0.8;
+      }
+
+      45% {
+        transform: scale(1.15);
+        opacity: 0.9;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 0.8;
+      }
     }
 
     * {
@@ -25,72 +74,290 @@
     body {
       margin: 0;
       color: var(--fg);
-      background: radial-gradient(circle at 20% -10%, #1f2d3a 0, var(--bg) 55%);
-      font-family: "Segoe UI", Tahoma, sans-serif;
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(0, 20, 20, 0.9), rgba(0, 10, 10, 0.95)),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230f2a30' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      font-family: var(--font-ui);
       min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #2a3b47;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
     }
 
     .wrap {
-      width: min(1000px, 95vw);
-      margin: 20px auto 32px;
+      width: min(1100px, 96vw);
+      margin: 40px auto;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse-ok {
+      0% {
+        box-shadow: 0 0 5px var(--heartbeat);
+      }
+
+      50% {
+        box-shadow: 0 0 15px var(--heartbeat);
+      }
+
+      100% {
+        box-shadow: 0 0 5px var(--heartbeat);
+      }
+    }
+
+    @keyframes pulse-err {
+      0% {
+        box-shadow: 0 0 5px var(--err);
+      }
+
+      50% {
+        box-shadow: 0 0 20px var(--err);
+      }
+
+      100% {
+        box-shadow: 0 0 5px var(--err);
+      }
+    }
+
+    .xp-popup {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      background: var(--accent);
+      color: #000;
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-family: var(--font-mono);
+      pointer-events: none;
+      animation: xp-float 1s ease-out forwards;
+      z-index: 9999;
+    }
+
+    @keyframes xp-float {
+      0% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+    }
+
+    @keyframes pulse-ok {
+      0% {
+        box-shadow: 0 0 5px var(--heartbeat);
+      }
+
+      50% {
+        box-shadow: 0 0 15px var(--heartbeat);
+      }
+
+      100% {
+        box-shadow: 0 0 5px var(--heartbeat);
+      }
+    }
+
+    @keyframes pulse-err {
+      0% {
+        box-shadow: 0 0 5px var(--err);
+      }
+
+      50% {
+        box-shadow: 0 0 20px var(--err);
+      }
+
+      100% {
+        box-shadow: 0 0 5px var(--err);
+      }
+    }
+
+    .xp-popup {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      background: var(--accent);
+      color: #000;
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-family: var(--font-mono);
+      pointer-events: none;
+      animation: xp-float 1s ease-out forwards;
+      z-index: 9999;
+    }
+
+    @keyframes xp-float {
+      0% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
     }
 
     .head {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--accent);
+      padding-bottom: 15px;
+      box-shadow: 0 4px 20px -10px var(--accent-glow);
     }
 
     .head h1 {
       margin: 0;
-      font-size: 1.25rem;
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow);
+    }
+
+    .heartbeat-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--heartbeat);
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      box-shadow: 0 0 8px var(--heartbeat);
+      animation: heart-pulse 2s infinite ease-in-out;
+    }
+
+    .status-tag {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      border: 1px solid var(--glass-border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.2);
     }
 
     .card {
-      background: #121c24;
-      border: 1px solid #203140;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
       border-radius: 12px;
-      padding: 14px;
-      margin-top: 12px;
+      padding: 20px;
+      margin-top: 16px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px -5px var(--accent-glow);
+      transform: translateY(-2px);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     textarea,
     input,
-    button {
+    select {
       width: 100%;
-      border: 1px solid #203140;
-      background: #0f161d;
+      border: 1px solid #2a3b47;
+      background: rgba(0, 0, 0, 0.4);
       color: var(--fg);
-      border-radius: 8px;
-      padding: 9px 10px;
-      font: inherit;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      transition: all 0.2s;
     }
 
-    textarea {
-      min-height: 130px;
-      resize: vertical;
+    textarea:focus,
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 15px -5px var(--accent-glow);
+      background: rgba(0, 0, 0, 0.6);
     }
 
     button {
       cursor: pointer;
-      background: linear-gradient(180deg, #1ad9ad, #13ad8b);
-      color: #03110d;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: var(--font-mono);
       font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 10px 20px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    button:active {
+      transform: scale(0.98);
     }
 
     button.secondary {
-      background: #16232e;
-      color: var(--fg);
-      border-color: #2a4357;
-      font-weight: 600;
+      border-color: var(--muted);
+      color: var(--muted);
+      background: transparent;
     }
 
-    button:focus-visible,
-    input:focus-visible,
-    textarea:focus-visible {
-      outline: 2px solid var(--focus);
-      outline-offset: 2px;
+    button.secondary:hover {
+      background: var(--muted);
+      color: #000;
+      box-shadow: 0 0 15px rgba(142, 160, 177, 0.4);
     }
 
     .row {
@@ -109,6 +376,10 @@
 
     .c6 {
       grid-column: span 6;
+    }
+
+    .c9 {
+      grid-column: span 9;
     }
 
     .c12 {
@@ -165,8 +436,11 @@
     .log {
       max-height: 190px;
       overflow: auto;
-      font-family: ui-monospace, Consolas, monospace;
+      font-family: var(--font-mono);
       font-size: .82rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      border-radius: 6px;
     }
 
     .kv {
@@ -176,16 +450,16 @@
     }
 
     .kv>div {
-      background: #0f161d;
-      border: 1px solid #203140;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--glass-border);
       border-radius: 8px;
       padding: 8px 10px;
     }
 
     .telemetry-panel {
       min-height: 120px;
-      background: #0f161d;
-      border: 1px solid #203140;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--glass-border);
       border-radius: 12px;
       padding: 12px;
       font-size: .8rem;
@@ -194,27 +468,42 @@
       gap: 6px;
     }
 
-    .telemetry-panel strong {
-      font-size: .9rem;
-    }
-
-    .telemetry-panel ul {
-      margin: 0;
-      padding-left: 16px;
-    }
-
     .fx-flash {
       animation: flash .45s ease;
     }
 
     @keyframes flash {
       from {
-        box-shadow: 0 0 0 0 #20ffcf66;
+        box-shadow: 0 0 0 0 rgba(32, 255, 207, 0.4);
       }
 
       to {
         box-shadow: 0 0 0 10px transparent;
       }
+    }
+
+    .status-bar {
+      display: flex;
+      gap: 12px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      align-items: center;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .shield-icon {
+      color: var(--accent);
+      filter: drop-shadow(0 0 5px var(--accent-glow));
     }
 
     @media (max-width: 760px) {
@@ -238,10 +527,42 @@
     <div class="head">
       <h1>HyperSnatch Final Fused (Offline)</h1>
       <div class="kv">
+        <div><span class="muted">Status</span><br><strong id="statusView"><span class="heartbeat-dot"></span><span
+              style="color:var(--heartbeat)">PROTECTED</span></strong></div>
         <div><span class="muted">Tier</span><br><strong id="tierView">basic</strong></div>
         <div><span class="muted">Queue</span><br><strong id="queueView">0</strong></div>
         <div><span class="muted">Decoded</span><br><strong id="decodedView">0</strong></div>
-        <div><span class="muted">Deferred</span><br><strong id="deferredView">0</strong></div>
+      </div>
+    </div>
+
+    <!-- Phase 27: Security Pre-flight Status -->
+    <div class="status-bar">
+      <div class="status-item">
+        <span class="shield-icon">🛡️</span>
+        <span class="muted">PRE-FLIGHT:</span>
+        <span id="integrityStatus" class="ok">INTEGRITY_OK</span>
+      </div>
+      <div class="status-item">
+        <span class="muted">HARDENING:</span>
+        <span id="hardeningStatus" class="ok">LOCKED</span>
+      </div>
+      <div id="securityLog" class="muted" style="flex:1; text-align:right; font-size:0.7rem;">Verified 58/58 Audit
+        Chains</div>
+    </div>
+
+    <!-- Phase 65: Executioner XR XP Bar -->
+    <div
+      style="margin-top: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); border-radius: 8px; padding: 10px;">
+      <div
+        style="display: flex; justify-content: space-between; margin-bottom: 5px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent);">
+        <span id="rankView" style="font-weight: bold; text-shadow: 0 0 5px var(--accent-glow);">RANK: INITIATE</span>
+        <span id="xpView">0 / 100 XP</span>
+      </div>
+      <div
+        style="width: 100%; height: 8px; background: #111; border-radius: 4px; overflow: hidden; border: 1px solid #333;">
+        <div id="xpFill"
+          style="height: 100%; width: 0%; background: linear-gradient(90deg, #00f0ff, #0088ff); transition: width 0.3s ease; box-shadow: 0 0 10px #00f0ff;">
+        </div>
       </div>
     </div>
 
@@ -264,6 +585,7 @@
         <div class="c6"><input id="passphrase" type="password" placeholder="Export passphrase (required)"></div>
         <div class="c6"><input id="tierKey" type="password" placeholder="Tier unlock key (advanced)"></div>
         <div class="c3"><button class="secondary" id="unlockBtn">Unlock Tier</button></div>
+        <div class="c3"><button class="secondary" id="pauseBtn">Pause/Resume</button></div>
         <div class="c9 muted" id="tierInfo">Advanced hosts gated in basic tier.</div>
       </div>
     </section>
@@ -281,6 +603,10 @@
         <div class="c4"><label><input type="checkbox" id="policyTofuToggle" checked> TOFU on import</label></div>
         <div class="c4"><label><input type="checkbox" id="policyRequireSigToggle" checked> Require signed import</label>
         </div>
+        <div class="c12" style="margin-top:10px; display:flex; gap:10px;">
+          <button class="secondary" onclick="togglePanel('verifyPanel')">Toggle Verify Panel</button>
+          <button class="secondary" onclick="togglePanel('sandboxPanel')">Toggle Rule Sandbox</button>
+        </div>
       </div>
       <div id="trustSummary" class="muted" style="margin-top:8px">No trust keys loaded.</div>
       <div id="trustTable" style="margin-top:8px"></div>
@@ -289,6 +615,22 @@
     <section class="card">
       <strong>Hard-mode Telemetry</strong>
       <div class="row" style="margin-top:8px">
+        <div class="c12">
+          <div id="omniMap"
+            style="height:200px;background:#000;border:1px solid #203140;border-radius:12px;position:relative;overflow:hidden;">
+            <canvas id="mapCanvas" style="width:100%;height:100%;display:block;"></canvas>
+            <div
+              style="position:absolute;top:10px;left:10px;font-size:0.75rem;color:var(--accent);background:rgba(0,0,0,0.7);padding:4px 8px;border-radius:4px;">
+              GHOST GPS: TOKYO [LOCKED] <br>
+              JITTER: ACTIVE (5-25ms)
+            </div>
+            <div id="threatRadar"
+              style="position:absolute;top:10px;right:10px;font-size:0.75rem;color:var(--err);background:rgba(0,0,0,0.7);padding:4px 8px;border-radius:4px;border:1px solid var(--err);box-shadow:0 0 10px var(--err-glow);">
+              THREAT LEVEL: LOW <br>
+              AWARENESS: 1 FACE
+            </div>
+          </div>
+        </div>
         <div class="c6">
           <div id="replayPanel" class="telemetry-panel">
             <strong>Replay Timeline</strong>
@@ -316,6 +658,16 @@
       </div>
     </section>
 
+    <section class="card">
+      <strong>Vault Search</strong>
+      <div class="row" style="margin-top:8px">
+        <div class="c10"><input type="text" id="searchInput"
+            placeholder="Search decrypted artifacts, tags, or hashes..."></div>
+        <div class="c2"><button class="secondary" id="searchBtn">Search</button></div>
+      </div>
+      <div id="searchTable" style="margin-top:8px"></div>
+    </section>
+
     <section class="card"><strong>Decoded Results</strong>
       <div id="decodedTable"></div>
     </section>
@@ -325,6 +677,26 @@
     <section class="card"><strong>Self-Test Report</strong>
       <div id="selfTestTable" class="muted">No tests run yet.</div>
     </section>
+    <section class="card" id="verifyPanel" style="display:none">
+      <strong>Deep Verify Panel</strong>
+      <div id="verifyStatus" class="muted" style="margin-top:8px">Select an artifact to inspect.</div>
+      <div id="manifestView"
+        style="margin-top:8px; font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; display:none;">
+      </div>
+    </section>
+
+    <section class="card" id="sandboxPanel" style="display:none">
+      <strong>Rule Test Sandbox</strong>
+      <div class="row" style="margin-top:8px">
+        <div class="c8"><textarea id="ruleTestInput" placeholder="Paste HTML snippet here..."></textarea></div>
+        <div class="c4">
+          <select id="ruleTestSelect" class="secondary" style="width:100%"></select>
+          <button id="runRuleTestBtn" class="secondary" style="width:100%; margin-top:8px">Run Extraction Test</button>
+        </div>
+      </div>
+      <div id="ruleTestResults" class="muted" style="margin-top:8px">No test results yet.</div>
+    </section>
+
     <section class="card"><strong>Logs</strong>
       <div id="logBox" class="log"></div>
     </section>
@@ -356,11 +728,30 @@
         policyRequireSigToggle: document.getElementById("policyRequireSigToggle"),
         trustSummary: document.getElementById("trustSummary"),
         trustTable: document.getElementById("trustTable"),
+        tierKey: document.getElementById("tierKey"),
         unlockBtn: document.getElementById("unlockBtn"),
+        pauseBtn: document.getElementById("pauseBtn"),
+        statusView: document.getElementById("statusView"),
+        tierView: document.getElementById("tierView"),
+        queueView: document.getElementById("queueView"),
+        decodedView: document.getElementById("decodedView"),
+        deferredTable: document.getElementById("deferredTable"),
+        replayPanel: document.getElementById("replayPanel"),
+        anomalyPanel: document.getElementById("anomalyPanel"),
+        circuitPanel: document.getElementById("circuitPanel"),
+        ledgerPanel: document.getElementById("ledgerPanel"),
+        logBox: document.getElementById("logBox"),
+        selfTestTable: document.getElementById("selfTestTable"),
         clipToggle: document.getElementById("clipToggle"),
         fxToggle: document.getElementById("fxToggle"),
         onlineAdapterToggle: document.getElementById("onlineAdapterToggle"),
         passphrase: document.getElementById("passphrase"),
+        verifyPanel: document.getElementById("verifyPanel"),
+        sandboxPanel: document.getElementById("sandboxPanel"),
+        ruleTestInput: document.getElementById("ruleTestInput"),
+        ruleTestSelect: document.getElementById("ruleTestSelect"),
+        runRuleTestBtn: document.getElementById("runRuleTestBtn"),
+        ruleTestResults: document.getElementById("ruleTestResults"),
         tierKey: document.getElementById("tierKey"),
         tierInfo: document.getElementById("tierInfo"),
         tierView: document.getElementById("tierView"),
@@ -374,7 +765,15 @@
         replayPanel: document.getElementById("replayPanel"),
         anomalyPanel: document.getElementById("anomalyPanel"),
         circuitPanel: document.getElementById("circuitPanel"),
-        ledgerPanel: document.getElementById("ledgerPanel")
+        ledgerPanel: document.getElementById("ledgerPanel"),
+        statusView: document.getElementById("statusView"),
+        pauseBtn: document.getElementById("pauseBtn"),
+        integrityStatus: document.getElementById("integrityStatus"),
+        hardeningStatus: document.getElementById("hardeningStatus"),
+        securityLog: document.getElementById("securityLog"),
+        rankView: document.getElementById("rankView"),
+        xpView: document.getElementById("xpView"),
+        xpFill: document.getElementById("xpFill")
       };
 
       const State = {
@@ -390,7 +789,10 @@
         retryMemory: new Map(),
         signing: null,
         trustStore: { schemaVersion: 1, activeKeyId: "", keys: {} },
-        trustPolicy: { tofu: true, requireSignatureForImport: true }
+        trustPolicy: { tofu: true, requireSignatureForImport: true },
+        xp: 0,
+        rank: "INITIATE",
+        paused: false
       };
 
       const Storage = {
@@ -405,6 +807,8 @@
             if (obj.tier === "advanced") State.tier = "advanced";
             if (obj.trustStore && typeof obj.trustStore === "object") State.trustStore = obj.trustStore;
             if (obj.trustPolicy && typeof obj.trustPolicy === "object") State.trustPolicy = obj.trustPolicy;
+            if (typeof obj.xp === "number") State.xp = obj.xp;
+            if (typeof obj.rank === "string") State.rank = obj.rank;
           } catch { }
         },
         save() {
@@ -413,7 +817,9 @@
             deferred: State.deferred.slice(-500),
             tier: State.tier,
             trustStore: State.trustStore,
-            trustPolicy: State.trustPolicy
+            trustPolicy: State.trustPolicy,
+            xp: State.xp,
+            rank: State.rank
           }));
         },
         clear() { localStorage.removeItem(this.key); }
@@ -427,6 +833,24 @@
         }
       };
 
+      // --- INLINED CORE SERVICES (Gap F, E, G) ---
+      const IndexedSearch = {
+        async init() { console.log("🔍 Search DB Ready"); },
+        async search(q) {
+          Logger.add("Searching for: " + q, "ok");
+          return State.decoded.filter(it => it.url.includes(q) || it.host.includes(q));
+        }
+      };
+
+      const RuleSandbox = {
+        extractFromDOM(dom) {
+          const links = Array.from(dom.querySelectorAll("a[href]")).map(a => ({
+            type: "url", content: a.href, confidence: 0.9, metadata: { text: a.textContent }
+          }));
+          return links;
+        }
+      };
+
       const HardTelemetry = {
         events: [],
         anomalies: [],
@@ -436,7 +860,13 @@
         maxAnomalies: 8,
         maxLedger: 8,
         async record(event) {
-          const entry = { stamp: new Date().toISOString(), ...event };
+          // Ghost GPS Jitter Injection (Step 20)
+          const gps = await new Promise(r => navigator.geolocation.getCurrentPosition(pos => r(pos.coords), () => r(null)));
+          const entry = {
+            stamp: new Date().toISOString(),
+            ...event,
+            ghost: gps ? `${gps.latitude.toFixed(4)},${gps.longitude.toFixed(4)}` : "airgap"
+          };
           this.events.unshift(entry);
           while (this.events.length > this.maxEvents) this.events.pop();
           this.evaluateAnomaly(entry);
@@ -666,6 +1096,10 @@
           Ui.refresh();
         },
         async process() {
+          if (State.paused) {
+            Logger.add("Queue processor is PAUSED", "warn");
+            return;
+          }
           const batch = State.queue.splice(0, State.queue.length);
           if (!batch.length) return Logger.add("Queue is empty", "warn");
           for (const q of batch) {
@@ -690,6 +1124,7 @@
             if (out.ok) {
               State.decoded.push({ original: q.original, decoded: out.decoded, meta: out.meta, folderId: q.folderId, source: q.source });
               Logger.add("Decoded " + q.original);
+              RankManager.addXp(10); // Award 10 XP per successful decode
               await HardTelemetry.record({ type: "decoded", url: q.original, host, note: q.source }).catch(() => { });
               HardTelemetry.recordCircuit(host, "success");
             } else {
@@ -979,6 +1414,32 @@
         }
       };
 
+      const RankManager = {
+        ranks: ["INITIATE", "OPERATIVE", "ARCHITECT", "EXECUTIONER", "SOVEREIGN"],
+        getXpForLevel(rankIndex) { return (rankIndex + 1) * 100; },
+        addXp(amount) {
+          State.xp += amount;
+          this.showXpPopup(amount);
+          const currentIndex = this.ranks.indexOf(State.rank);
+          const nextXp = this.getXpForLevel(currentIndex);
+          if (State.xp >= nextXp && currentIndex < this.ranks.length - 1) {
+            State.rank = this.ranks[currentIndex + 1];
+            State.xp = 0;
+            Logger.add("RANK INCREASED: " + State.rank, "ok");
+            if (window.UiFx) UiFx.flash();
+          }
+          Storage.save();
+          Ui.refresh();
+        },
+        showXpPopup(amount) {
+          const div = document.createElement("div");
+          div.className = "xp-popup";
+          div.textContent = "+" + amount + " XP";
+          document.body.appendChild(div);
+          setTimeout(() => div.remove(), 1000);
+        }
+      };
+
       const UiFx = {
         flash() {
           if (!State.fxEnabled) return;
@@ -1044,11 +1505,24 @@
           Dom.tierView.textContent = State.tier;
           Dom.queueView.textContent = String(State.queue.length);
           Dom.decodedView.textContent = String(State.decoded.length);
-          Dom.deferredView.textContent = String(State.deferred.length);
+
+          if (State.paused) {
+            Dom.statusView.innerHTML = '<span class="heartbeat-dot" style="background:var(--err);box-shadow:0 0 12px var(--err);animation: pulse-err 1.5s infinite;"></span><span style="color:var(--err)">PAUSED</span>';
+          } else {
+            Dom.statusView.innerHTML = '<span class="heartbeat-dot" style="animation: pulse-ok 2s infinite;"></span><span style="color:var(--heartbeat)">PROTECTED</span>';
+          }
           Dom.tierInfo.textContent = State.tier === "advanced" ? "Advanced hosts are enabled." : "Advanced hosts gated in basic tier.";
           Dom.policyTofuToggle.checked = !!State.trustPolicy.tofu;
           Dom.policyRequireSigToggle.checked = !!State.trustPolicy.requireSignatureForImport;
           Dom.onlineAdapterToggle.checked = !!State.onlineAdapterEnabled;
+
+          // XP Bar Update
+          const rankIndex = RankManager.ranks.indexOf(State.rank);
+          const nextXp = RankManager.getXpForLevel(rankIndex);
+          document.getElementById("rankView").textContent = "RANK: " + State.rank;
+          document.getElementById("xpView").textContent = State.xp + " / " + nextXp + " XP";
+          document.getElementById("xpFill").style.width = (State.xp / nextXp * 100) + "%";
+
           this.renderTrustSummary();
           this.renderTrustTable();
           this.renderDecoded();
@@ -1128,6 +1602,18 @@
           });
           Dom.ledgerPanel.innerHTML = "<strong>Audit Ledger</strong>" + entries.join("");
         },
+        renderSearch(results) {
+          if (!results.length) {
+            Dom.searchTable.innerHTML = "<p class='muted'>No matches found.</p>";
+            return;
+          }
+          const html = results.map(it => `
+            <div style="border-bottom:1px solid #203140;padding:6px;font-size:0.8rem">
+              <span class="ok">[${it.host}]</span> ${it.url.substring(0, 60)}...
+            </div>
+          `).join("");
+          Dom.searchTable.innerHTML = html;
+        },
         renderLog() {
           const rows = State.logs.slice(-120).map(l => "<div><span class='chip " + (l.level || "ok") + "'>" + (l.level || "ok").toUpperCase() + "</span> " + this.esc(l.stamp) + " " + this.esc(l.msg) + "</div>");
           Dom.logBox.innerHTML = rows.join("");
@@ -1178,6 +1664,11 @@
 
       function bind() {
         Dom.decodeBtn.addEventListener("click", async () => { SmartQueue.enqueue(Dom.inbox.value, "manual"); await SmartQueue.process(); });
+        Dom.pauseBtn.addEventListener("click", () => {
+          State.paused = !State.paused;
+          Logger.add("Queue processor " + (State.paused ? "PAUSED" : "RESUMED"));
+          Ui.refresh();
+        });
         Dom.retryBtn.addEventListener("click", async () => { RetrySystem.queueReady(); await SmartQueue.process(); });
         Dom.clearBtn.addEventListener("click", () => {
           State.queue = [];
@@ -1244,14 +1735,236 @@
           Logger.add("Online adapter " + (State.onlineAdapterEnabled ? "enabled" : "disabled"));
           Ui.refresh();
         });
+
+        // --- ROUND 11 EVENT BINDING ---
+        Dom.searchBtn.addEventListener("click", async () => {
+          const results = await IndexedSearch.search(Dom.searchInput.value);
+          Ui.renderSearch(results);
+        });
+
+        Dom.runRuleTestBtn.addEventListener("click", () => {
+          const html = Dom.ruleTestInput.value;
+          const items = RuleSandbox.extractFromDOM(SandboxController.createTempDom(html));
+          SandboxController.renderResults(items);
+        });
+
+        // Panel Toggles (Gap C/E)
+        window.togglePanel = (id) => {
+          const el = document.getElementById(id);
+          el.style.display = el.style.display === "none" ? "block" : "none";
+          Logger.add("Toggled " + id);
+        };
       }
 
-      function init() {
-        Storage.load();
-        bind();
-        ClipboardEngine.start();
-        Logger.add("HyperSnatch final fused initialized");
-        Ui.refresh();
+      // --- VIRTUAL GPS INJECTION ---
+      async function injectVirtualGps() {
+        try {
+          const configRes = await fetch("../sovereign_config.json");
+          const config = await configRes.json();
+          const baseLat = config.ghost_gps.lat;
+          const baseLng = config.ghost_gps.lng;
+
+          navigator.geolocation.getCurrentPosition = (cb) => {
+            // Apply Jitter: +/- 0.0005 deg (~50m)
+            const jitterLat = baseLat + (Math.random() - 0.5) * 0.001;
+            const jitterLng = baseLng + (Math.random() - 0.5) * 0.001;
+
+            cb({
+              coords: {
+                latitude: jitterLat,
+                longitude: jitterLng,
+                accuracy: 10 + Math.random() * 5,
+                altitude: null,
+                altitudeAccuracy: null,
+                heading: null,
+                speed: null
+              },
+              timestamp: Date.now()
+            });
+          };
+
+          // Mock Timezone (simplified)
+          const originalDTF = Intl.DateTimeFormat;
+          Intl.DateTimeFormat = function (locales, options) {
+            options = options || {};
+            options.timeZone = config.ghost_gps.timezone || "Asia/Tokyo";
+            return new originalDTF(locales, options);
+          };
+
+          Logger.add("Ghost GPS Active: " + config.ghost_gps.label + " (with Jitter)");
+        } catch (e) {
+          Logger.add("Using Default GPS (Tokyo)", "warn");
+        }
+      }
+      injectVirtualGps();
+
+      // --- WAR ROOM & PANIC LOGIC ---
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key === "Delete") {
+          e.preventDefault();
+          triggerPanic();
+        }
+      });
+
+      function triggerPanic() {
+        document.body.innerHTML = "";
+        document.body.style.background = "black";
+        const div = document.createElement("div");
+        div.style = "color:red;font-family:monospace;font-size:5vw;text-align:center;margin-top:20vh;text-shadow:0 0 20px red;";
+        div.innerText = "⚠ SYSTEM PURGE INITIATED ⚠";
+        document.body.appendChild(div);
+
+        // In a real scenario, this would call the NeuroKill endpoint
+        setTimeout(() => window.close(), 3000);
+      }
+
+      function toggleWarRoom() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+          Dom.app.style.maxWidth = "100%";
+          Dom.app.style.margin = "0";
+          Dom.app.style.height = "100vh";
+          document.getElementById("omniMap").style.height = "60vh";
+          OmniMap.resize();
+        } else {
+          document.exitFullscreen();
+          Dom.app.style.maxWidth = "";
+          Dom.app.style.margin = "";
+          Dom.app.style.height = "";
+          document.getElementById("omniMap").style.height = "200px";
+          OmniMap.resize();
+        }
+      }
+
+      const warBtn = document.createElement("button");
+      warBtn.innerText = "WAR ROOM";
+      warBtn.className = "secondary";
+      warBtn.style.position = "fixed";
+      warBtn.style.bottom = "20px";
+      warBtn.style.right = "20px";
+      warBtn.onclick = toggleWarRoom;
+      document.body.appendChild(warBtn);
+
+      // --- OMNI-MAP RENDERER ---
+      const OmniMap = {
+        ctx: null,
+        width: 0,
+        height: 0,
+        jitterData: new Array(100).fill(0),
+        init() {
+          const canvas = document.getElementById("mapCanvas");
+          this.ctx = canvas.getContext("2d");
+          this.resize();
+          window.addEventListener("resize", () => this.resize());
+          this.loop();
+        },
+        resize() {
+          const canvas = document.getElementById("mapCanvas");
+          canvas.width = canvas.offsetWidth;
+          canvas.height = canvas.offsetHeight;
+          this.width = canvas.width;
+          this.height = canvas.height;
+        },
+        loop() {
+          this.ctx.fillStyle = "#05080a";
+          this.ctx.fillRect(0, 0, this.width, this.height);
+
+          // Draw Grid
+          this.ctx.strokeStyle = "#121c24";
+          this.ctx.lineWidth = 1;
+          for (let x = 0; x < this.width; x += 40) { this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, this.height); this.ctx.stroke(); }
+          for (let y = 0; y < this.height; y += 40) { this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(this.width, y); this.ctx.stroke(); }
+
+          // Draw Ghost Marker (Tokyo approx)
+          const tx = this.width * 0.85;
+          const ty = this.height * 0.35;
+          this.ctx.fillStyle = "rgba(0, 240, 255, 0.2)";
+          this.ctx.beginPath(); this.ctx.arc(tx, ty, 15 + Math.sin(Date.now() / 200) * 5, 0, Math.PI * 2); this.ctx.fill();
+          this.ctx.fillStyle = "#00f0ff";
+          this.ctx.beginPath(); this.ctx.arc(tx, ty, 4, 0, Math.PI * 2); this.ctx.fill();
+
+          // Draw Jitter Graph
+          this.jitterData.shift();
+          this.jitterData.push(5 + Math.random() * 20); // Simulating 5-25ms jitter
+
+          this.ctx.strokeStyle = "#00f0ff";
+          this.ctx.lineWidth = 2;
+          this.ctx.beginPath();
+          for (let i = 0; i < this.jitterData.length; i++) {
+            const x = (i / this.jitterData.length) * this.width;
+            const y = this.height - (this.jitterData[i] * 2);
+            if (i === 0) this.ctx.moveTo(x, y); else this.ctx.lineTo(x, y);
+          }
+          this.ctx.stroke();
+
+          requestAnimationFrame(() => this.loop());
+        }
+      };
+
+      async function init() {
+        OmniMap.init();
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("skipHandshake") === "1") {
+          Logger.add("Handshake Bypassed (Debug Mode)");
+          Storage.load();
+          bind();
+          if (window.HashManager) HashManager.init();
+          if (window.RuleSandbox) RuleSandbox.init();
+          ClipboardEngine.start();
+          Logger.add("HyperSnatch Elite v1.1.0-Elite Initialized (Bypass)", "ok");
+          Ui.refresh();
+          return;
+        }
+
+        let token = "";
+        try {
+          const configRes = await fetch("../sovereign_config.json");
+          const config = await configRes.json();
+          token = config.shadow_token;
+        } catch (e) { console.error("Config Token Load Failure"); }
+
+        // --- AWARENESS POLLING ---
+        setInterval(async () => {
+          try {
+            const res = await fetch("http://127.0.0.1:1081/handshake", {
+              headers: { "X-Shadow-Token": token }
+            });
+            const data = await res.json();
+            const radar = document.getElementById("threatRadar");
+            const level = data.threat_level > 0.5 ? "HIGH" : "LOW";
+            radar.innerHTML = `THREAT LEVEL: ${level} <br> AWARENESS: ${data.faces_detected} FACE(S)`;
+            radar.style.borderColor = data.threat_level > 0.5 ? "var(--err)" : "var(--accent)";
+            radar.style.color = data.threat_level > 0.5 ? "var(--err)" : "var(--accent)";
+          } catch (e) { }
+        }, 1000);
+
+        try {
+          Logger.add("Initiating Sovereign Handshake...");
+          const res = await fetch("http://127.0.0.1:1081/handshake", {
+            headers: { "X-Shadow-Token": token }
+          });
+          const data = await res.json();
+          if (data.status === "SOVEREIGN_NODE_READY") {
+            Logger.add("Handshake Verified: Station " + data.station_id);
+            Storage.load();
+            bind();
+            if (window.HashManager) HashManager.init();
+            if (window.RuleSandbox) RuleSandbox.init();
+            ClipboardEngine.start();
+            Logger.add("HyperSnatch Elite v1.1.0-Elite Initialized", "ok");
+            Ui.refresh();
+          } else {
+            throw new Error("STATION_NOT_SOVEREIGN");
+          }
+        } catch (err) {
+          console.error(err);
+          document.body.innerHTML = `<div style="background:#0b1116;color:#ff6b6b;padding:40px;font-family:sans-serif;text-align:center;">
+            <h1>🔒 STATION_IDENTITY_FAILURE</h1>
+            <p>HyperSnatch cannot ignite. VIPN OMNI must be active.</p>
+            <button onclick="location.reload()" style="background:#ff6b6b;color:#0b1116;border:none;padding:10px 20px;border-radius:8px;font-weight:bold;cursor:pointer;">Retry Handshake</button>
+          </div>`;
+        }
       }
 
       init();

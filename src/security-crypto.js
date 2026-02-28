@@ -43,7 +43,7 @@ class SecureCrypto {
   encrypt(text) {
     try {
       const iv = crypto.randomBytes(12); // GCM IV
-      const cipher = crypto.createCipherGCM('aes-256-gcm', this.secretKey);
+      const cipher = crypto.createCipheriv('aes-256-gcm', this.secretKey, iv);
       cipher.setAAD(Buffer.from('hypersnatch-v1')); // Additional authenticated data
       
       let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -70,7 +70,7 @@ class SecureCrypto {
       const iv = Buffer.from(encryptedData.iv, 'hex');
       const authTag = Buffer.from(encryptedData.authTag, 'hex');
       
-      const decipher = crypto.createDecipherGCM('aes-256-gcm', this.secretKey);
+      const decipher = crypto.createDecipheriv('aes-256-gcm', this.secretKey, iv);
       decipher.setAAD(Buffer.from('hypersnatch-v1'));
       decipher.setAuthTag(authTag);
       

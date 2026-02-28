@@ -14,7 +14,16 @@ const ALLOWED_IPC_CHANNELS = new Set([
   'import-evidence',
   'log-message',
   'export-security-report',
-  'validate-license'
+  'validate-license',
+  'export-pdf',
+  'final-freeze',
+  'get-hardware-status',
+  'authenticate-license',
+  'empire-sync',
+  'window-minimize',
+  'window-maximize',
+  'window-close',
+  'window-fullscreen'
 ]);
 
 // ==================== SECURE CONTEXT BRIDGE ====================
@@ -189,6 +198,82 @@ contextBridge.exposeInMainWorld('smartDecode', {
     }
   }
 });
+
+// Phase 2: Advanced Features Bridge
+contextBridge.exposeInMainWorld('vaultSearch', {
+  init: () => require('./indexed_search').init(),
+  indexJob: (job) => require('./indexed_search').indexJob(job),
+  indexSnapshot: (snapshot) => require('./indexed_search').indexSnapshot(snapshot),
+  search: (query, options) => require('./indexed_search').search(query, options),
+  getStats: () => require('./indexed_search').getStats(),
+  clear: () => require('./indexed_search').clear(),
+  exportPDF: (html, filename) => {
+    validateIPCChannel('export-pdf');
+    return ipcRenderer.invoke('export-pdf', { html, filename });
+  },
+  finalFreeze: (caseData, reports) => {
+    validateIPCChannel('final-freeze');
+    return ipcRenderer.invoke('final-freeze', { caseData, reports });
+  },
+  getHardwareStatus: () => {
+    validateIPCChannel('get-hardware-status');
+    return ipcRenderer.invoke('get-hardware-status');
+  },
+  authenticateLicense: (path) => {
+    validateIPCChannel('authenticate-license');
+    return ipcRenderer.invoke('authenticate-license', path);
+  },
+  empireSync: (action, data) => {
+    validateIPCChannel('empire-sync');
+    return ipcRenderer.invoke('empire-sync', { action, data });
+  },
+
+  // Sovereign Shell Controls
+  minimize: () => {
+    validateIPCChannel('window-minimize');
+    return ipcRenderer.invoke('window-minimize');
+  },
+  maximize: () => {
+    validateIPCChannel('window-maximize');
+    return ipcRenderer.invoke('window-maximize');
+  },
+  close: () => {
+    validateIPCChannel('window-close');
+    return ipcRenderer.invoke('window-close');
+  },
+  toggleFullscreen: () => {
+    validateIPCChannel('window-fullscreen');
+    return ipcRenderer.invoke('window-fullscreen');
+  }
+});
+
+contextBridge.exposeInMainWorld('crashJournal', {
+  logEvent: (type, data, status) => require('./crash_journal').logEvent(type, data, status),
+  detectUncleanShutdown: () => require('./crash_journal').detectUncleanShutdown(),
+  replayJournal: () => require('./crash_journal').replayJournal(),
+  getStats: () => require('./crash_journal').getStats(),
+  clear: () => require('./crash_journal').clear(),
+  EventType: require('./crash_journal').EventType
+});
+
+contextBridge.exposeInMainWorld('hashWorker', {
+  spawn: () => {
+    const worker = new Worker(path.join(__dirname, 'hash_worker.js'));
+    return {
+      hash: (id, data) => {
+        return new Promise((resolve, reject) => {
+          worker.onmessage = (e) => {
+            if (e.data.type === 'complete' && e.data.jobId === id) resolve(e.data);
+            if (e.data.type === 'error' && e.data.jobId === id) reject(e.data.error);
+          };
+          worker.postMessage({ type: 'hash', data: { id, data } });
+        });
+      },
+      terminate: () => worker.terminate()
+    };
+  }
+});
+
 
 // Security: Prevent access to Node APIs
 // ...

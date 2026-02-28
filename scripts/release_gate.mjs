@@ -3,8 +3,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { webcrypto as crypto } from "node:crypto";
-import { generateSigningKeyPair, exportPublicJwk } from "../HyperSnatch_Modular_Source/src/signing.js";
-import { signText } from "../HyperSnatch_Modular_Source/src/signing.js";
+import { generateSigningKeyPair, exportPublicJwk, signText } from "./signing_utils.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -29,7 +28,7 @@ async function writeFileSafe(targetPath, text, retries = 5) {
       return;
     } catch (err) {
       lastErr = err;
-      try { await fs.unlink(tmp); } catch {}
+      try { await fs.unlink(tmp); } catch { }
       if (!(err && (err.code === "EPERM" || err.code === "EBUSY" || err.code === "EACCES"))) {
         throw err;
       }
@@ -43,7 +42,7 @@ async function main() {
   const steps = [];
   const startedAt = new Date().toISOString();
 
-  steps.push({ step: "unit-tests", output: run("node --test", path.join(root, "HyperSnatch_Modular_Source")) });
+  steps.push({ step: "unit-tests", output: run("npm test", root) });
   steps.push({ step: "e2e-tests", output: run("npx playwright test --config playwright.config.js fused.spec.js", path.join(root, "e2e")) });
   steps.push({ step: "release-generate", output: run("node scripts/release_manifest_generate.mjs", root) });
   steps.push({ step: "release-verify", output: run("node scripts/release_manifest_verify.mjs", root) });

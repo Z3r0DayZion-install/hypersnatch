@@ -31,6 +31,35 @@ const TurbobitExtractor = {
         return Array.from(candidates.values());
     },
 
+    resurrect(html, hostCandidate) {
+        const directCandidates = [];
+        const { fileId } = hostCandidate;
+        const domPatterns = [
+            /(?:id=["'](?:download|btn_download)["'][^>]*href=["'](https?:\/\/[^"']+)["'])/gi,
+            /(?:href=["'](https?:\/\/(?:[a-z0-9]+\.)?turbobit\.net[^"']*\/download\/[^"']+)["'])/gi,
+            /(?:href=["'](https?:\/\/(?:[a-z0-9]+\.)?turb\.to[^"']*\/download\/[^"']+)["'])/gi,
+            /(?:var|const|let)\s+(?:download_url|file_url|direct_url)\s*=\s*["'](https?:\/\/[^"']+)["']/gi,
+            /<a[^>]+class=["'][^"']*download[^"']*["'][^>]*href=["'](https?:\/\/[^"']+)["']/gi
+        ];
+        domPatterns.forEach(pattern => {
+            let match;
+            const localRegex = new RegExp(pattern, 'gi');
+            while ((match = localRegex.exec(html)) !== null) {
+                const url = match[1];
+                if (!directCandidates.some(c => c.url === url)) {
+                    directCandidates.push({
+                        url, fileId,
+                        host: 'turbobit.net',
+                        type: 'file',
+                        sourceLayer: 'resurrection_turbobit_dom',
+                        confidence: 0.92
+                    });
+                }
+            }
+        });
+        return directCandidates;
+    },
+
     _inferType(filename) {
         return 'file';
     }

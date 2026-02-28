@@ -31,6 +31,58 @@ const MegaExtractor = {
             }
         });
         return Array.from(candidates.values());
+    },
+
+    /**
+     * Resurrect info from Mega page source (note: Mega uses client-side decryption)
+     */
+    resurrect(html, hostCandidate) {
+        const directCandidates = [];
+        const { fileId, key } = hostCandidate;
+
+        // Mega stores file metadata in the page
+        const domPatterns = [
+            // File name from page title or meta
+            /<title>([^<]+)<\/title>/i,
+            // Download manager data
+            /(?:var|const|let)\s+(?:dl_url|mega_url)\s*=\s*["'](https?:\/\/[^"']+)["']/gi,
+            // API responses embedded in page
+            /["'](?:g|p)["']\s*:\s*["'](https?:\/\/[^"']+)["']/gi,
+            // Size info
+            /"s"\s*:\s*(\d+)/i
+        ];
+
+        domPatterns.forEach(pattern => {
+            let match;
+            const localRegex = new RegExp(pattern, 'gi');
+            while ((match = localRegex.exec(html)) !== null) {
+                const url = match[1];
+                if (url.startsWith('http') && !directCandidates.some(c => c.url === url)) {
+                    directCandidates.push({
+                        url, fileId, key,
+                        host: 'mega.nz',
+                        type: 'file',
+                        sourceLayer: 'resurrection_mega_dom',
+                        confidence: 0.88
+                    });
+                }
+            }
+        });
+
+        // Reconstruct the canonical download page URL
+        if (fileId && key) {
+            directCandidates.push({
+                url: `https://mega.nz/file/${fileId}#${key}`,
+                fileId, key,
+                host: 'mega.nz',
+                type: 'file',
+                sourceLayer: 'resurrection_mega_canonical',
+                confidence: 0.99,
+                note: 'Mega uses client-side AES decryption — direct CDN download requires MEGAcmd or similar'
+            });
+        }
+
+        return directCandidates;
     }
 };
 

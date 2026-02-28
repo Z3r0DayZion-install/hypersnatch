@@ -7,6 +7,7 @@ const Base64Extractor = require("./base64");
 const AuthBoundaryDetector = require("./auth-boundary");
 const Ranker = require("./ranker");
 const Iframe = require("./iframe");
+const RustEngine = require("./rust-engine");
 
 function scanHttpUrls(text) {
   const s = String(text || "");
@@ -34,6 +35,34 @@ const SmartDecode = {
    * @param {Object} options - Configuration overrides
    */
   async run(input, options = {}) {
+    const requested = String(options.engine || process.env.HYPERSNATCH_SMARTDECODE_ENGINE || "").toLowerCase();
+    const normalizedRequested = requested === "auto" ? "" : requested;
+    const isElectron = Boolean(process.versions && process.versions.electron);
+    const engine = normalizedRequested || (isElectron ? "rust" : "js");
+    if (engine === "rust") {
+      const strict = Boolean(options.strictEngine) || process.env.HYPERSNATCH_SMARTDECODE_ENGINE_STRICT === "1";
+
+      if (!RustEngine.canRun()) {
+        if (strict) throw new Error("Rust SmartDecode engine requested but hs-core binary not found.");
+      } else {
+        try {
+          const r = await RustEngine.smartdecode(String(input || ""), {
+            splitSegments: Boolean(options.splitSegments),
+          });
+
+          return {
+            version: this.VERSION,
+            candidates: Array.isArray(r?.candidates) ? r.candidates : [],
+            best: r?.best ?? null,
+            refusals: Array.isArray(r?.refusals) ? r.refusals : [],
+          };
+        } catch (e) {
+          if (strict) throw e;
+          // Fall back to JS engine on any Rust failure.
+        }
+      }
+    }
+
     const normalized = Preprocessor.normalize(input);
     // Segment splitting is opt-in or based on double-newlines
     const segments = options.splitSegments ? normalized.split(/\n\n+/) : [normalized];
@@ -200,3 +229,5 @@ const SmartDecode = {
 };
 
 module.exports = SmartDecode;
+
+

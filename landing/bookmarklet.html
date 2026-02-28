@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperSnatch Bookmarklet — One-Click Source Capture</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .bookmarklet-page {
+            padding: 160px 0 100px;
+        }
+
+        .bookmarklet-page h1 {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .bookmarklet-page .sub {
+            color: var(--text-muted);
+            margin-bottom: 48px;
+        }
+
+        .bookmarklet-page h2 {
+            font-size: 1.3rem;
+            margin-top: 40px;
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+
+        .bookmarklet-page p,
+        .bookmarklet-page li {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+
+        .bookmarklet-page ol {
+            padding-left: 24px;
+        }
+
+        .bookmarklet-page li {
+            margin-bottom: 10px;
+        }
+
+        .bookmarklet-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), #06b6d4);
+            color: #001a10 !important;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 16px 36px;
+            border-radius: 12px;
+            text-decoration: none;
+            cursor: grab;
+            box-shadow: 0 4px 24px rgba(56, 189, 248, 0.3);
+            transition: all 0.2s;
+            margin: 24px 0;
+        }
+
+        .bookmarklet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(56, 189, 248, 0.4);
+        }
+
+        .bookmarklet-btn:active {
+            cursor: grabbing;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent);
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            color: #001a10;
+            font-weight: 800;
+            font-size: 0.8rem;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .warning-box {
+            background: rgba(255, 107, 107, 0.08);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 24px 0;
+        }
+
+        .warning-box p {
+            color: #ff6b6b;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="container">
+            <a href="index.html" class="nav-brand">
+                <span class="brand-icon">⚡</span>
+                HyperSnatch
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">← Back to Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="bookmarklet-page">
+        <div class="container">
+            <h1>⚡ One-Click Source Capture</h1>
+            <p class="sub">Drag this bookmarklet to your browser's bookmark bar. Click it on any page to instantly copy
+                the HTML source, ready to paste into HyperSnatch.</p>
+
+            <h2>The Bookmarklet</h2>
+            <p><strong>Drag this button to your bookmarks bar:</strong></p>
+
+            <a class="bookmarklet-btn"
+                href="javascript:void(function(){var s=document.documentElement.outerHTML;var w=window.open('','_blank','width=800,height=600');w.document.write('<html><head><title>HyperSnatch Source Capture</title><style>body{margin:0;background:%230a0e17;color:%2338bdf8;font-family:monospace;}textarea{width:100%25;height:calc(100vh-80px);background:%23111;color:%2300d084;border:1px solid %23222;padding:12px;font-size:12px;resize:none;}h3{padding:12px;margin:0;font-size:14px;}.bar{display:flex;justify-content:space-between;align-items:center;padding:0 12px;}.btn{background:%2338bdf8;color:%23000;border:none;padding:8px 16px;font-weight:bold;cursor:pointer;border-radius:4px;}</style></head><body><div class=bar><h3>⚡ Source Captured — '+document.title.substring(0,50)+'</h3><button class=btn onclick=\"
+                var
+                t=document.getElementById(%27src%27);t.select();document.execCommand(%27copy%27);this.textContent=%27Copied!%27\">Copy
+                to Clipboard</button>
+        </div><textarea id=src
+            readonly>'+s.replace(/<\/script>/gi,'<\\/script>').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>
+</body>
+
+</html>');w.document.close();}());"
+onclick="alert('Don\'t click — drag this to your bookmarks bar!'); return false;">
+⚡ HyperSnatch Capture
+</a>
+
+<h2>How to Use</h2>
+<ol>
+    <li><span class="step-num">1</span><strong>Drag the button above</strong> to your browser's bookmarks/favorites bar
+    </li>
+    <li><span class="step-num">2</span><strong>Navigate to any page</strong> you want to analyze (e.g., an emload or
+        streaming page)</li>
+    <li><span class="step-num">3</span><strong>Click the bookmarklet</strong> in your bookmarks bar</li>
+    <li><span class="step-num">4</span>A new window opens with the <strong>full page source</strong> and a "Copy to
+        Clipboard" button</li>
+    <li><span class="step-num">5</span><strong>Paste into HyperSnatch</strong> → click "Resurrect Links" → get your
+        decoded URLs</li>
+</ol>
+
+<h2>What It Does</h2>
+<div class="code-block">
+    // Captures document.documentElement.outerHTML<br>
+    // Opens in a new formatted window<br>
+    // One-click copy to clipboard<br>
+    // Zero network requests — runs entirely in your browser<br>
+    // No data sent anywhere — works offline once bookmarked
+</div>
+
+<div class="warning-box">
+    <p>⚠️ <strong>Privacy Note:</strong> This bookmarklet runs entirely in your browser. It does NOT transmit any data
+        to any external server. The captured source stays on your machine.</p>
+</div>
+
+<h2>Why Not Just "View Source"?</h2>
+<p>Browser's "View Source" shows the original HTML served by the server. The bookmarklet captures the <strong>live
+        DOM</strong> — including any JavaScript-rendered content, dynamically inserted script variables, and
+    runtime-generated elements. This gives HyperSnatch more data to work with, often catching download links that aren't
+    in the original source.</p>
+
+</div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="terms.html">Terms of Use</a>
+            <a href="mailto:support@hypersnatch.com">Support</a>
+        </div>
+        <p class="footer-copy">&copy; 2026 HyperSnatch. All rights reserved.</p>
+    </div>
+</footer>
+
+</body>
+
+</html>

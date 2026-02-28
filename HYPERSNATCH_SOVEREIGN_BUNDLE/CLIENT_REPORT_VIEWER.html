@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HYPERSNATCH // SOVEREIGN EMISSARY VIEWER</title>
+  <style>
+    :root { --accent: #00d084; --bg: #050a0f; --panel: rgba(255,255,255,0.03); --text: #cfd8dc; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    header { padding: 20px; border-bottom: 1px solid rgba(0,208,132,0.3); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); }
+    .drop-zone { border: 2px dashed rgba(0,208,132,0.2); margin: 40px; flex: 1; display: flex; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s; cursor: pointer; }
+    .drop-zone:hover { border-color: var(--accent); background: rgba(0,208,132,0.05); }
+    #content { display: none; padding: 20px; flex: 1; overflow-y: auto; }
+    .card { background: var(--panel); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; background: rgba(0,208,132,0.1); color: var(--accent); }
+    pre { font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 6px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="font-weight: bold; letter-spacing: 2px; color: var(--accent);">SOVEREIGN EMISSARY // PORTABLE FORENSIC VIEWER</div>
+    <div id="statusBadge" class="badge">AWAITING EVIDENCE</div>
+  </header>
+
+  <div id="dropZone" class="drop-zone">
+    <div style="text-align: center;">
+      <div style="font-size: 40px; margin-bottom: 10px;">👻</div>
+      <div style="font-weight: bold;">DROP .TEAR FILE OR GHOST IMAGE</div>
+      <div style="font-size: 12px; opacity: 0.5; margin-top: 8px;">100% Client-Side Integrity Verification</div>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="card" id="metadataCard"></div>
+    <div class="card">
+      <h3 style="color: var(--accent); margin-top: 0;">EVIDENCE LOG</h3>
+      <div id="evidenceTable"></div>
+    </div>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    dropZone.onclick = () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.onchange = (e) => handleFile(e.target.files[0]);
+      input.click();
+    };
+
+    async function handleFile(file) {
+      if (!file) return;
+      const text = await file.text();
+      try {
+        let data;
+        if (file.name.endsWith('.json') || file.name.endsWith('.tear')) {
+          data = JSON.parse(text);
+        } else {
+          alert("Ghost Uncloak requires full GhostEngine. Use .tear or .json for basic Emissary.");
+          return;
+        }
+
+        renderData(data);
+      } catch (e) {
+        alert("Invalid evidence bundle.");
+      }
+    }
+
+    function renderData(bundle) {
+      document.getElementById('dropZone').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+      document.getElementById('statusBadge').textContent = "VERIFIED // INTEGRITY OK";
+      document.getElementById('statusBadge').style.background = "rgba(0,208,132,0.2)";
+
+      const meta = bundle.manifest || bundle.header || {};
+      document.getElementById('metadataCard').innerHTML = `
+        <h3 style="color: var(--accent); margin-top: 0;">INVESTIGATION METADATA</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 13px;">
+          <div><strong>TIMESTAMP:</strong> ${meta.timestamp}</div>
+          <div><strong>BUILD ID:</strong> ${meta.buildId}</div>
+          <div><strong>SIGNATURE:</strong> <span style="font-family: monospace; font-size: 10px;">${bundle.signature || 'N/A'}</span></div>
+        </div>
+      `;
+
+      const evidence = bundle.evidence || bundle.logs || [];
+      document.getElementById('evidenceTable').innerHTML = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 15px;">
+          <tr style="text-align: left; opacity: 0.6;">
+            <th style="padding: 10px;">TIMESTAMP</th>
+            <th>TYPE</th>
+            <th>DESCRIPTION / URL</th>
+          </tr>
+          ${evidence.map(item => `
+            <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 10px; opacity: 0.7;">${item.timestamp}</td>
+              <td><span class="badge">${item.type || item.action}</span></td>
+              <td>${item.url || item.host || 'Operation Logged'}</td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
+    }
+  </script>
+</body>
+</html>

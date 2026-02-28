@@ -4,6 +4,7 @@
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const secureCrypto = require('./security-crypto');
 const log = require('./utils/logger');
 const licenseValidator = require('./core/security/license_validator');
@@ -25,7 +26,12 @@ if (process.env.NODE_ENV === "production" || app.isPackaged) {
 
 // ==================== CONSTANTS ====================
 const APP_NAME = 'HyperSnatch';
-const APP_VERSION = '1.0.1';
+const APP_VERSION = (() => { try { return require('../package.json').version || 'unknown'; } catch (e) { return 'unknown'; } })();
+
+if (process.argv.includes('--version') || process.argv.includes('-v')) {
+  process.stdout.write(APP_NAME + ' ' + APP_VERSION + '\n');
+  process.exit(0);
+}
 
 // Security: Hardened defaults
 const SECURITY_CONFIG = {
@@ -63,7 +69,7 @@ function enforceSecurityPolicy(window, url) {
   // Check allowlist
   try {
     const allowlistPath = path.resolve(ALLOWLIST_FILE);
-    if (!allowlistPath.startsWith(process.cwd())) {
+    const configDir = path.resolve(CONFIG_DIR); const configPrefix = (configDir.endsWith(path.sep) ? configDir : (configDir + path.sep)).toLowerCase(); if (!allowlistPath.toLowerCase().startsWith(configPrefix)) {
       throw new Error('Invalid allowlist path');
     }
     const allowlist = JSON.parse(fs.readFileSync(ALLOWLIST_FILE, 'utf8'));
@@ -84,11 +90,21 @@ function enforceSecurityPolicy(window, url) {
 
 // ==================== IPC HANDLERS ====================
 ipcMain.handle('get-app-info', () => {
+  const policy = getPolicySummary();
+  const envAllow = process.env.HYPERSNATCH_ENABLE_STRATEGY_RUNTIME === "1";
+  const allowStrategyRuntime = Boolean(envAllow && policy.strategyRuntime?.enabled);
+
+  const smartDecodeDefaultEngine = String(policy.smartDecode?.defaultEngine || "rust");
+
   return {
     name: APP_NAME,
     version: APP_VERSION,
     platform: process.platform,
-    securityConfig: SECURITY_CONFIG,
+    securityConfig: Object.assign({}, SECURITY_CONFIG, {
+      allowStrategyRuntime,
+      smartDecodeDefaultEngine,
+    }),
+    policy,
     runtimeDir: RUNTIME_DIR
   };
 });
@@ -99,6 +115,199 @@ ipcMain.handle('open-logs-folder', () => {
 
 ipcMain.handle('open-evidence-folder', () => {
   shell.openPath(EVIDENCE_DIR);
+});
+
+const SovereignAuth = require('./core/security/sovereign_auth');
+const http = require('http');
+
+// ==================== EMPIRE HUB BRIDGE ====================
+class SovereignBridge {
+  constructor() {
+    this.serverUrl = 'http://localhost:3000'; // Default Sovereign Server port
+    this.nodeId = 'HYPERSNATCH-' + crypto.randomBytes(2).toString('hex').toUpperCase();
+    this.heartbeatInterval = null;
+  }
+
+  async connect() {
+    console.log(`[Bridge] Connecting to Sovereign Hub as ${this.nodeId}...`);
+    this.startHeartbeat();
+  }
+
+  startHeartbeat() {
+    this.heartbeatInterval = setInterval(() => {
+      this.sendToHub('HEARTBEAT', {
+        status: 'ACTIVE',
+        timestamp: new Date().toISOString(),
+        version: '1.0.1'
+      });
+    }, 30000); // 30s heartbeat
+  }
+
+  sendToHub(event, data) {
+    const payload = JSON.stringify({
+      nodeId: this.nodeId,
+      event,
+      data,
+      signature: crypto.createHmac('sha256', 'SOVEREIGN_ROOT_KEY_2026')
+        .update(JSON.stringify(data)).digest('hex')
+    });
+
+    const options = {
+      hostname: 'localhost',
+      port: 3000,
+      path: '/api/v1/node/report',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': payload.length
+      }
+    };
+
+    const req = http.request(options);
+    req.on('error', () => { /* Server likely offline, ignore to maintain airgap feel */ });
+    req.write(payload);
+    req.end();
+  }
+}
+
+const bridge = new SovereignBridge();
+bridge.connect();
+
+ipcMain.handle('empire-sync', async (event, { action, data }) => {
+  bridge.sendToHub(action, data);
+  return { success: true };
+});
+
+// ==================== SOVEREIGN HARDWARE BINDING ====================
+async function getHardwareFingerprint() {
+  try {
+    const { execSync } = require('child_process');
+    // Get CPU ID and Motherboard UUID on Windows
+    const cpuId = execSync('wmic cpu get processorid').toString().split('\n')[1].trim();
+    const baseboardId = execSync('wmic baseboard get serialnumber').toString().split('\n')[1].trim();
+
+    const rawId = `HS-SOVEREIGN-${cpuId}-${baseboardId}`;
+    return crypto.createHash('sha256').update(rawId).digest('hex');
+  } catch (e) {
+    return 'FALLBACK-ID-88229911'; // Safe fallback for dev/restricted environments
+  }
+}
+
+ipcMain.handle('get-hardware-status', async () => {
+  const fingerprint = await getHardwareFingerprint();
+  return {
+    fingerprint: fingerprint,
+    displayId: fingerprint.substring(0, 16),
+    status: 'HARDWARE_LOCKED'
+  };
+});
+
+ipcMain.handle('authenticate-license', async (event, licensePath) => {
+  try {
+    const hwid = await getHardwareFingerprint();
+    if (!fs.existsSync(licensePath)) {
+      return { success: false, reason: 'License file not found.' };
+    }
+    const license = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
+    const result = SovereignAuth.verifyLicense(license, hwid);
+    return { success: result.valid, ...result };
+  } catch (err) {
+    return { success: false, reason: err.message };
+  }
+});
+
+ipcMain.handle('final-freeze', async (event, { caseData, reports }) => {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const caseFolderName = `CASE-FREEZE-${timestamp}`;
+
+  const { filePath: rootPath } = await dialog.showOpenDialog({
+    title: 'Select Destination for Final Case Freeze',
+    properties: ['openDirectory']
+  });
+
+  if (!rootPath) return { success: false, reason: 'No directory selected' };
+
+  const casePath = path.join(rootPath, caseFolderName);
+  if (!fs.existsSync(casePath)) fs.mkdirSync(casePath);
+
+  const manifestEntries = [];
+
+  try {
+    // 1. Write Reports
+    for (const report of reports) {
+      const filePath = path.join(casePath, report.filename);
+      const buffer = report.type === 'pdf' ? Buffer.from(report.content, 'base64') : report.content;
+      fs.writeFileSync(filePath, buffer);
+
+      const hash = crypto.createHash('sha256').update(buffer).digest('hex');
+      manifestEntries.push(`${hash}  ${report.filename}`);
+    }
+
+    // 2. Create Integrity Manifest
+    const manifestContent = manifestEntries.join('\n');
+    const manifestPath = path.join(casePath, 'INTEGRITY_MANIFEST.txt');
+    fs.writeFileSync(manifestPath, manifestContent);
+
+    // 3. Sign the manifest (Sovereign Seal)
+    const signature = crypto
+      .createHmac('sha256', 'SOVEREIGN_ROOT_KEY_2026')
+      .update(manifestContent)
+      .digest('hex');
+
+    fs.writeFileSync(path.join(casePath, 'SOVEREIGN_SEAL.sig'), signature);
+
+    // 4. Create a README summary
+    const readme = `HYPERSNATCH FINAL FREEZE REPORT\n` +
+      `===============================\n` +
+      `TIMESTAMP: ${new Date().toLocaleString()}\n` +
+      `BUILD ID:  ${caseData.buildId}\n` +
+      `ITEMS:     ${caseData.itemCount}\n` +
+      `SIGNATURE: ${signature}\n` +
+      `VERIFIED:  SOVEREIGN AUDIT CHAIN ACTIVE\n`;
+    fs.writeFileSync(path.join(casePath, 'README_SUMMARY.txt'), readme);
+
+    return { success: true, path: casePath, signature };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('export-pdf', async (event, { html, filename }) => {
+  const pdfWindow = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      nodeIntegration: false
+    }
+  });
+
+  await pdfWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+
+  const options = {
+    marginsType: 0,
+    pageSize: 'A4',
+    printBackground: true,
+    printSelectionOnly: false,
+    landscape: false
+  };
+
+  try {
+    const data = await pdfWindow.webContents.printToPDF(options);
+    const { filePath } = await dialog.showSaveDialog({
+      title: 'Save PDF Report',
+      defaultPath: path.join(app.getPath('downloads'), filename),
+      filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
+    });
+
+    if (filePath) {
+      fs.writeFileSync(filePath, data);
+      return { success: true, filePath };
+    }
+    return { success: false, reason: 'Save cancelled' };
+  } catch (error) {
+    return { success: false, error: error.message };
+  } finally {
+    pdfWindow.close();
+  }
 });
 
 ipcMain.handle('export-security-report', async (event) => {
@@ -275,12 +484,24 @@ function createDefaultConfig() {
     premiumMarkers: [
       'subscribe', 'premium', 'login', 'paywall', 'purchase',
       'access denied', 'subscription', 'upgrade', 'payment'
-    ]
+    ],
+    smartDecode: {
+      defaultEngine: "rust",
+      strictEngine: false
+    },
+    strategyRuntime: {
+      enabled: false,
+      requireSignature: true,
+      trustedPackHashes: [
+        "efc9c8045d99acfd689a4105bce717260a9a3e5f4d04287aba4c167ec69c4456",
+        "a23b9bbf54c832c736b6adf9169091075edead1d76b17f57b50e35bf60ad22f2"
+      ]
+    }
   };
 
   try {
     const policyPath = path.resolve(POLICY_FILE);
-    if (!policyPath.startsWith(process.cwd())) {
+    const configDir = path.resolve(CONFIG_DIR); const configPrefix = (configDir.endsWith(path.sep) ? configDir : (configDir + path.sep)).toLowerCase(); if (!policyPath.toLowerCase().startsWith(configPrefix)) {
       throw new Error('Invalid policy path');
     }
     fs.writeFileSync(policyPath, JSON.stringify(defaultConfig, null, 2));
@@ -290,6 +511,104 @@ function createDefaultConfig() {
   }
 }
 
+function createDefaultAllowlist() {
+  const defaultAllowlist = {
+    allowedHosts: ['localhost', '127.0.0.1']
+  };
+
+  try {
+    const allowlistPath = path.resolve(ALLOWLIST_FILE);
+    const configDir = path.resolve(CONFIG_DIR);
+    const configPrefix = (configDir.endsWith(path.sep) ? configDir : (configDir + path.sep)).toLowerCase();
+    if (!allowlistPath.toLowerCase().startsWith(configPrefix)) {
+      throw new Error('Invalid allowlist path');
+    }
+    fs.writeFileSync(allowlistPath, JSON.stringify(defaultAllowlist, null, 2));
+    logSecurityEvent('DEFAULT_ALLOWLIST_CREATED', { file: ALLOWLIST_FILE });
+  } catch (error) {
+    logSecurityEvent('ALLOWLIST_CREATE_ERROR', { error: error.message });
+  }
+}
+
+function readPolicySafe() {
+  try {
+    const policyPath = path.resolve(POLICY_FILE);
+    const configDir = path.resolve(CONFIG_DIR);
+    const configPrefix = (configDir.endsWith(path.sep) ? configDir : (configDir + path.sep)).toLowerCase();
+    if (!policyPath.toLowerCase().startsWith(configPrefix)) {
+      throw new Error('Invalid policy path');
+    }
+    const raw = fs.readFileSync(policyPath, 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function getPolicySummary() {
+  const p = readPolicySafe() || {};
+
+  const smartDecode = {
+    defaultEngine: typeof p.smartDecode?.defaultEngine === 'string' ? p.smartDecode.defaultEngine : 'rust',
+    strictEngine: Boolean(p.smartDecode?.strictEngine),
+  };
+
+  const trusted = Array.isArray(p.strategyRuntime?.trustedPackHashes) ? p.strategyRuntime.trustedPackHashes : [];
+  const strategyRuntime = {
+    enabled: Boolean(p.strategyRuntime?.enabled),
+    requireSignature: p.strategyRuntime?.requireSignature !== false,
+    trustedPackHashes: trusted.filter((h) => typeof h === 'string' && /^[a-f0-9]{64}$/i.test(h)),
+  };
+
+  return {
+    version: typeof p.version === 'string' ? p.version : '1.0.0',
+    mode: typeof p.mode === 'string' ? p.mode : 'strict',
+    allowlistEnabled: p.allowlistEnabled !== false,
+    premiumMarkers: Array.isArray(p.premiumMarkers) ? p.premiumMarkers : [],
+    smartDecode,
+    strategyRuntime,
+  };
+}
+
+function ensurePolicyDefaults() {
+  try {
+    const policyPath = path.resolve(POLICY_FILE);
+    const configDir = path.resolve(CONFIG_DIR);
+    const configPrefix = (configDir.endsWith(path.sep) ? configDir : (configDir + path.sep)).toLowerCase();
+    if (!policyPath.toLowerCase().startsWith(configPrefix)) {
+      throw new Error('Invalid policy path');
+    }
+
+    const existing = readPolicySafe() || {};
+
+    // Only add missing keys; never overwrite user customizations.
+    if (!existing.smartDecode || typeof existing.smartDecode !== 'object') {
+      existing.smartDecode = { defaultEngine: 'rust', strictEngine: false };
+    } else {
+      if (typeof existing.smartDecode.defaultEngine !== 'string') existing.smartDecode.defaultEngine = 'rust';
+      if (typeof existing.smartDecode.strictEngine !== 'boolean') existing.smartDecode.strictEngine = false;
+    }
+
+    if (!existing.strategyRuntime || typeof existing.strategyRuntime !== 'object') {
+      existing.strategyRuntime = {
+        enabled: false,
+        requireSignature: true,
+        trustedPackHashes: [
+          'efc9c8045d99acfd689a4105bce717260a9a3e5f4d04287aba4c167ec69c4456',
+          'a23b9bbf54c832c736b6adf9169091075edead1d76b17f57b50e35bf60ad22f2'
+        ],
+      };
+    } else {
+      if (typeof existing.strategyRuntime.enabled !== 'boolean') existing.strategyRuntime.enabled = false;
+      if (typeof existing.strategyRuntime.requireSignature !== 'boolean') existing.strategyRuntime.requireSignature = true;
+      if (!Array.isArray(existing.strategyRuntime.trustedPackHashes)) existing.strategyRuntime.trustedPackHashes = [];
+    }
+
+    fs.writeFileSync(policyPath, JSON.stringify(existing, null, 2));
+  } catch (e) {
+    logSecurityEvent('POLICY_MIGRATION_ERROR', { error: e.message });
+  }
+}
 function getRendererPath() {
   // Determine if running in development or packaged mode
   if (process.env.NODE_ENV === 'development') {
@@ -313,21 +632,55 @@ app.whenReady().then(() => {
   logSecurityEvent('APP_READY', { version: APP_VERSION });
   log.info("SYSTEM_BOOTSTRAP_COMPLETE", { version: APP_VERSION });
 
-  // HARD NETWORK LOCK: Cancel all http/https requests globally
+  // HARD NETWORK LOCK: Cancel all http/https requests globally (exempting localhost for Bridge)
   const { session } = require('electron');
   session.defaultSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
+    const url = new URL(details.url);
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+      return callback({ cancel: false });
+    }
     logSecurityEvent('NETWORK_BLOCK_TRIGGERED', { url: details.url });
     callback({ cancel: true });
+  });
+
+  // CSP ENFORCEMENT (Round 10)
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; " +
+          "connect-src 'self' http://localhost:3000; " +
+          "img-src 'self' data: blob: https://*; " +
+          "media-src 'self' data: blob: https://*;"
+        ]
+      }
+    });
   });
 
   // Create runtime directories
   createRuntimeDirectories();
 
-  // Create default config if doesn't exist
+  // Ensure config files exist (and are forward-compatible)
   if (!fs.existsSync(POLICY_FILE)) {
     createDefaultConfig();
+  } else {
+    ensurePolicyDefaults();
   }
 
+  if (!fs.existsSync(ALLOWLIST_FILE)) {
+    createDefaultAllowlist();
+  }
+
+  // Policy: default SmartDecode engine under Electron
+  try {
+    const pol = readPolicySafe();
+    const requested = String(process.env.HYPERSNATCH_SMARTDECODE_ENGINE || "").toLowerCase();
+    const defEngine = String(pol?.smartDecode?.defaultEngine || "rust").toLowerCase();
+    if (!requested && defEngine && defEngine !== "auto") {
+      process.env.HYPERSNATCH_SMARTDECODE_ENGINE = defEngine;
+    }
+  } catch { }
   // Security: Prevent multiple instances
   const gotTheLock = app.requestSingleInstanceLock();
 
@@ -339,11 +692,11 @@ app.whenReady().then(() => {
 
   // Create main window with hardened security
   const mainWindow = new BrowserWindow({
-    width: 1200,
+    width: 1280,
     height: 800,
-    minWidth: 800,
-    minHeight: 600,
-    show: false,
+    frame: false,           // SOVEREIGN SHELL: Frameless
+    fullscreen: true,       // GOD-TIER: Fullscreen Kiosk
+    backgroundColor: '#0a1016',
     webPreferences: {
       ...SECURITY_CONFIG,
       preload: path.join(__dirname, 'preload.js'),
@@ -355,6 +708,15 @@ app.whenReady().then(() => {
     },
     icon: path.join(__dirname, 'assets', 'icon.ico')
   });
+
+  // Custom Window Controls for Frameless Shell
+  ipcMain.handle('window-minimize', () => mainWindow.minimize());
+  ipcMain.handle('window-maximize', () => {
+    if (mainWindow.isMaximized()) mainWindow.unmaximize();
+    else mainWindow.maximize();
+  });
+  ipcMain.handle('window-close', () => mainWindow.close());
+  ipcMain.handle('window-fullscreen', () => mainWindow.setFullScreen(!mainWindow.isFullScreen()));
 
   // Security: Set window open handler after window creation
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

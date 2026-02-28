@@ -14,6 +14,8 @@ const StrategyRuntime = {
   loadedPacks: new Map(),
   activeStrategies: new Map(),
   requireSignature: true,
+  enabled: false,
+  trustedPackHashes: [],
   
   // Strategy pack interface
   strategyInterface: {
@@ -32,6 +34,7 @@ const StrategyRuntime = {
     try {
       this.loadedPacks.clear();
       this.activeStrategies.clear();
+      this.refreshPolicy();
       this.initialized = true;
       
       this.log('[RUNTIME] Strategy runtime initialized');
@@ -113,6 +116,11 @@ const StrategyRuntime = {
       }
       
       // Validate strategy file exists
+      // Validate strategy entrypoint (path traversal defense)
+      if (typeof manifest.main !== "string" || manifest.main.includes("..") || /[\\\\:]/.test(manifest.main)) {
+        return { valid: false, error: "Invalid strategy entrypoint" };
+      }
+
       const strategyPath = `${packPath}/${manifest.main}`;
       const strategyExists = await this.fileExists(strategyPath);
       if (!strategyExists) {
@@ -138,7 +146,17 @@ const StrategyRuntime = {
         return { valid: false, error: `Security violation: ${securityCheck.violations.join(', ')}` };
       }
       
-      return { valid: true, manifest };
+      // Pack integrity allowlist (policy-controlled)
+      this.refreshPolicy();
+      const packHash = await this.computePackHash(manifestContent, strategyCode);
+      if (!Array.isArray(this.trustedPackHashes) || this.trustedPackHashes.length === 0) {
+        return { valid: false, error: "No trusted strategy pack hashes configured" };
+      }
+      if (!this.trustedPackHashes.includes(packHash)) {
+        return { valid: false, error: `Untrusted strategy pack (sha256:${packHash.slice(0, 12)}…)` };
+      }
+
+      return { valid: true, manifest, packHash };
       
     } catch (error) {
       return { valid: false, error: error.message };
@@ -163,6 +181,19 @@ const StrategyRuntime = {
       
       // Execute strategy code
       const strategyFactory = new Function('context', 'exports', `
+        "use strict";
+        const window = undefined;
+        const document = undefined;
+        const globalThis = undefined;
+        const global = undefined;
+        const process = undefined;
+        const require = undefined;
+        const Function = undefined;
+        const eval = undefined;
+        const fetch = undefined;
+        const XMLHttpRequest = undefined;
+        const WebSocket = undefined;
+
         ${strategyCode}
         return exports.default || exports;
       `);
@@ -376,10 +407,24 @@ const StrategyRuntime = {
    * Verify signature
    */
   async verifySignature(filePath, signature) {
-    // In a real implementation, this would verify cryptographic signatures
-    // For now, we'll simulate signature verification
-    this.log(`[RUNTIME] Verifying signature for: ${filePath}`);
-    return true; // Simulate successful verification
+    try {
+      const sig = String(signature || "").trim();
+      if (!sig) return false;
+
+      const code = await this.readFile(filePath);
+      const actual = await this.sha256Hex(code);
+
+      let expected = sig.toLowerCase();
+      if (expected.startsWith("sha256:")) expected = expected.slice("sha256:".length);
+      if (expected.startsWith("sha256=")) expected = expected.slice("sha256=".length);
+      expected = expected.trim();
+
+      if (!/^[a-f0-9]{64}$/.test(expected)) return false;
+      return expected === actual;
+    } catch (e) {
+      this.log(`[RUNTIME] Signature verification error: ${e.message}`);
+      return false;
+    }
   },
   
   /**

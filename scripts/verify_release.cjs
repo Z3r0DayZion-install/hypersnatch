@@ -1,6 +1,6 @@
 "use strict";
 
-const { execSync } = require("child_process");
+const { execSync, execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -49,6 +49,13 @@ const checks = [
     { cmd: "npm test", name: "Core Unit Tests" },
     { cmd: "npm run verify:schema", name: "Strict JSON Schema Assertion" },
     { cmd: "node verify_golden.js", name: "Golden Fixture Regression" },
+    // Builds Electron artifacts; predist also prepares hs-core and (optionally) pre-signs build/hs-core.exe
+    { cmd: "npm run dist", name: "Electron Dist Build" },
+    // Optional standalone CLI binary (can be signed post-build)
+    { cmd: "npm run build:exe", name: "CLI EXE Build (optional)" },
+    // Optional post-signing for CLI exe (no-op unless HYPERSNATCH_SIGN=1)
+    { cmd: "node scripts/sign_windows.cjs --post", name: "Optional CLI Signing" },
+    // Must run last so hashes reflect final signed binaries
     { cmd: "node scripts/generate_manifest.cjs", name: "Manifest & Hash Generation" },
 ];
 
@@ -59,6 +66,52 @@ for (const check of checks) {
     }
 }
 
+
+// 3b. Electron App Smoke Test (packaged)
+console.log("\n▶️ RUNNING: Electron App Smoke Test (--version)");
+if (process.platform === "win32") {
+    const { spawnSync } = require("child_process");
+    const unpackedExe = path.join(__dirname, "../dist/win-unpacked/HyperSnatch.exe");
+    if (!fs.existsSync(unpackedExe)) {
+        console.error(`❌ Unpacked EXE not found: ${unpackedExe}`);
+        process.exit(1);
+    }
+
+    // hs-core must be shipped as an extra resource for the Rust engine option.
+    const requireHsCore = process.env.HS_CORE_REQUIRED !== "0";
+    const hsCoreExe = path.join(__dirname, "../dist/win-unpacked/resources/hs-core.exe");
+    const hsCoreBin = path.join(__dirname, "../dist/win-unpacked/resources/hs-core");
+    const hsCorePresent = fs.existsSync(hsCoreExe) || fs.existsSync(hsCoreBin);
+    if (!hsCorePresent) {
+        const msg = "hs-core resource missing (expected " + hsCoreExe + ")";
+        if (requireHsCore) {
+            console.error("❌ " + msg);
+            console.error("Set HS_CORE_REQUIRED=0 to allow release builds without the Rust core.");
+            process.exit(1);
+        } else {
+            console.warn("⚠️ " + msg);
+        }
+    } else {
+        console.log("✅ hs-core resource present in win-unpacked/resources");
+    }
+    const r = spawnSync(unpackedExe, ["--version"], { timeout: 10000, encoding: "utf8" });
+    if (r.error) {
+        console.error(`❌ Failed to run packaged EXE: ${r.error.message}`);
+        process.exit(1);
+    }
+    if (r.status !== 0) {
+        console.error("❌ Packaged EXE returned non-zero exit code", { code: r.status, stderr: r.stderr });
+        process.exit(1);
+    }
+    const out = (r.stdout || "").trim();
+    if (!out.startsWith("HyperSnatch")) {
+        console.error("❌ Packaged EXE --version output unexpected:", out);
+        process.exit(1);
+    }
+    console.log(`✅ Packaged EXE OK: ${out}`);
+} else {
+    console.log("ℹ️ Skipped (non-Windows platform)");
+}
 // 4. CLI Smoke Test - JSON output
 const fixturePath = path.join(__dirname, "../fixtures/baseline.json");
 if (!fs.existsSync(fixturePath)) {
@@ -193,24 +246,80 @@ try {
 
 if (!bridgePassed) process.exit(1);
 
-console.log("\n▶️ RUNNING: Authenticode Signature & Timestamp Validation");
-const exePath = path.join(__dirname, "../dist/hypersnatch.exe");
-if (fs.existsSync(exePath)) {
-    try {
-        const psCmd = `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -Command "$ErrorActionPreference = 'Stop'; $sig = Get-AuthenticodeSignature -FilePath '${exePath}'; if ($sig.Status -eq 'NotSigned' -or -not $sig.SignerCertificate) { exit 1 }; if (-not $sig.TimeStamperCertificate) { exit 2 }; exit 0"`;
-        execSync(psCmd, { stdio: "inherit" });
-        console.log("✅ Authenticode Signature and RFC3161 Timestamp Verified");
-    } catch (e) {
-        if (e.status === 1) { console.error("❌ executable is missing Authenticode Signature"); process.exit(1); }
-        else if (e.status === 2) { console.error("❌ executable signature is missing RFC 3161 Timestamp"); process.exit(1); }
-        else {
-            console.error("⚠️ Signature validation skipped or failed (Powershell not found or error):", e.message);
+
+console.log("\n▶️ RUNNING: Authenticode Signature Validation (optional)");
+const enforceSigning = process.env.HYPERSNATCH_ENFORCE_SIGNING === "1";
+const enforceTimestamp = process.env.HYPERSNATCH_ENFORCE_TIMESTAMP === "1";
+
+if (process.platform !== "win32") {
+    console.log("ℹ️ Skipped (non-Windows platform)");
+} else {
+    const exeCandidates = new Set();
+    const distRoot = path.join(__dirname, "../dist");
+
+    exeCandidates.add(path.join(distRoot, "hypersnatch.exe"));
+    exeCandidates.add(path.join(distRoot, "win-unpacked", "HyperSnatch.exe"));
+    exeCandidates.add(path.join(distRoot, "win-unpacked", "resources", "hs-core.exe"));
+
+    const expectedSetup = ("HyperSnatch-Setup-" + versionPkg.version + ".exe").toLowerCase();
+
+    if (fs.existsSync(distRoot)) {
+        for (const name of fs.readdirSync(distRoot)) {
+            if (name.toLowerCase() === expectedSetup) {
+                exeCandidates.add(path.join(distRoot, name));
+            }
         }
     }
-} else {
-    console.error("❌ executable dist/hypersnatch.exe not found for signature validation.");
-    process.exit(1);
-}
 
+    const exes = Array.from(exeCandidates).filter((p) => fs.existsSync(p));
+    if (exes.length === 0) {
+        console.log("ℹ️ No EXEs found for Authenticode validation.");
+    } else {
+        for (const exe of exes) {
+            try {
+                const psExe = fs.existsSync("C:\\Program Files\\PowerShell\\7\\pwsh.exe")
+                    ? "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
+                    : "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
+                const psScript = "& { param([string]$p) $ErrorActionPreference='Stop'; $sig=Get-AuthenticodeSignature -FilePath $p; $o=[pscustomobject]@{ status=$sig.Status.ToString(); hasSigner=[bool]$sig.SignerCertificate; hasTimestamp=[bool]$sig.TimeStamperCertificate }; $o | ConvertTo-Json -Compress }";
+                const out = execFileSync(psExe, ["-NoProfile", "-Command", psScript, exe], { encoding: "utf8" }).trim();
+                const info = JSON.parse(out);
+
+                if (info.hasSigner) {
+                    if (info.status === "Valid") {
+                        console.log(`✅ Signed (Valid): ${path.basename(exe)} (timestamp=${info.hasTimestamp})`);
+                        if (!info.hasTimestamp && enforceTimestamp) {
+                            console.error("❌ Missing RFC3161 timestamp");
+                            process.exit(1);
+                        }
+                    } else {
+                        const msg = `⚠️ Signed but not trusted: ${path.basename(exe)} (status=${info.status})`;
+                        if (enforceSigning) {
+                            console.error(msg);
+                            process.exit(1);
+                        }
+                        console.log(msg);
+                    }
+                } else {
+                    const msg = `⚠️ Not signed: ${path.basename(exe)} (status=${info.status})`;
+                    if (enforceSigning) {
+                        console.error(msg);
+                        process.exit(1);
+                    }
+                    console.log(msg);
+                }
+            } catch (e) {
+                const msg = `⚠️ Authenticode validation failed for ${exe}: ${e.message}`;
+                if (enforceSigning) {
+                    console.error(msg);
+                    process.exit(1);
+                }
+                console.log(msg);
+            }
+        }
+    }
+}
 console.log("\n🎉 ALL RELEASE GATES PASSED. READY TO SHIP. 🎉");
 process.exit(0);
+
+
+

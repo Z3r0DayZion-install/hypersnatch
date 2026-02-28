@@ -28,6 +28,47 @@ const GofileExtractor = {
             }
         });
         return Array.from(candidates.values());
+    },
+
+    /**
+     * Resurrect direct stream links from Gofile HTML/JSON
+     * @param {string} html 
+     * @param {Object} hostCandidate
+     * @returns {Array} List of resurrected direct candidates
+     */
+    resurrect(html, hostCandidate) {
+        const directCandidates = [];
+        const { fileId } = hostCandidate;
+
+        // 1. Gofile specific: look for direct data links and download URLs
+        const domPatterns = [
+            /["'](https?:\/\/[^"']+\.gofile\.io\/download\/[a-zA-Z0-9_-]+\/[^"']+)["']/gi,
+            /["']link["']\s*:\s*["'](https?:\/\/[^"']+)["']/gi,
+            /window\.directLink\s*=\s*["']([^"']+)["']/gi
+        ];
+
+        domPatterns.forEach(pattern => {
+            let match;
+            const localRegex = new RegExp(pattern, 'gi');
+            while ((match = localRegex.exec(html)) !== null) {
+                const url = match[1];
+                if (!url.includes('download') && !url.includes('cdn')) continue;
+                directCandidates.push({
+                    url,
+                    fileId,
+                    host: 'gofile.io',
+                    type: 'file',
+                    sourceLayer: 'resurrection_gofile_hardmode',
+                    confidence: 0.99,
+                    meta: {
+                        hardmode: true,
+                        timestamp: new Date().toISOString()
+                    }
+                });
+            }
+        });
+
+        return directCandidates;
     }
 };
 

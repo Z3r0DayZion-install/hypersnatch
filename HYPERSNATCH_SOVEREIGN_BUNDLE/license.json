@@ -1,0 +1,18 @@
+{
+  "payload": {
+    "user": "Empire Founder",
+    "hwid": "b014b233b8e3bc92499247d67b9d69dd5791837ccddf2f3d0eca7d94506de213",
+    "edition": "LEGENDARY",
+    "expiry": "2027-02-26T03:42:42.980Z",
+    "issued": "2026-02-26T03:42:42.981Z",
+    "features": [
+      "ORACLE",
+      "GHOST",
+      "MAP",
+      "FREEZE",
+      "PDF"
+    ]
+  },
+  "signature": "MOCK_ECDSA_SIGNATURE_eyJ1c2VyIjoiRW1waXJlIEZvdW5kZXIi",
+  "signer": "HyperSnatch Sovereign Authority"
+}

@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { webcrypto as crypto } from "node:crypto";
-import { auditReleaseArtifacts } from "../HyperSnatch_Modular_Source/src/release_audit.js";
+import { auditReleaseArtifacts } from "./release_utils.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workspace = path.resolve(__dirname, "..");

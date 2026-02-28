@@ -31,6 +31,35 @@ const NitroflareExtractor = {
         return Array.from(candidates.values());
     },
 
+    resurrect(html, hostCandidate) {
+        const directCandidates = [];
+        const { fileId, filename } = hostCandidate;
+        const domPatterns = [
+            /(?:id=["'](?:download|btn_download)["'][^>]*href=["'](https?:\/\/[^"']+)["'])/gi,
+            /(?:href=["'](https?:\/\/[^"']+)["'][^>]*id=["'](?:download|btn_download)["'])/gi,
+            /(?:href=["'](https?:\/\/(?:[a-z0-9]+\.)?nitroflare\.com[^"']*\/dl\/[^"']+)["'])/gi,
+            /(?:var|const|let)\s+(?:download_url|file_url|direct_url)\s*=\s*["'](https?:\/\/[^"']+)["']/gi,
+            /<form[^>]+action=["'](https?:\/\/[^"']+\/(?:dl|download|get)\/[^"']+)["']/gi
+        ];
+        domPatterns.forEach(pattern => {
+            let match;
+            const localRegex = new RegExp(pattern, 'gi');
+            while ((match = localRegex.exec(html)) !== null) {
+                const url = match[1];
+                if (!directCandidates.some(c => c.url === url)) {
+                    directCandidates.push({
+                        url, filename: filename || 'unknown', fileId,
+                        host: 'nitroflare.com',
+                        type: this._inferType(filename),
+                        sourceLayer: 'resurrection_nitroflare_dom',
+                        confidence: 0.92
+                    });
+                }
+            }
+        });
+        return directCandidates;
+    },
+
     _inferType(filename) {
         const ext = filename.split('.').pop().toLowerCase();
         if (['mp4', 'mkv', 'avi'].includes(ext)) return 'video';

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperSnatch — Deterministic Static Analysis for HTML Media Resources</title>
+    <meta name="description"
+        content="HyperSnatch is an offline-first, privacy-by-design desktop utility. It parses and evaluates complex webpage source code to surface direct media resource URLs — without cloud APIs or external telemetry.">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <div class="container">
+            <a href="#" class="nav-brand">
+                <span class="brand-icon">⚡</span>
+                HyperSnatch
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#demo">Demo</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="https://cashdominion.gumroad.com/l/itpxg" class="nav-cta" target="_blank"
+                        rel="noopener">Get Founders License</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge animate-in">🔒 Offline-First · Privacy-By-Design</div>
+            <h1 class="animate-in d1">
+                <span class="gradient-text">Deterministic Static Analysis</span><br>
+                for HTML Media Resources
+            </h1>
+            <p class="hero-sub animate-in d2">
+                Parse, trace, and evaluate complex webpage source code to surface direct media resource URLs — without
+                reliance on cloud APIs, external telemetry, or brittle headless automation.
+            </p>
+            <div class="hero-cta-row animate-in d3">
+                <a href="https://cashdominion.gumroad.com/l/itpxg" class="btn-primary" id="hero-cta" target="_blank"
+                    rel="noopener">
+                    Secure the Founders License — $39
+                </a>
+                <a href="#demo" class="btn-secondary">
+                    View Determinism Proof
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features" id="features">
+        <div class="container">
+            <p class="section-label">Capabilities</p>
+            <h2 class="section-title">Built for Researchers.<br>Maintained by Engineering.</h2>
+            <p class="section-desc">
+                Solving a specific infrastructure problem: mapping underlying resource URLs from obfuscated HTML without
+                leaking analysis data to a SaaS provider.
+            </p>
+            <div class="features-grid">
+
+                <div class="feature-card animate-in">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Offline-First Architecture</h3>
+                    <p>The engine processes HTML entirely on your local hardware. No phone-home analytics, no cloud
+                        dependencies, no silent metrics. Ideal for airgapped forensic labs.</p>
+                </div>
+
+                <div class="feature-card animate-in d1">
+                    <div class="feature-icon">🧮</div>
+                    <h3>Deterministic AST Parsing</h3>
+                    <p>Mathematically parses the Abstract Syntax Tree of raw HTML. The same input always yields the
+                        exact same confidence-scored output. Verifiable via SHA-256.</p>
+                </div>
+
+                <div class="feature-card animate-in d2">
+                    <div class="feature-icon">📋</div>
+                    <h3>Court-Admissible Evidence Logs</h3>
+                    <p>Immutable operation logging with timestamps, user attribution, and tamper-protected audit trails.
+                        Every action is recorded and exportable.</p>
+                </div>
+
+                <div class="feature-card animate-in d3">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Security-First Validation</h3>
+                    <p>Default-deny policy enforcement. Pluggable validation pipeline with allowlist-based
+                        authorization. Only validates explicitly permitted resources.</p>
+                </div>
+
+                <div class="feature-card animate-in d4">
+                    <div class="feature-icon">📦</div>
+                    <h3>Professional Export</h3>
+                    <p>Export results as CSV, JSON, or structured PDF. Manifest files include SHA-256 hashes for data
+                        provenance. Integrates into existing forensic pipelines.</p>
+                </div>
+
+                <div class="feature-card animate-in d5">
+                    <div class="feature-icon">🖥️</div>
+                    <h3>Hardened Desktop App</h3>
+                    <p>Context isolation, disabled Node integration, sandboxed rendering. Single-instance lock, IPC
+                        allowlisting, and crash-safe startup. Windows installer included.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- DETERMINISM DEMO -->
+    <section class="demo" id="demo">
+        <div class="container">
+            <p class="section-label">Proof of Determinism</p>
+            <h2 class="section-title">Same Input. Same Output. Every Time.</h2>
+            <p class="section-desc">
+                Verify HyperSnatch's deterministic behavior yourself. Run the sample payload and check the SHA-256 hash
+                against our published proof.
+            </p>
+
+            <div class="demo-box">
+                <h3>🧪 Verification Steps</h3>
+                <div class="demo-steps">
+                    <div class="demo-step">
+                        <div class="step-num">1</div>
+                        <p>Download <code>sample-payload.html</code> from the <a
+                                href="https://github.com/hypersnatch-security/hypersnatch/tree/main/demo"
+                                target="_blank" rel="noopener">demo/ directory</a> on GitHub.</p>
+                    </div>
+                    <div class="demo-step">
+                        <div class="step-num">2</div>
+                        <p>Load the file into HyperSnatch (drag-and-drop or File → Open).</p>
+                    </div>
+                    <div class="demo-step">
+                        <div class="step-num">3</div>
+                        <p>Export the analysis manifest as JSON and compute its SHA-256 hash.</p>
+                    </div>
+                    <div class="demo-step">
+                        <div class="step-num">4</div>
+                        <p>Compare your hash against the published expected output below.</p>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <span class="comment"># Expected SHA-256 of manifest output for sample-payload.html</span><br>
+                    <span class="hash">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</span><br><br>
+                    <span class="comment"># Verify on Windows PowerShell:</span><br>
+                    Get-FileHash -Algorithm SHA256 .\manifest_output.json | Select-Object Hash<br><br>
+                    <span class="comment"># Verify on macOS/Linux:</span><br>
+                    sha256sum manifest_output.json
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <p class="section-label">Early Access</p>
+            <h2 class="section-title">Founders License</h2>
+            <p class="section-desc">
+                One-time payment. No subscription. No recurring fees. No telemetry.
+            </p>
+
+            <div class="pricing-card" id="buy">
+                <div class="pricing-badge">Founders Edition</div>
+                <div class="price">$39</div>
+                <div class="price-note">One-time payment · Includes v1.x core updates</div>
+                <ul class="pricing-list">
+                    <li>Unlimited artifact processing</li>
+                    <li>HTML &amp; HAR file analysis</li>
+                    <li>Advanced evidence reporting (CSV, JSON, PDF)</li>
+                    <li>Court-admissible audit trails</li>
+                    <li>Email support (12-hour response)</li>
+                    <li>All v1.x feature updates included</li>
+                    <li>Windows installer + portable EXE</li>
+                </ul>
+                <a href="https://cashdominion.gumroad.com/l/itpxg" class="btn-primary" id="purchase-cta" target="_blank"
+                    rel="noopener">
+                    Purchase Founders License — $39
+                </a>
+                <p class="guarantee">🛡️ 14-Day Deterministic Guarantee — Full refund if the engine doesn't meet its
+                    deterministic promises.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <p class="section-label">Common Questions</p>
+            <h2 class="section-title">FAQ</h2>
+
+            <div class="faq-list">
+
+                <div class="faq-item">
+                    <button class="faq-q">What is deterministic static analysis?</button>
+                    <div class="faq-a">
+                        <p>Unlike dynamic automation that executes arbitrary scripts, HyperSnatch mathematically parses
+                            the Abstract Syntax Tree (AST) of raw HTML. The same input source always yields the exact
+                            same confidence-scored output. This is verifiable via SHA-256 hash comparison.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">Does HyperSnatch bypass DRM or access controls?</button>
+                    <div class="faq-a">
+                        <p>Absolutely not. HyperSnatch operates entirely on publicly accessible, static input data. It
+                            is an analysis utility, not a circumvention tool, and cannot decode encrypted DRM streams.
+                            All extracted data must exist in the raw HTML source.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">Does this require an internet connection?</button>
+                    <div class="faq-a">
+                        <p>The analysis engine processes HTML locally — completely offline. The application requires a
+                            brief internet connection solely for cryptographic license verification on first launch. All
+                            analysis operations remain entirely off-grid.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">Who is this built for?</button>
+                    <div class="faq-a">
+                        <p>Security researchers, digital forensics investigators, compliance auditors, and technical
+                            journalists who need to analyze digital artifacts offline with verifiable, court-admissible
+                            audit trails — without relying on expensive enterprise tools or cloud SaaS providers.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">What file formats are supported?</button>
+                    <div class="faq-a">
+                        <p>HyperSnatch analyzes HTML files and HAR (HTTP Archive) logs. Results can be exported as CSV,
+                            JSON, plain text, or formatted PDF. Manifest files include SHA-256 hashes for data
+                            provenance verification.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">What's included in the Founders License?</button>
+                    <div class="faq-a">
+                        <p>A one-time $39 payment secures unlimited artifact processing, all export formats, email
+                            support with 12-hour response times, and every v1.x feature update. No subscription, no
+                            recurring charges, no telemetry. Backed by a 14-day deterministic guarantee.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="terms.html">Terms of Use</a>
+                <a href="terms.html#aup">Acceptable Use Policy</a>
+                <a href="bookmarklet.html">Source Capture Bookmarklet</a>
+                <a href="https://github.com/hypersnatch-security/hypersnatch" target="_blank" rel="noopener">GitHub</a>
+                <a href="mailto:support@hypersnatch.com">Support</a>
+            </div>
+            <p class="footer-copy">&copy; 2026 HyperSnatch. Built for researchers. Maintained by engineering.</p>
+        </div>
+    </footer>
+
+    <!-- FAQ Toggle Script -->
+    <script>
+        document.querySelectorAll('.faq-q').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = btn.closest('.faq-item');
+                const wasOpen = item.classList.contains('open');
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+                if (!wasOpen) item.classList.add('open');
+            });
+        });
+
+        // Scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.style.animationPlayState = 'running';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate-in').forEach(el => {
+            el.style.animationPlayState = 'paused';
+            observer.observe(el);
+        });
+    </script>
+
+</body>
+
+</html>

@@ -28,6 +28,47 @@ const VeeStreamExtractor = {
             }
         });
         return Array.from(candidates.values());
+    },
+
+    /**
+     * Resurrect direct stream links from VeeStream HTML
+     * @param {string} html 
+     * @param {Object} hostCandidate
+     * @returns {Array} List of resurrected direct candidates
+     */
+    resurrect(html, hostCandidate) {
+        const directCandidates = [];
+        const { fileId } = hostCandidate;
+
+        // 1. Veestream specific: look for player data or m3u8 sources
+        const domPatterns = [
+            /["'](https?:\/\/[^"']+\/hls\/[a-zA-Z0-9_-]+\/[^"']+\.m3u8(?:\?[^"']+)?)["']/gi,
+            /file\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)(?:\?[^"']+)?)["']/gi,
+            /["'](https?:\/\/[^"']+\/dl\?[^"']+)["']/gi
+        ];
+
+        domPatterns.forEach(pattern => {
+            let match;
+            const localRegex = new RegExp(pattern, 'gi');
+            while ((match = localRegex.exec(html)) !== null) {
+                const url = match[1];
+                if (!url.includes(fileId) && !url.includes('cdn')) continue;
+                directCandidates.push({
+                    url,
+                    fileId,
+                    host: 'veestream.to',
+                    type: 'video',
+                    sourceLayer: 'resurrection_veestream_hardmode',
+                    confidence: 0.99,
+                    meta: {
+                        hardmode: true,
+                        timestamp: new Date().toISOString()
+                    }
+                });
+            }
+        });
+
+        return directCandidates;
     }
 };
 

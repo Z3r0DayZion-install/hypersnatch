@@ -5,14 +5,14 @@ import { webcrypto as crypto } from "node:crypto";
 import {
   buildReleaseManifest,
   signReleaseManifest
-} from "../HyperSnatch_Modular_Source/src/release.js";
+} from "./release_utils.mjs";
 import {
   importPrivateJwk,
   importPublicJwk,
   exportPrivateJwk,
   exportPublicJwk,
   generateSigningKeyPair
-} from "../HyperSnatch_Modular_Source/src/signing.js";
+} from "./signing_utils.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -23,7 +23,7 @@ const privateInPath = process.env.HS_RELEASE_PRIVATE_JWK_PATH || "";
 const publicInPath = process.env.HS_RELEASE_PUBLIC_JWK_PATH || "";
 const artifactPaths = [
   path.join(root, "HyperSnatch_Final_Fused.html"),
-  path.join(root, "HyperSnatch_Modular_Source.zip"),
+  path.join(root, "HyperSnatch_v1.0.1_source_only.zip"),
   path.join(root, "HyperSnatch_Architecture_Documentation.txt"),
   path.join(root, "HyperSnatch_Phase_Completion_Report.txt")
 ];
@@ -61,7 +61,7 @@ async function main() {
     await fs.writeFile(privateOutPath, JSON.stringify(privateJwk, null, 2), "utf8");
     console.log("Generated release manifest and keys in", outDir, "(private key exported)");
   } else {
-    try { await fs.unlink(privateOutPath); } catch {}
+    try { await fs.unlink(privateOutPath); } catch { }
     console.log("Generated release manifest and public key in", outDir, "(private key NOT exported)");
   }
 }

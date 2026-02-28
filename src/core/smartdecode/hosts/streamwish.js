@@ -29,6 +29,41 @@ const StreamwishExtractor = {
             }
         });
         return Array.from(candidates.values());
+    },
+
+    /**
+     * Resurrect direct stream/download links from StreamWish page HTML
+     */
+    resurrect(html, hostCandidate) {
+        const directCandidates = [];
+        const { fileId } = hostCandidate;
+
+        const domPatterns = [
+            // jwplayer source file
+            /(?:file|src)\s*[:=]\s*["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/gi,
+            /(?:file|src)\s*[:=]\s*["'](https?:\/\/[^"']+\.mp4[^"']*)["']/gi,
+            // direct source in video tags
+            /<source\s+[^>]*src=["'](https?:\/\/[^"']+)["']/gi,
+            // CDN URLs in scripts
+            /["'](https?:\/\/[a-z0-9]+\.(?:swdns|swhb|wishembed)\.[^"']+\.m3u8[^"']*)["']/gi
+        ];
+
+        domPatterns.forEach(pattern => {
+            let match;
+            const localRegex = new RegExp(pattern, 'gi');
+            while ((match = localRegex.exec(html)) !== null) {
+                const url = match[1];
+                directCandidates.push({
+                    url, fileId,
+                    host: 'streamwish.com',
+                    type: 'video',
+                    sourceLayer: 'resurrection_streamwish_dom',
+                    confidence: 0.96
+                });
+            }
+        });
+
+        return directCandidates;
     }
 };
 

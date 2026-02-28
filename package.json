@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.1",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -33,8 +33,15 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
+    "hs-core:prepare": "node scripts/prepare_hs_core.cjs",
+    "sign:win": "node scripts/sign_windows.cjs",
+    "strategy-pack:hash": "node scripts/hash_strategy_pack.cjs",
+    "prebuild": "node scripts/prepare_hs_core.cjs",
+    "predist": "node scripts/prepare_hs_core.cjs && node scripts/sign_windows.cjs --pre",
+    "prepack": "node scripts/prepare_hs_core.cjs",
     "build": "electron-builder",
     "dist": "electron-builder --publish=never",
+    "postdist": "node scripts/generate_manifest.cjs",
     "pack": "electron-builder --dir=dist",
     "verify": "node scripts/verify_release.js",
     "verify:golden": "node verify_golden.js",
@@ -73,6 +80,7 @@
       "src/security-crypto.js",
       "src/dompurify.js",
       "src/utils/logger.js",
+      "src/utils/crash-logger.js",
       "src/core/",
       "core/",
       "modules/",
@@ -110,3 +118,5 @@
     }
   }
 }
+
+

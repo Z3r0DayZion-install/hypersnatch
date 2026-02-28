@@ -1,0 +1,54 @@
+name: HyperSnatch Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Decode signing cert (optional)
+        if: ${{ secrets.HYPERSNATCH_SIGN_PFX_B64 != '' }}
+        run: |
+          $pfxPath = Join-Path $env:RUNNER_TEMP 'hypersnatch_codesign.pfx'
+          [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String('${{ secrets.HYPERSNATCH_SIGN_PFX_B64 }}'))
+          "PFX_PATH=$pfxPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Build (signed if secrets provided)
+        env:
+          HS_CORE_REQUIRED: "1"
+          # If you provide these secrets, this job will produce a signed+timestamped release.
+          HYPERSNATCH_SIGN_PFX_PASSWORD: ${{ secrets.HYPERSNATCH_SIGN_PFX_PASSWORD }}
+          HYPERSNATCH_SIGN_TIMESTAMP_URL: ${{ secrets.HYPERSNATCH_SIGN_TIMESTAMP_URL || 'http://timestamp.digicert.com' }}
+        run: |
+          New-Item -ItemType Directory -Force -Path 'release-out' | Out-Null
+          if ($env:PFX_PATH) {
+            .\scripts\release_all.ps1 -RepoRoot . -OutDir (Resolve-Path 'release-out').Path -PfxPath $env:PFX_PATH -PfxPassword $env:HYPERSNATCH_SIGN_PFX_PASSWORD -TimestampUrl $env:HYPERSNATCH_SIGN_TIMESTAMP_URL -EnforceTimestamp
+          } else {
+            .\scripts\release_all.ps1 -RepoRoot . -OutDir (Resolve-Path 'release-out').Path -NoSign
+          }
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hypersnatch-release
+          path: release-out/**
+

@@ -28,6 +28,46 @@ const FaststreamExtractor = {
             }
         });
         return Array.from(candidates.values());
+    },
+
+    /**
+     * Resurrect direct stream links from faststream.pw page source
+     */
+    resurrect(html, hostCandidate) {
+        const directCandidates = [];
+        const { fileId } = hostCandidate;
+
+        const domPatterns = [
+            // jwplayer / video.js source configs
+            /(?:file|src|source)\s*[:=]\s*["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/gi,
+            /(?:file|src|source)\s*[:=]\s*["'](https?:\/\/[^"']+\.mp4[^"']*)["']/gi,
+            // HTML5 video source tags
+            /<source\s+[^>]*src=["'](https?:\/\/[^"']+)["']/gi,
+            /<video\s+[^>]*src=["'](https?:\/\/[^"']+)["']/gi,
+            // Packed/obfuscated player URLs
+            /(?:sources|playlist)\s*[:=]\s*\[\s*\{[^}]*["'](?:file|src)["']\s*:\s*["'](https?:\/\/[^"']+)["']/gi,
+            // Direct CDN stream URLs
+            /["'](https?:\/\/[a-z0-9]+\.(?:faststream\\.pw)[^"']+\.(?:m3u8|mp4)[^"']*)["']/gi
+        ];
+
+        domPatterns.forEach(pattern => {
+            let match;
+            const localRegex = new RegExp(pattern, 'gi');
+            while ((match = localRegex.exec(html)) !== null) {
+                const url = match[1];
+                if (!directCandidates.some(c => c.url === url)) {
+                    directCandidates.push({
+                        url, fileId,
+                        host: 'faststream.pw',
+                        type: 'video',
+                        sourceLayer: 'resurrection_faststream_dom',
+                        confidence: 0.94
+                    });
+                }
+            }
+        });
+
+        return directCandidates;
     }
 };
 

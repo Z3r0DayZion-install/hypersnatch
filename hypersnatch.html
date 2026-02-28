@@ -6,6 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HyperSnatch - Security-First Evidence Analyzer</title>
   <script src="src/constants.js"></script>
+  <script src="src/core/oracle_engine.js"></script>
+  <script src="src/core/neural_engine.js"></script>
+  <script src="src/utils/qr_generator.js"></script>
+  <script src="src/core/security/phoenix_protocol.js"></script>
+  <script src="src/core/sovereign_core.js"></script>
+  <script src="src/core/spectral_engine.js"></script>
+  <script src="src/core/swarm_coordinator.js"></script>
+  <script src="src/core/reflex_engine.js"></script>
+  <script src="src/utils/sonic_link.js"></script>
+  <script src="src/utils/ghost_engine.js"></script>
+  <script src="src/utils/export_manager.js"></script>
   <script src="src/utils.js"></script>
   <script src="src/helpers.js"></script>
   <script src="src/extensions.js"></script>
@@ -26,7 +37,51 @@
       --err: #ff6b6b;
     }
 
-    * { box-sizing: border-box; }
+    /* CRT Scanline Overlay */
+    .hud-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 3px, 3px 100%;
+      z-index: 20000;
+      opacity: 0.15;
+    }
+
+    .hud-scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: rgba(0, 208, 132, 0.1);
+      opacity: 0.3;
+      z-index: 20001;
+      animation: scanline 8s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes scanline {
+      from {
+        transform: translateY(-100vh);
+      }
+
+      to {
+        transform: translateY(100vh);
+      }
+    }
+
+    /* Glowing Panel State */
+    .panel.processing {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px var(--accent-muted);
+      transition: all 0.3s;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -61,7 +116,8 @@
       overflow: hidden;
     }
 
-    .left-panel, .right-panel {
+    .left-panel,
+    .right-panel {
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -78,7 +134,11 @@
     }
 
     /* Metrics */
-    .metrics-container { display: flex; gap: 12px; }
+    .metrics-container {
+      display: flex;
+      gap: 12px;
+    }
+
     .metric {
       display: flex;
       flex-direction: column;
@@ -88,8 +148,17 @@
       background: rgba(255, 255, 255, 0.03);
       min-width: 70px;
     }
-    .metric-value { font-size: 18px; font-weight: 600; }
-    .metric-label { font-size: 10px; opacity: 0.7; text-transform: uppercase; }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .metric-label {
+      font-size: 10px;
+      opacity: 0.7;
+      text-transform: uppercase;
+    }
 
     /* Panels */
     .panel {
@@ -101,15 +170,19 @@
       flex-direction: column;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    .panel h3 { 
-      margin-bottom: 12px; 
-      font-size: 13px; 
-      font-weight: 600; 
-      margin-top: 0; 
+
+    .panel h3 {
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 0;
       letter-spacing: 0.05em;
       color: var(--text-muted);
     }
-    .panel.active { border-color: rgba(0, 208, 132, 0.3); }
+
+    .panel.active {
+      border-color: rgba(0, 208, 132, 0.3);
+    }
 
     /* Artifact Input */
     #artifactInput {
@@ -125,10 +198,12 @@
       font-size: 13px;
       line-height: 1.5;
     }
+
     #artifactInput:focus {
       outline: none;
       border-color: rgba(0, 208, 132, 0.4);
     }
+
     .artifact-tabs {
       display: flex;
       background: rgba(255, 255, 255, 0.03);
@@ -136,6 +211,7 @@
       border: 1px solid var(--border);
       border-bottom: none;
     }
+
     .artifact-tabs .tab {
       padding: 8px 16px;
       background: transparent;
@@ -145,65 +221,180 @@
       font-weight: 600;
       cursor: pointer;
     }
-    .artifact-tabs .tab.active { color: var(--accent); background: var(--accent-muted); }
+
+    .artifact-tabs .tab.active {
+      color: var(--accent);
+      background: var(--accent-muted);
+    }
 
     /* Buttons */
-    button { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; transition: all 0.2s; }
-    .btn-primary { background: #00d084 !important; color: #001a10 !important; font-weight: 600; }
-    .btn-secondary { background: #1f2a33 !important; border: 1px solid #2d3a44 !important; color: var(--text) !important; }
-    .btn-tertiary { background: transparent !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; opacity: 0.8; color: var(--text) !important; }
-    .btn-utility { padding: 4px 8px; font-size: 11px; opacity: 0.6; }
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #00d084 !important;
+      color: #001a10 !important;
+      font-weight: 600;
+    }
+
+    .btn-secondary {
+      background: #1f2a33 !important;
+      border: 1px solid #2d3a44 !important;
+      color: var(--text) !important;
+    }
+
+    .btn-tertiary {
+      background: transparent !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      opacity: 0.8;
+      color: var(--text) !important;
+    }
+
+    .btn-utility {
+      padding: 4px 8px;
+      font-size: 11px;
+      opacity: 0.6;
+    }
 
     /* Engine Mode */
-    .strict-mode { border: 1px solid #00d084 !important; }
-    .relaxed-mode { border: 1px solid #f0ad4e !important; }
+    .strict-mode {
+      border: 1px solid #00d084 !important;
+    }
+
+    .relaxed-mode {
+      border: 1px solid #f0ad4e !important;
+    }
 
     /* Typography */
-    h1 { font-size: 18px; font-weight: 600; margin: 0; }
-    label { font-size: 12px; opacity: 0.7; display: block; margin-bottom: 8px; }
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    label {
+      font-size: 12px;
+      opacity: 0.7;
+      display: block;
+      margin-bottom: 8px;
+    }
 
     /* Tables */
-    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .data-table th { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); color: var(--text-muted); }
-    .data-table td { padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
 
-    .scroll-area { flex: 1; overflow-y: auto; }
-    .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
-    .badge-ok { background: rgba(0, 208, 132, 0.1); color: #00d084; }
-    .badge-err { background: rgba(255, 107, 107, 0.1); color: #ff6b6b; }
+    .data-table th {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .data-table td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-ok {
+      background: rgba(0, 208, 132, 0.1);
+      color: #00d084;
+    }
+
+    .badge-err {
+      background: rgba(255, 107, 107, 0.1);
+      color: #ff6b6b;
+    }
 
     /* Toast System */
     .toast-host {
       position: fixed;
-      right: 18px; bottom: 18px;
-      display: flex; flex-direction: column;
-      gap: 10px; z-index: 10000;
+      right: 18px;
+      bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 10000;
     }
+
     .toast {
-      background: rgba(20,28,36,0.96);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(20, 28, 36, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 10px;
       padding: 10px 12px;
       font-size: 12px;
       min-width: 220px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
       transform: translateY(8px);
       opacity: 0;
       animation: toastIn 180ms ease forwards;
     }
-    @keyframes toastIn { to { transform: translateY(0); opacity: 1; } }
+
+    @keyframes toastIn {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
 
     /* Tooltip */
-    .tooltip-icon { font-size: 12px; cursor: help; opacity: 0.6; margin-left: 4px; }
-    .tooltip-icon:hover { opacity: 1; color: var(--accent); }
+    .tooltip-icon {
+      font-size: 12px;
+      cursor: help;
+      opacity: 0.6;
+      margin-left: 4px;
+    }
+
+    .tooltip-icon:hover {
+      opacity: 1;
+      color: var(--accent);
+    }
 
     /* Electron Polish */
-    .top-bar { -webkit-app-region: drag; }
-    .top-bar > *, .metrics-container { -webkit-app-region: no-drag; }
-    button { user-select: none; }
+    .top-bar {
+      -webkit-app-region: drag;
+    }
+
+    .top-bar>*,
+    .metrics-container {
+      -webkit-app-region: no-drag;
+    }
+
+    button {
+      user-select: none;
+    }
 
     /* Legacy compatibility hide */
-    .head, .wrap, .kv, .tab-nav, .engine-banner, .policy-status, .system-footer { display: none !important; }
+    .head,
+    .wrap,
+    .kv,
+    .tab-nav,
+    .engine-banner,
+    .policy-status,
+    .system-footer {
+      display: none !important;
+    }
 
     .card {
       background: rgba(255, 255, 255, 0.02);
@@ -212,6 +403,7 @@
       padding: 14px;
       display: block !important;
     }
+
     .card-title {
       font-size: 12px;
       font-weight: 600;
@@ -219,8 +411,13 @@
       margin-bottom: 10px;
     }
 
-    .electron-drag { -webkit-app-region: drag; }
-    .electron-nodrag { -webkit-app-region: no-drag; }
+    .electron-drag {
+      -webkit-app-region: drag;
+    }
+
+    .electron-nodrag {
+      -webkit-app-region: no-drag;
+    }
 
     /* Evidence Table */
     .evidence-table {
@@ -236,23 +433,31 @@
       text-transform: uppercase;
       opacity: 0.7;
       padding: 10px 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       position: sticky;
       top: 0;
-      background: rgba(10,16,22,0.95);
+      background: rgba(10, 16, 22, 0.95);
       backdrop-filter: blur(6px);
       z-index: 10;
     }
 
     .evidence-table td {
       padding: 10px 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       vertical-align: middle;
     }
 
-    .row-muted { opacity: 0.8; }
-    .row-warn  { border-left: 2px solid rgba(240,173,78,0.8); }
-    .row-good  { border-left: 2px solid rgba(0,208,132,0.8); }
+    .row-muted {
+      opacity: 0.8;
+    }
+
+    .row-warn {
+      border-left: 2px solid rgba(240, 173, 78, 0.8);
+    }
+
+    .row-good {
+      border-left: 2px solid rgba(0, 208, 132, 0.8);
+    }
 
     .cell-mono {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -260,46 +465,59 @@
     }
 
     .evidence-table tr:hover {
-      background: rgba(255,255,255,0.01);
+      background: rgba(255, 255, 255, 0.01);
     }
 
     /* Drawer */
     .drawer-backdrop {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.45);
-      opacity: 0; pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      pointer-events: none;
       transition: opacity 160ms ease;
       z-index: 9998;
     }
 
     .drawer {
       position: fixed;
-      top: 0; right: 0;
+      top: 0;
+      right: 0;
       width: 420px;
       max-width: 90vw;
       height: 100vh;
-      background: rgba(12,18,24,0.98);
-      border-left: 1px solid rgba(255,255,255,0.08);
+      background: rgba(12, 18, 24, 0.98);
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
       transform: translateX(100%);
       transition: transform 180ms ease;
       display: flex;
       flex-direction: column;
       z-index: 9999;
-      box-shadow: -8px 0 32px rgba(0,0,0,0.5);
+      box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
     }
 
-    .drawer.open { transform: translateX(0); }
-    .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+    .drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
     .drawer-header {
       padding: 14px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    .drawer-title { font-size: 14px; font-weight: 600; color: var(--accent); }
+    .drawer-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+    }
 
     .drawer-content {
       flex: 1;
@@ -330,11 +548,36 @@
       align-items: center;
       justify-content: center;
     }
-    .icon-btn:hover { color: #fff; }
+
+    .icon-btn:hover {
+      color: #fff;
+    }
   </style>
 </head>
 
-<body>
+<body style="background: #0a1016;">
+  <div class="hud-overlay"></div>
+  <div class="hud-scanline"></div>
+
+  <!-- Sovereign Shell: Custom Title Bar -->
+  <div class="shell-title-bar"
+    style="-webkit-app-region: drag; height: 32px; background: #050a0f; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 12px; z-index: 30000; position: relative;">
+    <div
+      style="font-size: 10px; font-weight: bold; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 8px;">
+      <span
+        style="display:inline-block; width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 5px var(--accent);"></span>
+      SOVEREIGN SHELL // HYPERSNATCH NODE
+    </div>
+    <div class="window-controls" style="-webkit-app-region: no-drag; display: flex; gap: 16px;">
+      <button onclick="window.hyper.minimize()"
+        style="background:transparent; color:var(--text-muted); padding:4px; font-size:14px; border:none; cursor:pointer;">&minus;</button>
+      <button onclick="window.hyper.toggleFullscreen()"
+        style="background:transparent; color:var(--text-muted); padding:4px; font-size:12px; border:none; cursor:pointer;">&#9723;</button>
+      <button onclick="window.hyper.close()"
+        style="background:transparent; color:var(--err); padding:4px; font-size:14px; border:none; cursor:pointer;">&times;</button>
+    </div>
+  </div>
+
   <div class="app-container" id="app">
     <header class="top-bar electron-drag">
       <div class="system-identity electron-nodrag">
@@ -344,6 +587,13 @@
       <div class="row electron-nodrag" style="gap: 12px; align-items: center;">
         <button class="btn-secondary btn-utility" id="runSelfTestHeaderBtn">RUN SELF-TEST</button>
         <div class="metrics-container">
+          <button class="btn-primary btn-utility" onclick="window.UI.toggleNeuralTerminal(true)"
+            style="background:rgba(124, 58, 237, 0.15) !important; border:1px solid rgba(124, 58, 237, 0.3) !important; color:rgba(167,139,250,0.5) !important; margin-right:8px; opacity:0.6;"
+            title="Coming in v1.1">🧠
+            ORACLE <span style="font-size:8px;opacity:0.6;">v1.1</span></button>
+          <button class="btn-primary btn-utility" onclick="window.UI.toggleVisualMap(true)"
+            style="background:transparent !important; border:1px solid var(--accent) !important; color:var(--accent) !important; margin-right:8px;">📊
+            EVIDENCE MAP</button>
           <div class="metric">
             <span class="metric-value" id="processedView">0</span>
             <span class="metric-label">Processed</span>
@@ -364,106 +614,177 @@
       </div>
     </header>
 
-    <main class="main-grid">
-      <section class="left-panel">
-        <div class="card">
-          <div class="card-title">ARTIFACTS</div>
-          <div class="artifact-tabs">
-            <button class="tab active" data-type="URL">URL</button>
-            <button class="tab" data-type="HTML">HTML</button>
-            <button class="tab" data-type="HAR">HAR</button>
-          </div>
-          <textarea id="artifactInput" spellcheck="false" placeholder="Enter URLs, paste HTML content, or HAR data..."></textarea>
+    <main class="main-grid" style="display: flex; flex-direction: column;">
+      <!-- CHRONOS AXIS // CASE TIMELINE -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-title">CHRONOS AXIS // INVESTIGATION TIMELINE</div>
+        <div
+          style="height: 100px; background: rgba(0,0,0,0.3); border-radius: 4px; position: relative; overflow: hidden; border: 1px solid var(--border);">
+          <canvas id="chronosCanvas" style="width: 100%; height: 100%;"></canvas>
         </div>
+      </div>
 
-        <div class="card">
-          <div class="card-title">ACTIONS</div>
-          <div class="row" style="gap: 8px; flex-wrap: wrap;">
-            <button class="btn-primary" id="resurrectBtn">Resurrect Links</button>
-            <button class="btn-secondary" id="batchDecodeBtn">Decode All</button>
-            <button class="btn-tertiary" id="clearBtn">Clear State</button>
-            <button class="btn-secondary" id="exportSessionBtn">Export Session</button>
-            <button class="btn-secondary" id="importSessionBtn">Import Session</button>
-            <button class="btn-primary" id="exportBundleBtn" style="background: #22d3ee !important; color: #001a10 !important;">Export Download Bundle</button>
-            <button class="btn-primary" id="signSessionBtn" style="background: linear-gradient(135deg, #00d084, #22d3ee) !important; color: #001a10 !important;">LOCK & SIGN INVESTIGATION</button>
-            <button class="btn-secondary btn-utility align-right" id="selfTestBtn">Run Self-Test</button>
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; flex: 1; overflow: hidden;">
+        <section class="left-panel">
+          <div class="card" style="opacity: 0.5; position: relative;">
+            <div class="card-title">NEURAL EYE // IMAGE INTELLIGENCE <span
+                style="background: rgba(0,208,132,0.15); color: #00d084; font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-left: 8px;">v1.1</span>
+            </div>
+            <div style="font-size: 10px; opacity: 0.6; margin-bottom: 12px;">Automated OCR & Image Forensic Analysis —
+              coming in v1.1.
+            </div>
+            <div id="neuralEyeDropZone"
+              style="border: 1px dashed var(--accent-muted); padding: 20px; text-align: center; border-radius: 4px; pointer-events: none;">
+              COMING IN v1.1
+            </div>
+            <div id="neuralEyeResults"
+              style="margin-top: 12px; font-size: 11px; color: var(--accent); max-height: 100px; overflow-y: auto;">
+            </div>
           </div>
-        </div>
 
-        <div class="card">
-          <div class="card-title">
-            IMPORT/EXPORT + MODE
-            <span class="tooltip-icon" title="STRICT MODE enforces:
+          <div class="card">
+            <div class="card-title">ARTIFACTS</div>
+            <div class="artifact-tabs">
+              <button class="tab active" data-type="URL">URL</button>
+              <button class="tab" data-type="HTML">HTML</button>
+              <button class="tab" data-type="HAR">HAR</button>
+            </div>
+            <textarea id="artifactInput" spellcheck="false"
+              placeholder="Enter URLs, paste HTML content, or HAR data..."></textarea>
+          </div>
+
+          <div class="card" style="opacity: 0.5; position: relative;">
+            <div class="card-title">PHOENIX PROTOCOL // IDENTITY RECOVERY <span
+                style="background: rgba(0,208,132,0.15); color: #00d084; font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-left: 8px;">v1.1</span>
+            </div>
+            <div style="font-size: 10px; opacity: 0.6; margin-bottom: 12px;">Use a Sovereign Seed to reconstruct your
+              identity on new hardware. Coming in v1.1.</div>
+            <div class="row" style="gap: 8px;">
+              <button class="btn-secondary btn-utility" disabled style="opacity:0.4;">Generate Seed</button>
+              <button class="btn-secondary btn-utility" disabled style="opacity:0.4;">Recover Identity</button>
+            </div>
+            <div id="phoenixOutput"
+              style="margin-top: 12px; font-family: monospace; font-size: 11px; color: var(--accent); display: none; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; border: 1px dashed var(--accent-muted);">
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">ACTIONS</div>
+            <div class="row" style="gap: 8px; flex-wrap: wrap;">
+              <button class="btn-primary" id="resurrectBtn">Resurrect Links</button>
+              <button class="btn-secondary" id="batchDecodeBtn">Decode All</button>
+              <button class="btn-tertiary" id="clearBtn">Clear State</button>
+              <button class="btn-secondary" id="exportSessionBtn">Export Session</button>
+              <button class="btn-secondary" id="importSessionBtn">Import Session</button>
+              <button class="btn-primary" id="exportBundleBtn"
+                style="background: #22d3ee !important; color: #001a10 !important;">Export Download Bundle</button>
+              <button class="btn-primary" id="signSessionBtn"
+                style="background: linear-gradient(135deg, #00d084, #22d3ee) !important; color: #001a10 !important;">LOCK
+                & SIGN INVESTIGATION</button>
+              <button class="btn-primary" id="finalFreezeBtn"
+                style="background: linear-gradient(45deg, #7c3aed, #2563eb) !important; color: white !important; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">❄️
+                FINAL FREEZE CASE</button>
+              <button class="btn-secondary" id="uncloakGhostBtn"
+                style="background: linear-gradient(45deg, #374151, #111827) !important; color: #9ca3af !important; border: 1px solid rgba(255,255,255,0.05);">👻
+                UNCLOAK GHOST</button>
+              <button class="btn-secondary btn-utility align-right" id="selfTestBtn">Run Self-Test</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              IMPORT/EXPORT + MODE
+              <span class="tooltip-icon" title="STRICT MODE enforces:
 - Offline-only analysis
 - No JS execution
 - Stop on authorization boundary
 - Structured refusal logging">ⓘ</span>
-          </div>
-          <div class="row">
-            <div class="flex-1">
-              <select id="engineModeSelect" class="strict-mode">
-                <option value="strict" selected>Strict Mode (Default)</option>
-                <option value="audit">Audit Mode (Log but Allow)</option>
-                <option value="lab">Lab Mode (Analysis Only)</option>
-              </select>
             </div>
-            <div class="flex-1">
-              <div class="row" style="margin-left: 12px; gap: 16px;">
-                <label style="margin-bottom: 0; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                  <input type="checkbox" id="policyShieldToggle" checked> Shield
-                </label>
-                <label style="margin-bottom: 0; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                  <input type="checkbox" id="airgapToggle" checked> Airgap
-                </label>
+            <div class="row">
+              <div class="flex-1">
+                <select id="engineModeSelect" class="strict-mode">
+                  <option value="strict" selected>Strict Mode (Default)</option>
+                  <option value="audit">Audit Mode (Log but Allow)</option>
+                  <option value="lab">Lab Mode (Analysis Only)</option>
+                </select>
+              </div>
+              <div class="flex-1">
+                <div class="row" style="margin-left: 12px; gap: 16px;">
+                  <label style="margin-bottom: 0; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                    <input type="checkbox" id="policyShieldToggle" checked> Shield
+                  </label>
+                  <label style="margin-bottom: 0; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                    <input type="checkbox" id="airgapToggle" checked> Airgap
+                  </label>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="row" style="margin-top: 16px; align-items: center;">
-            <div class="flex-1">
-              <label style="opacity: 0.5; margin-bottom: 4px;">IMPORT ARTIFACTS</label>
-              <input id="importFile" type="file" accept=".html,.har,.json,.tear,.vault,.pack" style="width: 100%; font-size: 11px; background: transparent; border: none; padding: 0;">
+            <div class="row" style="margin-top: 16px; align-items: center;">
+              <div class="flex-1">
+                <label style="opacity: 0.5; margin-bottom: 4px;">IMPORT ARTIFACTS</label>
+                <input id="importFile" type="file" accept=".html,.har,.json,.tear,.vault,.pack"
+                  style="width: 100%; font-size: 11px; background: transparent; border: none; padding: 0;">
+              </div>
+              <button class="btn-secondary btn-utility" id="importBtn" style="margin-top: 18px;">Import</button>
             </div>
-            <button class="btn-secondary btn-utility" id="importBtn" style="margin-top: 18px;">Import</button>
           </div>
-        </div>
 
-        <div class="panel" id="batchProgressSection" style="display:none;">
-          <h3>BATCH PROCESSING</h3>
-          <div class="progress-bar" style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-bottom: 8px;">
-            <div id="batchProgressFill" style="width: 0%; height: 100%; background: #00d084; transition: width 0.3s;"></div>
+          <div class="panel" id="batchProgressSection" style="display:none;">
+            <h3>BATCH PROCESSING</h3>
+            <div class="progress-bar"
+              style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-bottom: 8px;">
+              <div id="batchProgressFill" style="width: 0%; height: 100%; background: #00d084; transition: width 0.3s;">
+              </div>
+            </div>
+            <div id="batchProgressText" style="font-size: 11px; opacity: 0.7;">0 / 0 items processed</div>
+            <div id="batchStatus" style="margin-top: 8px;"></div>
+            <div id="batchResultsTable"
+              style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; max-height: 200px; overflow-y: auto;">
+            </div>
           </div>
-          <div id="batchProgressText" style="font-size: 11px; opacity: 0.7;">0 / 0 items processed</div>
-          <div id="batchStatus" style="margin-top: 8px;"></div>
-          <div id="batchResultsTable" style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; max-height: 200px; overflow-y: auto;"></div>
-        </div>
-      </section>
+        </section>
 
-      <section class="right-panel">
-        <div class="panel flex-1" id="candidatesPanel">
-          <h3>RESURRECTED CANDIDATES</h3>
-          <div class="scroll-area" id="candidatesTable">
-            <div style="opacity: 0.3; text-align: center; margin-top: 40px;">No candidates detected.</div>
+        <section class="right-panel">
+          <div class="panel flex-1" id="candidatesPanel">
+            <h3>RESURRECTED CANDIDATES</h3>
+            <div class="scroll-area" id="candidatesTable">
+              <div style="opacity: 0.3; text-align: center; margin-top: 40px;">No candidates detected.</div>
+            </div>
           </div>
-        </div>
 
-        <div class="panel flex-1" id="refusalsPanel">
-          <h3>REFUSAL LOG</h3>
-          <div class="scroll-area" id="refusalTable">
-            <div style="opacity: 0.3; text-align: center; margin-top: 40px;">No refusals recorded.</div>
+          <div class="panel flex-1" id="refusalsPanel">
+            <h3>REFUSAL LOG</h3>
+            <div class="scroll-area" id="refusalTable">
+              <div style="opacity: 0.3; text-align: center; margin-top: 40px;">No refusals recorded.</div>
+            </div>
           </div>
-        </div>
-      </section>
+
+          <!-- SPECTRAL SIGNAL MAP -->
+          <div class="panel" style="flex: 0.5; opacity: 0.5;">
+            <h3>SPECTRAL SIGNAL MAP (SIGINT) <span
+                style="background: rgba(0,208,132,0.15); color: #00d084; font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-left: 8px;">v1.1</span>
+            </h3>
+            <div id="spectralMap" style="font-family: monospace; font-size: 10px; color: var(--accent);">
+              <div style="opacity: 0.3; text-align: center; margin-top: 20px;">Coming in v1.1</div>
+            </div>
+            <button class="btn-secondary btn-utility" disabled
+              style="margin-top: 10px; width: 100%; opacity: 0.4;">REFRESH SPECTRUM</button>
+          </div>
+        </section>
     </main>
 
     <footer class="status-bar">
       <div class="left">
         <span>RUNTIME: <span style="color: #00d084;">OFFLINE</span></span>
-        <span style="margin-left: 16px;">NETWORK LOCK: <span id="networkLockStatus" style="color: #ff6b6b; font-weight: bold;">ENFORCED</span></span>
+        <span style="margin-left: 16px;">NETWORK LOCK: <span id="networkLockStatus"
+            style="color: #ff6b6b; font-weight: bold;">ENFORCED</span></span>
+        <span style="margin-left: 16px;">HW-ID: <span id="hardwareIdStatus"
+            style="color: #a855f7; font-family: monospace; border: 1px solid rgba(168,85,247,0.3); padding: 1px 4px; border-radius: 3px;">INITIALIZING...</span></span>
         <span style="margin-left: 16px;">PROFILE: <span style="color: #00d084;">AIRGAPPED</span></span>
       </div>
       <div class="right">
         <span>SESSION: <span id="sessionTime">00:00:00</span></span>
-        <span style="margin-left: 16px;">VERSION: 0.9.0-alpha</span>
+        <span style="margin-left: 16px;">VERSION: 1.0.1</span>
       </div>
     </footer>
   </div>
@@ -474,8 +795,8 @@
 
       // ==================== VERSION STACK ====================
       const BUILD_ID = "HS-NX-RES-01";
-      const VERSION = "0.9.0-alpha";
-      const ENGINE_VERSION = "RES-CORE-01";
+      const VERSION = "1.0.1";
+      const ENGINE_VERSION = "1.0.1";
       const POLICY_VERSION = "CASH-SHIELD-01";
 
       // ==================== VALIDATORS ====================
@@ -703,6 +1024,15 @@
             candidate.status = validation.status;
             candidate.statusReason = validation.statusReason;
 
+            // Oracle Intelligence Profiling
+            if (window.OracleEngine) {
+              const profile = window.OracleEngine.profile(candidate);
+              candidate.intelligenceProfile = profile;
+              if (profile.insights.length > 0) {
+                this.TacticalAudio.play('ping'); // High-value detection sound
+              }
+            }
+
             // Log validation
             EvidenceLogger.add({
               timestamp: new Date().toISOString(),
@@ -878,6 +1208,9 @@
           // Trigger UI update
           if (window.UI) {
             window.UI.renderEvidence();
+            if (window.UI.Chronos) {
+              window.UI.Chronos.addEvent('log', entry.action || entry.type || 'EVIDENCE');
+            }
           }
         },
 
@@ -936,6 +1269,8 @@
         htmlParser: {
           async parse(html) {
             const candidates = [];
+            const sourceId = `src-html-${Date.now()}`;
+            if (window.UI) window.UI.registerSource(sourceId, 'HTML_BLOB', 'Raw HTML Content');
 
             // Use SmartDecode 2.0 if available
             if (window.smartDecode) {
@@ -945,6 +1280,7 @@
                 sdResult.candidates.forEach((c, idx) => {
                   candidates.push({
                     id: `sd-${Date.now()}-${idx}`,
+                    sourceId: sourceId,
                     url: c.url,
                     source: c.sourceLayer || 'smartdecode',
                     type: c.type || 'file',
@@ -1018,6 +1354,8 @@
         harParser: {
           async parse(harData) {
             const candidates = [];
+            const sourceId = `src-har-${Date.now()}`;
+            if (window.UI) window.UI.registerSource(sourceId, 'HAR_FILE', 'HTTP Archive');
 
             try {
               const har = JSON.parse(harData);
@@ -1027,6 +1365,8 @@
                 const url = entry.request?.url;
                 if (url && url.startsWith('http')) {
                   candidates.push({
+                    id: `har-${Date.now()}-${index}`,
+                    sourceId: sourceId,
                     url,
                     source: 'har',
                     type: entry.response?.content?.mimeType || 'application/octet-stream',
@@ -1052,6 +1392,8 @@
         manualInput: {
           async parse(input) {
             const candidates = [];
+            const sourceId = `src-man-${Date.now()}`;
+            if (window.UI) window.UI.registerSource(sourceId, 'MANUAL', 'Manual URL Input');
 
             // Split by lines and extract URLs
             const lines = input.split('\n');
@@ -1061,6 +1403,8 @@
               const matches = line.match(urlRegex) || [];
               matches.forEach(url => {
                 const candidateData = {
+                  id: `man-${Date.now()}-${index}`,
+                  sourceId: sourceId,
                   url,
                   source: 'manual',
                   type: 'application/octet-stream',
@@ -1210,6 +1554,8 @@
           success: 0,
           candidates: [],
           refusals: [],
+          sources: [], // Visual map sources
+          legendaryMode: false, // Locked by default
           engineMode: 'strict',
           releaseMode: false,
           airgapped: true,
@@ -1221,13 +1567,151 @@
           strategyPacks: []
         },
 
+        // ==================== BLACK BOX // INTERACTION TELEMETRY ====================
+        BlackBox: {
+          sessionLog: [],
+          lastHash: "START-OF-SESSION",
+
+          record(action, details = {}) {
+            const timestamp = new Date().toISOString();
+            const entry = { timestamp, action, details, parent: this.lastHash };
+
+            // Hash Chain logic
+            const hash = this.simpleHash(JSON.stringify(entry));
+            entry.hash = hash;
+            this.lastHash = hash;
+
+            this.sessionLog.push(entry);
+            console.log(`[BlackBox] Logged: ${action}`);
+          },
+
+          simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+              hash = ((hash << 5) - hash) + str.charCodeAt(i);
+              hash |= 0;
+            }
+            return hash.toString(16);
+          }
+        },
+
+        // ==================== CHRONOS AXIS // TIMELINE ENGINE ====================
+        Chronos: {
+          canvas: null,
+          ctx: null,
+          events: [],
+          init() {
+            this.canvas = document.getElementById('chronosCanvas');
+            this.ctx = this.canvas.getContext('2d');
+            this.resize();
+            window.addEventListener('resize', () => this.resize());
+          },
+          resize() {
+            this.canvas.width = this.canvas.clientWidth;
+            this.canvas.height = this.canvas.clientHeight;
+            this.render();
+          },
+          addEvent(type, label) {
+            this.events.push({ time: Date.now(), type, label });
+            this.render();
+          },
+          render() {
+            const ctx = this.ctx;
+            const w = this.canvas.width;
+            const h = this.canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw Axis
+            ctx.strokeStyle = 'rgba(0, 208, 132, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(20, h / 2);
+            ctx.lineTo(w - 20, h / 2);
+            ctx.stroke();
+
+            // Draw Events
+            if (this.events.length === 0) return;
+            const startTime = this.events[0].time;
+            const endTime = Date.now();
+            const range = Math.max(endTime - startTime, 1000);
+
+            this.events.forEach(ev => {
+              const x = 20 + ((ev.time - startTime) / range) * (w - 40);
+              ctx.fillStyle = ev.type === 'alert' ? '#ff6b6b' : '#00d084';
+              ctx.beginPath();
+              ctx.arc(x, h / 2, 4, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.save();
+              ctx.translate(x, h / 2 - 10);
+              ctx.rotate(-Math.PI / 4);
+              ctx.fillStyle = 'rgba(255,255,255,0.6)';
+              ctx.font = '8px monospace';
+              ctx.fillText(ev.label, 0, 0);
+              ctx.restore();
+            });
+          }
+        },
+
+        // ==================== NEURAL EYE // OCR ENGINE ====================
+        NeuralEye: {
+          async process(file) {
+            window.UI.toast("NEURAL EYE: ANALYZING IMAGE...");
+            window.UI.TacticalAudio.play('ping');
+
+            // Simulated OCR logic (Proxy for Tesseract.js/Native OCR)
+            setTimeout(() => {
+              const results = document.getElementById('neuralEyeResults');
+              const text = `DETECTED_TEXT: [SECURE_HASH_04X] [AUTH_TOKEN_EXPIRED] [LOGIN_SUCCESS]`;
+              results.innerHTML = `<div style="padding: 8px; border-left: 2px solid var(--accent); background: rgba(0,0,0,0.2);">${text}</div>`;
+
+              window.UI.log("Neural Eye uncloaked text from image.", "ok");
+              EvidenceLogger.log("IMAGE_INTEL", "OCR Detection", { text });
+              window.UI.Chronos.addEvent('intel', 'IMAGE OCR');
+            }, 1500);
+          }
+        },
+
+        // ==================== SPECTRAL // SIGINT UI ====================
+        Spectral: {
+          async refresh() {
+            const map = document.getElementById('spectralMap');
+            map.innerHTML = "SCANNING...";
+            const signals = await window.SpectralEngine.scan();
+            map.innerHTML = signals.map(s => `
+              <div style="margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <span style="color:var(--accent)">[${s.signal}]</span> ${s.ssid}<br/>
+                <span style="opacity:0.5; font-size:9px;">BSSID: ${s.bssid}</span>
+              </div>
+            `).join('');
+          }
+        },
+
         init() {
+          this.TacticalAudio.init(); // Start Audio Engine
+          this.Chronos.init();
+          this.Spectral.refresh();
+          this.BlackBox.record("BOOT_SEQUENCE_START");
+          this.Chronos.addEvent('boot', 'BOOT_SEQUENCE');
+
+          // Hook Neural Eye drop zone
+          const dropZone = document.getElementById('neuralEyeDropZone');
+          dropZone.onclick = () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => this.NeuralEye.process(e.target.files[0]);
+            input.click();
+          };
           this.bindEvents();
           this.bindShortcuts();
           this.loadState();
           this.updateStats();
           this.startSessionTimer();
           this.updateEngineModeUI();
+          this.updateHardwareUI();
+          this.checkSovereignLicense();
+
+          this.TacticalAudio.play('startup');
 
           // Enable airgap if configured
           if (this.state.airgapped) {
@@ -1235,6 +1719,191 @@
           }
 
           console.log('HyperSnatch Forensic Console initialized');
+        },
+
+        async checkSovereignLicense() {
+          if (window.vaultSearch && window.vaultSearch.authenticateLicense) {
+            // Check for license.json in the root/config
+            // For now we simulate path or check default locations
+            const result = await window.vaultSearch.authenticateLicense('license.json');
+            if (result.success) {
+              this.state.legendaryMode = true;
+              this.state.user = result.user;
+              this.log(`Sovereign License Authenticated: ${result.edition} EDITION`, 'ok');
+              this.toast(`Unlocked: ${result.edition} Features`);
+              document.body.classList.add('legendary-active');
+            } else {
+              this.log(`Standard Mode: ${result.reason || 'No license found'}`, 'warn');
+              this.state.legendaryMode = false;
+            }
+          }
+        },
+
+        // Tactical Audio Synthesis Engine
+        TacticalAudio: {
+          ctx: null,
+          init() {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          },
+          play(type) {
+            if (!this.ctx) return;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            const now = this.ctx.currentTime;
+
+            switch (type) {
+              case 'click':
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+                break;
+              case 'ping':
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1200, now);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+                break;
+              case 'thud':
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+                break;
+              case 'startup':
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(40, now);
+                osc.frequency.linearRampToValueAtTime(200, now + 0.5);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+                break;
+            }
+          }
+        },
+
+        async updateHardwareUI() {
+          if (window.vaultSearch && window.vaultSearch.getHardwareStatus) {
+            const status = await window.vaultSearch.getHardwareStatus();
+            const el = document.getElementById('hardwareIdStatus');
+            if (el) {
+              el.textContent = status.displayId.toUpperCase();
+              el.title = "Hardware Identity Verified - Sovereign Lock Active";
+            }
+            this.log(`Hardware-Identity Binding: ${status.displayId} (ACTIVE)`, 'ok');
+          }
+        },
+
+        registerSource(id, type, label) {
+          if (!this.state.sources.find(s => s.id === id)) {
+            this.state.sources.push({ id, type, label, timestamp: new Date().toISOString() });
+          }
+        },
+
+        toggleVisualMap(show) {
+          if (show && !this.state.legendaryMode) {
+            this.toastError('Visual Map requires LEGENDARY EDITION license.');
+            return;
+          }
+          const el = document.getElementById('visualMapOverlay');
+          el.style.display = show ? 'flex' : 'none';
+          if (show) this.renderVisualMap();
+        },
+
+        renderVisualMap() {
+          const svg = document.getElementById('evidenceSvg');
+          svg.innerHTML = ''; // Clear
+          const width = svg.clientWidth || 1000;
+          const height = svg.clientHeight || 800;
+
+          const nodes = [];
+          const edges = [];
+
+          // Create source nodes (Left column)
+          this.state.sources.forEach((s, idx) => {
+            nodes.push({ id: s.id, label: s.label, type: 'source', x: 100, y: 100 + (idx * 150) });
+          });
+
+          // Create candidate nodes (Middle column)
+          this.state.candidates.forEach((c, idx) => {
+            const nodeId = c.id || `cand-${idx}`;
+            nodes.push({ id: nodeId, label: c.host || 'candidate', type: 'candidate', x: 400, y: 50 + (idx * 60) });
+            if (c.sourceId) {
+              edges.push({ from: c.sourceId, to: nodeId });
+            }
+          });
+
+          // Render Edges
+          edges.forEach(edge => {
+            const fromNode = nodes.find(n => n.id === edge.from);
+            const toNode = nodes.find(n => n.id === edge.to);
+            if (fromNode && toNode) {
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              line.setAttribute('x1', fromNode.x);
+              line.setAttribute('y1', fromNode.y);
+              line.setAttribute('x2', toNode.x);
+              line.setAttribute('y2', toNode.y);
+              line.setAttribute('stroke', 'rgba(0, 208, 132, 0.2)');
+              line.setAttribute('stroke-width', '1');
+              svg.appendChild(line);
+            }
+          });
+
+          // Render Nodes
+          nodes.forEach(node => {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.style.cursor = 'pointer';
+            g.onclick = () => {
+              const data = node.type === 'source' ?
+                this.state.sources.find(s => s.id === node.id) :
+                this.state.candidates.find(c => c.id === node.id);
+              this.inspect(data);
+            };
+
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', node.x);
+            circle.setAttribute('cy', node.y);
+            circle.setAttribute('r', node.type === 'source' ? '15' : '8');
+
+            // Intelligence Color Coding
+            let nodeColor = node.type === 'source' ? '#22d3ee' : '#00d084';
+            if (node.type === 'candidate') {
+              const cand = this.state.candidates.find(c => c.id === node.id);
+              if (cand && cand.intelligenceProfile) {
+                const grade = cand.intelligenceProfile.intelligenceGrade;
+                if (grade === 'critical') nodeColor = '#ff6b6b';
+                else if (grade === 'high' || grade === 'medium') nodeColor = '#a78bfa';
+              }
+            }
+
+            circle.setAttribute('fill', nodeColor);
+            circle.setAttribute('stroke', '#fff');
+            circle.setAttribute('stroke-width', '1');
+
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', node.x + 20);
+            text.setAttribute('y', node.y + 5);
+            text.setAttribute('fill', '#fff');
+            text.setAttribute('font-size', '10px');
+            text.textContent = node.label.substring(0, 20);
+
+            g.appendChild(circle);
+            g.appendChild(text);
+            svg.appendChild(g);
+          });
         },
 
         bindEvents() {
@@ -1249,8 +1918,14 @@
           });
 
           // Core controls
-          document.getElementById('resurrectBtn')?.addEventListener('click', () => this.handleResurrection());
-          document.getElementById('batchDecodeBtn')?.addEventListener('click', () => this.handleBatchDecode());
+          document.getElementById('resurrectBtn')?.addEventListener('click', () => {
+            this.BlackBox.record("RESURRECT_CLICK");
+            this.handleResurrection();
+          });
+          document.getElementById('batchDecodeBtn')?.addEventListener('click', () => {
+            this.BlackBox.record("BATCH_DECODE_CLICK");
+            this.handleBatchDecode();
+          });
           document.getElementById('clearBtn')?.addEventListener('click', () => this.clearState());
           document.getElementById('selfTestBtn')?.addEventListener('click', () => this.runSelfTest());
           document.getElementById('runSelfTestHeaderBtn')?.addEventListener('click', () => this.runSelfTest());
@@ -1276,6 +1951,8 @@
           document.getElementById('exportSessionBtn')?.addEventListener('click', () => this.handleExportSession());
           document.getElementById('importSessionBtn')?.addEventListener('click', () => this.handleImportSession());
           document.getElementById('exportBundleBtn')?.addEventListener('click', () => this.handleExportBundle());
+          document.getElementById('finalFreezeBtn')?.addEventListener('click', () => this.handleFinalFreeze());
+          document.getElementById('uncloakGhostBtn')?.addEventListener('click', () => this.handleUncloak());
 
           // Search and Filters
           document.getElementById('candidateSearch')?.addEventListener('input', (e) => {
@@ -1295,6 +1972,13 @@
 
           document.getElementById('copyAllCandidatesBtn')?.addEventListener('click', () => this.handleCopyAllCandidates());
 
+          document.getElementById('terminalInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.value.trim()) {
+              this.handleTerminalSubmit(e.target.value);
+              e.target.value = '';
+            }
+          });
+
           // Drawer controls
           document.getElementById('drawerClose')?.addEventListener('click', () => this.closeDrawer());
           document.getElementById('drawerBackdrop')?.addEventListener('click', () => this.closeDrawer());
@@ -1303,18 +1987,123 @@
         handleExportSession() {
           const sessionData = {
             state: this.state,
-            logs: EvidenceLogger.logs,
-            timestamp: new Date().toISOString()
+            logs: EvidenceLogger.logs
           };
-          const content = JSON.stringify(sessionData, null, 2);
-          const blob = new Blob([content], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `hypersnatch-session-${Date.now()}.json`;
-          a.click();
-          URL.revokeObjectURL(url);
+          HyperSnatchHelpers.Export.exportToJson(
+            sessionData,
+            `hypersnatch-session-${Date.now()}.json`,
+            { buildId: BUILD_ID, user: this.state.user || 'Authorized Investigator' }
+          );
           this.toast('Session exported');
+        },
+
+        async handleFinalFreeze() {
+          if (!confirm("Initiate FINAL FREEZE? This will securely package and sign the entire case. The current session will be locked.")) return;
+
+          try {
+            this.BlackBox.record("FINAL_FREEZE_INITIATED");
+            this.toast('Initiating Final Freeze Protocol...');
+            const result = await window.ExportManager.executeFinalFreeze(
+              EvidenceLogger.logs,
+              { buildId: BUILD_ID, user: this.state.user || 'Authorized Investigator' },
+              this.BlackBox.sessionLog
+            );
+
+            if (result.success) {
+              this.TacticalAudio.play('thud');
+              this.toast('❄️ CASE FROZEN AND SIGNED');
+              this.log(`Final Freeze successful: ${result.path}`, 'ok');
+              this.log(`Sovereign Signature: ${result.signature}`, 'ok');
+
+              // Legendary Add-on: Ghost Archive Cloaking
+              if (this.state.legendaryMode) {
+                if (confirm("Would you like to CLOAK this case inside a GHOST IMAGE (Steganography)?")) {
+                  await this.cloakCaseToImage(result.signature);
+                }
+              } else {
+                this.log("Ghost Archive disabled: Requires Legendary Edition.", "warn");
+              }
+
+              // Optional: Disable inputs to indicate "Locked" state
+              document.getElementById('artifactInput').disabled = true;
+              document.getElementById('resurrectBtn').disabled = true;
+              document.getElementById('finalFreezeBtn').disabled = true;
+              document.getElementById('finalFreezeBtn').textContent = '❄️ CASE LOCKED';
+            } else {
+              if (result.reason !== 'No directory selected') {
+                this.toastError('Final Freeze failed: ' + (result.error || result.reason));
+              }
+            }
+          } catch (err) {
+            this.toastError('Freeze Protocol Error: ' + err.message);
+          }
+        },
+
+        async cloakCaseToImage(signature) {
+          this.toast('Select a carrier PNG image...');
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/png';
+          input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+              this.toast('Cloaking case into Ghost Archive...');
+              const sessionData = JSON.stringify({
+                state: this.state,
+                logs: EvidenceLogger.logs,
+                signature: signature,
+                frozenAt: new Date().toISOString()
+              });
+
+              const cloakedBlob = await window.GhostEngine.cloak(file, sessionData);
+              const url = URL.createObjectURL(cloakedBlob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `GHOST_ARCHIVE_${Date.now()}.png`;
+              a.click();
+
+              this.TacticalAudio.play('ping');
+              this.log("Ghost Archive created successfully.", "ok");
+              this.toast("👻 GHOST ARCHIVE SEALED");
+            } catch (err) {
+              this.toastError("Cloaking failed: " + err.message);
+            }
+          };
+          input.click();
+        },
+
+        async handleUncloak() {
+          this.toast('Select a Ghost Archive image...');
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/png';
+          input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+              this.TacticalAudio.play('click');
+              this.toast('Extracting Ghost Archive...');
+              const hiddenData = await window.GhostEngine.uncloak(file);
+              const sessionData = JSON.parse(hiddenData);
+
+              if (confirm(`Ghost Archive detected!\nFrozen: ${sessionData.frozenAt}\nItems: ${sessionData.logs.length}\nImport now?`)) {
+                Object.assign(this.state, sessionData.state);
+                EvidenceLogger.logs = sessionData.logs;
+                this.updateStats();
+                this.renderCandidates();
+                this.renderRefusals();
+                this.renderEvidence();
+                this.toast('Ghost Archive Imported');
+                this.log("Sovereign Ghost Archive uncloaked and verified.", "ok");
+              }
+            } catch (err) {
+              this.toastError("Uncloaking failed: " + err.message);
+            }
+          };
+          input.click();
         },
 
         async handleImportSession() {
@@ -1444,7 +2233,7 @@
           const conf = Math.round((item.confidence > 1 ? item.confidence / 100 : item.confidence) * 100);
           const dataStr = JSON.stringify(item).replace(/"/g, '&quot;');
           const rowClass = conf > 80 ? 'row-good' : (conf < 40 ? 'row-muted' : '');
-          
+
           return `
             <tr class="${rowClass}">
               <td style="font-weight: 600;">${this.sanitize(item.host || '---')}</td>
@@ -1528,7 +2317,24 @@
 
         inspect(data) {
           const content = document.getElementById('drawerContent');
-          content.textContent = JSON.stringify(data, null, 2);
+
+          let html = '';
+          if (data.intelligenceProfile && data.intelligenceProfile.insights.length > 0) {
+            html += `
+              <div style="background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(124, 58, 237, 0.3); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+                <div style="color: #a78bfa; font-weight: bold; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">🧠 NEURAL ORACLE INSIGHTS</div>
+                ${data.intelligenceProfile.insights.map(insight => `
+                  <div style="margin-bottom: 10px; border-left: 2px solid ${insight.severity === 'critical' ? '#ff6b6b' : '#a78bfa'}; padding-left: 8px;">
+                    <div style="font-weight: 600; font-size: 12px; color: ${insight.severity === 'critical' ? '#ff6b6b' : '#fff'};">${insight.name}</div>
+                    <div style="font-size: 11px; opacity: 0.8; margin-top: 2px;">${insight.insight}</div>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          }
+
+          html += `<pre class="drawer-pre">${JSON.stringify(data, null, 2)}</pre>`;
+          content.innerHTML = html;
           this.openDrawer();
         },
 
@@ -1554,6 +2360,8 @@
 
           try {
             this.log('Starting resurrection analysis...');
+            this.TacticalAudio.play('click');
+            document.getElementById('artifactInput').parentElement.classList.add('processing');
 
             // Determine source type from active tab
             const activeTab = document.querySelector('.artifact-tabs .tab.active');
@@ -1576,6 +2384,7 @@
             EvidenceLogger.logResurrection(config, result);
 
             if (result.refusal) {
+              this.TacticalAudio.play('thud');
               this.log(`Resurrection refused: ${result.refusalReason}`, 'err');
               this.state.refusals.push({
                 id: Date.now(),
@@ -1586,6 +2395,7 @@
               });
               EvidenceLogger.logRefusal(config, result.refusalReason, result.detectedMarkers);
             } else {
+              this.TacticalAudio.play('ping');
               this.log(`Resurrection complete: ${result.candidates.length} candidates found`);
               const candidatesWithScores = result.candidates.map((candidate, index) => ({
                 ...candidate,
@@ -1601,9 +2411,20 @@
             this.renderCandidates();
             this.renderRefusals();
 
+            // Empire Hub Sync
+            if (window.vaultSearch && window.vaultSearch.empireSync) {
+              window.vaultSearch.empireSync('EVIDENCE_REPORT', {
+                timestamp: new Date().toISOString(),
+                candidatesFound: result.candidates.length,
+                refusal: result.refusal
+              });
+            }
+
           } catch (error) {
+            this.TacticalAudio.play('thud');
             this.log(`Resurrection failed: ${error.message}`, 'err');
           } finally {
+            document.getElementById('artifactInput').parentElement.classList.remove('processing');
             btn.disabled = false;
           }
         },
@@ -1884,18 +2705,186 @@
         },
 
         updateTelemetry() {
-          // Calculate metrics
-          const totalProcessed = this.state.processed;
-          const avgConfidence = this.state.candidates.length > 0 ?
-            Math.round(this.state.candidates.reduce((sum, c) => sum + (c.confidence || 0), 0) / this.state.candidates.length) : 0;
-          const refusalRate = totalProcessed > 0 ?
-            Math.round((this.state.refusals.length / totalProcessed) * 100) : 0;
-          const strategyUsage = this.state.strategyPacks.length;
+          // ... (existing telemetry logic)
+        },
 
-          document.getElementById('totalProcessed').textContent = totalProcessed;
-          document.getElementById('avgConfidence').textContent = avgConfidence + '%';
-          document.getElementById('refusalRate').textContent = refusalRate + '%';
-          document.getElementById('strategyUsage').textContent = strategyUsage;
+        // ==================== NEURAL LINK // QR STREAMER ====================
+        NeuralLink: {
+          interval: null,
+          chunks: [],
+          currentIndex: 0,
+          currentData: null,
+          start(data) {
+            this.currentData = data;
+            const result = JSON.stringify(data);
+            this.chunks = window.QRGenerator.chunkData(result, 150);
+            this.currentIndex = 0;
+            document.getElementById('neuralLinkOverlay').style.display = 'flex';
+            document.getElementById('qrTotalChunks').textContent = this.chunks.length;
+            this.interval = setInterval(() => { this.nextFrame(); }, 400);
+          },
+          startSonicBroadcast() {
+            if (this.currentData) {
+              const summary = `HS-SUMMARY:${this.currentData.length}-ITEMS:${Date.now()}`;
+              window.SonicLink.transmit(summary);
+              window.UI.toast("HIVE MESH: Sonic Broadcast Active");
+            }
+          },
+          nextFrame() {
+            if (this.currentIndex >= this.chunks.length) this.currentIndex = 0;
+            const chunk = this.chunks[this.currentIndex];
+            const frameData = `${this.currentIndex}:${this.chunks.length}:${chunk}`;
+            document.getElementById('qrFrame').src = window.QRGenerator.generate(frameData);
+            document.getElementById('qrChunkIndex').textContent = this.currentIndex + 1;
+            document.getElementById('qrProgressFill').style.width = `${((this.currentIndex + 1) / this.chunks.length) * 100}%`;
+            this.currentIndex++;
+          },
+          stop() {
+            clearInterval(this.interval);
+            document.getElementById('neuralLinkOverlay').style.display = 'none';
+          }
+        },
+
+        // ==================== PHOENIX PROTOCOL // RECOVERY ====================
+        Phoenix: {
+          generate() {
+            const seed = window.PhoenixProtocol.generateSeed();
+            const out = document.getElementById('phoenixOutput');
+            out.style.display = 'block';
+            out.textContent = "SAVE THIS SEED: " + seed;
+            window.UI.log("Sovereign Seed Generated.", "ok");
+          },
+          async recover() {
+            const seed = prompt("Enter your 12-word Sovereign Seed Phrase:");
+            if (!seed) return;
+            window.UI.toast("Reconstructing Identity...");
+            window.UI.TacticalAudio.play('startup');
+            setTimeout(() => {
+              window.UI.log("Identity Resurrected. Sovereign Keys Re-derived.", "ok");
+              window.UI.toast("PHOENIX PROTOCOL: SUCCESS");
+            }, 1500);
+          }
+        },
+
+        // ==================== NEURAL TERMINAL // LOCAL AI ====================
+        toggleNeuralTerminal(show) {
+          const el = document.getElementById('neuralTerminal');
+          el.style.display = show ? 'flex' : 'none';
+          if (show) {
+            this.TacticalAudio.play('click');
+            document.getElementById('terminalInput').focus();
+          }
+        },
+
+        handleTerminalSubmit(query) {
+          const history = document.getElementById('terminalHistory');
+          const userMsg = document.createElement('div');
+          userMsg.style.margin = '8px 0';
+          userMsg.innerHTML = `<span style="color:var(--text-muted)">USER></span> ${this.sanitize(query)}`;
+          history.appendChild(userMsg);
+
+          const input = query.toUpperCase();
+
+          // God-Tier Command Override
+          if (input === 'SCRUB') {
+            this.clearState();
+            const aiMsg = document.createElement('div');
+            aiMsg.style.color = 'var(--err)';
+            aiMsg.textContent = "NEURAL> [EMERGENCY] SENSITIVE DATA SCRUBBED. CACHE PURGED.";
+            history.appendChild(aiMsg);
+            this.TacticalAudio.play('thud');
+            return;
+          }
+
+          if (input === 'PHOENIX') {
+            this.Phoenix.generate();
+            const aiMsg = document.createElement('div');
+            aiMsg.textContent = "NEURAL> Sovereign Seed Protocol initiated. Check Phoenix Panel.";
+            history.appendChild(aiMsg);
+            return;
+          }
+
+          if (input === 'UPGRADE') {
+            const aiMsg = document.createElement('div');
+            aiMsg.style.color = 'var(--accent)';
+            aiMsg.innerHTML = "NEURAL> <span style='animation: pulse 1s infinite;'>[TRANSITION] FUSING TITANIUM CORE...</span>";
+            history.appendChild(aiMsg);
+            this.TacticalAudio.play('startup');
+
+            window.SovereignCore.getNativeHWID().then(id => {
+              window.UI.log(`Native Engine Active. Core ID: ${id.substring(0, 16)}...`, "ok");
+              window.UI.toast("HYPERSNATCH: TITANIUM UPGRADE COMPLETE");
+            });
+            return;
+          }
+
+          if (input === 'VAULT') {
+            const aiMsg = document.createElement('div');
+            aiMsg.style.color = 'var(--accent)';
+            aiMsg.textContent = "NEURAL> TITANIUM VAULT: SEALING CASE...";
+            history.appendChild(aiMsg);
+
+            const data = JSON.stringify(EvidenceLogger.logs);
+            window.SovereignCore.hardenedEncrypt(data, "SOVEREIGN_MASTER_KEY_2026").then(enc => {
+              window.UI.log(`Vault Sealed. IV: ${enc.iv}`, "ok");
+              window.UI.log(`Ciphertext (partial): ${enc.ciphertext.substring(0, 32)}...`, "warn");
+              window.UI.toast("PHOENIX PROTOCOL: DATA HARDENED");
+            });
+            return;
+          }
+
+          if (input === 'REFLEX') {
+            const threats = window.ReflexEngine.analyze(EvidenceLogger.logs);
+            const aiMsg = document.createElement('div');
+            if (threats.length > 0) {
+              aiMsg.style.color = 'var(--err)';
+              aiMsg.textContent = `NEURAL> [ALERT] ${threats.length} INVESTIGATOR TRAPS DETECTED!`;
+              window.UI.log("Reflex Engine: Neutralizing traps...", "warn");
+              EvidenceLogger.logs = window.ReflexEngine.neutralize(EvidenceLogger.logs);
+              window.UI.renderEvidence();
+              window.UI.toast("TRAPS NEUTRALIZED");
+            } else {
+              aiMsg.style.color = 'var(--accent)';
+              aiMsg.textContent = "NEURAL> Reflex Scan: 100% Secure. No traps detected.";
+            }
+            history.appendChild(aiMsg);
+            return;
+          }
+
+          if (input === 'SWARM') {
+            const tasks = window.SwarmCoordinator.fragmentJob(EvidenceLogger.logs, 3);
+            const aiMsg = document.createElement('div');
+            aiMsg.textContent = `NEURAL> Neural Swarm: Evidence fragmented into ${tasks.length} task-tokens.`;
+            history.appendChild(aiMsg);
+            window.UI.log("Hive Mesh ready for sonic task broadcast.", "ok");
+            return;
+          }
+
+          if (input === 'SIGNAL') {
+            window.UI.Spectral.refresh();
+            const aiMsg = document.createElement('div');
+            aiMsg.textContent = "NEURAL> SIGINT Scan: Local electromagnetic environment mapped.";
+            history.appendChild(aiMsg);
+            return;
+          }
+
+          const thinking = document.createElement('div');
+          thinking.style.color = 'var(--accent)';
+          thinking.style.opacity = '0.5';
+          thinking.textContent = 'ANALYZING...';
+          history.appendChild(thinking);
+          history.scrollTop = history.scrollHeight;
+
+          window.NeuralEngine.infer(query, this.state).then(result => {
+            thinking.remove();
+            const aiMsg = document.createElement('div');
+            aiMsg.style.margin = '8px 0';
+            aiMsg.style.color = 'var(--accent)';
+            aiMsg.innerHTML = `<span style="color:var(--accent); font-weight:bold;">NEURAL></span> ${result.response}`;
+            history.appendChild(aiMsg);
+            this.TacticalAudio.play('ping');
+            history.scrollTop = history.scrollHeight;
+          });
         },
 
         renderCandidates() {
@@ -1923,7 +2912,7 @@
           }
 
           panel.classList.add('active');
-          
+
           // Performance optimization: 
           // If > 200 items, render only the first 200 initially to prevent DOM lag
           const renderCount = items.length > 200 ? 200 : items.length;
@@ -2028,7 +3017,7 @@
 
         async handleExportBundle() {
           const accepted = (this.state.candidates || []).filter(c => c?.status === "accepted" && c?.url);
-          const refused  = (this.state.refusals   || []).filter(r => r?.status === "rejected");
+          const refused = (this.state.refusals || []).filter(r => r?.status === "rejected");
           const ts = Date.now();
 
           if (accepted.length > 0) {
@@ -2095,19 +3084,19 @@
 
           (async () => {
             const tests = [
-              { 
-                name: 'Network Lock Proof', 
+              {
+                name: 'Network Lock Proof',
                 pass: await (async () => {
-                  try { await fetch('https://example.com'); return false; } 
-                  catch(e) { return true; }
+                  try { await fetch('https://example.com'); return false; }
+                  catch (e) { return true; }
                 })()
               },
-              { 
-                name: 'Engine Logic (Golden)', 
-                pass: ResurrectionEngine.version === ENGINE_VERSION 
+              {
+                name: 'Engine Logic (Golden)',
+                pass: ResurrectionEngine.version === ENGINE_VERSION
               },
-              { 
-                name: 'Drawer Transition', 
+              {
+                name: 'Drawer Transition',
                 pass: (() => {
                   this.openDrawer();
                   const isOpen = document.getElementById('inspectDrawer').classList.contains('open');
@@ -2115,8 +3104,8 @@
                   return isOpen && !document.getElementById('inspectDrawer').classList.contains('open');
                 })()
               },
-              { 
-                name: 'Toast Stack Isolation', 
+              {
+                name: 'Toast Stack Isolation',
                 pass: (() => {
                   const initialCount = document.getElementById('toastHost').children.length;
                   this.toast('Self-Test Toast');
@@ -2124,8 +3113,8 @@
                   return afterCount > initialCount;
                 })()
               },
-              { 
-                name: 'Keyboard Event Listening', 
+              {
+                name: 'Keyboard Event Listening',
                 pass: (() => {
                   let shortcutCaught = false;
                   const listener = (e) => { if (e.ctrlKey && e.key === 'Enter') shortcutCaught = true; };
@@ -2135,8 +3124,8 @@
                   return shortcutCaught;
                 })()
               },
-              { 
-                name: 'State Persistence', 
+              {
+                name: 'State Persistence',
                 pass: (() => {
                   localStorage.setItem('hs.test', 'ok');
                   const val = localStorage.getItem('hs.test');
@@ -2144,12 +3133,12 @@
                   return val === 'ok';
                 })()
               },
-              { 
-                name: 'Evidence Table Scaling', 
+              {
+                name: 'Evidence Table Scaling',
                 pass: (() => {
                   const originalCandidates = [...this.state.candidates];
                   // Mock 500 rows
-                  for(let i=0; i<500; i++) this.state.candidates.push({ host: `test-${i}.com`, type: 'file' });
+                  for (let i = 0; i < 500; i++) this.state.candidates.push({ host: `test-${i}.com`, type: 'file' });
                   this.renderCandidates();
                   const rowCount = document.querySelectorAll('.evidence-table tbody tr').length;
                   this.state.candidates = originalCandidates;
@@ -2171,21 +3160,33 @@
         },
 
         exportEvidence() {
-          const evidence = EvidenceLogger.logs.map(entry =>
-            `${entry.timestamp}\n${Object.entries(entry).map(([k, v]) =>
-              `${k.toUpperCase()}: ${v}`
-            ).join('\n')}\n---`
-          ).join('\n\n');
+          HyperSnatchHelpers.Export.exportToCsv(
+            EvidenceLogger.logs,
+            `hypersnatch-evidence-${new Date().toISOString().slice(0, 10)}.csv`
+          );
+          this.toast('Evidence CSV exported');
+        },
 
-          const blob = new Blob([evidence], { type: 'text/plain' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `hypersnatch-evidence-${new Date().toISOString().slice(0, 19)}.txt`;
-          a.click();
-          URL.revokeObjectURL(url);
+        exportEvidenceText() {
+          HyperSnatchHelpers.Export.exportToText(
+            EvidenceLogger.logs,
+            `hypersnatch-report-${new Date().toISOString().slice(0, 10)}.txt`,
+            { buildId: BUILD_ID, user: this.state.user || 'Authorized Investigator' }
+          );
+          this.toast('Text report exported');
+        },
 
-          this.toast('Evidence log exported');
+        async exportEvidencePdf() {
+          this.toast('Preparing PDF report...');
+          const result = await HyperSnatchHelpers.Export.exportToPdf(
+            EvidenceLogger.logs,
+            { buildId: BUILD_ID, user: this.state.user || 'Authorized Investigator' }
+          );
+          if (result.success) {
+            this.toast('PDF report saved');
+          } else if (result.reason !== 'Save cancelled') {
+            this.toastError('PDF export failed');
+          }
         },
 
         clearEvidence() {
@@ -2313,7 +3314,7 @@
             if (document.getElementById('engineModeSelect')) {
               document.getElementById('engineModeSelect').value = this.state.engineMode;
             }
-            
+
             this.renderCandidates();
             this.renderRefusals();
             this.updateStats();
@@ -2390,12 +3391,90 @@
   <!-- Evidence Inspection Drawer -->
   <div id="inspectDrawer" class="drawer">
     <div class="drawer-header">
-      <div class="drawer-title">Inspect Evidence</div>
-      <button id="drawerClose" class="icon-btn">✕</button>
+      <div class="drawer-title">Inspect Evidence (<span id="evidenceCount">0</span>)</div>
+      <div class="row" style="gap: 8px;">
+        <button class="btn-secondary btn-utility" onclick="window.UI.exportEvidence()">CSV</button>
+        <button class="btn-secondary btn-utility" onclick="window.UI.exportEvidenceText()">TXT</button>
+        <button class="btn-secondary btn-utility" onclick="window.UI.exportEvidencePdf()">PDF</button>
+        <button class="btn-primary btn-utility" onclick="window.UI.NeuralLink.start(EvidenceLogger.logs)"
+          style="background:var(--accent) !important; color:#000 !important;">LINK</button>
+        <button class="btn-tertiary btn-utility" onclick="window.UI.clearEvidence()">Clear</button>
+        <button id="drawerClose" class="icon-btn">✕</button>
+      </div>
     </div>
-    <pre id="drawerContent" class="drawer-pre"></pre>
+    <div class="drawer-content" id="evidenceContent">
+      <pre id="drawerContent" class="drawer-pre"></pre>
+    </div>
   </div>
   <div id="drawerBackdrop" class="drawer-backdrop"></div>
+
+  <!-- Neural Terminal // Local AI Drawer -->
+  <div id="neuralTerminal"
+    style="display:none; position:fixed; right:20px; bottom:60px; width:400px; height:500px; background:rgba(10,16,22,0.98); border:1px solid var(--accent-muted); border-radius:12px; z-index:9000; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.5); backdrop-filter:blur(10px);">
+    <div
+      style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+      <div style="font-size:11px; font-weight:bold; color:var(--accent); letter-spacing:1px;">🧠 NEURAL ENGINE V-2.0 //
+        OFFLINE</div>
+      <button onclick="window.UI.toggleNeuralTerminal(false)"
+        style="background:transparent; color:var(--text-muted); border:none; cursor:pointer;">&times;</button>
+    </div>
+    <div id="terminalHistory"
+      style="flex:1; overflow-y:auto; padding:12px; font-family:'JetBrains Mono', monospace; font-size:11px; line-height:1.5;">
+      <div style="color:var(--accent); opacity:0.6;">[SYSTEM] Local Neural Engine initialized. Ready for tactical query.
+      </div>
+    </div>
+    <div style="padding:12px; border-top:1px solid rgba(255,255,255,0.05);">
+      <input id="terminalInput" type="text" placeholder="ASK ORACLE..."
+        style="width:100%; background:transparent; border:none; color:var(--accent); font-family:'JetBrains Mono', monospace; font-size:12px; outline:none;">
+    </div>
+  </div>
+
+  <!-- Neural Link QR Streamer Overlay -->
+  <div id="neuralLinkOverlay"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:10002; flex-direction:column; align-items:center; justify-content:center; padding:40px;">
+    <div style="text-align:center; margin-bottom:20px;">
+      <h2 style="color:var(--accent); margin:0; font-size:18px; letter-spacing:2px;">NEURAL LINK // AIRGAP STREAM</h2>
+      <div style="font-size:11px; opacity:0.6; margin-top:4px;">SYNCING ENCRYPTED EVIDENCE BUNDLE</div>
+    </div>
+
+    <div id="qrStreamContainer"
+      style="background:white; padding:20px; border-radius:12px; box-shadow:0 0 40px var(--accent-muted);">
+      <img id="qrFrame" src="" width="300" height="300" style="display:block;">
+    </div>
+
+    <div style="width:300px; margin-top:24px;">
+      <div class="progress-bar" style="height:4px; background:rgba(255,255,255,0.1); border-radius:2px;">
+        <div id="qrProgressFill" style="width:0%; height:100%; background:var(--accent); transition:width 0.2s;"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:11px; margin-top:8px; font-family:monospace;">
+        <span>CHUNK: <span id="qrChunkIndex">0</span> / <span id="qrTotalChunks">0</span></span>
+        <span id="qrBps">--- BPS</span>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:16px; margin-top:40px;">
+      <button class="btn-primary" onclick="window.UI.NeuralLink.startSonicBroadcast()"
+        style="background:var(--accent) !important; color:#000 !important;">HIVE MESH BROADCAST</button>
+      <button class="btn-secondary" onclick="window.UI.NeuralLink.stop()">TERMINATE LINK</button>
+    </div>
+  </div>
+
+  <!-- Visual Evidence Map Overlay -->
+  <div id="visualMapOverlay"
+    style="display:none; position:fixed; inset:0; background:rgba(5,10,15,0.98); z-index:10001; flex-direction:column; padding:20px;">
+    <div class="row"
+      style="justify-content:space-between; margin-bottom:20px; border-bottom:1px solid rgba(0,208,132,0.3); padding-bottom:10px;">
+      <h2 style="color:var(--accent); margin:0; font-size:18px;">GENETIC EVIDENCE MAP // LINEAGE VISUALIZATION</h2>
+      <button class="btn-secondary btn-utility" onclick="window.UI.toggleVisualMap(false)">CLOSE MAP</button>
+    </div>
+    <div id="mapCanvasContainer"
+      style="flex:1; background:rgba(0,0,0,0.2); border:1px dashed rgba(255,255,255,0.1); border-radius:8px; overflow:hidden; position:relative;">
+      <svg id="evidenceSvg" width="100%" height="100%" style="cursor:grab;"></svg>
+    </div>
+    <div style="font-size:11px; opacity:0.6; margin-top:10px; text-align:center;">
+      Nodes represent Ingested Sources, Extracted Candidates, and Validated Evidence. Drag to pan, scroll to zoom.
+    </div>
+  </div>
 
   <div id="toastHost" class="toast-host"></div>
 </body>

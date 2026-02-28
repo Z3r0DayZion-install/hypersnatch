@@ -38,3 +38,5 @@ temp/
 *.old
 Thumbs.db
 .DS_Store
+*.bak-*
+

@@ -29,6 +29,40 @@ const FilelionExtractor = {
             }
         });
         return Array.from(candidates.values());
+    },
+
+    /**
+     * Resurrect direct stream links from FileLion HTML source
+     */
+    resurrect(html, hostCandidate) {
+        const directCandidates = [];
+        const { fileId } = hostCandidate;
+
+        const domPatterns = [
+            // jwplayer / video source
+            /(?:file|src)\s*[:=]\s*["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/gi,
+            /(?:file|src)\s*[:=]\s*["'](https?:\/\/[^"']+\.mp4[^"']*)["']/gi,
+            /<source\s+[^>]*src=["'](https?:\/\/[^"']+)["']/gi,
+            // FileLion CDN patterns
+            /["'](https?:\/\/[a-z0-9]+\.filelions?\.[^"']+\.m3u8[^"']*)["']/gi
+        ];
+
+        domPatterns.forEach(pattern => {
+            let match;
+            const localRegex = new RegExp(pattern, 'gi');
+            while ((match = localRegex.exec(html)) !== null) {
+                const url = match[1];
+                directCandidates.push({
+                    url, fileId,
+                    host: 'filelion.online',
+                    type: 'video',
+                    sourceLayer: 'resurrection_filelion_dom',
+                    confidence: 0.96
+                });
+            }
+        });
+
+        return directCandidates;
     }
 };
 

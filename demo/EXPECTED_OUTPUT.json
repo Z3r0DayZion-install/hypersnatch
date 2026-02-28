@@ -1,0 +1,72 @@
+{
+    "hypersnatch_version": "1.0.1",
+    "analysis_mode": "deterministic",
+    "input_file": "sample-payload.html",
+    "input_sha256": "pending_actual_hash",
+    "timestamp_note": "Deterministic output — hash is reproducible regardless of execution time",
+    "resources_detected": [
+        {
+            "type": "css",
+            "href": "/assets/app.min.css",
+            "source": "link[rel=preload]",
+            "confidence": 0.95,
+            "status": "detected"
+        },
+        {
+            "type": "js",
+            "src": "/assets/runtime.min.js",
+            "source": "link[rel=preload] + script[defer]",
+            "confidence": 0.95,
+            "status": "detected"
+        },
+        {
+            "type": "img",
+            "src": "/assets/img/logo.svg",
+            "source": "img[alt=logo]",
+            "confidence": 0.98,
+            "status": "detected"
+        },
+        {
+            "type": "doc",
+            "href": "/docs/spec",
+            "source": "a[href]",
+            "confidence": 0.90,
+            "status": "detected"
+        },
+        {
+            "type": "api",
+            "href": "/api/demo/status",
+            "source": "inline_script_variable",
+            "confidence": 0.85,
+            "status": "detected"
+        },
+        {
+            "type": "api",
+            "href": "/api/demo/config?mode=static",
+            "source": "inline_script_variable",
+            "confidence": 0.85,
+            "status": "detected"
+        },
+        {
+            "type": "data",
+            "encoding": "base64",
+            "decoded_refs": [
+                "/assets/app.min.css",
+                "/assets/runtime.min.js"
+            ],
+            "source": "window.__HS_DEMO__.enc",
+            "confidence": 0.92,
+            "status": "detected"
+        },
+        {
+            "type": "manifest",
+            "source": "script[type=application/json]#hs-demo-manifest",
+            "resource_count": 4,
+            "confidence": 0.99,
+            "status": "detected"
+        }
+    ],
+    "total_resources": 8,
+    "unique_endpoints": 6,
+    "analysis_complete": true
+}

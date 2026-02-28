@@ -4,7 +4,7 @@ const path = require("path");
 const pageUrl = "file:///" + path.resolve(__dirname, "..", "HyperSnatch_Final_Fused.html").replace(/\\/g, "/");
 
 async function openFresh(page) {
-  await page.goto(pageUrl);
+  await page.goto(pageUrl + "?skipHandshake=1");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
 }

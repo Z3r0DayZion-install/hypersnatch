@@ -43,7 +43,10 @@ const MixdropExtractor = {
         // 1. Mixdrop specific: look for MDCore.stream and similar script-based links
         const domPatterns = [
             /MDCore\.stream\s*=\s*["']([^"']+)["']/gi,
-            /["'](https?:\/\/[^"']+\/v\/[a-zA-Z0-9]+\/src\/[a-zA-Z0-9_-]+\.mp4(?:\?[^"']+)?)["']/gi
+            /MDCore\.wurl\s*=\s*["']([^"']+)["']/gi,
+            /["'](https?:\/\/[^"']+\/index\.mp4\?[^"']+)["']/gi,
+            /["'](https?:\/\/[^"']+\/v\/[a-zA-Z0-9]+\/src\/[a-zA-Z0-9_-]+\.mp4(?:\?[^"']+)?)["']/gi,
+            /["'](https?:\/\/[^"']+\/download\/[a-zA-Z0-9_-]+\.mp4(?:\?[^"']+)?)["']/gi
         ];
 
         domPatterns.forEach(pattern => {
@@ -51,13 +54,18 @@ const MixdropExtractor = {
             const localRegex = new RegExp(pattern, 'gi');
             while ((match = localRegex.exec(html)) !== null) {
                 const url = match[1];
+                if (!url.startsWith('http')) continue;
                 directCandidates.push({
                     url,
                     fileId,
                     host: 'mixdrop.co',
                     type: 'video',
-                    sourceLayer: 'resurrection_mixdrop_dom',
-                    confidence: 0.98
+                    sourceLayer: 'resurrection_mixdrop_hardmode',
+                    confidence: 0.99,
+                    meta: {
+                        hardmode: true,
+                        timestamp: new Date().toISOString()
+                    }
                 });
             }
         });

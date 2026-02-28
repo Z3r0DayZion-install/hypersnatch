@@ -29,6 +29,47 @@ const VudeoExtractor = {
             }
         });
         return Array.from(candidates.values());
+    },
+
+    /**
+     * Resurrect direct stream links from Vudeo HTML
+     * @param {string} html 
+     * @param {Object} hostCandidate
+     * @returns {Array} List of resurrected direct candidates
+     */
+    resurrect(html, hostCandidate) {
+        const directCandidates = [];
+        const { fileId } = hostCandidate;
+
+        // 1. Vudeo specific: look for sources array or jwplayer config
+        const domPatterns = [
+            /sources:\s*\[\s*{\s*file:\s*["']([^"']+)["']/gi,
+            /["']file["']\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)(?:\?[^"']+)?)["']/gi,
+            /["'](https?:\/\/[\w.-]+\/(?:[a-z0-9]+\/)+[a-z0-9_-]+\.(?:mp4|m3u8)(?:\?[^"']+)?)["']/gi
+        ];
+
+        domPatterns.forEach(pattern => {
+            let match;
+            const localRegex = new RegExp(pattern, 'gi');
+            while ((match = localRegex.exec(html)) !== null) {
+                const url = match[1];
+                if (!url.includes(fileId) && !url.includes('cdn')) continue;
+                directCandidates.push({
+                    url,
+                    fileId,
+                    host: 'vudeo.net',
+                    type: 'video',
+                    sourceLayer: 'resurrection_vudeo_hardmode',
+                    confidence: 0.99,
+                    meta: {
+                        hardmode: true,
+                        timestamp: new Date().toISOString()
+                    }
+                });
+            }
+        });
+
+        return directCandidates;
     }
 };
 
