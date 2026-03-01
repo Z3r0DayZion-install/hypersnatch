@@ -8,8 +8,6 @@ const crypto = require('crypto');
 const secureCrypto = require('./security-crypto');
 const log = require('./utils/logger');
 const SmartDecode = require('./core/smartdecode');
-const IndexedSearch = require('./indexed_search');
-const CrashJournal = require('./crash_journal');
 
 // QR Engine purged in Vanguard Edition for zero-trace portability.
 
@@ -119,11 +117,25 @@ ipcMain.handle('get-app-info', async () => {
     securityConfig: Object.assign({}, SECURITY_CONFIG, {
       allowStrategyRuntime,
       smartDecodeDefaultEngine,
+      legalDisclaimerAccepted: policy.legalDisclaimerAccepted
     }),
     policy,
     license,
     runtimeDir: RUNTIME_DIR
   };
+});
+
+ipcMain.handle('accept-legal-disclaimer', async () => {
+  try {
+    const policy = readPolicySafe() || {};
+    policy.legalDisclaimerAccepted = true;
+    fs.writeFileSync(POLICY_FILE, JSON.stringify(policy, null, 2));
+    logSecurityEvent('LEGAL_DISCLAIMER_ACCEPTED');
+    return { success: true };
+  } catch (err) {
+    log.error('DISCLAIMER_ACCEPT_ERROR', { message: err.message });
+    return { success: false, error: err.message };
+  }
 });
 
 ipcMain.handle('open-logs-folder', () => {
@@ -560,6 +572,7 @@ function createDefaultConfig() {
       'subscribe', 'premium', 'login', 'paywall', 'purchase',
       'access denied', 'subscription', 'upgrade', 'payment'
     ],
+    legalDisclaimerAccepted: false,
     smartDecode: {
       defaultEngine: "rust",
       strictEngine: false
@@ -639,6 +652,7 @@ function getPolicySummary() {
     version: typeof p.version === 'string' ? p.version : '1.0.0',
     mode: typeof p.mode === 'string' ? p.mode : 'strict',
     allowlistEnabled: p.allowlistEnabled !== false,
+    legalDisclaimerAccepted: Boolean(p.legalDisclaimerAccepted),
     premiumMarkers: Array.isArray(p.premiumMarkers) ? p.premiumMarkers : [],
     smartDecode,
     strategyRuntime,

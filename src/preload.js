@@ -4,6 +4,7 @@
 const { contextBridge, ipcRenderer, clipboard } = require('electron');
 
 // ==================== SECURITY: IPC ALLOWLIST ====================
+// Strictly limited to Vanguard Forensic Utilities
 const ALLOWED_IPC_CHANNELS = new Set([
   'get-app-info',
   'open-logs-folder',
@@ -15,50 +16,36 @@ const ALLOWED_IPC_CHANNELS = new Set([
   'log-message',
   'export-security-report',
   'validate-license',
-  'export-pdf',
-  'final-freeze',
+  'accept-legal-disclaimer',
   'get-hardware-status',
   'authenticate-license',
-  'empire-sync',
   'window-minimize',
   'window-maximize',
   'window-close',
   'window-fullscreen',
   'smart-decode-run',
   'smart-decode-sign-session',
-  'smart-decode-verify-session',
-  'vault-search-init',
-  'vault-search-index-job',
-  'vault-search-index-snapshot',
-  'vault-search-search',
-  'vault-search-get-stats',
-  'vault-search-clear',
-  'crash-journal-log-event',
-  'crash-journal-detect-unclean-shutdown',
-  'crash-journal-replay-journal',
-  'crash-journal-get-stats',
-  'crash-journal-clear',
-  'crash-journal-get-event-type',
-  'generate-qr',
-  'ai-infer'
+  'smart-decode-verify-session'
 ]);
 
-// ==================== SECURE CONTEXT BRIDGE ====================
 function validateIPCChannel(channel) {
   if (!ALLOWED_IPC_CHANNELS.has(channel)) {
-    throw new Error(`IPC channel not allowed: ${channel}`);
+    throw new Error(`Security Violation: Disallowed IPC channel '${channel}'`);
   }
 }
 
 // ==================== EXPOSED API ====================
 const electronAPI = {
-  // App information
   getAppInfo: () => {
     validateIPCChannel('get-app-info');
     return ipcRenderer.invoke('get-app-info');
   },
 
-  // File system access (controlled)
+  acceptLegalDisclaimer: () => {
+    validateIPCChannel('accept-legal-disclaimer');
+    return ipcRenderer.invoke('accept-legal-disclaimer');
+  },
+
   openLogsFolder: () => {
     validateIPCChannel('open-logs-folder');
     return ipcRenderer.invoke('open-logs-folder');
@@ -79,25 +66,21 @@ const electronAPI = {
     return ipcRenderer.invoke('clear-security-events');
   },
 
-  // Evidence import (controlled)
   importEvidence: (evidenceData) => {
     validateIPCChannel('import-evidence');
     return ipcRenderer.invoke('import-evidence', evidenceData);
   },
 
-  // URL validation (controlled)
   validateUrl: (url) => {
     validateIPCChannel('validate-url');
     return ipcRenderer.invoke('validate-url', url);
   },
 
-  // Logging (controlled)
   logMessage: (level, message, meta = {}) => {
     validateIPCChannel('log-message');
     ipcRenderer.send('log-message', { level, message, meta });
   },
 
-  // Clipboard operations with logging
   copyToClipboard: (text) => {
     try {
       clipboard.writeText(text);
@@ -121,10 +104,8 @@ const electronAPI = {
 };
 
 // ==================== INITIALIZATION ====================
-// Expose the secure API to the renderer
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
 
-// Expose SmartDecode 2.0 Engine via IPC
 contextBridge.exposeInMainWorld('smartDecode', {
   run: async (input, options) => {
     validateIPCChannel('smart-decode-run');
@@ -139,4 +120,3 @@ contextBridge.exposeInMainWorld('smartDecode', {
     return ipcRenderer.invoke('smart-decode-verify-session', bundle);
   }
 });
-

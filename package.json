@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.1.0",
+  "version": "1.2.0-dev",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -16,19 +16,19 @@
     "desktop"
   ],
   "engines": {
-    "node": ">=14.0.0"
+    "node": "20.17.0"
   },
   "bin": {
     "hypersnatch": "src/cli/hypersnatch-bin.js"
   },
   "dependencies": {
-    "ajv": "^6.14.0"
+    "ajv": "6.12.6"
   },
   "devDependencies": {
-    "electron": "^28.3.3",
-    "electron-builder": "^24.13.3",
-    "nexe": "^4.0.0-rc.3",
-    "pkg": "^5.8.1"
+    "electron": "28.3.3",
+    "electron-builder": "24.13.3",
+    "nexe": "4.0.0-rc.3",
+    "pkg": "5.8.1"
   },
   "scripts": {
     "start": "electron .",
@@ -40,6 +40,7 @@
     "predist": "node scripts/prepare_hs_core.cjs && node scripts/sign_windows.cjs --pre",
     "prepack": "node scripts/prepare_hs_core.cjs",
     "build": "electron-builder",
+    "build:repro": "npm run hs-core:prepare && electron-builder --dir && npm run verify",
     "dist": "electron-builder --publish=never",
     "postdist": "node scripts/generate_manifest.cjs",
     "pack": "electron-builder --dir=dist",
