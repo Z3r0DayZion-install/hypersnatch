@@ -1,2 +1,3 @@
 HyperSnatch-Setup-1.1.0.exe: 82638eb2073d66953c46377bdcfa8c9288b719c88c8049df1091f4220003e70f
 HyperSnatch-Setup-1.1.0.exe (Vanguard Immutable): 82638eb2073d66953c46377bdcfa8c9288b719c88c8049df1091f4220003e70f
+HyperSnatch v1.2.0 Institutional (Unpacked Exe): 812e9ae88bc0a2546870380c6f21a34ec03c7cdf67c27be0ca84b011cf8fa762

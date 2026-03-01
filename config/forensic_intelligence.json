@@ -1,0 +1,42 @@
+{
+  "version": "1.2.0",
+  "build": "Vanguard",
+  "patterns": {
+    "STREAM": {
+      "regex": "(https?:\\/\\/[^\\s\"'`<>]+?\\.(mp4|m3u8|ts|zip|pdf)(?:\\?[^\\s\"'`<>]+)?)",
+      "flags": "gi",
+      "type": "artifact",
+      "confidence": 0.7
+    },
+    "HLS_PLAYLIST": {
+      "regex": "(https?:\\/\\/[^\\s\"'`<>]+?playlist\\.m3u8(?:\\?[^\\s\"'`<>]+)?)",
+      "flags": "gi",
+      "type": "hls",
+      "confidence": 0.85
+    },
+    "BURIED_URL": {
+      "regex": "[\"'](https?:\\/\\/[^\"']+?\\.(?:mp4|m3u8|ts|zip|pdf)[^\"']*?)[\"']",
+      "flags": "gi",
+      "type": "buried",
+      "confidence": 0.6
+    },
+    "GENERIC_LINK": {
+      "regex": "<a\\s+(?:[^>]*?\\s+)?href=[\"'](https?:\\/\\/[^\"']+)[\"']",
+      "flags": "gi",
+      "type": "link",
+      "confidence": 0.4
+    },
+    "KSHARED_ALIAS": {
+      "regex": "https?:\\/\\/(?:www\\.)?(?:kshared|khared)\\.com\\/file\\/([a-zA-Z0-9_-]+)\\/([^\\/\\?\\s\"']+)",
+      "flags": "gi",
+      "type": "host_kshared",
+      "confidence": 0.95
+    },
+    "VIDOZA_ADVANCED": {
+      "regex": "https?:\\/\\/(?:www\\.)?vidoza\\.net\\/[edv]\\/([a-zA-Z0-9_-]+)(?:\\.[a-z0-9]+)?",
+      "flags": "gi",
+      "type": "host_vidoza",
+      "confidence": 0.95
+    }
+  }
+}

@@ -1,17 +1,11 @@
+const IntelligenceManager = require('./intelligence_manager');
+
 /**
  * SmartDecode 2.0 - Direct Extraction Module
- * Robust regex-based discovery of stream URLs in raw strings.
+ * Robust discovery of stream URLs via verified Intelligence Patterns.
  */
 
 const DirectExtractor = {
-    // Common stream extensions and patterns
-    PATTERNS: {
-        STREAM: /(https?:\/\/[^\s"'`<>]+?\.(mp4|m3u8|ts|zip|pdf)(?:\?[^\s"'`<>]+)?)/gi,
-        HLS_PLAYLIST: /(https?:\/\/[^\s"'`<>]+?playlist\.m3u8(?:\?[^\s"'`<>]+)?)/gi,
-        BURIED_URL: /["'](https?:\/\/[^"']+?\.(?:mp4|m3u8|ts|zip|pdf)[^"']*?)["']/gi,
-        GENERIC_LINK: /<a\s+(?:[^>]*?\s+)?href=["'](https?:\/\/[^"']+)["']/gi
-    },
-
     /**
      * Extract candidates from raw string
      * @param {string} input 
@@ -21,18 +15,16 @@ const DirectExtractor = {
         if (!input || typeof input !== 'string') return [];
 
         const candidates = new Map();
+        const intelligence = IntelligenceManager.getAllPatterns();
 
-        // 1. Standard stream patterns
-        this._matchPattern(input, this.PATTERNS.STREAM, 'direct_regex', candidates);
+        // If no intelligence is loaded, use minimal fallback
+        if (intelligence.length === 0) {
+            IntelligenceManager._loadFallbacks();
+        }
 
-        // 2. Focused playlist patterns
-        this._matchPattern(input, this.PATTERNS.HLS_PLAYLIST, 'hls_focused', candidates);
-
-        // 3. Quoted buried URLs (deep scan within JS/HTML attributes)
-        this._matchPattern(input, this.PATTERNS.BURIED_URL, 'buried_string', candidates);
-
-        // 4. Generic links (forensic discovery)
-        this._matchPattern(input, this.PATTERNS.GENERIC_LINK, 'generic_link', candidates);
+        IntelligenceManager.patterns.forEach((p, key) => {
+            this._matchPattern(input, p.regex, `intel_${key.toLowerCase()}`, candidates, p.type, p.confidence);
+        });
 
         return Array.from(candidates.values());
     },
@@ -40,7 +32,7 @@ const DirectExtractor = {
     /**
      * Internal matcher to deduplicate and structure
      */
-    _matchPattern(input, regex, sourceLayer, map) {
+    _matchPattern(input, regex, sourceLayer, map, inferredType, baseConfidence) {
         let match;
         // Reset regex index for global flags
         regex.lastIndex = 0;
@@ -54,7 +46,7 @@ const DirectExtractor = {
                 const normalized = new URL(url).toString();
                 const protocol = new URL(normalized).protocol.toLowerCase();
                 
-                // Security Boundary: Only allow web protocols (block file://, javascript:, etc.)
+                // Security Boundary: Only allow web protocols
                 if (protocol !== 'http:' && protocol !== 'https:') {
                     return;
                 }
@@ -62,9 +54,9 @@ const DirectExtractor = {
                 if (!map.has(normalized)) {
                     map.set(normalized, {
                         url: normalized,
-                        type: this._inferType(normalized),
+                        type: inferredType || this._inferType(normalized),
                         sourceLayer,
-                        confidence: this._calculateConfidence(normalized, sourceLayer)
+                        confidence: baseConfidence || this._calculateConfidence(normalized, sourceLayer)
                     });
                 }
             } catch (e) {

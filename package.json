@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.2.0-dev",
+  "version": "1.2.0",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -18,17 +18,12 @@
   "engines": {
     "node": "20.17.0"
   },
-  "bin": {
-    "hypersnatch": "src/cli/hypersnatch-bin.js"
-  },
   "dependencies": {
     "ajv": "6.12.6"
   },
   "devDependencies": {
     "electron": "28.3.3",
-    "electron-builder": "24.13.3",
-    "nexe": "4.0.0-rc.3",
-    "pkg": "5.8.1"
+    "electron-builder": "24.13.3"
   },
   "scripts": {
     "start": "electron .",
@@ -50,22 +45,12 @@
     "verify:release": "node ./scripts/verify_release.cjs",
     "ui:bridge": "node ./src/bridge/ui-bridge.js",
     "ui:open": "start ui/hypersnatch-ui.html",
-    "build:exe": "pkg -t node18-win-x64 -o dist/hypersnatch.exe src/cli/hypersnatch-bin.js",
     "build:wrapper": "node scripts/build_wrapper.js",
     "release:pack": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Compress-Archive -Path release\\* -DestinationPath dist\\HyperSnatch_release.zip -Force\"",
     "test": "node tests/smartdecode.test.js",
     "test:ci": "node tests/smartdecode.test.js",
     "test:online": "node scripts/verify_smartdecode.js --online",
     "postinstall": "npx --yes electron-builder install-app-deps"
-  },
-  "pkg": {
-    "scripts": [
-      "src/**/*.js"
-    ],
-    "assets": [
-      "fixtures/**/*",
-      "goldens/**/*"
-    ]
   },
   "build": {
     "appId": "com.hypersnatch.platform",
@@ -100,7 +85,10 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "timeStampServer": "http://timestamp.digicert.com",
+      "publisherName": "HyperSnatch Security Team",
+      "signAndEditExecutable": true
     },
     "nsis": {
       "oneClick": false,

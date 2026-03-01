@@ -716,6 +716,60 @@ function getRendererPath() {
   return path.join(__dirname, '..', 'ui', 'hypersnatch-ui.html');
 }
 
+/**
+ * Institutional Hardening: Startup Self-Diagnostic
+ */
+async function runSelfCheck() {
+  const report = {
+    timestamp: new Date().toISOString(),
+    passed: true,
+    checks: [],
+    errors: []
+  };
+
+  try {
+    // 1. Hardware Integrity Check
+    const hwid = await getHardwareFingerprint();
+    report.checks.push({ name: 'HARDWARE_ID', status: 'OK', id: hwid.substring(0, 16) });
+
+    // 2. Runtime Environment Check
+    const paths = [RUNTIME_DIR, CONFIG_DIR, LOGS_DIR, EVIDENCE_DIR];
+    const missing = paths.filter(p => !fs.existsSync(p));
+    if (missing.length > 0) {
+      report.passed = false;
+      report.errors.push(`Missing runtime paths: ${missing.join(', ')}`);
+    } else {
+      report.checks.push({ name: 'RUNTIME_PATHS', status: 'OK' });
+    }
+
+    // 3. Rust Core Availability
+    const binName = process.platform === "win32" ? "hs-core.exe" : "hs-core";
+    const rustPath = app.isPackaged 
+      ? path.join(process.resourcesPath, binName)
+      : path.join(__dirname, '..', 'build', binName);
+    
+    if (fs.existsSync(rustPath)) {
+      report.checks.push({ name: 'RUST_CORE', status: 'OK' });
+    } else {
+      report.checks.push({ name: 'RUST_CORE', status: 'NOT_FOUND', warning: 'Falling back to JS engine' });
+    }
+
+    // 4. Sandbox & Context Isolation (Meta Check)
+    report.checks.push({
+      name: 'SECURITY_POSTURE',
+      contextIsolation: SECURITY_CONFIG.contextIsolation,
+      sandbox: SECURITY_CONFIG.sandbox,
+      webSecurity: SECURITY_CONFIG.webSecurity
+    });
+
+  } catch (err) {
+    report.passed = false;
+    report.errors.push(`Critical diagnostic failure: ${err.message}`);
+  }
+
+  return report;
+}
+
 // ==================== MAIN APP ====================
 app.whenReady().then(() => {
   logSecurityEvent('APP_READY', { version: APP_VERSION });
@@ -746,8 +800,18 @@ app.whenReady().then(() => {
     }
   });
 
-  // CSP ENFORCEMENT (Round 10)
+  // CSP ENFORCEMENT & SECONDARY AIRGAP LAYER
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    try {
+      const url = new URL(details.url);
+      
+      // Secondary Airgap Check: Ensure redirects/workers don't bypass onBeforeRequest
+      if (url.protocol !== 'file:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+        logSecurityEvent('NETWORK_BLOCK_HEADERS_STAGE', { url: details.url });
+        return callback({ cancel: true });
+      }
+    } catch (e) {}
+
     callback({
       responseHeaders: {
         ...details.responseHeaders,
@@ -840,43 +904,13 @@ app.whenReady().then(() => {
   // Load the app
   mainWindow.loadFile(getRendererPath());
 
-  // Phase 15: Functional Smoke Test Sequence
-  if (process.env.NS_SMOKE_TEST === "1") {
-    log.info("INITIATING_FUNCTIONAL_SMOKE_TEST");
-    
-    mainWindow.webContents.once('did-finish-load', async () => {
-      // 1. Wait for Bootloader
-      await new Promise(r => setTimeout(r, 5000));
-      
-      log.info("SMOKE_TEST: TRIGGERING_AI_WITNESS");
-      await mainWindow.webContents.executeJavaScript(`
-        if (window.UI) {
-          // Mock some evidence so AI has something to work with
-          window.UI.state.candidates = [{
-            url: 'https://rapidgator.net/file/abc123/malicious.zip',
-            host: 'rapidgator.net',
-            confidence: 0.95,
-            status: 'accepted'
-          }];
-          window.UI.handleAIAffidavit();
-        }
-      `);
-
-      await new Promise(r => setTimeout(r, 2000));
-
-      log.info("SMOKE_TEST: TRIGGERING_SOVEREIGN_EXFIL");
-      await mainWindow.webContents.executeJavaScript(`
-        if (window.UI) {
-          window.UI.handleSovereignExfil();
-        }
-      `);
-
-      await new Promise(r => setTimeout(r, 3000));
-      
-      log.info("SMOKE_TEST: SEQUENCE_COMPLETE");
-      app.quit();
-    });
-  }
+  // Institutional Hardening: Startup Self-Diagnostic
+  runSelfCheck().then(report => {
+    logSecurityEvent('STARTUP_DIAGNOSTIC_COMPLETE', report);
+    if (!report.passed) {
+      log.error('DIAGNOSTIC_FAILURE', report.errors);
+    }
+  });
 
   // Security: Handle window closed
   mainWindow.on('closed', () => {

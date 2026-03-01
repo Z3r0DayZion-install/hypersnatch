@@ -226,6 +226,7 @@
       <h1>HyperSnatch — Offline Decode UI</h1>
       <div class="row" style="justify-content:space-between;">
         <div class="row">
+          <span class="pill" id="nodeIdPill" title="Your unique Hardware Node ID"><span class="ok">ID</span><span class="muted" id="nodeIdText">Scanning...</span></span>
           <span class="pill" id="bridgePill"><span class="ok" id="bridgeDot">●</span><span class="muted"
               id="bridgeText">Bridge: Electron IPC Native</span></span>
           <span class="pill"><span class="ok">●</span><span class="muted">Audit Chain: Active</span></span>
@@ -491,7 +492,17 @@
           const info = await window.electronAPI.getAppInfo();
           if (info.version) el("uiVer").textContent = `v${info.version}`;
           
-          // 2. Legal Shield Reinforcement
+          // 2. Hardware Node Identity
+          const hw = await window.electronAPI.getHardwareStatus();
+          if (hw && hw.displayId) {
+            el("nodeIdText").textContent = hw.displayId;
+            el("nodeIdPill").addEventListener("click", () => {
+              copyText(hw.fingerprint);
+              setStatus("Hardware Node ID copied to clipboard.", "ok");
+            });
+          }
+
+          // 3. Legal Shield Reinforcement
           if (!info.securityConfig?.legalDisclaimerAccepted) {
             el("legalModal").style.display = "flex";
             el("btnAcceptLegal").addEventListener("click", async () => {
