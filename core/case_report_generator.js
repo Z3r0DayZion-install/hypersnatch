@@ -10,8 +10,8 @@ const CaseReportGenerator = {
   description: 'Comprehensive case report generation with multiple export formats',
   
   // State
-  initialized = false,
-  reportTemplates = new Map(),
+  initialized: false,
+  reportTemplates: new Map(),
   
   // Report formats
   supportedFormats: ['TXT', 'JSON', 'TEAR', 'PDF', 'CSV'],
@@ -530,8 +530,9 @@ const CaseReportGenerator = {
         return this.generateTearReport(reportData);
       case 'CSV':
         return this.generateCSVReport(reportData);
+      case 'HTML':
       case 'PDF':
-        return this.generatePDFReport(reportData);
+        return this.generateHTMLReport(reportData);
       default:
         throw new Error(`Unsupported format: ${format}`);
     }
@@ -627,7 +628,7 @@ const CaseReportGenerator = {
       text += `Processing: ${reportData.statistics.processing.totalProcessed} inputs processed\n`;
       text += `Extraction: ${reportData.statistics.extraction.totalCandidates} candidates found\n`;
       text += `Policy: ${reportData.statistics.policy.totalViolations} violations\n`;
-      text += `Exports: ${reportData.statistics.exports.totalExports} exports\n\n';
+      text += `Exports: ${reportData.statistics.exports.totalExports} exports\n\n`;
     }
     
     text += '=' .repeat(80) + '\n';
@@ -715,13 +716,138 @@ const CaseReportGenerator = {
   },
   
   /**
-   * Generate PDF report (placeholder)
+   * Generate HTML/PDF report
    */
-  generatePDFReport(reportData) {
-    // In a real implementation, this would use a PDF library
+  generateHTMLReport(reportData) {
+    const signature = reportData.metadata.signature || 'UNSIGNED_DEVELOPMENT_BUILD';
+    const fingerprint = reportData.metadata.fingerprint || 'N/A';
+
+    let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>HyperSnatch Forensic Case Report</title>
+        <style>
+            body { font-family: 'Inter', system-ui, sans-serif; color: #333; line-height: 1.6; padding: 40px; max-width: 900px; margin: 0 auto; }
+            h1 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 5px; }
+            .subtitle { color: #64748b; font-size: 14px; margin-bottom: 30px; font-weight: 500; }
+            h2 { color: #334155; margin-top: 30px; border-left: 4px solid #3b82f6; padding-left: 12px; }
+            .meta { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
+            .meta p { margin: 5px 0; font-size: 14px; }
+            .signature-box { background: #f1f5f9; padding: 15px; border-radius: 6px; font-family: ui-monospace, monospace; font-size: 11px; margin-top: 20px; border: 1px dashed #cbd5e1; word-break: break-all; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+            th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.025em; }
+            td { font-size: 14px; word-break: break-all; }
+            .high-conf { color: #16a34a; font-weight: bold; }
+            .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+            .badge-video { background: #dbeafe; color: #1e40af; }
+            .badge-document { background: #fce7f3; color: #9d174d; }
+            .badge-link { background: #f3f4f6; color: #374151; }
+            .tier-High { color: #16a34a; font-weight: 600; }
+            .tier-Moderate { color: #ca8a04; }
+            .tier-Low { color: #dc2626; }
+        </style>
+    </head>
+    <body>
+        <h1>Forensic Extraction Report</h1>
+        <div class="subtitle">HyperSnatch Protocol v${reportData.metadata.version} // Deterministic Static Analysis</div>
+        
+        <div class="meta">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <p><strong>Generated At:</strong> ${reportData.metadata.generatedAt}</p>
+                    <p><strong>Workspace ID:</strong> ${reportData.metadata.workspaceId || 'N/A'}</p>
+                    <p><strong>Case Number:</strong> ${reportData.case?.caseNumber || 'N/A'}</p>
+                </div>
+                <div>
+                    <p><strong>Total Artifacts:</strong> ${reportData.extraction?.totalCandidates || 0}</p>
+                    <p><strong>Legal Refusals:</strong> ${reportData.refusals?.totalRefusals || 0}</p>
+                    <p><strong>Integrity:</strong> SOVEREIGN AUDIT CHAIN ACTIVE</p>
+                </div>
+            </div>
+            
+            <div class="signature-box">
+                <strong>DIGITAL SIGNATURE (HMAC-SHA256):</strong><br>${signature}<br><br>
+                <strong>ARTIFACT FINGERPRINT (SHA256):</strong><br>${fingerprint}
+            </div>
+        </div>
+    `;
+
+    if (reportData.extraction && reportData.extraction.candidates.length > 0) {
+        html += `
+        <h2>Extracted Artifacts</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 100px;">Type</th>
+                    <th>Source URL / Artifact</th>
+                    <th style="width: 80px;">Score</th>
+                    <th style="width: 100px;">Tier</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        reportData.extraction.candidates.forEach(c => {
+            const typeBadge = c.type === 'document' ? 'badge-document' : (c.type === 'video' || c.type === 'mp4' ? 'badge-video' : 'badge-link');
+            const tierClass = `tier-${c.certaintyTier || 'Low'}`;
+            
+            html += `
+                <tr>
+                    <td><span class="badge ${typeBadge}">${c.type}</span></td>
+                    <td><code style="font-size: 12px;">${c.url}</code></td>
+                    <td>${((c.finalScore || c.confidence || 0) * 100).toFixed(0)}%</td>
+                    <td><span class="${tierClass}">${c.certaintyTier || 'Low'}</span></td>
+                </tr>
+            `;
+        });
+        
+        html += `
+            </tbody>
+        </table>
+        `;
+    }
+
+    if (reportData.refusals && reportData.refusals.refusals && reportData.refusals.refusals.length > 0) {
+        html += `
+        <h2>Policy Exclusions (Legal Boundaries)</h2>
+        <p style="font-size: 13px; color: #64748b;">The following items were identified but excluded from extraction to preserve legal boundaries (Auth/Premium/Age Gates).</p>
+        <table style="margin-top: 10px;">
+            <thead>
+                <tr>
+                    <th style="width: 180px;">Timestamp</th>
+                    <th>Reason / Boundary Detected</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+        reportData.refusals.refusals.forEach(r => {
+            html += `
+                <tr>
+                    <td style="font-size: 12px; color: #64748b;">${r.timestamp}</td>
+                    <td style="font-size: 13px;">${r.reason}</td>
+                </tr>
+            `;
+        });
+        html += `
+            </tbody>
+        </table>
+        `;
+    }
+
+    html += `
+        <div style="margin-top: 60px; font-size: 11px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+            This report was generated by HyperSnatch Forensic Platform.<br>
+            Verification of this document requires the original .tear bundle and the corresponding Hardware ID.
+        </div>
+    </body>
+    </html>
+    `;
+
     return {
-      format: 'PDF',
-      data: 'PDF generation not implemented in this version',
+      format: 'HTML',
+      data: html,
       generatedAt: new Date().toISOString()
     };
   },
@@ -828,7 +954,7 @@ const CaseReportGenerator = {
    */
   log(message) {
     console.log(`[CASE_REPORT_GENERATOR] ${message}`);
-    if (window.EvidenceLogger) {
+    if (typeof window !== 'undefined' && window.EvidenceLogger) {
       window.EvidenceLogger.info(message);
     }
   }

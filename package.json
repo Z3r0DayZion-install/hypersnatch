@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -50,6 +50,7 @@
     "ui:bridge": "node ./src/bridge/ui-bridge.js",
     "ui:open": "start ui/hypersnatch-ui.html",
     "build:exe": "pkg -t node18-win-x64 -o dist/hypersnatch.exe src/cli/hypersnatch-bin.js",
+    "build:wrapper": "node scripts/build_wrapper.js",
     "release:pack": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Compress-Archive -Path release\\* -DestinationPath dist\\HyperSnatch_release.zip -Force\"",
     "test": "node tests/smartdecode.test.js",
     "test:ci": "node tests/smartdecode.test.js",
@@ -84,7 +85,7 @@
       "src/core/",
       "core/",
       "modules/",
-      "hypersnatch.html",
+      "ui/hypersnatch-ui.html",
       "package.json"
     ],
     "extraResources": [
@@ -118,5 +119,3 @@
     }
   }
 }
-
-

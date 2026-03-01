@@ -29,8 +29,9 @@ function deriveKey(passphrase, salt, iterations = DEFAULT_ITERATIONS) {
   return crypto.pbkdf2Sync(passphrase, salt, iterations, 32, 'sha256');
 }
 
-function encryptData(data, key, iv) {
-  const cipher = crypto.createCipher('aes-256-gcm', key);
+function encryptData(data, key, ivBase64) {
+  const iv = Buffer.from(ivBase64, 'base64');
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
   cipher.setAAD(Buffer.from('tear-v2', 'utf8'));
   let encrypted = cipher.update(data, 'utf8', 'hex');
   encrypted += cipher.final('hex');

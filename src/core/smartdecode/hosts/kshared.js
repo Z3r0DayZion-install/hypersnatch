@@ -6,9 +6,9 @@
 const KsharedExtractor = {
     // Patterns derived from documentation and legacy logic
     PATTERNS: [
-        /https?:\/\/(?:www\.)?kshared\.com\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
-        /https?:\/\/(?:www\.)?kshared\.com\/file\/([a-zA-Z0-9_-]+)(?:[\/\?\s"']|$)/i,
-        /https?:\/\/(?:www\.)?kshared\.com\/f\/([a-zA-Z0-9_-]+)/i
+        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
+        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/file\/([a-zA-Z0-9_-]+)(?:[\/\?\s"']|$)/i,
+        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/f\/([a-zA-Z0-9_-]+)/i
     ],
 
     /**
@@ -30,13 +30,14 @@ const KsharedExtractor = {
                 const url = rawUrl.replace(/[\s"'\/]$/, '');
                 const fileId = match[1];
                 const filename = match[2] || 'unknown';
+                const host = url.includes('khared.com') ? 'khared.com' : 'kshared.com';
 
                 if (!candidates.has(url)) {
                     candidates.set(url, {
                         url,
                         fileId,
                         filename,
-                        host: 'kshared.com',
+                        host,
                         type: this._inferType(filename),
                         sourceLayer: 'host_kshared',
                         confidence: 0.95
@@ -56,12 +57,12 @@ const KsharedExtractor = {
      */
     resurrect(html, hostCandidate) {
         const directCandidates = [];
-        const { fileId, filename } = hostCandidate;
+        const { fileId, filename, host } = hostCandidate;
 
         // 1. DOM Offline Recreation
         const domPatterns = [
             /(?:var|const|let)\s+(?:dl_link|content_url)\s*=\s*["'](https?:\/\/[^"']+)["']/gi,
-            /["'](https?:\/\/dl\.kshared\.com\/content\/[^"']+)["']/gi
+            /["'](https?:\/\/dl\.(?:kshared|khared)\.com\/content\/[^"']+)["']/gi
         ];
 
         domPatterns.forEach(pattern => {
@@ -73,7 +74,7 @@ const KsharedExtractor = {
                     url,
                     filename,
                     fileId,
-                    host: 'kshared.com',
+                    host,
                     type: this._inferType(filename),
                     sourceLayer: 'resurrection_kshared_dom',
                     confidence: 0.98
@@ -83,12 +84,13 @@ const KsharedExtractor = {
 
         // 2. Heuristic Reconstruction
         if (fileId) {
-            const reconstructedUrl = `https://dl.kshared.com/content/${fileId}`;
+            const domain = host || 'kshared.com';
+            const reconstructedUrl = `https://dl.${domain}/content/${fileId}`;
             directCandidates.push({
                 url: reconstructedUrl,
                 filename,
                 fileId,
-                host: 'kshared.com',
+                host: domain,
                 type: this._inferType(filename),
                 sourceLayer: 'resurrection_kshared_heuristic',
                 confidence: 0.85

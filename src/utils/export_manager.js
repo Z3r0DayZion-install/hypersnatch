@@ -233,6 +233,36 @@ const ExportManager = {
   },
 
   /**
+   * Verifies a Sovereign Audit Chain bundle via the IPC bridge
+   */
+  async verifySession(bundle) {
+    if (window.smartDecode && window.smartDecode.verifySession) {
+      return await window.smartDecode.verifySession(bundle);
+    } else {
+      console.warn("Session verification bridge not available");
+      return false;
+    }
+  },
+
+  /**
+   * Generates a signed AI Affidavit via the Sovereign Intelligence Matrix
+   */
+  async generateAIAffidavit(sessionState, buildInfo) {
+    if (window.aiWitness && window.aiWitness.infer) {
+      const prompt = `Synthesize a forensic affidavit for ${sessionState.candidates.length} evidence items.`;
+      const context = {
+        itemCount: sessionState.candidates.length,
+        rootHash: sessionState.signature, // If signed
+        hwid: buildInfo.displayId
+      };
+      
+      return await window.aiWitness.infer(prompt, context);
+    } else {
+      throw new Error("AI Witness bridge not available");
+    }
+  },
+
+  /**
    * Triggers file download in the browser
    */
   downloadFile(content, filename, contentType) {

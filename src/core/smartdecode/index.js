@@ -7,6 +7,7 @@ const Base64Extractor = require("./base64");
 const AuthBoundaryDetector = require("./auth-boundary");
 const Ranker = require("./ranker");
 const Iframe = require("./iframe");
+const HostExtractors = require("./hosts");
 const RustEngine = require("./rust-engine");
 
 function scanHttpUrls(text) {
@@ -23,11 +24,11 @@ function scanHttpUrls(text) {
 }
 
 /**
- * SmartDecode 2.3.2 - Orchestration Module
+ * SmartDecode 2.4.0 - Orchestration Module
  * Deterministic forensic extraction pipeline.
  */
 const SmartDecode = {
-  VERSION: "2.3.2",
+  VERSION: "2.4.0",
 
   /**
    * Deterministic pipeline entry.
@@ -64,8 +65,12 @@ const SmartDecode = {
     }
 
     const normalized = Preprocessor.normalize(input);
-    // Segment splitting is opt-in or based on double-newlines
-    const segments = options.splitSegments ? normalized.split(/\n\n+/) : [normalized];
+    let segments = [normalized];
+
+    // Segment splitting for memory optimization on massive payloads
+    if (options.splitSegments || normalized.length > 5 * 1024 * 1024) { // Auto-chunk > 5MB
+      segments = this.chunkInput(normalized, 2 * 1024 * 1024); // 2MB chunks
+    }
 
     const allAccepted = [];
     const allRefused = [];
@@ -131,7 +136,8 @@ const SmartDecode = {
 
     const raw = [
       ...(DirectExtractor.extract(html) || []),
-      ...(Base64Extractor.extract(html, DirectExtractor) || []),
+      ...(Base64Extractor.extract(html, DirectExtractor, HostExtractors) || []),
+      ...(HostExtractors.extractAll(html) || []),
       ...(nestedCandidates || []),
     ];
 
@@ -217,15 +223,43 @@ const SmartDecode = {
       const p = new URL(url).pathname.toLowerCase();
       if (p.endsWith(".m3u8")) return "m3u8";
       if (p.endsWith(".mp4")) return "mp4";
+      if (p.endsWith(".pdf")) return "document";
     } catch (e) {
       // Fallback for invalid URLs or relative paths
       const lowerUrl = url.toLowerCase().split("?")[0];
       if (lowerUrl.endsWith(".m3u8")) return "m3u8";
       if (lowerUrl.endsWith(".mp4")) return "mp4";
+      if (lowerUrl.endsWith(".pdf")) return "document";
     }
     if (rawHtmlSnippet && rawHtmlSnippet.includes("#EXTM3U")) return "hls";
-    return "video";
+    return "link";
   },
+
+  /**
+   * Safe chunking for massive inputs.
+   * Splits string into ~chunkSize blocks without cutting through URLs or Base64 blobs.
+   */
+  chunkInput(str, chunkSize) {
+    const segments = [];
+    let i = 0;
+    while (i < str.length) {
+      let end = i + chunkSize;
+      if (end < str.length) {
+        // Try to find a safe boundary (newline, space, angle bracket)
+        let safeEnd = -1;
+        for (let j = end; j > Math.max(i, end - 10000); j--) {
+          if (/[ \n\r\t<>]/.test(str[j])) {
+            safeEnd = j;
+            break;
+          }
+        }
+        end = safeEnd !== -1 ? safeEnd : end;
+      }
+      segments.push(str.substring(i, end));
+      i = end;
+    }
+    return segments;
+  }
 };
 
 module.exports = SmartDecode;

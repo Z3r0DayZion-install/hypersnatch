@@ -57,6 +57,8 @@ const LOGIN_GATE_PATTERNS = [
     /(?:login|sign.?in|register)\s+to\s+(?:download|access|view|watch)/i,
     // "You need to be logged in"
     /you\s+(?:need\s+to|must)\s+be\s+(?:logged\s+in|authenticated)/i,
+    // "Please log in to continue"
+    /please\s+(?:log\s+in|sign\s+in)\s+to\s+continue/i,
 ];
 
 const PREMIUM_GATE_PATTERNS = [
@@ -68,8 +70,19 @@ const PREMIUM_GATE_PATTERNS = [
     /(?:must\s+)?(?:upgrade|subscribe|purchase)\s+(?:(?:a\s+|your\s+)\w+\s+)?to\s+(?:download|access|view)/i,
     // "This file requires a premium account"
     /this\s+(?:file|content|video|download)\s+requires\s+(?:a\s+)?(?:premium|paid)/i,
+    // Paywall elements
+    /id=["']paywall["']/i,
     // CSS class patterns
     /class=["'][^"']*(?:premium.gate|paywall|members.only|subscriber.only)[^"']*["']/i,
+];
+
+const AGE_GATE_PATTERNS = [
+    // "You must be 18 years or older"
+    /(?:must\s+be|are\s+you)\s+(?:18|21)\s*(?:years\s+(?:old\s+)?or\s+older|years\s+old|\+)/i,
+    // "Adult content verification"
+    /(?:adult|mature)\s+content\s+verification/i,
+    // "This website contains age-restricted material"
+    /(?:age-restricted|age\s+restricted)\s+(?:material|content)/i,
 ];
 
 // ─── Known time-param key patterns (heuristic for numeric value timestamps) ─
@@ -116,6 +129,9 @@ const AuthBoundaryDetector = {
 
         const premiumReason = this._detectPremiumGate(html);
         if (premiumReason) return premiumReason;
+        
+        const ageReason = this._detectAgeGate(html);
+        if (ageReason) return ageReason;
 
         return null;
     },
@@ -178,6 +194,11 @@ const AuthBoundaryDetector = {
             if (premiumReason) {
                 return { requiresAuthorization: true, stopReason: premiumReason };
             }
+            
+            const ageReason = this._detectAgeGate(html);
+            if (ageReason) {
+                return { requiresAuthorization: true, stopReason: ageReason };
+            }
         }
 
         return { requiresAuthorization: false, stopReason: null };
@@ -232,6 +253,15 @@ const AuthBoundaryDetector = {
         for (const pattern of PREMIUM_GATE_PATTERNS) {
             if (pattern.test(html)) {
                 return `premium_gate:${pattern.source.substring(0, 50)}`;
+            }
+        }
+        return null;
+    },
+    
+    _detectAgeGate(html) {
+        for (const pattern of AGE_GATE_PATTERNS) {
+            if (pattern.test(html)) {
+                return `age_verification_gate:${pattern.source.substring(0, 50)}`;
             }
         }
         return null;

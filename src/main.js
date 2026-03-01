@@ -7,7 +7,11 @@ const fs = require('fs');
 const crypto = require('crypto');
 const secureCrypto = require('./security-crypto');
 const log = require('./utils/logger');
-const licenseValidator = require('./core/security/license_validator');
+const SmartDecode = require('./core/smartdecode');
+const IndexedSearch = require('./indexed_search');
+const CrashJournal = require('./crash_journal');
+
+// QR Engine purged in Vanguard Edition for zero-trace portability.
 
 // Security: Handle security events and crashes globally during bootstrap
 process.on("uncaughtException", (err) => {
@@ -69,7 +73,9 @@ function enforceSecurityPolicy(window, url) {
   // Check allowlist
   try {
     const allowlistPath = path.resolve(ALLOWLIST_FILE);
-    const configDir = path.resolve(CONFIG_DIR); const configPrefix = (configDir.endsWith(path.sep) ? configDir : (configDir + path.sep)).toLowerCase(); if (!allowlistPath.toLowerCase().startsWith(configPrefix)) {
+    const configDir = path.resolve(CONFIG_DIR);
+    const configPrefix = (configDir.endsWith(path.sep) ? configDir : (configDir + path.sep)).toLowerCase();
+    if (!allowlistPath.toLowerCase().startsWith(configPrefix)) {
       throw new Error('Invalid allowlist path');
     }
     const allowlist = JSON.parse(fs.readFileSync(ALLOWLIST_FILE, 'utf8'));
@@ -88,9 +94,19 @@ function enforceSecurityPolicy(window, url) {
   }
 }
 
+/**
+ * Validates that a filename contains no path traversal sequences
+ */
+function validateFilename(filename) {
+  if (typeof filename !== 'string') return false;
+  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) return false;
+  return /^[a-zA-Z0-9_\-\.]+$/.test(filename);
+}
+
 // ==================== IPC HANDLERS ====================
-ipcMain.handle('get-app-info', () => {
+ipcMain.handle('get-app-info', async () => {
   const policy = getPolicySummary();
+  const license = await checkLicenseLocally();
   const envAllow = process.env.HYPERSNATCH_ENABLE_STRATEGY_RUNTIME === "1";
   const allowStrategyRuntime = Boolean(envAllow && policy.strategyRuntime?.enabled);
 
@@ -105,6 +121,7 @@ ipcMain.handle('get-app-info', () => {
       smartDecodeDefaultEngine,
     }),
     policy,
+    license,
     runtimeDir: RUNTIME_DIR
   };
 });
@@ -117,79 +134,73 @@ ipcMain.handle('open-evidence-folder', () => {
   shell.openPath(EVIDENCE_DIR);
 });
 
-const SovereignAuth = require('./core/security/sovereign_auth');
-const http = require('http');
-
-// ==================== EMPIRE HUB BRIDGE ====================
-class SovereignBridge {
-  constructor() {
-    this.serverUrl = 'http://localhost:3000'; // Default Sovereign Server port
-    this.nodeId = 'HYPERSNATCH-' + crypto.randomBytes(2).toString('hex').toUpperCase();
-    this.heartbeatInterval = null;
+// ==================== SMART DECODE IPC ====================
+ipcMain.handle('smart-decode-run', async (event, { input, options }) => {
+  try {
+    return await SmartDecode.run(input, options);
+  } catch (err) {
+    log.error('SMART_DECODE_ERROR', { message: err.message });
+    return null;
   }
+});
 
-  async connect() {
-    console.log(`[Bridge] Connecting to Sovereign Hub as ${this.nodeId}...`);
-    this.startHeartbeat();
+ipcMain.handle('smart-decode-sign-session', async (event, { sessionState, systemInfo }) => {
+  try {
+    const hwid = await getHardwareFingerprint();
+    const AuditChain = require('./core/smartdecode/audit-chain');
+    return await AuditChain.signSession(sessionState, systemInfo, hwid);
+  } catch (err) {
+    log.error('AUDIT_CHAIN_SIGN_ERROR', { message: err.message });
+    return null;
   }
+});
 
-  startHeartbeat() {
-    this.heartbeatInterval = setInterval(() => {
-      this.sendToHub('HEARTBEAT', {
-        status: 'ACTIVE',
-        timestamp: new Date().toISOString(),
-        version: '1.0.1'
-      });
-    }, 30000); // 30s heartbeat
+ipcMain.handle('smart-decode-verify-session', async (event, bundle) => {
+  try {
+    const hwid = await getHardwareFingerprint();
+    const AuditChain = require('./core/smartdecode/audit-chain');
+    return AuditChain.verifySession(bundle, hwid);
+  } catch (err) {
+    log.error('AUDIT_CHAIN_VERIFY_ERROR', { message: err.message });
+    return false;
   }
-
-  sendToHub(event, data) {
-    const payload = JSON.stringify({
-      nodeId: this.nodeId,
-      event,
-      data,
-      signature: crypto.createHmac('sha256', 'SOVEREIGN_ROOT_KEY_2026')
-        .update(JSON.stringify(data)).digest('hex')
-    });
-
-    const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/v1/node/report',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': payload.length
-      }
-    };
-
-    const req = http.request(options);
-    req.on('error', () => { /* Server likely offline, ignore to maintain airgap feel */ });
-    req.write(payload);
-    req.end();
-  }
-}
-
-const bridge = new SovereignBridge();
-bridge.connect();
-
-ipcMain.handle('empire-sync', async (event, { action, data }) => {
-  bridge.sendToHub(action, data);
-  return { success: true };
 });
 
 // ==================== SOVEREIGN HARDWARE BINDING ====================
-async function getHardwareFingerprint() {
+async function getRawHardwareIds() {
   try {
-    const { execSync } = require('child_process');
-    // Get CPU ID and Motherboard UUID on Windows
-    const cpuId = execSync('wmic cpu get processorid').toString().split('\n')[1].trim();
-    const baseboardId = execSync('wmic baseboard get serialnumber').toString().split('\n')[1].trim();
-
-    const rawId = `HS-SOVEREIGN-${cpuId}-${baseboardId}`;
-    return crypto.createHash('sha256').update(rawId).digest('hex');
+    const os = require('os');
+    const cpuId = os.cpus()[0].model.replace(/\s+/g, '_');
+    const baseboardId = `${os.hostname()}_${os.userInfo().username}`;
+    return { cpuId, baseboardId };
   } catch (e) {
-    return 'FALLBACK-ID-88229911'; // Safe fallback for dev/restricted environments
+    return { cpuId: 'FALLBACK-CPU', baseboardId: 'FALLBACK-BASE' };
+  }
+}
+
+async function getHardwareFingerprint() {
+  const { cpuId, baseboardId } = await getRawHardwareIds();
+  return crypto.createHash('sha256').update(`HS-HWID-${cpuId}-${baseboardId}`).digest('hex');
+}
+
+/**
+ * Checks for a local valid license and returns the tier
+ */
+async function checkLicenseLocally() {
+  try {
+    const hwid = await getHardwareFingerprint();
+    const licensePath = path.join(CONFIG_DIR, 'license.json');
+    if (!fs.existsSync(licensePath)) {
+      return { tier: 'FORENSIC', valid: false };
+    }
+    const license = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
+    const result = SovereignAuth.verifyLicense(license, hwid);
+    if (result.valid) {
+      return { tier: result.edition || 'ELITE', valid: true, user: result.user };
+    }
+    return { tier: 'FORENSIC', valid: false };
+  } catch (e) {
+    return { tier: 'FORENSIC', valid: false };
   }
 }
 
@@ -205,10 +216,11 @@ ipcMain.handle('get-hardware-status', async () => {
 ipcMain.handle('authenticate-license', async (event, licensePath) => {
   try {
     const hwid = await getHardwareFingerprint();
-    if (!fs.existsSync(licensePath)) {
+    const actualPath = (licensePath && path.isAbsolute(licensePath)) ? licensePath : path.join(CONFIG_DIR, 'license.json');
+    if (!fs.existsSync(actualPath)) {
       return { success: false, reason: 'License file not found.' };
     }
-    const license = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
+    const license = JSON.parse(fs.readFileSync(actualPath, 'utf8'));
     const result = SovereignAuth.verifyLicense(license, hwid);
     return { success: result.valid, ...result };
   } catch (err) {
@@ -217,6 +229,11 @@ ipcMain.handle('authenticate-license', async (event, licensePath) => {
 });
 
 ipcMain.handle('final-freeze', async (event, { caseData, reports }) => {
+  const license = await checkLicenseLocally();
+  if (license.tier === 'FORENSIC' && !license.valid) {
+    return { success: false, error: 'ACCESS DENIED: Elite Tier License Required for Final Freeze.' };
+  }
+  
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const caseFolderName = `CASE-FREEZE-${timestamp}`;
 
@@ -230,29 +247,31 @@ ipcMain.handle('final-freeze', async (event, { caseData, reports }) => {
   const casePath = path.join(rootPath, caseFolderName);
   if (!fs.existsSync(casePath)) fs.mkdirSync(casePath);
 
-  const manifestEntries = [];
+  const manifestFiles = [];
 
   try {
     // 1. Write Reports
     for (const report of reports) {
+      if (!validateFilename(report.filename)) {
+        throw new Error(`Security Violation: Illegal filename detected: ${report.filename}`);
+      }
       const filePath = path.join(casePath, report.filename);
+
       const buffer = report.type === 'pdf' ? Buffer.from(report.content, 'base64') : report.content;
       fs.writeFileSync(filePath, buffer);
 
       const hash = crypto.createHash('sha256').update(buffer).digest('hex');
-      manifestEntries.push(`${hash}  ${report.filename}`);
+      manifestFiles.push({ hash, path: report.filename });
     }
 
     // 2. Create Integrity Manifest
-    const manifestContent = manifestEntries.join('\n');
+    const entries = manifestFiles.map(f => `${f.hash}  ${f.path}`).join('\n');
     const manifestPath = path.join(casePath, 'INTEGRITY_MANIFEST.txt');
-    fs.writeFileSync(manifestPath, manifestContent);
+    fs.writeFileSync(manifestPath, entries);
 
     // 3. Sign the manifest (Sovereign Seal)
-    const signature = crypto
-      .createHmac('sha256', 'SOVEREIGN_ROOT_KEY_2026')
-      .update(manifestContent)
-      .digest('hex');
+    const { cpuId, baseboardId } = await getRawHardwareIds();
+    const signature = crypto.createHash('sha256').update(entries + cpuId + baseboardId).digest('hex');
 
     fs.writeFileSync(path.join(casePath, 'SOVEREIGN_SEAL.sig'), signature);
 
@@ -273,10 +292,16 @@ ipcMain.handle('final-freeze', async (event, { caseData, reports }) => {
 });
 
 ipcMain.handle('export-pdf', async (event, { html, filename }) => {
+  if (!validateFilename(filename)) {
+    return { success: false, error: 'Illegal filename' };
+  }
   const pdfWindow = new BrowserWindow({
     show: false,
     webPreferences: {
-      nodeIntegration: false
+      ...SECURITY_CONFIG,
+      preload: null, // No preload needed for headless PDF window
+      nodeIntegration: false,
+      contextIsolation: true
     }
   });
 
@@ -310,9 +335,9 @@ ipcMain.handle('export-pdf', async (event, { html, filename }) => {
   }
 });
 
-ipcMain.handle('export-security-report', async (event) => {
+ipcMain.handle('export-security-report', async (event, decodeData) => {
   try {
-    const reportPath = path.join(app.getPath("desktop"), "hyperSnatch_report.json");
+    const reportPath = path.join(app.getPath("desktop"), "hyperSnatch_report.pdf");
 
     // Read bridge.runtime.json
     let bridgeAuth = { error: "Not spawned yet" };
@@ -340,26 +365,75 @@ ipcMain.handle('export-security-report', async (event) => {
       authenticodeState = "Skipped (Running from Source)";
     }
 
-    const report = {
-      product: "HyperSnatch",
-      version: APP_VERSION,
-      platform: process.platform,
-      arch: process.arch,
-      securityConfig: SECURITY_CONFIG,
-      bridgeAuth,
-      authenticodeState,
-      timestamp: new Date().toISOString()
-    };
-
     const { canceled, filePath } = await dialog.showSaveDialog({
       title: "Export Security Report",
       defaultPath: reportPath,
-      filters: [{ name: "JSON Report", extensions: ["json"] }]
+      filters: [{ name: "PDF Document", extensions: ["pdf"] }, { name: "HTML Report", extensions: ["html"] }]
     });
 
     if (canceled || !filePath) return false;
 
-    fs.writeFileSync(filePath, JSON.stringify(report, null, 2), "utf8");
+    // Use CaseReportGenerator
+    const CaseReportGenerator = require('../core/case_report_generator.js');
+    const AuditChain = require('./core/smartdecode/audit-chain');
+    
+    const cands = decodeData?.candidates || [];
+    const refs = decodeData?.refusals || [];
+    
+    // 1. Sign the session via Audit Chain for forensic immutability
+    const hwid = await getHardwareFingerprint();
+    const signedBundle = await AuditChain.signSession(
+      { candidates: cands, refusals: refs, telemetry: {} },
+      { buildId: "RES-RC1", engineVersion: "2.4.0" },
+      hwid
+    );
+
+    // Map refusals if they don't have timestamp
+    const mappedRefs = refs.map(r => ({
+      timestamp: r.timestamp || new Date().toISOString(),
+      reason: `[${r.host || 'unknown'}] ${r.reason}`
+    }));
+
+    const reportData = {
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        workspaceId: "OFFLINE_SESSION",
+        version: APP_VERSION,
+        signature: signedBundle.signature,
+        fingerprint: signedBundle.fingerprint
+      },
+      extraction: {
+        totalCandidates: cands.length,
+        candidates: cands
+      },
+      refusals: {
+        totalRefusals: refs.length,
+        refusals: mappedRefs
+      }
+    };
+
+    const htmlReport = CaseReportGenerator.generateHTMLReport(reportData);
+
+    if (filePath.endsWith('.html')) {
+      fs.writeFileSync(filePath, htmlReport.data, "utf8");
+      return true;
+    }
+
+    // Export as PDF
+    const pdfWindow = new BrowserWindow({
+      show: false,
+      webPreferences: { nodeIntegration: false }
+    });
+
+    await pdfWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlReport.data)}`);
+    const pdfData = await pdfWindow.webContents.printToPDF({
+      marginsType: 0,
+      pageSize: 'A4',
+      printBackground: true
+    });
+    fs.writeFileSync(filePath, pdfData);
+    pdfWindow.close();
+
     return true;
   } catch (err) {
     log.error("EXPORT_REPORT_ERROR", { err: err.message });
@@ -380,9 +454,10 @@ ipcMain.handle('validate-license', async (event) => {
     }
 
     const licensePath = filePaths[0];
-    const result = licenseValidator.validateLicenseFile(licensePath);
+    const hwid = await getHardwareFingerprint();
+    const license = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
+    const result = SovereignAuth.verifyLicense(license, hwid);
 
-    // In a real app we'd copy this to CONFIG_DIR so it persists. For the demo, we just validate it.
     if (result.valid) {
       const storedLicense = path.join(CONFIG_DIR, 'license.json');
       fs.copyFileSync(licensePath, storedLicense);
@@ -612,7 +687,7 @@ function ensurePolicyDefaults() {
 function getRendererPath() {
   // Determine if running in development or packaged mode
   if (process.env.NODE_ENV === 'development') {
-    return path.join(__dirname, '..', 'hypersnatch.html');
+    return path.join(__dirname, '..', 'ui', 'hypersnatch-ui.html');
   }
 
   // Packaged mode - look for app.asar
@@ -620,11 +695,11 @@ function getRendererPath() {
   const asarPath = path.join(appPath, 'app.asar');
 
   if (fs.existsSync(asarPath)) {
-    return path.join(asarPath, 'hypersnatch.html');
+    return path.join(asarPath, 'ui', 'hypersnatch-ui.html');
   }
 
   // Fallback to development path
-  return path.join(__dirname, '..', 'hypersnatch.html');
+  return path.join(__dirname, '..', 'ui', 'hypersnatch-ui.html');
 }
 
 // ==================== MAIN APP ====================
@@ -632,15 +707,29 @@ app.whenReady().then(() => {
   logSecurityEvent('APP_READY', { version: APP_VERSION });
   log.info("SYSTEM_BOOTSTRAP_COMPLETE", { version: APP_VERSION });
 
-  // HARD NETWORK LOCK: Cancel all http/https requests globally (exempting localhost for Bridge)
+  // HARD NETWORK LOCK: Cancel ALL external network requests globally
   const { session } = require('electron');
-  session.defaultSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
-    const url = new URL(details.url);
-    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
-      return callback({ cancel: false });
+  session.defaultSession.webRequest.onBeforeRequest({ urls: ['*://*/*'] }, (details, callback) => {
+    try {
+      const url = new URL(details.url);
+      
+      // Allow internal app resources
+      if (url.protocol === 'file:') {
+        return callback({ cancel: false });
+      }
+
+      // Allow internal IPC/Bridge communication
+      if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+        return callback({ cancel: false });
+      }
+      
+      // Block everything else
+      logSecurityEvent('NETWORK_BLOCK_TRIGGERED', { url: details.url });
+      return callback({ cancel: true });
+    } catch (e) {
+      // Fallback: block anything unparseable
+      callback({ cancel: true });
     }
-    logSecurityEvent('NETWORK_BLOCK_TRIGGERED', { url: details.url });
-    callback({ cancel: true });
   });
 
   // CSP ENFORCEMENT (Round 10)
@@ -649,8 +738,10 @@ app.whenReady().then(() => {
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; " +
+          "default-src 'self'; " +
           "connect-src 'self' http://localhost:3000; " +
+          "script-src 'self'; " +
+          "style-src 'self' 'unsafe-inline'; " + // Allow inline styles for UI components
           "img-src 'self' data: blob: https://*; " +
           "media-src 'self' data: blob: https://*;"
         ]
@@ -701,7 +792,6 @@ app.whenReady().then(() => {
       ...SECURITY_CONFIG,
       preload: path.join(__dirname, 'preload.js'),
       // Additional security
-      additionalArguments: '--no-sandbox',
       safeDialogs: true,
       autoplayPolicy: 'document-user-activation-required',
       backgroundThrottling: false
@@ -735,6 +825,44 @@ app.whenReady().then(() => {
 
   // Load the app
   mainWindow.loadFile(getRendererPath());
+
+  // Phase 15: Functional Smoke Test Sequence
+  if (process.env.NS_SMOKE_TEST === "1") {
+    log.info("INITIATING_FUNCTIONAL_SMOKE_TEST");
+    
+    mainWindow.webContents.once('did-finish-load', async () => {
+      // 1. Wait for Bootloader
+      await new Promise(r => setTimeout(r, 5000));
+      
+      log.info("SMOKE_TEST: TRIGGERING_AI_WITNESS");
+      await mainWindow.webContents.executeJavaScript(`
+        if (window.UI) {
+          // Mock some evidence so AI has something to work with
+          window.UI.state.candidates = [{
+            url: 'https://rapidgator.net/file/abc123/malicious.zip',
+            host: 'rapidgator.net',
+            confidence: 0.95,
+            status: 'accepted'
+          }];
+          window.UI.handleAIAffidavit();
+        }
+      `);
+
+      await new Promise(r => setTimeout(r, 2000));
+
+      log.info("SMOKE_TEST: TRIGGERING_SOVEREIGN_EXFIL");
+      await mainWindow.webContents.executeJavaScript(`
+        if (window.UI) {
+          window.UI.handleSovereignExfil();
+        }
+      `);
+
+      await new Promise(r => setTimeout(r, 3000));
+      
+      log.info("SMOKE_TEST: SEQUENCE_COMPLETE");
+      app.quit();
+    });
+  }
 
   // Security: Handle window closed
   mainWindow.on('closed', () => {

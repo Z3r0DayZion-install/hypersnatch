@@ -488,6 +488,162 @@ https://cdn.example.com/1080p/playlist.m3u8`;
     });
 
     // ════════════════════════════════════════════════════════════════════════════
+    // 10. EMLOAD MULTI-SOURCE RANKING TESTS
+    // ════════════════════════════════════════════════════════════════════════════
+    console.log('\n[10] Emload Multi-Source Ranking');
+
+    const EMLOAD_FIXTURES = require('../fixtures/html/emload/emload_fixtures');
+
+    await test('all 25 Emload fixtures load without error', () => {
+        assert.strictEqual(EMLOAD_FIXTURES.length, 25, `Expected 25 fixtures, got ${EMLOAD_FIXTURES.length}`);
+        for (const f of EMLOAD_FIXTURES) {
+            assert.ok(f.id, `Fixture missing id`);
+            assert.ok(typeof f.html === 'string', `Fixture ${f.id} missing html`);
+        }
+    });
+
+    await test('fixture #1 single_video_source extracts mp4 from Emload CDN', async () => {
+        const f = EMLOAD_FIXTURES.find(x => x.id === 1);
+        const r = await SmartDecode.run(f.html);
+        assert.ok(r.candidates.length > 0, 'Should find candidates');
+        assert.ok(r.candidates.some(c => c.url.includes('cdn.emload.com')), 'Should find emload URL');
+    });
+
+    await test('fixture #6 multi_source_3_qualities finds all 3 URLs', async () => {
+        const f = EMLOAD_FIXTURES.find(x => x.id === 6);
+        const r = await SmartDecode.run(f.html);
+        assert.ok(r.candidates.length >= 3, `Expected >= 3 candidates, got ${r.candidates.length}`);
+    });
+
+    await test('fixture #7 HLS master is ranked higher than MP4', async () => {
+        const f = EMLOAD_FIXTURES.find(x => x.id === 7);
+        const r = await SmartDecode.run(f.html);
+        assert.ok(r.best, 'Should have a best candidate');
+        assert.ok(r.best.url.includes('.m3u8'), `Best should be m3u8, was: ${r.best.url}`);
+    });
+
+    await test('fixture #16 signed URL is refused', async () => {
+        const f = EMLOAD_FIXTURES.find(x => x.id === 16);
+        const r = await SmartDecode.run(f.html);
+        assert.ok(r.refusals.length > 0, 'Signed URL should generate refusals');
+    });
+
+    await test('fixture #24 empty page returns zero candidates', async () => {
+        const f = EMLOAD_FIXTURES.find(x => x.id === 24);
+        const r = await SmartDecode.run(f.html);
+        assert.strictEqual(r.candidates.length, 0, 'Empty page should have no candidates');
+    });
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // 11. RANKER v2.4 FEATURES
+    // ════════════════════════════════════════════════════════════════════════════
+    console.log('\n[11] Ranker v2.4 Features');
+
+    await test('Emload /stream/ URL gets host boost', () => {
+        const candidates = [
+            { url: 'https://cdn.emload.com/stream/boosted.mp4', type: 'mp4', confidence: 0.5 },
+            { url: 'https://generic.example.com/video.mp4', type: 'mp4', confidence: 0.5 },
+        ];
+        const r = Ranker.rank(candidates);
+        assert.ok(r.best.url.includes('emload.com'), `Best should be emload, was: ${r.best.url}`);
+    });
+
+    await test('multi-source context boosts scores', () => {
+        const candidates = [
+            { url: 'https://cdn.example.com/video.mp4', type: 'mp4', confidence: 0.5 },
+        ];
+        const r1 = Ranker.rank(candidates, { sourceTagCount: 0 });
+        const r2 = Ranker.rank(
+            [{ url: 'https://cdn.example.com/video.mp4', type: 'mp4', confidence: 0.5 }],
+            { sourceTagCount: 5 }
+        );
+        assert.ok(r2.best.finalScore >= r1.best.finalScore,
+            `Multi-source score ${r2.best.finalScore} should be >= single ${r1.best.finalScore}`);
+    });
+
+    await test('deduplicates identical candidate URLs', () => {
+        const candidates = [
+            { url: 'https://cdn.example.com/dup.mp4', type: 'mp4', confidence: 0.5 },
+            { url: 'https://cdn.example.com/dup.mp4', type: 'mp4', confidence: 0.8 },
+        ];
+        const r = Ranker.rank(candidates);
+        assert.strictEqual(r.candidates.length, 1, 'Should deduplicate identical URLs');
+    });
+
+    await test('Rapidgator /download/ URL gets host boost', () => {
+        const candidates = [
+            { url: 'https://rapidgator.net/download/boosted.mp4', type: 'mp4', confidence: 0.5 },
+            { url: 'https://generic.example.com/video.mp4', type: 'mp4', confidence: 0.5 },
+        ];
+        const r = Ranker.rank(candidates);
+        assert.ok(r.best.url.includes('rapidgator.net'), `Best should be rapidgator, was: ${r.best.url}`);
+    });
+
+    await test('Kshared /file/ URL gets host boost', () => {
+        const candidates = [
+            { url: 'https://kshared.com/file/boosted.mp4', type: 'mp4', confidence: 0.5 },
+            { url: 'https://generic.example.com/video.mp4', type: 'mp4', confidence: 0.5 },
+        ];
+        const r = Ranker.rank(candidates);
+        assert.ok(r.best.url.includes('kshared.com'), `Best should be kshared, was: ${r.best.url}`);
+    });
+
+    await test('sourceTagCount boost is capped at 0.1', () => {
+        const candidates = [
+            { url: 'https://cdn.example.com/capped.mp4', type: 'mp4', confidence: 0.5 },
+        ];
+        const r1 = Ranker.rank(
+            [{ url: 'https://cdn.example.com/capped.mp4', type: 'mp4', confidence: 0.5 }],
+            { sourceTagCount: 100 }
+        );
+        const r2 = Ranker.rank(
+            [{ url: 'https://cdn.example.com/capped.mp4', type: 'mp4', confidence: 0.5 }],
+            { sourceTagCount: 5 }
+        );
+        assert.strictEqual(r1.best.finalScore, r2.best.finalScore,
+            'Both should be capped at 0.1 boost');
+    });
+
+    await test('HOST_BOOSTS property exists on Ranker', () => {
+        assert.ok(Array.isArray(Ranker.HOST_BOOSTS), 'HOST_BOOSTS should be an array');
+        assert.ok(Ranker.HOST_BOOSTS.length >= 3, 'Should have at least 3 host boost rules');
+    });
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // 12. FORENSIC RESURRECTION TESTS
+    // ════════════════════════════════════════════════════════════════════════════
+    console.log('\n[12] Forensic Resurrection');
+
+    await test('extracts .pdf document from direct string', () => {
+        const r = DirectExtractor.extract('https://example.com/evidence.pdf');
+        assert.ok(r.some(c => c.url.includes('evidence.pdf')));
+        assert.strictEqual(r.find(c => c.url.includes('evidence.pdf')).type, 'document');
+    });
+
+    await test('extracts generic link from <a> tag', () => {
+        const html = '<a href="https://example.com/not-media">Case Evidence</a>';
+        const r = DirectExtractor.extract(html);
+        assert.ok(r.some(c => c.url === 'https://example.com/not-media'));
+        assert.strictEqual(r.find(c => c.url.includes('not-media')).sourceLayer, 'generic_link');
+    });
+
+    await test('handles khared.com as kshared alias with boost', async () => {
+        const html = 'https://khared.com/file/a23b9bbf/evidence.pdf';
+        const r = await SmartDecode.run(html);
+        const khared = r.candidates.find(c => c.url.includes('khared.com'));
+        assert.ok(khared, 'Should find khared.com candidate');
+        assert.strictEqual(khared.host, 'khared.com');
+        assert.ok(khared.finalScore > 0.6, `Score should be boosted, was: ${khared.finalScore}`);
+    });
+
+    await test('decodes khared.com pdf from base64 script variable', async () => {
+        const b64 = Buffer.from('https://khared.com/file/a23b9bbf/leaked.pdf').toString('base64');
+        const html = `<script>var data = "${b64}";</script>`;
+        const r = await SmartDecode.run(html);
+        assert.ok(r.candidates.some(c => c.url.includes('leaked.pdf')), 'Should find decoded pdf');
+    });
+
+    // ════════════════════════════════════════════════════════════════════════════
     // RESULTS
     // ════════════════════════════════════════════════════════════════════════════
     console.log(`\n${'═'.repeat(60)}`);

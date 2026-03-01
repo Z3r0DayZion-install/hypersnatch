@@ -6,9 +6,10 @@
 const DirectExtractor = {
     // Common stream extensions and patterns
     PATTERNS: {
-        STREAM: /(https?:\/\/[^\s"'`<>]+?\.(mp4|m3u8|ts|zip)(?:\?[^\s"'`<>]+)?)/gi,
+        STREAM: /(https?:\/\/[^\s"'`<>]+?\.(mp4|m3u8|ts|zip|pdf)(?:\?[^\s"'`<>]+)?)/gi,
         HLS_PLAYLIST: /(https?:\/\/[^\s"'`<>]+?playlist\.m3u8(?:\?[^\s"'`<>]+)?)/gi,
-        BURIED_URL: /["'](https?:\/\/[^"']+?\.(?:mp4|m3u8|ts|zip)[^"']*?)["']/gi
+        BURIED_URL: /["'](https?:\/\/[^"']+?\.(?:mp4|m3u8|ts|zip|pdf)[^"']*?)["']/gi,
+        GENERIC_LINK: /<a\s+(?:[^>]*?\s+)?href=["'](https?:\/\/[^"']+)["']/gi
     },
 
     /**
@@ -30,6 +31,9 @@ const DirectExtractor = {
         // 3. Quoted buried URLs (deep scan within JS/HTML attributes)
         this._matchPattern(input, this.PATTERNS.BURIED_URL, 'buried_string', candidates);
 
+        // 4. Generic links (forensic discovery)
+        this._matchPattern(input, this.PATTERNS.GENERIC_LINK, 'generic_link', candidates);
+
         return Array.from(candidates.values());
     },
 
@@ -45,9 +49,16 @@ const DirectExtractor = {
             const url = match[1];
             if (!url) continue;
 
-            // Basic normalization
+            // Basic normalization and security check
             try {
                 const normalized = new URL(url).toString();
+                const protocol = new URL(normalized).protocol.toLowerCase();
+                
+                // Security Boundary: Only allow web protocols (block file://, javascript:, etc.)
+                if (protocol !== 'http:' && protocol !== 'https:') {
+                    return;
+                }
+
                 if (!map.has(normalized)) {
                     map.set(normalized, {
                         url: normalized,
@@ -67,6 +78,7 @@ const DirectExtractor = {
         if (lowerUrl.endsWith('.m3u8')) return 'hls';
         if (lowerUrl.endsWith('.mp4')) return 'mp4';
         if (lowerUrl.endsWith('.ts')) return 'segment';
+        if (lowerUrl.endsWith('.pdf')) return 'document';
         return 'unknown';
     },
 
@@ -74,7 +86,9 @@ const DirectExtractor = {
         let confidence = 0.5;
         if (url.includes('playlist.m3u8')) confidence += 0.3;
         if (url.includes('.mp4')) confidence += 0.2;
+        if (url.includes('.pdf')) confidence += 0.1;
         if (source === 'hls_focused') confidence += 0.1;
+        if (source === 'generic_link') confidence -= 0.1; // lower confidence for generic links
         return Math.min(0.95, confidence);
     }
 };

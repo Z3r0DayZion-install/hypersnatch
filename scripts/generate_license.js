@@ -1,33 +1,60 @@
-// ==================== SOVEREIGN LICENSE GENERATOR ====================
-// Usage: node generate_license.js "User Name" "HWID"
-"use strict";
-
+const crypto = require('crypto');
 const fs = require('fs');
-const SovereignAuth = require('../src/core/security/sovereign_auth');
 
-const userName = process.argv[2] || "Empire Founder";
-const hwid = process.argv[3];
-
-if (!hwid) {
-  console.error("Error: Hardware ID (HWID) is required.");
-  console.log('Usage: node generate_license.js "User Name" "FULL-HWID-STRING"');
-  process.exit(1);
+if (!fs.existsSync('founder_keys.json')) {
+  console.log("Generating new secp256k1 key pair...");
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', {
+    namedCurve: 'secp256k1',
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+  });
+  fs.writeFileSync('founder_keys.json', JSON.stringify({ public: publicKey, private: privateKey }, null, 2));
+  console.log("Keys saved to founder_keys.json. DO NOT SHIP THIS FILE.");
 }
 
-console.log(`Generating Legendary License for: ${userName}`);
-console.log(`Target Hardware ID: ${hwid}`);
+const keys = JSON.parse(fs.readFileSync('founder_keys.json', 'utf8'));
 
-const payload = SovereignAuth.generateLicensePayload(userName, hwid);
+// If an HWID is provided as an argument, use it. Otherwise, auto-generate for the local machine.
+let hwid = process.argv[2];
 
-// Simulate ECDSA Signing
-const license = {
-  payload,
-  signature: "MOCK_ECDSA_SIGNATURE_" + Buffer.from(JSON.stringify(payload)).toString('base64').substring(0, 32),
-  signer: "HyperSnatch Sovereign Authority"
-};
+async function generate() {
+  if (!hwid) {
+    const os = require('os');
+    const cpuId = os.cpus()[0].model.replace(/\s+/g, '_');
+    const baseboardId = `${os.hostname()}_${os.userInfo().username}`;
+    hwid = crypto.createHash('sha256').update(`HS-HWID-${cpuId}-${baseboardId}`).digest('hex');
+    console.log(`Auto-detected local HWID: ${hwid}`);
+  }
 
-const outputPath = 'license.json';
-fs.writeFileSync(outputPath, JSON.stringify(license, null, 2));
+  const edition = process.argv[3] || 'LEGENDARY';
+  const email = process.argv[4] || 'founder@hypersnatch.com';
 
-console.log(`✅ Sovereign License generated successfully: ${outputPath}`);
-console.log(`Move this file to the app root to unlock Legendary Features.`);
+  const expiry = new Date();
+  expiry.setFullYear(expiry.getFullYear() + 1); // 1 year expiration
+
+  const payload = {
+    user: email,
+    hwid: hwid,
+    edition: edition,
+    expiry: expiry.toISOString(),
+    issued: new Date().toISOString(),
+    features: ["ORACLE", "GHOST", "MAP", "FREEZE", "PDF", "VAULT"]
+  };
+
+  const sign = crypto.createSign('SHA256');
+  sign.update(JSON.stringify(payload));
+  sign.end();
+  const signature = sign.sign(keys.private, 'hex');
+
+  const license = {
+    payload,
+    signature
+  };
+
+  const outFile = `license_${hwid.substring(0, 8)}.json`;
+  fs.writeFileSync(outFile, JSON.stringify(license, null, 2));
+  console.log(`\nLicense generated: ${outFile}`);
+  console.log(JSON.stringify(license, null, 2));
+}
+
+generate().catch(console.error);

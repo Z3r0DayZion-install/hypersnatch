@@ -3,10 +3,70 @@
 
 const { validateWithErrors, getSchemaType, SchemaType } = require('./schema_validator.js');
 
+const VERIFIER_KEY_JWK = {
+  "key_ops": ["verify"], "ext": true, "kty": "EC", "x": "rxZlp3Qrm2nXSn4qLFpxm5KLwUV0UkO4rI2-dFq7Jew", "y": "r1rOT7qTYFy5CxxCu3Y5iiakwqQtqdzav_TWXAOfjQk", "crv": "P-256"
+};
+
 const VerifyPanel = {
   currentPack: null,
   currentValidation: null,
   
+  render() {
+    if (!this.currentPack) return;
+    const type = getSchemaType(this.currentPack);
+    const html = this.buildPanelHTML(type, this.currentValidation, this.currentPack);
+    const container = document.getElementById("verifyStatus");
+    if (container) {
+      container.innerHTML = html;
+    }
+    
+    if (this.currentPack.signature) {
+      this.asyncVerify(this.currentPack);
+    }
+  },
+
+  async asyncVerify(pack) {
+    const el = document.getElementById("trustStatusBadge");
+    if (!el) return;
+    
+    try {
+      const ok = await this.verifyPackSignature(pack);
+      if (ok) {
+        el.innerHTML = '<span class="chip ok">✅ SOVEREIGN TRUST VERIFIED</span>';
+      } else {
+        el.innerHTML = '<span class="chip err">❌ SIGNATURE MISMATCH</span>';
+      }
+    } catch (err) {
+      el.innerHTML = '<span class="chip err">❌ TRUST ERROR: ' + err.message + '</span>';
+    }
+  },
+
+  async verifyPackSignature(pack) {
+    if (!pack.signature || !pack.signature.sig) return false;
+    try {
+      const publicKey = await crypto.subtle.importKey("jwk", VERIFIER_KEY_JWK, { name: "ECDSA", namedCurve: "P-256" }, true, ["verify"]);
+      
+      // Canonical logic: [format, schemaVersion, kind, kdf, iterations, salt, iv, digest, data].join("|")
+      const text = [
+        pack.format,
+        pack.schemaVersion,
+        pack.kind,
+        pack.kdf,
+        pack.iterations,
+        pack.salt,
+        pack.iv,
+        pack.digest,
+        pack.data
+      ].join("|");
+        
+      const sig = Uint8Array.from(atob(pack.signature.sig), c => c.charCodeAt(0));
+      return await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, publicKey, sig, new TextEncoder().encode(text));
+    } catch (e) {
+      console.error("verifyPackSignature error:", e);
+      return false;
+    }
+  },
+
   buildPanelHTML(type, validation, pack) {
     const statusClass = validation.valid ? 'ok' : 'err';
     const statusText = validation.valid ? 'VALID' : 'INVALID';
@@ -52,7 +112,7 @@ const VerifyPanel = {
             <h4>🔐 Integrity Verification</h4>
             <div class="integrity-info">
               <div><strong>Digest:</strong> <code class="digest">${pack.digest || 'N/A'}</code></div>
-              <div><strong>Trust Status:</strong> ${this.getTrustStatus(pack)}</div>
+              <div id="trustStatusBadge"><strong>Trust Status:</strong> ${this.getTrustStatus(pack)}</div>
               <div><strong>Created:</strong> ${pack.createdAt || 'N/A'}</div>
     `;
     
@@ -158,11 +218,9 @@ const VerifyPanel = {
   
   getTrustStatus(pack) {
     if (!pack.signature) {
-      return '<span class="trust-unsigned">🔓 Unsigned</span>';
+      return '<span class="chip warn">🔓 UNSIGNED</span>';
     }
-    
-    // TODO: Implement signature verification
-    return '<span class="trust-unknown">⚠️ Signature verification not implemented</span>';
+    return '<span class="chip warn">⏳ VERIFYING...</span>';
   },
   
   loadPack(fileContent) {

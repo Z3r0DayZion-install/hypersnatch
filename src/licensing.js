@@ -71,20 +71,12 @@ const Licensing = {
     },
 
     /**
-     * Simple mock activation for local testing
+     * Placeholder for Hub-based activation.
      */
     async activateWithKey(key) {
-        // In production, this would call the Hub for verification
-        if (key === 'hyperfounder-2026') {
-            const mockLicense = {
-                user: 'Founder',
-                tier: 'elite',
-                expiry: '2027-01-01',
-                features: ['*']
-            };
-            this.license = mockLicense;
-            return true;
-        }
+        // In production, this would call the Hub for verification.
+        // Hardcoded bypass removed for security compliance.
+        console.warn('Licensing activation requires Hub connection.');
         return false;
     }
 };

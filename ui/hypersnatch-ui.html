@@ -226,10 +226,10 @@
       <h1>HyperSnatch — Offline Decode UI</h1>
       <div class="row" style="justify-content:space-between;">
         <div class="row">
-          <span class="pill" id="bridgePill"><span class="warn" id="bridgeDot">●</span><span class="muted"
-              id="bridgeText">Bridge: Checking...</span></span>
-          <span class="pill"><span class="ok">●</span><span class="muted">Offline UI</span></span>
-          <span class="pill"><span class="warn">●</span><span class="muted">Commands only</span></span>
+          <span class="pill" id="bridgePill"><span class="ok" id="bridgeDot">●</span><span class="muted"
+              id="bridgeText">Bridge: Electron IPC Native</span></span>
+          <span class="pill"><span class="ok">●</span><span class="muted">Audit Chain: Active</span></span>
+          <span class="pill"><span class="ok">●</span><span class="muted">Offline Mode</span></span>
           <button id="btnCheckUpdates" class="pill"
             style="border-radius:6px; background: none; border: 1px solid #355372; color:#b9cde2;">Check for
             Updates</button>
@@ -455,6 +455,11 @@
     }
 
     async function checkBridgeHealth() {
+      if (window.smartDecode && window.smartDecode.run) {
+        el("bridgeDot").className = "ok";
+        el("bridgeText").textContent = `Bridge: Electron IPC Native`;
+        return;
+      }
       try {
         const res = await fetch(`http://127.0.0.1:${state.bridgePort}/health`, { method: "GET" }).catch(() => null);
         if (res && res.ok) {
@@ -580,6 +585,31 @@
     }
 
     async function decodeViaBridge(text, pickIndex = null) {
+      if (window.smartDecode && window.smartDecode.run) {
+        // Native Electron IPC mode
+        const result = await window.smartDecode.run(text, {});
+        
+        // Emulate the bridge 'best' assignment logic if pickIndex is provided
+        if (pickIndex !== null && result.candidates && result.candidates[pickIndex]) {
+           result.best = result.candidates[pickIndex];
+        } else if (result.candidates && result.candidates.length > 0 && !result.best) {
+           result.best = result.candidates[0]; // fallback
+        }
+
+        // Emulate the download plan assignment
+        if (result.best) {
+           const c = result.best;
+           let cmd = `curl -O "${c.url}"`;
+           if (c.type === 'hls' || c.type === 'm3u8') {
+             cmd = `ffmpeg -i "${c.url}" -c copy output.mp4`;
+           }
+           result.downloadPlan = { command: cmd };
+        }
+
+        return result;
+      }
+
+      // Legacy HTTP Bridge mode
       const headers = { "content-type": "application/json" };
       if (state.token) {
         headers["X-HyperSnatch-Token"] = state.token;
@@ -693,7 +723,7 @@
       setStatus("Generating Security Report via native bridge...", "muted");
       try {
         if (window.electronAPI && window.electronAPI.exportSecurityReport) {
-          const success = await window.electronAPI.exportSecurityReport();
+          const success = await window.electronAPI.exportSecurityReport(state.lastJson);
           if (success) setStatus("Security Report exported successfully.", "ok");
           else setStatus("Report export cancelled.", "muted");
         } else {

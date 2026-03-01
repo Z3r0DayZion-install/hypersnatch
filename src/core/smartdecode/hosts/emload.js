@@ -8,6 +8,7 @@ const EmloadExtractor = {
     PATTERNS: [
         /https?:\/\/(?:www\.)?emload\.com\/v2\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
         /https?:\/\/(?:www\.)?emload\.com\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
+        /https?:\/\/(?:www\.)?emload\.com\/file\/([a-zA-Z0-9_-]+)/i, // Support for IDs without filenames
         /https?:\/\/(?:www\.)?emload\.com\/[fe]\/([a-zA-Z0-9_-]+)/i
     ],
 

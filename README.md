@@ -1,120 +1,56 @@
 # HyperSnatch
 
-**Deterministic Static Analysis for HTML Media Resources**
+**Deterministic Static Analysis for Forensics (Vanguard v1.1.0)**
 
 [![License](https://img.shields.io/badge/license-Founders-00d084)](https://cashdominion.gumroad.com/l/itpxg)
-[![Version](https://img.shields.io/badge/version-1.0.1-38bdf8)](releases/RELEASE_NOTES_v1.0.1.md)
-[![Tests](https://img.shields.io/badge/tests-58%2F58-00d084)]()
-[![Hosts](https://img.shields.io/badge/host%20decoders-40-a855f7)]()
+[![Version](https://img.shields.io/badge/version-1.1.0_Vanguard-blue.svg)]()
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
 
-HyperSnatch is an offline-first, privacy-by-design desktop utility that parses complex webpage source code to surface direct media resource URLs — without cloud APIs, external telemetry, or headless automation.
+HyperSnatch is a legally conscious, offline-first forensic engine designed for the independent security consultant. It specializes in deterministically extracting buried artifacts (media, documents, archives) from obfuscated HTML payloads, HAR files, and JS snippets without executing potentially hostile code.
 
 ---
 
-## What It Does
+## 🛡️ Core Capabilities
 
-You paste HTML source code → HyperSnatch finds the direct download/stream URLs hidden inside.
+*   **100% Offline & Deterministic:** No cloud APIs. No telemetry. Your evidence never leaves your machine. Results are strictly determined by mathematically reproducible static analysis.
+*   **Massive Payload Resilience:** Built-in chunking handles 25MB+ minified HTML/HAR blobs securely, guarding against V8 heap exhaustion and resource-exhaustion attacks.
+*   **Legal Boundary Enforcement:** The `Cash Policy Shield` automatically detects Age Gates, Premium Paywalls, and Login boundaries, logging them as *refusals* to preserve your legal standing during investigations.
+*   **Sovereign Audit Chain:** Every exported forensic case report is stamped with a deterministic Merkle Root and signed with an HMAC-SHA256 hardware-bound session key using Perfect Forward Secrecy.
+*   **Native Court-Ready Exports:** Seamlessly export tamper-proof, stylized PDF and HTML reports detailing certainty tiers, extracted URLs, and legal exclusions.
 
-```
-HTML page source → AST parsing → URL extraction → Host-specific decoding → Confidence scoring → Export
-```
+## 🚀 Usage 
 
-**40 host-specific decoders** recognize patterns from services like emload, kshared, mediafire, pixeldrain, mega, doodstream, streamtape, and 33 more. Each decoder scans for download buttons, CDN links, jwplayer configs, base64-encoded URLs, and obfuscated JS variables.
+### 1. The Offline UI (Standard Workflow)
+Launch the HyperSnatch Desktop client. The UI operates securely over a Native Electron IPC Bridge, decoupled entirely from local HTTP servers. Paste your source material (HTML, HAR, Logs), click **Decode**, and export your professional Security Report.
 
-## Key Features
+### 2. The CLI Engine
+HyperSnatch core can be invoked headlessly in CI/CD environments.
 
-| Feature | Description |
-|---------|-------------|
-| **Offline Analysis** | Zero network requests during analysis. Runs entirely on local hardware. |
-| **40 Host Decoders** | Specialized pattern extraction for 40 file hosting and streaming services |
-| **Deterministic Output** | Same input always produces the same output, verifiable via SHA-256 |
-| **Evidence Logging** | Immutable audit trail with timestamps and session management |
-| **Auth Boundary Detection** | Detects login gates, premium paywalls, signed URLs — refuses to proceed past auth walls |
-| **Multiple Input Types** | HTML source, HAR files, direct URLs |
-| **Professional Export** | CSV, JSON, PDF with SHA-256 data provenance |
-| **Security Hardened** | AES-256-GCM encryption, Electron sandboxing, context isolation |
+```bash
+# Decode raw source
+hypersnatch "https://example.com/file.mp4"
 
-## Quick Start
-
-### Option 1: Desktop App (Recommended)
-1. [Purchase the Founders License](https://cashdominion.gumroad.com/l/itpxg) ($39 one-time)
-2. Download the Windows installer or portable EXE
-3. Open the app → paste HTML source → click **Resurrect Links**
-
-### Option 2: Source Capture Bookmarklet
-1. Visit the [bookmarklet page](landing/bookmarklet.html)
-2. Drag the button to your bookmarks bar
-3. Click it on any page to capture the live DOM
-4. Paste the captured source into HyperSnatch
-
-## Supported Hosts
-
-<details>
-<summary>40 file hosting and streaming services</summary>
-
-**File Hosts:** 1fichier, daofile, ddownload, filefactory, filespace, hexupload, katfile, krakenfiles, mediafire, mega, nitroflare, pixeldrain, rapidgator, rosefile, turbobit, upfiles, uploadgig, uptobox, userload, userscloud
-
-**Video/Streaming:** doodstream, emload, faststream, filelion, gofile, hotlink, kshared, lulustream, mixdrop, streamtape, streamwish, upstream, veestream, vidguard, vidlox, vidmoly, vidoza, voe, vtube, vudeo
-</details>
-
-## Determinism Verification
-
-HyperSnatch guarantees deterministic output. Verify it yourself:
-
-```powershell
-# 1. Analyze the sample payload
-#    (drag demo/sample-payload.html into HyperSnatch)
-
-# 2. Export the manifest as JSON
-
-# 3. Compute SHA-256
-Get-FileHash -Algorithm SHA256 .\manifest_output.json | Select-Object Hash
-
-# 4. Compare against published hash in demo/EXPECTED_OUTPUT.json
+# Strict Rust Engine
+HYPERSNATCH_SMARTDECODE_ENGINE=rust hypersnatch -i <file>
 ```
 
-See [demo/VERIFY_DEMO.md](demo/VERIFY_DEMO.md) for full instructions.
+## 🏗️ Architecture (Vanguard Edition)
+The bloated UI elements, experimental neural plugins, and external "marketplaces" have been strictly purged in the Vanguard release. 
 
-## Test Suite
+HyperSnatch operates on a `SmartDecode 2.4` dual-engine philosophy:
+1. **JavaScript Engine:** Highly optimized, cross-platform fallback for forensic regex extraction.
+2. **Rust Engine (hs-core):** Blistering fast, memory-safe execution for extreme payload parsing.
 
-```
-node tests/smartdecode.test.js
-# 🔈 Test Results: 58 passed, 0 failed out of 58 tests
-```
+### Extraction Layers
+1. **Direct Regex:** Standard static stream patterns (MP4, M3U8, PDF).
+2. **Base64 Decryption:** Uncovers deeply encoded `script` payloads up to 8MB in size.
+3. **Iframe Recursion:** Follows declarative `srcdoc` boundaries up to 3 levels deep.
+4. **HAR Response Scanning:** Automatically digs through network archive response bodies for obfuscated tokens.
 
-## Architecture
+## 📜 License
 
-```
-hypersnatch.html          ← Main application UI
-src/core/smartdecode/     ← SmartDecode engine
-  ├── index.js            ← Entry point & orchestrator
-  ├── direct.js           ← Direct URL extraction
-  ├── base64.js           ← Base64 blob decoder
-  ├── iframe.js           ← Iframe recursion (depth-limited)
-  ├── script-trace.js     ← JS variable/config scanning
-  ├── m3u8.js             ← HLS playlist parser
-  ├── ranker.js           ← Confidence scoring & ranking
-  ├── auth-boundary.js    ← Auth gate detection
-  └── hosts/              ← 40 host-specific decoders
-core/                     ← Application core
-  ├── engine_core.js      ← Central orchestration
-  ├── evidence_logger.js  ← Immutable audit trail
-  ├── license_system.js   ← ECDSA license verification
-  └── security_hardening.js ← Runtime security
-```
+[Founders License](https://cashdominion.gumroad.com/l/itpxg) — Single-User Independent Consultant License.
+*Hardware Binding strictly enforced.*
 
-## Security
-
-- **Zero eval()** — No `eval()` or `Function()` calls in the entire SmartDecode engine
-- **Zero network I/O** — Analysis never touches the network
-- **Context isolation** — Electron sandboxing with disabled Node integration
-- **IPC allowlisting** — Only whitelisted IPC channels
-- **AES-256-GCM** — Authenticated encryption for sensitive data
-
-## License
-
-[Founders License](https://cashdominion.gumroad.com/l/itpxg) — $39 one-time payment. See [Terms of Use](landing/terms.html).
-
-## Support
-
-Email: support@hypersnatch.com (12-hour response time)
+---
+*Generated by the HyperSnatch Security Team - 2026*

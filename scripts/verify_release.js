@@ -10,7 +10,7 @@ const { execSync } = require('child_process');
 const REQUIRED_FILES = [
   'src/main.js',
   'src/preload.js',
-  'hypersnatch.html',
+  'ui/hypersnatch-ui.html',
   'package.json'
 ];
 

@@ -1,0 +1,20 @@
+
+        <html>
+            <body>
+                <div id="content">
+                    <p>Benign content here...</p>
+                    
+                    <!-- SIGNAL A: Obfuscated Script Variable -->
+                    <script>
+                        var _init_data = "aHR0cHM6Ly9raGFyZWQuY29tL2ZpbGUvYTIzYjliYmYvbGVha2VkX2RvY3VtZW50cy5wZGY=";
+                    </script>
+
+                    <!-- SIGNAL B: Fake Link (Honeypot) -->
+                    <a href="https://example.com/not-real">Download Here</a>
+
+                    <!-- SIGNAL C: Data Attribute Link -->
+                    <div class="media-player" data-source="https://vidoza.net/v/abc123xyz.mp4"></div>
+                </div>
+            </body>
+        </html>
+    

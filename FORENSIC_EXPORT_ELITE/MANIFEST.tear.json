@@ -1,0 +1,41 @@
+{
+  "header": {
+    "format": "TEAR-AUDIT-CHAIN",
+    "version": "3.2.0",
+    "sessionId": "d300aef4-2384-4f84-b50d-cf3399c764a4",
+    "timestamp": "2026-03-01T09:33:25.473Z",
+    "buildId": "HS-PROD-2026-02-28",
+    "engineVersion": "1.1.0-Elite",
+    "merkleRoot": "3489c6beb67c5cfc9e07ba61a64f0f65d5bd1c474076e246db2a517e208ac77d"
+  },
+  "evidence": {
+    "candidates": [
+      {
+        "url": "https://rapidgator.net/file/abc123/malicious.zip",
+        "host": "rapidgator.net",
+        "confidence": 0.95
+      }
+    ],
+    "refusals": [],
+    "rootHash": "3489c6beb67c5cfc9e07ba61a64f0f65d5bd1c474076e246db2a517e208ac77d"
+  },
+  "telemetry": {
+    "exportType": "FULL_BUNDLE",
+    "bundleAssets": [
+      {
+        "name": "evidence_log.json",
+        "path": "./evidence_log.json",
+        "size": 47,
+        "digest": "5985c88dcbc127386eec031a0b35cc61b3eb3ccc0307bc3c77ec73fdbb2aa0e5"
+      },
+      {
+        "name": "screenshot_hash.txt",
+        "path": "./screenshot_hash.txt",
+        "size": 71,
+        "digest": "0364e78be895cef9249b83b20cdb6362cd3c317f55240669624258bc449a86fc"
+      }
+    ]
+  },
+  "signature": "7a774624da344315f0e07fb8d5ac021c15c81f4b16ad3f7b963106ca702ac19e",
+  "fingerprint": "61351031f6f1ec004d0baefa7ec28594581c26c794d84f320f0680435137e397"
+}

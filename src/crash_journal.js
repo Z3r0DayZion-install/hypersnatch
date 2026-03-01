@@ -26,9 +26,21 @@ const CrashJournal = {
   },
 
   async init() {
+    // If bridge is available, use it
+    if (typeof window !== 'undefined' && window.crashJournal && window.crashJournal.getStats) {
+      // In bridge mode, EventType might need sync
+      const remoteTypes = await window.crashJournal.getEventType();
+      if (remoteTypes) this.EventType = remoteTypes;
+      return true;
+    }
+
     if (this.db) return this.db;
 
     return new Promise((resolve, reject) => {
+      if (typeof indexedDB === 'undefined') {
+        return reject(new Error('IndexedDB not available'));
+      }
+
       const request = indexedDB.open(this.dbName, this.version);
 
       request.onerror = () => reject(request.error);
@@ -54,6 +66,10 @@ const CrashJournal = {
   },
 
   async logEvent(type, data = {}, status = 'running') {
+    if (typeof window !== 'undefined' && window.crashJournal && window.crashJournal.logEvent) {
+      return window.crashJournal.logEvent(type, data, status);
+    }
+
     if (!this.db) await this.init();
 
     const event = {
@@ -85,7 +101,9 @@ const CrashJournal = {
   },
 
   async getEvents(type = null, limit = 100) {
+    // Note: getEvents not currently in bridge, using local or needing extension
     if (!this.db) await this.init();
+    if (!this.db) return []; // Bridge doesn't support getEvents directly yet
 
     const transaction = this.db.transaction(['journal'], 'readonly');
     const store = transaction.objectStore('journal');
@@ -107,6 +125,7 @@ const CrashJournal = {
 
   async getIncompleteOperations() {
     if (!this.db) await this.init();
+    if (!this.db) return {};
 
     const transaction = this.db.transaction(['journal'], 'readonly');
     const store = transaction.objectStore('journal');
@@ -137,6 +156,10 @@ const CrashJournal = {
   },
 
   async detectUncleanShutdown() {
+    if (typeof window !== 'undefined' && window.crashJournal && window.crashJournal.detectUncleanShutdown) {
+      return window.crashJournal.detectUncleanShutdown();
+    }
+
     const events = await this.getEvents();
 
     // Look for app_shutdown without proper completion
@@ -156,6 +179,10 @@ const CrashJournal = {
   },
 
   async replayJournal() {
+    if (typeof window !== 'undefined' && window.crashJournal && window.crashJournal.replayJournal) {
+      return window.crashJournal.replayJournal();
+    }
+
     const incompleteOps = await this.getIncompleteOperations();
     const replayResults = [];
 
@@ -287,6 +314,7 @@ const CrashJournal = {
 
   async clearIncompleteOperations() {
     if (!this.db) await this.init();
+    if (!this.db) return;
 
     const transaction = this.db.transaction(['journal'], 'readwrite');
     const store = transaction.objectStore('journal');
@@ -314,6 +342,7 @@ const CrashJournal = {
 
   async deleteEvent(eventId) {
     if (!this.db) await this.init();
+    if (!this.db) return;
 
     const transaction = this.db.transaction(['journal'], 'readwrite');
     const store = transaction.objectStore('journal');
@@ -326,7 +355,12 @@ const CrashJournal = {
   },
 
   async clear() {
+    if (typeof window !== 'undefined' && window.crashJournal && window.crashJournal.clear) {
+      return window.crashJournal.clear();
+    }
+
     if (!this.db) await this.init();
+    if (!this.db) return;
 
     const transaction = this.db.transaction(['journal'], 'readwrite');
     const store = transaction.objectStore('journal');
@@ -347,7 +381,7 @@ const CrashJournal = {
 
   getSessionId() {
     // Generate or retrieve session ID
-    if (!window.sessionStorage) {
+    if (typeof window === 'undefined' || !window.sessionStorage) {
       return 'no-session-storage';
     }
 
@@ -362,7 +396,12 @@ const CrashJournal = {
   },
 
   async getStats() {
+    if (typeof window !== 'undefined' && window.crashJournal && window.crashJournal.getStats) {
+      return window.crashJournal.getStats();
+    }
+
     if (!this.db) await this.init();
+    if (!this.db) return {};
 
     const transaction = this.db.transaction(['journal'], 'readonly');
     const store = transaction.objectStore('journal');
@@ -421,10 +460,12 @@ const CrashJournal = {
 
       // 1. Replay incomplete operations
       const replayResults = await this.replayJournal();
-      repairs.push(...replayResults.map(r => `Replayed ${r.type}: ${r.replayed ? 'SUCCESS' : 'FAILED'}`));
+      if (replayResults && Array.isArray(replayResults)) {
+        repairs.push(...replayResults.map(r => `Replayed ${r.type}: ${r.replayed ? 'SUCCESS' : 'FAILED'}`));
+      }
 
       // 2. Refresh trust state if potentially corrupted
-      if (report.incompleteOperations[this.EventType.TRUST_CHANGE]) {
+      if (report.incompleteOperations && report.incompleteOperations[this.EventType.TRUST_CHANGE]) {
         if (window.ExportLayer) {
           window.ExportLayer.ensureTrustStore();
           repairs.push("Refreshed Trust Store Integrity");
@@ -449,22 +490,30 @@ if (typeof window !== 'undefined') {
   // Log app start
   window.addEventListener('load', async () => {
     // Phase 15: Run auto-repair on startup
-    const repairs = await CrashJournal.autoRepairAnomalies();
-    if (repairs.length > 0) {
-      console.log("[JOURNAL] Auto-repair completed:", repairs);
-    }
+    try {
+      const repairs = await CrashJournal.autoRepairAnomalies();
+      if (repairs.length > 0) {
+        console.log("[JOURNAL] Auto-repair completed:", repairs);
+      }
 
-    await CrashJournal.logEvent(CrashJournal.EventType.APP_START, {
-      userAgent: navigator.userAgent,
-      url: window.location.href
-    });
+      await CrashJournal.logEvent(CrashJournal.EventType.APP_START, {
+        userAgent: navigator.userAgent,
+        url: window.location.href
+      });
+    } catch (e) {
+      console.error("[JOURNAL] Startup error:", e);
+    }
   });
 
   // Log app shutdown
   window.addEventListener('beforeunload', async () => {
-    await CrashJournal.logEvent(CrashJournal.EventType.APP_SHUTDOWN, {
-      duration: Date.now() - (window.appStartTime || Date.now())
-    });
+    try {
+      await CrashJournal.logEvent(CrashJournal.EventType.APP_SHUTDOWN, {
+        duration: Date.now() - (window.appStartTime || Date.now())
+      });
+    } catch (e) {
+      // ignore shutdown errors
+    }
   });
 }
 

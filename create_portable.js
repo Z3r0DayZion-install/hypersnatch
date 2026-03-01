@@ -1,36 +1,33 @@
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
 
-// Create a simple portable package
+// Vanguard v1.1.0 Portable Packaging Logic
 const electronPath = path.join(__dirname, 'node_modules', 'electron', 'dist', 'electron.exe');
-const appPath = path.join(__dirname, 'dist_test');
+const appPath = path.join(__dirname, 'dist', 'win-unpacked');
 
-if (!fs.existsSync(electronPath)) {
-  console.error('Electron not found. Run npm install first.');
-  process.exit(1);
-}
+const portableDir = path.join(__dirname, 'RELEASE_VANGUARD');
+if (!fs.existsSync(portableDir)) fs.mkdirSync(portableDir);
 
-console.log('Creating portable package...');
-
-// Copy electron.exe to portable directory
-const portableDir = path.join(__dirname, 'RELEASE_EVIDENCE');
-const portableExe = path.join(portableDir, 'HyperSnatch-Portable-1.0.1.exe');
+console.log('Packaging HyperSnatch v1.1.0 Vanguard Portable...');
 
 try {
-  fs.copyFileSync(electronPath, portableExe);
+  // Use the actual built binary from win-unpacked
+  const sourceExe = path.join(appPath, 'HyperSnatch.exe');
+  const targetExe = path.join(portableDir, 'HyperSnatch-Vanguard.exe');
   
-  // Create a simple launcher batch file
+  // Create local runtime redirect
+  // Electron handles --user-data-dir natively
   const launcher = `@echo off
-cd /d "%~dp0"
-"%~dp0HyperSnatch-Portable-1.0.1.exe" --app="${appPath}" --user-data-app`;
+  echo [HyperSnatch] Launching Vanguard v1.1.0 in Portable Mode...
+  echo [Forensic] Redirecting user-data to local .\\runtime
+  start "" "%~dp0win-unpacked\\HyperSnatch.exe" --user-data-dir="%~dp0runtime"`;
   
-  fs.writeFileSync(path.join(portableDir, 'HyperSnatch-Portable-1.0.1.bat'), launcher);
+  fs.writeFileSync(path.join(portableDir, 'HyperSnatch-Vanguard-Portable.bat'), launcher);
   
-  console.log('✅ Portable package created successfully!');
-  console.log(`📍 Location: ${portableExe}`);
+  console.log('✅ Vanguard Portable Batch created.');
+  console.log('📍 Entry Point: HyperSnatch-Vanguard-Portable.bat');
   
 } catch (error) {
-  console.error('❌ Failed to create portable package:', error.message);
+  console.error('❌ Portable creation failed:', error.message);
   process.exit(1);
 }

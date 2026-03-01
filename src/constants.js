@@ -4,13 +4,13 @@
 "use strict";
 
 // ==================== VERSION INFO ====================
-export const VERSION = '1.0.0-rc.1';
-export const ENGINE_VERSION = '14.0.0';
-export const POLICY_VERSION = '2.1.0';
-export const BUILD_ID = 'release_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+const VERSION = '1.1.0';
+const ENGINE_VERSION = '14.0.0';
+const POLICY_VERSION = '2.1.0';
+const BUILD_ID = 'HS-PROD-2026-02-28';
 
 // ==================== APPLICATION CONFIG ====================
-export const APP_CONFIG = {
+const APP_CONFIG = {
   NAME: 'HyperSnatch',
   DESCRIPTION: 'Security-First Evidence Analyzer',
   AUTHOR: 'HyperSnatch Security Team',
@@ -19,7 +19,7 @@ export const APP_CONFIG = {
 };
 
 // ==================== POLICY CONFIG ====================
-export const POLICY_CONFIG = {
+const POLICY_CONFIG = {
   // Engine modes
   ENGINE_MODES: {
     STRICT: 'strict',
@@ -64,7 +64,7 @@ export const POLICY_CONFIG = {
 };
 
 // ==================== UI CONFIG ====================
-export const UI_CONFIG = {
+const UI_CONFIG = {
   // Display limits
   MAX_CANDIDATES_DISPLAY: 20,
   MAX_REFUSALS_DISPLAY: 10,
@@ -96,7 +96,7 @@ export const UI_CONFIG = {
 };
 
 // ==================== STORAGE CONFIG ====================
-export const STORAGE_CONFIG = {
+const STORAGE_CONFIG = {
   // Storage keys
   KEYS: {
     STATE: 'hs.state.v2',
@@ -116,7 +116,7 @@ export const STORAGE_CONFIG = {
 };
 
 // ==================== NETWORK CONFIG ====================
-export const NETWORK_CONFIG = {
+const NETWORK_CONFIG = {
   // Request timeouts
   TIMEOUTS: {
     DEFAULT: 5000,
@@ -132,7 +132,7 @@ export const NETWORK_CONFIG = {
   },
 
   // User agent
-  USER_AGENT: 'HyperSnatch/1.0.0-rc.1 (Evidence Analyzer)',
+  USER_AGENT: 'HyperSnatch/1.0.1 (Evidence Analyzer)',
 
   // Allowed protocols
   ALLOWED_PROTOCOLS: ['http:', 'https:'],
@@ -148,7 +148,7 @@ export const NETWORK_CONFIG = {
 };
 
 // ==================== VALIDATION CONFIG ====================
-export const VALIDATION_CONFIG = {
+const VALIDATION_CONFIG = {
   // URL patterns
   URL_PATTERNS: {
     HTTP: /^https?:\/\/.+/,
@@ -179,7 +179,7 @@ export const VALIDATION_CONFIG = {
 };
 
 // ==================== EXPORT CONFIG ====================
-export const EXPORT_CONFIG = {
+const EXPORT_CONFIG = {
   // Export formats
   FORMATS: {
     JSON: 'json',
@@ -206,7 +206,7 @@ export const EXPORT_CONFIG = {
 };
 
 // ==================== SECURITY CONFIG ====================
-export const SECURITY_CONFIG = {
+const SECURITY_CONFIG = {
   // CSP (Content Security Policy)
   CSP_DIRECTIVES: {
     "default-src": "'self'",
@@ -236,7 +236,7 @@ export const SECURITY_CONFIG = {
 };
 
 // ==================== ERROR MESSAGES ====================
-export const ERROR_MESSAGES = {
+const ERROR_MESSAGES = {
   // General errors
   GENERIC: 'An unexpected error occurred',
   NETWORK: 'Network connection failed',
@@ -264,7 +264,7 @@ export const ERROR_MESSAGES = {
 };
 
 // ==================== SUCCESS MESSAGES ====================
-export const SUCCESS_MESSAGES = {
+const SUCCESS_MESSAGES = {
   // General success
   OPERATION_COMPLETE: 'Operation completed successfully',
   DATA_SAVED: 'Data saved successfully',
@@ -282,7 +282,7 @@ export const SUCCESS_MESSAGES = {
 };
 
 // ==================== REGEX PATTERNS ====================
-export const REGEX_PATTERNS = {
+const REGEX_PATTERNS = {
   // URL patterns
   URL: /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g,
   DOMAIN: /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?(\.[a-zA-Z]{2,})+$/,
@@ -305,7 +305,7 @@ export const REGEX_PATTERNS = {
 };
 
 // ==================== KEYBOARD SHORTCUTS ====================
-export const KEYBOARD_SHORTCUTS = {
+const KEYBOARD_SHORTCUTS = {
   // Navigation
   TAB_NEXT: 'Tab',
   TAB_PREV: 'Shift+Tab',
@@ -328,7 +328,7 @@ export const KEYBOARD_SHORTCUTS = {
 };
 
 // ==================== DEBUG FLAGS ====================
-export const DEBUG_FLAGS = {
+const DEBUG_FLAGS = {
   ENABLE_LOGGING: false,
   ENABLE_PERFORMANCE_MONITORING: false,
   ENABLE_NETWORK_LOGGING: false,
@@ -337,7 +337,7 @@ export const DEBUG_FLAGS = {
 };
 
 // ==================== ENVIRONMENT DETECTION ====================
-export const ENVIRONMENT = {
+const ENVIRONMENT = {
   isDevelopment: () => window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
   isProduction: () => !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1'),
   isElectron: () => typeof window !== 'undefined' && window.process && window.process.type,

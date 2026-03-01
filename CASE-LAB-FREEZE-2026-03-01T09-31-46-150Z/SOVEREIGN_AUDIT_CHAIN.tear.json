@@ -1,0 +1,32 @@
+{
+  "header": {
+    "format": "TEAR-AUDIT-CHAIN",
+    "version": "3.2.0",
+    "sessionId": "58b3544c-ebb6-4f0d-a30c-0d83bd476b98",
+    "timestamp": "2026-03-01T09:31:46.152Z",
+    "buildId": "HS-PROD-2026-02-28",
+    "engineVersion": "1.1.0-Elite",
+    "merkleRoot": "72742f0145e3b7ffa636c05905b9a992a7be84e8fabf287d63ea31d61da93cf6"
+  },
+  "evidence": {
+    "candidates": [
+      {
+        "url": "https://vidoza.net/v/abc123xyz.mp4",
+        "type": "mp4",
+        "sourceLayer": "direct_regex",
+        "confidence": 0.7,
+        "fingerprint": "43450550135b28845fe8bf73d44c51a5711ca15effb51caab0fbb9fc898f83ca",
+        "status": "accepted",
+        "host": "vidoza.net",
+        "finalScore": 0.7999999999999999
+      }
+    ],
+    "refusals": [],
+    "rootHash": "72742f0145e3b7ffa636c05905b9a992a7be84e8fabf287d63ea31d61da93cf6"
+  },
+  "telemetry": {
+    "duration": 120
+  },
+  "signature": "8a766b42c2f2c4d6eefcc169b6926cc59255b15e8d52afcfade75333f45741e3",
+  "fingerprint": "7cbcbd2cd45ec69253df2c4f3dc24163015903194dc77d833033a9dbbbaf3066"
+}

@@ -1,0 +1,16 @@
+{
+  "caseId": "LAB-RESURRECTION-01",
+  "timestamp": "2026-03-01T09:31:46.152Z",
+  "findings": [
+    {
+      "url": "https://vidoza.net/v/abc123xyz.mp4",
+      "type": "mp4",
+      "sourceLayer": "direct_regex",
+      "confidence": 0.7,
+      "fingerprint": "43450550135b28845fe8bf73d44c51a5711ca15effb51caab0fbb9fc898f83ca",
+      "status": "accepted",
+      "host": "vidoza.net",
+      "finalScore": 0.7999999999999999
+    }
+  ]
+}

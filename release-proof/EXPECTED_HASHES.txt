@@ -1,0 +1,6 @@
+--- NeuralCache-Core v1.0.0 EXPECTED SHA256 HASHES ---
+
+85b8ef9ff64136874ec2c060820cbbd706d63ae6fbaf93c50e20646e69f8bae2  src/core/neuralcache-core.js
+41094de6f492c5e08499fd679532ee2935f5e95e1bc414ad608eec9f43f51fe4  rust/hs-core/src/main.rs
+73c5021911ac699651ff71b227ac0a0825a0d0b7e60de61b62a4f57302266c98  docs/security/CRYPTOGRAPHIC_ARCHITECTURE_SPEC.md
+0eb82ddb79ceaab7381db57e9ff433c36fafdcd80a5006275add68b245e648ab  release/manifest.schema.json

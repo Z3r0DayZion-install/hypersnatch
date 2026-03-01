@@ -1,5 +1,25 @@
 # HyperSnatch Version History
 
+## [v1.1.0-Elite] - 2026-02-28
+
+**The Sovereign Intelligence Upgrade**
+
+This milestone transforms HyperSnatch from a static analyzer into a genre-creating **Airgapped Intelligence Console**, introducing local AI synthesis and machine-bound cryptographic integrity.
+
+### Sovereign Intelligence Stack
+*   **AI Witness (SLM Scaffolding):** Integrated a local intelligence engine capable of synthesizing human-readable forensic affidavits based on Merkle-root evidence.
+*   **Sovereign Audit Chain (v3.2.0):** Implemented machine-bound HMAC session signing using hardware fingerprinting (CPU/MAC) and Perfect Forward Secrecy (PFS).
+*   **Animated Sovereign Exfil:** Introduced a high-speed, chunked QR streaming protocol for physical data exfiltration over airgaps (screen-to-mobile).
+
+### Security & Hardening
+*   **Elite Sandboxing:** Full architectural refactor to eliminate direct Node.js access from the renderer. All core modules (SmartDecode, Vault, Journal) are isolated in the main process.
+*   **ECDSA Trust Verification:** Real-time Elliptic Curve signature validation for release packs against the HyperSnatch Security Team master key.
+*   **Truly Offline QR:** Replaced external API-based QR generation with a local, hardened generation engine in the main process.
+
+### UI/UX Refinement
+*   **Forensic Console 1.1:** Updated UI with real-time "SOVEREIGN TRUST" indicators and integrated AI Assistant/Airgap Exfil controls.
+*   **Build Metadata:** Implemented a new production build tracking system (e.g., HS-PROD-2026-02-28).
+
 ## [v1.0.0-rc.1] - 2026-02-21
 
 **The Founders Release Candidate**

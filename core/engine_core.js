@@ -51,7 +51,6 @@ const EngineCore = {
     const coreModules = [
       { name: 'resurrection_core', path: '../modules/resurrection_core.js' },
       { name: 'policy_guard', path: '../modules/policy_guard.js' },
-      { name: 'strategy_runtime', path: '../modules/strategy_runtime.js' },
       { name: 'evidence_logger', path: '../core/evidence_logger.js' }
     ];
     
@@ -81,16 +80,13 @@ const EngineCore = {
       
       switch (name) {
         case 'resurrection_core':
-          module = window.ResurrectionCore;
+          module = typeof window !== 'undefined' ? window.ResurrectionCore : require('../modules/resurrection_core.js');
           break;
         case 'policy_guard':
-          module = window.PolicyGuard;
-          break;
-        case 'strategy_runtime':
-          module = window.StrategyRuntime;
+          module = typeof window !== 'undefined' ? window.PolicyGuard : require('../modules/policy_guard.js');
           break;
         case 'evidence_logger':
-          module = window.EvidenceLogger;
+          module = typeof window !== 'undefined' ? window.EvidenceLogger : require('./evidence_logger.js');
           break;
         default:
           throw new Error(`Unknown module: ${name}`);
@@ -161,12 +157,8 @@ const EngineCore = {
         sourceType: input.sourceType
       });
       
-      // Step 3: Apply strategy packs if available
-      let strategyResults = [];
-      if (options.strategyPacks && options.strategyPacks.length > 0) {
-        strategyResults = await this.applyStrategyPacks(input, options.strategyPacks);
-        this.telemetry.strategyPackUsage++;
-      }
+      // Step 3: Apply strategy packs (Disabled in Survival Mode)
+      const strategyResults = [];
       
       // Step 4: Final result assembly
       const finalResult = this.assembleResult({
@@ -209,41 +201,10 @@ const EngineCore = {
   },
   
   /**
-   * Apply strategy packs
+   * Apply strategy packs (Disabled)
    */
   async applyStrategyPacks(input, strategyPacks) {
-    const strategyRuntime = this.getModule('strategy_runtime');
-    if (!strategyRuntime) {
-      return [];
-    }
-    
-    const results = [];
-    
-    for (const packName of strategyPacks) {
-      try {
-        // Load strategy pack if not already loaded
-        const strategy = await strategyRuntime.loadStrategyPack(
-          `../strategy-packs/${packName}`
-        );
-        
-        // Apply strategy
-        const result = await strategy.process(input, {
-          timestamp: new Date().toISOString()
-        });
-        
-        results.push({
-          packName,
-          result
-        });
-        
-        this.log(`[ENGINE] Strategy pack applied: ${packName}`);
-        
-      } catch (error) {
-        this.log(`[ERROR] Strategy pack ${packName} failed: ${error.message}`);
-      }
-    }
-    
-    return results;
+    return [];
   },
   
   /**

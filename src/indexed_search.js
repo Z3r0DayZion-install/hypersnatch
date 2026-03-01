@@ -1,7 +1,14 @@
 // ==================== INDEXED SEARCH ACROSS VAULT ====================
 "use strict";
 
-const Migrations = require('./migrations');
+// Only require migrations if not in a browser/sandboxed environment
+let Migrations;
+try {
+  Migrations = require('./migrations');
+} catch (e) {
+  // Fallback for browser if needed, or assume latest
+  Migrations = { latestVersion: 3 };
+}
 
 const IndexedSearch = {
   dbName: 'HyperSnatchVault',
@@ -47,9 +54,18 @@ const IndexedSearch = {
   },
 
   async init() {
+    // If bridge is available, use it
+    if (typeof window !== 'undefined' && window.vaultSearch && window.vaultSearch.init) {
+      return window.vaultSearch.init();
+    }
+
     if (this.db) return this.db;
 
     return new Promise((resolve, reject) => {
+      if (typeof indexedDB === 'undefined') {
+        return reject(new Error('IndexedDB not available'));
+      }
+
       const request = indexedDB.open(this.dbName, this.version);
 
       request.onerror = () => reject(request.error);
@@ -76,12 +92,18 @@ const IndexedSearch = {
         });
 
         // Run migrations for subsequent versions
-        Migrations.migrate(db, transaction, oldVersion);
+        if (Migrations.migrate) {
+          Migrations.migrate(db, transaction, oldVersion);
+        }
       };
     });
   },
 
   async indexJob(job) {
+    if (typeof window !== 'undefined' && window.vaultSearch && window.vaultSearch.indexJob) {
+      return window.vaultSearch.indexJob(job);
+    }
+
     if (!this.db) await this.init();
 
     const transaction = this.db.transaction(['jobs'], 'readwrite');
@@ -104,6 +126,10 @@ const IndexedSearch = {
   },
 
   async indexSnapshot(snapshot) {
+    if (typeof window !== 'undefined' && window.vaultSearch && window.vaultSearch.indexSnapshot) {
+      return window.vaultSearch.indexSnapshot(snapshot);
+    }
+
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
@@ -211,6 +237,10 @@ const IndexedSearch = {
   },
 
   async search(query, options = {}) {
+    if (typeof window !== 'undefined' && window.vaultSearch && window.vaultSearch.search) {
+      return window.vaultSearch.search({ query, options });
+    }
+
     if (!this.db) await this.init();
 
     const {
@@ -367,6 +397,10 @@ const IndexedSearch = {
   },
 
   async getStats() {
+    if (typeof window !== 'undefined' && window.vaultSearch && window.vaultSearch.getStats) {
+      return window.vaultSearch.getStats();
+    }
+
     if (!this.db) await this.init();
 
     const transaction = this.db.transaction(['jobs', 'snapshots'], 'readonly');
@@ -394,6 +428,10 @@ const IndexedSearch = {
   },
 
   async clear() {
+    if (typeof window !== 'undefined' && window.vaultSearch && window.vaultSearch.clear) {
+      return window.vaultSearch.clear();
+    }
+
     if (!this.db) await this.init();
 
     const transaction = this.db.transaction(['jobs', 'snapshots', 'searchIndex'], 'readwrite');

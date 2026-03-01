@@ -264,18 +264,50 @@ const ResurrectionCore = {
     const candidates = [];
     const { entries } = harData;
     
+    // Pattern to find URLs inside text content
+    const urlPattern = /(https?:\/\/[^\s"'`<>]+)/gi;
+    
     entries.forEach((entry, index) => {
       const url = entry.request?.url;
       if (url) {
         candidates.push({
-          id: `har_${index}`,
+          id: `har_req_${index}`,
           type: 'har_request',
           url: url,
           method: entry.request?.method || 'GET',
           status: entry.response?.status || 0,
           size: entry.response?.bodySize || 0,
-          mimeType: entry.response?.mimeType || ''
+          mimeType: entry.response?.content?.mimeType || ''
         });
+      }
+      
+      // Extract links buried in the response body
+      const responseText = entry.response?.content?.text;
+      if (responseText && typeof responseText === 'string') {
+        let match;
+        // Reset regex index
+        urlPattern.lastIndex = 0;
+        let count = 0;
+        
+        while ((match = urlPattern.exec(responseText)) !== null) {
+          // Limit to 50 links per response to avoid memory explosion on huge payloads
+          if (count++ > 50) break; 
+          
+          const foundUrl = match[1];
+          try {
+            // Basic validation
+            const parsed = new URL(foundUrl);
+            candidates.push({
+              id: `har_content_${index}_${count}`,
+              type: 'har_content_link',
+              url: parsed.href,
+              parentUrl: url,
+              mimeType: entry.response?.content?.mimeType || ''
+            });
+          } catch (e) {
+            // Ignore invalid URLs
+          }
+        }
       }
     });
     
@@ -481,7 +513,7 @@ const ResurrectionCore = {
   
   log(message) {
     console.log(`[RESURRECTION_CORE] ${message}`);
-    if (window.hyper && window.hyper.logEvidence) {
+    if (typeof window !== 'undefined' && window.hyper && window.hyper.logEvidence) {
       window.hyper.logEvidence(message);
     }
   }
@@ -490,6 +522,6 @@ const ResurrectionCore = {
 // Export for module system
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ResurrectionCore;
-} else {
+} else if (typeof window !== 'undefined') {
   window.ResurrectionCore = ResurrectionCore;
 }

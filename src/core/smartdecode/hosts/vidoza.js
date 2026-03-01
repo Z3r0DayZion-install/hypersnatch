@@ -4,8 +4,8 @@
 
 const VidozaExtractor = {
     PATTERNS: [
-        /https?:\/\/(?:www\.)?vidoza\.net\/[ed]\/([a-zA-Z0-9]+)/i,
-        /https?:\/\/vidoza\.net\/([a-zA-Z0-9]+)/i
+        /https?:\/\/(?:www\.)?vidoza\.net\/[edv]\/([a-zA-Z0-9_-]+)(?:\.[a-z0-9]+)?/i,
+        /https?:\/\/vidoza\.net\/([a-zA-Z0-9_-]{3,})(?:\.[a-z0-9]+)?/i
     ],
 
     extract(input) {

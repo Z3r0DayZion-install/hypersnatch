@@ -10,12 +10,12 @@ const SovereignAuth = {
   // In a real production environment, this would be a secp256k1 public key.
   // For this implementation, we use a robust public key derived from our Authority.
   AUTHORITY_PUBLIC_KEY: `-----BEGIN PUBLIC KEY-----
-MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEP8hC0Vd9m6S6jP3j4y+6fX2zW9zI/2f+
-4P7k+R7wR6h2L9zI8P6+4P7k+R7wR6h2L9zI8P6+4P7k+R7wR6h2L9==
+MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE05ETUtxYosYRcTjGlcWvJKS5qr93maWM
+z3WLVPL7WhyqbG9zM9glepDBZYdnyc1Aq8u7aJ2s9q9BBbXRbmdJ1Q==
 -----END PUBLIC KEY-----`,
 
   /**
-   * Validates a Legendary Edition license
+   * Validates a HyperSnatch license
    * @param {Object} license - The license object
    * @param {string} hwFingerprint - The current machine's hardware fingerprint
    */
@@ -55,7 +55,7 @@ MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEP8hC0Vd9m6S6jP3j4y+6fX2zW9zI/2f+
 
       return {
         valid: true,
-        edition: payload.edition,
+        tier: payload.edition || 'ELITE',
         user: payload.user,
         features: payload.features || []
       };
@@ -67,9 +67,12 @@ MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEP8hC0Vd9m6S6jP3j4y+6fX2zW9zI/2f+
   /**
    * Internal generator (used by the Founder to create keys)
    */
-  generateLicensePayload(user, hwid, edition = "LEGENDARY") {
+  generateLicensePayload(user, hwid, edition = "ELITE") {
     const expiry = new Date();
     expiry.setFullYear(expiry.getFullYear() + 1); // 1 Year default
+
+    const features = ["ORACLE", "GHOST", "MAP", "FREEZE", "PDF", "EXFIL"];
+    if (edition === "SOVEREIGN") features.push("AI_WITNESS", "DEEP_TRACE");
 
     return {
       user,
@@ -77,7 +80,7 @@ MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEP8hC0Vd9m6S6jP3j4y+6fX2zW9zI/2f+
       edition,
       expiry: expiry.toISOString(),
       issued: new Date().toISOString(),
-      features: ["ORACLE", "GHOST", "MAP", "FREEZE", "PDF"]
+      features
     };
   },
 
@@ -94,10 +97,31 @@ MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEP8hC0Vd9m6S6jP3j4y+6fX2zW9zI/2f+
     return crypto.pbkdf2Sync(
       hwFingerprint,
       salt,
-      100000, // Iterations
+      600000, // Hardened iterations
       32,     // Key Length (256-bit)
       'sha256'
     );
+  },
+
+  /**
+   * Seals a session key using the hardware-bound persistent key.
+   * @param {Buffer} sessionKey 
+   * @param {string} hwFingerprint 
+   * @returns {Object} { encryptedKey: string, iv: string, authTag: string }
+   */
+  sealSessionKey(sessionKey, hwFingerprint) {
+    const masterKey = this.getPersistentKey(hwFingerprint, "SESSION_SEAL_v1");
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', masterKey, iv);
+
+    let encrypted = cipher.update(sessionKey, null, 'hex');
+    encrypted += cipher.final('hex');
+
+    return {
+      encryptedKey: encrypted,
+      iv: iv.toString('hex'),
+      authTag: cipher.getAuthTag().toString('hex')
+    };
   }
 };
 

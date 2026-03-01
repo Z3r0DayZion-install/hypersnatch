@@ -1,0 +1,18 @@
+# NeuralCache-Core v1.0.0 Reproducibility Packet
+# Pinned Build Environment
+
+## RUST TOOLCHAIN
+Channel: 1.75.0
+Components: rustfmt, clippy
+Targets: x86_64-pc-windows-msvc
+Profile: minimal
+
+## NODE.js ENVIRONMENT
+Version: >=18.0.0
+Package Manager: npm
+
+## CRITICAL FILE SNAPSHOTS (v1.0.0-NC)
+Core JS: src/core/neuralcache-core.js
+Core Rust: rust/hs-core/src/main.rs
+Spec Lock: docs/security/CRYPTOGRAPHIC_ARCHITECTURE_SPEC.md
+Manifest: release/manifest.schema.json

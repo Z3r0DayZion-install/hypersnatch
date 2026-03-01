@@ -15,9 +15,10 @@ const Base64Extractor = {
      * Scan input for Base64 and return decoded streams
      * @param {string} input 
      * @param {Object} directExtractor Reference to direct.js to re-scan
+     * @param {Object} hostExtractors Optional reference to hosts.js
      * @returns {Array} List of candidate objects
      */
-    extract(input, directExtractor) {
+    extract(input, directExtractor, hostExtractors) {
         if (!input || typeof input !== 'string') return [];
 
         const candidates = new Map();
@@ -31,8 +32,8 @@ const Base64Extractor = {
             const decoded = this._safeDecode(b64Data);
             if (decoded && decoded.length > 10) {
                 // Re-scan decoded content using direct.js
-                const found = directExtractor.extract(decoded);
-                found.forEach(c => {
+                const foundDirect = directExtractor.extract(decoded);
+                foundDirect.forEach(c => {
                     const key = c.url;
                     if (!candidates.has(key)) {
                         candidates.set(key, {
@@ -42,6 +43,21 @@ const Base64Extractor = {
                         });
                     }
                 });
+
+                // Re-scan decoded content using hostExtractors
+                if (hostExtractors && typeof hostExtractors.extractAll === 'function') {
+                    const foundHosts = hostExtractors.extractAll(decoded);
+                    foundHosts.forEach(c => {
+                        const key = c.url;
+                        if (!candidates.has(key)) {
+                            candidates.set(key, {
+                                ...c,
+                                sourceLayer: 'base64_host_decoded',
+                                confidence: (c.confidence || 0.9) * 0.9
+                            });
+                        }
+                    });
+                }
             }
         }
 

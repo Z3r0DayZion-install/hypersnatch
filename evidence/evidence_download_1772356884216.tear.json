@@ -1,0 +1,32 @@
+{
+  "header": {
+    "format": "TEAR-AUDIT-CHAIN",
+    "version": "3.2.0",
+    "sessionId": "3ac36f98-95e3-46dc-a29a-98af41ceef95",
+    "timestamp": "2026-03-01T09:21:24.022Z",
+    "buildId": "HS-PROD-2026-02-28",
+    "engineVersion": "1.1.0-Elite",
+    "merkleRoot": "3e3ed4020b77a1fdc225e752dd973c05dd707fe2c4a7f61966e06f9d89b3fbdd"
+  },
+  "evidence": {
+    "candidates": [
+      {
+        "url": "https://rapidgator.net/file/abc123/secret_data.zip",
+        "type": "video",
+        "sourceLayer": "direct_regex",
+        "confidence": 0.5,
+        "fingerprint": "6deedfa66d4714674a43ae40f19df793d0b6b829f906c22fcfcddf28f2fd3858",
+        "status": "accepted",
+        "host": "rapidgator.net",
+        "finalScore": 0.6
+      }
+    ],
+    "refusals": [],
+    "rootHash": "3e3ed4020b77a1fdc225e752dd973c05dd707fe2c4a7f61966e06f9d89b3fbdd"
+  },
+  "telemetry": {
+    "duration": 450
+  },
+  "signature": "d560c7cdd8609f2c7c02b4646614f9f83c4df3f7bc018a87b47dc058f15919fc",
+  "fingerprint": "f30473fe12b6e0d0e57112c5cc1acfd7bcaa23133a0473b19c8a7f186ed4f7de"
+}
