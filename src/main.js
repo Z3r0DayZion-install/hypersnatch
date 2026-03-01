@@ -149,7 +149,16 @@ ipcMain.handle('open-evidence-folder', () => {
 // ==================== SMART DECODE IPC ====================
 ipcMain.handle('smart-decode-run', async (event, { input, options }) => {
   try {
-    return await SmartDecode.run(input, options);
+    const intelPath = app.isPackaged 
+      ? path.join(process.resourcesPath, 'config', 'forensic_intelligence.json')
+      : path.join(__dirname, '..', 'config', 'forensic_intelligence.json');
+    
+    const runOptions = {
+      ...options,
+      intelligencePath: intelPath
+    };
+
+    return await SmartDecode.run(input, runOptions);
   } catch (err) {
     log.error('SMART_DECODE_ERROR', { message: err.message });
     return null;
@@ -260,45 +269,80 @@ ipcMain.handle('final-freeze', async (event, { caseData, reports }) => {
   if (!fs.existsSync(casePath)) fs.mkdirSync(casePath);
 
   const manifestFiles = [];
+  const vaultMetadata = {
+    version: '1.0.0',
+    caseId: caseData.caseNumber || 'GENERAL',
+    hardwareBound: true,
+    files: {}
+  };
 
   try {
-    // 1. Write Reports
+    // 0. Derive Vault Key (PBKDF2 120k iterations per Governance)
+    const hwid = await getHardwareFingerprint();
+    const vaultKey = crypto.pbkdf2Sync(hwid, 'HS-VAULT-SALT-V1', 120000, 32, 'sha256');
+
+    // 1. Encrypt and Write Reports
     for (const report of reports) {
       if (!validateFilename(report.filename)) {
         throw new Error(`Security Violation: Illegal filename detected: ${report.filename}`);
       }
-      const filePath = path.join(casePath, report.filename);
+      
+      const buffer = report.type === 'pdf' ? Buffer.from(report.content, 'base64') : Buffer.from(report.content);
+      
+      // AES-256-GCM Encryption
+      const iv = crypto.randomBytes(12);
+      const cipher = crypto.createCipheriv('aes-256-gcm', vaultKey, iv);
+      cipher.setAAD(Buffer.from('HyperSnatch-Vanguard-Vault'));
+      
+      let encrypted = cipher.update(buffer);
+      encrypted = Buffer.concat([encrypted, cipher.final()]);
+      const authTag = cipher.getAuthTag();
 
-      const buffer = report.type === 'pdf' ? Buffer.from(report.content, 'base64') : report.content;
-      fs.writeFileSync(filePath, buffer);
+      const vaultFilename = `${report.filename}.vault`;
+      const filePath = path.join(casePath, vaultFilename);
+      fs.writeFileSync(filePath, encrypted);
 
-      const hash = crypto.createHash('sha256').update(buffer).digest('hex');
-      manifestFiles.push({ hash, path: report.filename });
+      const hash = crypto.createHash('sha256').update(encrypted).digest('hex');
+      manifestFiles.push({ hash, path: vaultFilename });
+      
+      vaultMetadata.files[vaultFilename] = {
+        originalName: report.filename,
+        iv: iv.toString('hex'),
+        authTag: authTag.toString('hex'),
+        size: encrypted.length
+      };
     }
 
-    // 2. Create Integrity Manifest
-    const entries = manifestFiles.map(f => `${f.hash}  ${f.path}`).join('\n');
-    const manifestPath = path.join(casePath, 'INTEGRITY_MANIFEST.txt');
-    fs.writeFileSync(manifestPath, entries);
+    // 2. Create Vault Manifest (Metadata)
+    const manifestPath = path.join(casePath, 'VAULT_MANIFEST.json');
+    fs.writeFileSync(manifestPath, JSON.stringify(vaultMetadata, null, 2));
 
-    // 3. Sign the manifest (Sovereign Seal)
+    // 3. Create Integrity Manifest (Hashes of encrypted blobs)
+    const entries = manifestFiles.map(f => `${f.hash}  ${f.path}`).join('\n');
+    const integrityPath = path.join(casePath, 'INTEGRITY_MANIFEST.txt');
+    fs.writeFileSync(integrityPath, entries);
+
+    // 4. Sign the manifest (Sovereign Seal)
     const { cpuId, baseboardId } = await getRawHardwareIds();
     const signature = crypto.createHash('sha256').update(entries + cpuId + baseboardId).digest('hex');
 
     fs.writeFileSync(path.join(casePath, 'SOVEREIGN_SEAL.sig'), signature);
 
-    // 4. Create a README summary
-    const readme = `HYPERSNATCH FINAL FREEZE REPORT\n` +
-      `===============================\n` +
+    // 5. Create a README summary
+    const readme = `HYPERSNATCH FINAL FREEZE VAULT\n` +
+      `==============================\n` +
+      `SECURITY:  AES-256-GCM (Hardware-Bound)\n` +
       `TIMESTAMP: ${new Date().toLocaleString()}\n` +
-      `BUILD ID:  ${caseData.buildId}\n` +
-      `ITEMS:     ${caseData.itemCount}\n` +
+      `CASE ID:   ${vaultMetadata.caseId}\n` +
+      `ITEMS:     ${reports.length}\n` +
       `SIGNATURE: ${signature}\n` +
-      `VERIFIED:  SOVEREIGN AUDIT CHAIN ACTIVE\n`;
+      `VERIFIED:  SOVEREIGN AUDIT CHAIN ACTIVE\n\n` +
+      `NOTICE: Evidence is encrypted and tied to Node ID: ${hwid.substring(0, 16)}\n`;
     fs.writeFileSync(path.join(casePath, 'README_SUMMARY.txt'), readme);
 
     return { success: true, path: casePath, signature };
   } catch (err) {
+    log.error('VAULT_FREEZE_ERROR', { error: err.message });
     return { success: false, error: err.message };
   }
 });
