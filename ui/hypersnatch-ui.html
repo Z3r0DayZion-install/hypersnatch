@@ -539,7 +539,17 @@
             });
           }
 
-          // 3. Legal Shield Reinforcement
+          // 4. License State
+          if (info.license && info.license.valid) {
+            const userName = info.license.user || "Field Agent";
+            setStatus("Vanguard Active: Welcome, " + userName, "ok");
+            el("btnActivate").textContent = (info.license.tier || "Elite") + " Edition";
+            el("btnActivate").style.borderColor = "#68f0a6";
+            el("btnActivate").style.color = "#68f0a6";
+            el("btnActivate").disabled = true; // Activated for this session
+          } else {
+            el("btnActivate").textContent = "Free Tier (Activate)";
+          }
           if (!info.securityConfig?.legalDisclaimerAccepted) {
             el("legalModal").style.display = "flex";
             el("btnAcceptLegal").addEventListener("click", async () => {
