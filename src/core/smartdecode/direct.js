@@ -23,7 +23,7 @@ const DirectExtractor = {
         }
 
         IntelligenceManager.patterns.forEach((p, key) => {
-            this._matchPattern(input, p.regex, `intel_${key.toLowerCase()}`, candidates, p.type, p.confidence);
+            this._matchPattern(input, p.regex, key.toLowerCase(), candidates, p.type, p.confidence);
         });
 
         return Array.from(candidates.values());

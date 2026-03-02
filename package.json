@@ -18,6 +18,9 @@
   "engines": {
     "node": "20.17.0"
   },
+  "bin": {
+    "hypersnatch-cli": "src/cli/hypersnatch-cli.js"
+  },
   "dependencies": {
     "ajv": "6.12.6"
   },
@@ -72,6 +75,7 @@
       "core/",
       "modules/",
       "ui/hypersnatch-ui.html",
+      "src/cli/hypersnatch-cli.js",
       "package.json"
     ],
     "extraResources": [

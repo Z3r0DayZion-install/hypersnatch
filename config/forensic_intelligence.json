@@ -2,19 +2,19 @@
   "version": "1.2.0",
   "build": "Vanguard",
   "patterns": {
-    "STREAM": {
+    "DIRECT_REGEX": {
       "regex": "(https?:\\/\\/[^\\s\"'`<>]+?\\.(mp4|m3u8|ts|zip|pdf)(?:\\?[^\\s\"'`<>]+)?)",
       "flags": "gi",
-      "type": "artifact",
+      "type": "document",
       "confidence": 0.7
     },
-    "HLS_PLAYLIST": {
+    "HLS_FOCUSED": {
       "regex": "(https?:\\/\\/[^\\s\"'`<>]+?playlist\\.m3u8(?:\\?[^\\s\"'`<>]+)?)",
       "flags": "gi",
       "type": "hls",
       "confidence": 0.85
     },
-    "BURIED_URL": {
+    "BURIED_STRING": {
       "regex": "[\"'](https?:\\/\\/[^\"']+?\\.(?:mp4|m3u8|ts|zip|pdf)[^\"']*?)[\"']",
       "flags": "gi",
       "type": "buried",

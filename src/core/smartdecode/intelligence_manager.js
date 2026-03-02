@@ -57,12 +57,12 @@ const IntelligenceManager = {
      * Hardcoded minimal patterns for emergency fallback
      */
     _loadFallbacks() {
-        this.patterns.set('STREAM_GENERIC', {
+        this.patterns.set('DIRECT_REGEX', {
             regex: /(https?:\/\/[^\s"'`<>]+?\.(mp4|m3u8|ts|zip|pdf)(?:\?[^\s"'`<>]+)?)/gi,
-            type: 'artifact',
+            type: 'document',
             confidence: 0.7
         });
-        this.patterns.set('BURIED_URL', {
+        this.patterns.set('BURIED_STRING', {
             regex: /["'](https?:\/\/[^"']+?\.(?:mp4|m3u8|ts|zip|pdf)[^"']*?)["']/gi,
             type: 'buried',
             confidence: 0.6

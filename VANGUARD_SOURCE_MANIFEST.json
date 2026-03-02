@@ -1,10 +1,14 @@
 {
-  "version": "1.1.0",
-  "build": "Vanguard",
-  "timestamp": "2026-03-01T23:04:55.345Z",
+  "version": "1.2.0",
+  "build": "Institutional",
+  "timestamp": "2026-03-02T01:05:05.991Z",
   "source_hashes": {
-    "src/main.js": "6afec9c5844bade519579590c0d08ac55264f5fef87cde141bf501448171d008",
+    "src/main.js": "306d564d01fa66d56c45de0fa280dc748966212ebc6f68f81d29262d904a75e3",
     "src/preload.js": "b909799b02c48efd8c479170a1d73ea8d6c7b2de881cb45824cfab1423ac3584",
-    "ui/hypersnatch-ui.html": "ec7d834851a69410a46c29225e9d632eba7771df1885fc17cdda8331140f1348"
+    "ui/hypersnatch-ui.html": "374924d67a73b1400cc2b3a54e04da0a657a406aea00e75902fc029948b8beef",
+    "src/cli/hypersnatch-cli.js": "f6af1d54da89451c5c34bcb254809f27c4f3f4334d2f4f97e6427d3d1e445ff6",
+    "src/security-crypto.js": "39241e0df5dbbd829ef901314738ee301e4ee1da6783f8671cc782d3ca50b17a",
+    "src/core/smartdecode/index.js": "14e2d713c475f4a4999990c3900640b4e97e1e8034676cbf734dc26d9f7474ec",
+    "src/core/smartdecode/intelligence_manager.js": "769437d8527151614d2e259af50284d1138f773d6320bb5365c2e92ac5301a2f"
   }
 }

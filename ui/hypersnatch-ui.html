@@ -848,8 +848,9 @@
             return;
           }
           if (result.valid) {
-            setStatus("Vanguard Active: Welcome, " + result.email.split('@')[0], "ok");
-            el("btnActivate").textContent = result.edition + " Edition";
+            const userName = result.user || "Field Agent";
+            setStatus("Vanguard Active: Welcome, " + userName, "ok");
+            el("btnActivate").textContent = (result.tier || "Elite") + " Edition";
             el("btnActivate").style.borderColor = "#68f0a6";
             el("btnActivate").style.color = "#68f0a6";
             el("btnActivate").disabled = true; // Activated for this session
