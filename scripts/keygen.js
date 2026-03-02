@@ -81,7 +81,7 @@ function generateLicense(user, hwid, edition = 'ELITE', daysValid = 365) {
 const args = process.argv.slice(2);
 if (args.length < 2) {
     console.log("Usage: node scripts/keygen.js <User> <HardwareID> [Edition] [DaysValid]");
-    console.log("Example: node scripts/keygen.js "ACME Forensics" "a1b2c3d4e5f6..." ELITE 365");
+    console.log("Example: node scripts/keygen.js \"ACME Forensics\" \"a1b2c3d4e5f6...\" ELITE 365");
     process.exit(1);
 }
 
