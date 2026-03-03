@@ -21,7 +21,7 @@ I want to put something on your radar that solves a massive infrastructure vulne
 
 ### What makes it different:
 
-- **Deterministic AST Parsing** — Same input always produces the same confidence-scored output. Verifiable via SHA-256 hash comparison. That's not a marketing claim — there's a [public proof in the repo you can run yourself](https://github.com/hypersnatch-security/hypersnatch/tree/main/demo).
+- **Deterministic AST Parsing** — Same input always produces the same confidence-scored output. Verifiable via SHA-256 hash comparison. That's not a marketing claim — there's a [public proof in the repo you can run yourself](https://github.com/Z3r0DayZion-install/hypersnatch/tree/main/demo).
 
 - **40+ Deterministic Decoders** — Covers the technical resource nodes and manifest types you actually encounter in digital forensic casework.
 
