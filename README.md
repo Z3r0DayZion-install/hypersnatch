@@ -1,80 +1,76 @@
 # HyperSnatch
 
-**Deterministic Static Analysis for Forensics (Vanguard v1.2.0)**
+**Offline media URL extraction from raw HTML — with detached binary verification.**
 
-[![License](https://img.shields.io/badge/license-Founders-00d084)](https://cashdominion.gumroad.com/l/itpxg)
-[![Version](https://img.shields.io/badge/version-1.2.0_Vanguard-blue.svg)]()
-[![Tests](https://img.shields.io/badge/tests-158%2F158_passing-brightgreen.svg)]()
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.2.0)
+[![Tests](https://img.shields.io/badge/tests-158_passing-brightgreen.svg)]()
 [![Platform](https://img.shields.io/badge/platform-Windows_10%2F11_x64-lightgrey)]()
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-HyperSnatch is an offline-first forensic engine for the independent security consultant. It deterministically extracts embedded media endpoints from HTML, HAR, and JS artifacts — without executing hostile code, making network requests, or sending telemetry.
+HyperSnatch extracts direct download URLs from raw HTML, HAR, and JavaScript payloads. It runs completely offline — no browser automation, no API keys, no network calls, no telemetry.
+
+## Download & Verify
+
+```powershell
+# 1. Download the installer from Releases
+# 2. Download verify.ps1 from this repo
+# 3. Verify before running:
+.\verify.ps1 .\HyperSnatch-Setup-1.2.0.exe
+```
+
+The verifier is a ~60-line PowerShell script with zero dependencies. It computes the SHA-256 hash and checks it against a hardcoded manifest. No network calls. [Read more about the verification model →](docs/DETACHED_VERIFICATION_BLOG.md)
+
+### SHA-256 Checksums
+
+```
+504d4ed8...943f29a5d24bbfd8  HyperSnatch-Setup-1.2.0.exe (Installer)
+fb198e68...3191b05733254c13  HyperSnatch 1.2.0.exe (Portable)
+```
+
+Full hashes in [SHA256SUMS.txt](SHA256SUMS.txt).
 
 ---
 
-## 🛡️ Core Capabilities
+## What It Does
 
-- **100% Offline & Deterministic:** No cloud APIs. No telemetry. Same input = same output, SHA-256 verifiable.
-- **40+ Host Decoders:** Rapidgator, Mega, Emload, Pixeldrain, Doodstream, and 35+ more — each with `extract()` and `resurrect()` methods.
-- **ECDSA-Signed Licensing:** Hardware-bound license keys using secp256k1 signatures. Fully offline verification — no phone-home, no accounts.
-- **Auth Boundary Detection:** Automatically detects login gates, premium paywalls, and signed URLs. Logs as refusals to preserve legal standing.
-- **Sovereign Audit Chain:** Forensic exports stamped with deterministic Merkle Root and HMAC-SHA256 session keys with Perfect Forward Secrecy.
-- **Court-Ready Exports:** PDF, JSON, CSV reports with certainty tiers, extracted URLs, and legal exclusions.
-
-## 💰 Licensing
-
-| Tier | Price | Features |
-|------|-------|----------|
-| **Community** | Free | Core analysis, 40+ decoders, JSON export |
-| **Sovereign** | $149 one-time | + PDF export, Final Freeze, Audit Chain, Quantum Vault |
-| **Institutional** | $499 one-time | + Headless CLI, Site License (5 seats), Priority Support |
-
-[Get the Founders License →](https://cashdominion.gumroad.com/l/itpxg)
-
-## 🚀 Usage
-
-### Desktop UI (Standard Workflow)
-Launch HyperSnatch, paste HTML/HAR/JS source, click **Decode**, review ranked candidates, export reports.
-
-### Headless CLI (Institutional)
-```bash
-# Requires Institutional license
-hypersnatch-cli artifact.html --format table
-hypersnatch-cli evidence.har --out results.json
-```
-
-### Bookmarklet (Source Capture)
-Drag-to-install bookmarklet captures the live DOM (including JS-rendered content) for analysis. See [Bookmarklet Page](https://z3r0dayzion-install.github.io/hypersnatch-site/bookmarklet.html).
-
-## 🏗️ Architecture
-
-SmartDecode v3.1 dual-engine:
-1. **JavaScript Engine:** Cross-platform fallback for forensic regex extraction.
-2. **Rust Engine (hs-core):** Memory-safe, high-speed parsing for extreme payloads.
+Paste raw HTML source into HyperSnatch. It statically parses the markup and extracts every media URL it can find — MP4, M3U8, PDF streams, encoded payloads — without executing any JavaScript or making any requests.
 
 ### Extraction Layers
-1. **Direct Regex** — MP4, M3U8, PDF stream patterns
-2. **Base64 Decryption** — Encoded `<script>` payloads up to 8MB
-3. **Iframe Recursion** — `srcdoc` boundaries up to 3 levels deep
-4. **HAR Response Scanning** — Network archive body inspection
+1. **Direct regex** — MP4, M3U8, PDF stream patterns
+2. **Base64 decryption** — Encoded `<script>` payloads up to 8MB
+3. **Iframe recursion** — `srcdoc` boundaries up to 3 levels deep
+4. **HAR response scanning** — Network archive body inspection
 
-### Security
-- Electron with context isolation, sandbox, disabled Node integration
-- IPC allowlisting — only explicit channels exposed
-- Zero `eval()` in entire codebase
-- ECDSA secp256k1 for license verification
+### Host Decoders
+40+ site-specific decoders with `extract()` and `resurrect()` methods for Rapidgator, Mega, Emload, Pixeldrain, Doodstream, and more.
 
-## ✅ Test Suite
+## Architecture
 
-| Suite | Count | Status |
+Dual-engine design:
+- **JavaScript engine** — Cross-platform, regex-based extraction
+- **Rust engine (`hs-core`)** — High-speed parsing for large payloads
+
+Built with Electron. Context isolation enabled, sandbox on, zero `eval()` in the entire codebase.
+
+## Why Unsigned?
+
+This project ships **unsigned** Windows binaries as an experiment in [detached verification](docs/DETACHED_VERIFICATION_BLOG.md). Instead of paying for an EV code-signing certificate and relying on Microsoft's opaque SmartScreen telemetry, we provide:
+
+- A deterministic hash verifier (`verify.ps1`)
+- Public SHA-256 checksums
+- Full source code
+
+The thesis: for a technical user base, transparent offline verification is higher trust than opaque certificate-based signing.
+
+## Test Suite
+
+| Suite | Tests | Status |
 |-------|-------|--------|
 | SmartDecode Core | 75 | ✅ |
 | License System | 43 | ✅ |
 | Host Decoders | 40 | ✅ |
-| **Total** | **158** | **All Passing** |
+| **Total** | **158** | **All passing** |
 
-## 📜 License
+## License
 
-[Founders License](https://cashdominion.gumroad.com/l/itpxg) — Hardware-bound, offline-verified, ECDSA-signed.
-
----
-*© 2026 HyperSnatch. Built for forensic analysts who bill $150/hr.*
+MIT — see [LICENSE](LICENSE).
