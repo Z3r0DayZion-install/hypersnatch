@@ -1,0 +1,7 @@
+# HyperSnatch v1.2.0 — Official SHA-256 Checksums
+# Generated: 2026-03-03
+# Verify with: certutil -hashfile <file> SHA256
+# Or use:      .\verify.ps1 <file>
+
+504d4ed8f4b11664553e88c3d85cb5c1297191a3a5aa1a8b943f29a5d24bbfd8  HyperSnatch-Setup-1.2.0.exe
+fb198e68af79fb67ea35d4335a44c3252a40bff3bd4df04d3191b05733254c13  HyperSnatch 1.2.0.exe
