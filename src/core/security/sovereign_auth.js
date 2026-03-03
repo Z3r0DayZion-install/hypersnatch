@@ -55,8 +55,8 @@ z3WLVPL7WhyqbG9zM9glepDBZYdnyc1Aq8u7aJ2s9q9BBbXRbmdJ1Q==
 
       return {
         valid: true,
-        tier: payload.edition || 'ELITE',
-        user: payload.user,
+        tier: payload.edition || 'FREE',
+        user: payload.user || 'Anonymous Analyst',
         features: payload.features || []
       };
     } catch (err) {
@@ -72,7 +72,12 @@ z3WLVPL7WhyqbG9zM9glepDBZYdnyc1Aq8u7aJ2s9q9BBbXRbmdJ1Q==
     expiry.setFullYear(expiry.getFullYear() + 1); // 1 Year default
 
     const features = ["ORACLE", "GHOST", "MAP", "FREEZE", "PDF", "EXFIL"];
-    if (edition === "SOVEREIGN") features.push("AI_WITNESS", "DEEP_TRACE");
+    if (edition === "SOVEREIGN" || edition === "INSTITUTIONAL") {
+      features.push("AI_WITNESS", "DEEP_TRACE");
+    }
+    if (edition === "INSTITUTIONAL") {
+      features.push("HEADLESS_CLI", "SITE_LICENSE");
+    }
 
     return {
       user,

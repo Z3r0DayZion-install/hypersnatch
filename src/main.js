@@ -149,10 +149,10 @@ ipcMain.handle('open-evidence-folder', () => {
 // ==================== SMART DECODE IPC ====================
 ipcMain.handle('smart-decode-run', async (event, { input, options }) => {
   try {
-    const intelPath = app.isPackaged 
+    const intelPath = app.isPackaged
       ? path.join(process.resourcesPath, 'config', 'forensic_intelligence.json')
       : path.join(__dirname, '..', 'config', 'forensic_intelligence.json');
-    
+
     const runOptions = {
       ...options,
       intelligencePath: intelPath
@@ -254,7 +254,7 @@ ipcMain.handle('final-freeze', async (event, { caseData, reports }) => {
   if (license.tier === 'FORENSIC' && !license.valid) {
     return { success: false, error: 'ACCESS DENIED: Elite Tier License Required for Final Freeze.' };
   }
-  
+
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const caseFolderName = `CASE-FREEZE-${timestamp}`;
 
@@ -286,14 +286,14 @@ ipcMain.handle('final-freeze', async (event, { caseData, reports }) => {
       if (!validateFilename(report.filename)) {
         throw new Error(`Security Violation: Illegal filename detected: ${report.filename}`);
       }
-      
+
       const buffer = report.type === 'pdf' ? Buffer.from(report.content, 'base64') : Buffer.from(report.content);
-      
+
       // AES-256-GCM Encryption
       const iv = crypto.randomBytes(12);
       const cipher = crypto.createCipheriv('aes-256-gcm', vaultKey, iv);
       cipher.setAAD(Buffer.from('HyperSnatch-Vanguard-Vault'));
-      
+
       let encrypted = cipher.update(buffer);
       encrypted = Buffer.concat([encrypted, cipher.final()]);
       const authTag = cipher.getAuthTag();
@@ -304,7 +304,7 @@ ipcMain.handle('final-freeze', async (event, { caseData, reports }) => {
 
       const hash = crypto.createHash('sha256').update(encrypted).digest('hex');
       manifestFiles.push({ hash, path: vaultFilename });
-      
+
       vaultMetadata.files[vaultFilename] = {
         originalName: report.filename,
         iv: iv.toString('hex'),
@@ -432,10 +432,10 @@ ipcMain.handle('export-security-report', async (event, decodeData) => {
     // Use CaseReportGenerator
     const CaseReportGenerator = require('../core/case_report_generator.js');
     const AuditChain = require('./core/smartdecode/audit-chain');
-    
+
     const cands = decodeData?.candidates || [];
     const refs = decodeData?.refusals || [];
-    
+
     // 1. Sign the session via Audit Chain for forensic immutability
     const hwid = await getHardwareFingerprint();
     const signedBundle = await AuditChain.signSession(
@@ -743,20 +743,6 @@ function ensurePolicyDefaults() {
   }
 }
 function getRendererPath() {
-  // Determine if running in development or packaged mode
-  if (process.env.NODE_ENV === 'development') {
-    return path.join(__dirname, '..', 'ui', 'hypersnatch-ui.html');
-  }
-
-  // Packaged mode - look for app.asar
-  const appPath = app.getAppPath();
-  const asarPath = path.join(appPath, 'app.asar');
-
-  if (fs.existsSync(asarPath)) {
-    return path.join(asarPath, 'ui', 'hypersnatch-ui.html');
-  }
-
-  // Fallback to development path
   return path.join(__dirname, '..', 'ui', 'hypersnatch-ui.html');
 }
 
@@ -788,10 +774,10 @@ async function runSelfCheck() {
 
     // 3. Rust Core Availability
     const binName = process.platform === "win32" ? "hs-core.exe" : "hs-core";
-    const rustPath = app.isPackaged 
+    const rustPath = app.isPackaged
       ? path.join(process.resourcesPath, binName)
       : path.join(__dirname, '..', 'build', binName);
-    
+
     if (fs.existsSync(rustPath)) {
       report.checks.push({ name: 'RUST_CORE', status: 'OK' });
     } else {
@@ -824,7 +810,7 @@ app.whenReady().then(() => {
   session.defaultSession.webRequest.onBeforeRequest({ urls: ['*://*/*'] }, (details, callback) => {
     try {
       const url = new URL(details.url);
-      
+
       // Allow internal app resources
       if (url.protocol === 'file:') {
         return callback({ cancel: false });
@@ -834,7 +820,7 @@ app.whenReady().then(() => {
       if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
         return callback({ cancel: false });
       }
-      
+
       // Block everything else
       logSecurityEvent('NETWORK_BLOCK_TRIGGERED', { url: details.url });
       return callback({ cancel: true });
@@ -848,13 +834,13 @@ app.whenReady().then(() => {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     try {
       const url = new URL(details.url);
-      
+
       // Secondary Airgap Check: Ensure redirects/workers don't bypass onBeforeRequest
       if (url.protocol !== 'file:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
         logSecurityEvent('NETWORK_BLOCK_HEADERS_STAGE', { url: details.url });
         return callback({ cancel: true });
       }
-    } catch (e) {}
+    } catch (e) { }
 
     callback({
       responseHeaders: {
@@ -908,7 +894,7 @@ app.whenReady().then(() => {
     width: 1280,
     height: 800,
     frame: false,           // SOVEREIGN SHELL: Frameless
-    fullscreen: true,       // GOD-TIER: Fullscreen Kiosk
+    fullscreen: false,      // Disabled Kiosk mode for standard desktop usage
     backgroundColor: '#0a1016',
     webPreferences: {
       ...SECURITY_CONFIG,

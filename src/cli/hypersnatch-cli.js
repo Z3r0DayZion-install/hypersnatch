@@ -11,6 +11,8 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
+const SovereignAuth = require('../core/security/sovereign_auth');
+const machineIdSync = require('../utils/hwid-generator'); // Assume an HWID util exists, or use a naive fallback for the CLI
 
 const APP_VERSION = "1.2.0";
 
@@ -38,7 +40,7 @@ EXAMPLES:
 
 async function run() {
     const args = process.argv.slice(2);
-    
+
     if (args.length === 0 || args.includes('-h') || args.includes('--help')) {
         printHelp();
         return;
@@ -48,6 +50,41 @@ async function run() {
         console.log(`HyperSnatch Vanguard CLI v${APP_VERSION}`);
         return;
     }
+
+    // --- Enterprise License Verification ---
+    let hwid;
+    try {
+        hwid = require('node-machine-id').machineIdSync();
+    } catch (e) {
+        hwid = "UNKNOWN_HWID";
+    }
+
+    const licensePath = path.join(__dirname, '..', '..', 'license.json');
+    if (!fs.existsSync(licensePath)) {
+        console.error("❌ LICENSE ERROR: Headless CLI execution requires an active Institutional License.");
+        console.error("Please place a valid 'license.json' in the root directory.");
+        process.exit(1);
+    }
+
+    try {
+        const licenseData = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
+        const verification = SovereignAuth.verifyLicense(licenseData, hwid);
+
+        if (!verification.valid) {
+            console.error(`❌ LICENSE ERROR: ${verification.reason}`);
+            process.exit(1);
+        }
+
+        if (!verification.features.includes("HEADLESS_CLI") && verification.tier !== "INSTITUTIONAL") {
+            console.error("❌ LICENSE ERROR: The Headless CLI is restricted to the Institutional Tier.");
+            console.error(`Current Tier: ${verification.tier}. Please upgrade to execute automated pipelines.`);
+            process.exit(1);
+        }
+    } catch (e) {
+        console.error("❌ LICENSE ERROR: Corrupted license.json structure.");
+        process.exit(1);
+    }
+    // ---------------------------------------
 
     const inputPath = args[0];
     if (!fs.existsSync(inputPath)) {
@@ -69,7 +106,7 @@ async function run() {
     // 1. Locate Rust Core
     const binName = process.platform === 'win32' ? 'hs-core.exe' : 'hs-core';
     let binPath = path.join(__dirname, '..', '..', 'build', binName);
-    
+
     if (!fs.existsSync(binPath)) {
         // Fallback for packaged env
         binPath = path.join(__dirname, '..', 'resources', binName);
@@ -107,7 +144,7 @@ async function run() {
 
         try {
             const results = JSON.parse(stdout);
-            
+
             if (outputPath) {
                 fs.writeFileSync(outputPath, JSON.stringify(results, null, 2));
                 console.log(`✅ ANALYSIS COMPLETE: Results saved to ${outputPath}`);
@@ -132,7 +169,7 @@ function displayResults(results, format) {
 --- HyperSnatch Forensic Analysis Results ---`);
         console.log(`Engine: ${results.version} // Total Artifacts: ${results.candidates.length}
 `);
-        
+
         if (results.candidates.length === 0) {
             console.log("No artifacts found.");
         } else {
@@ -143,7 +180,7 @@ function displayResults(results, format) {
                 URL: c.url.substring(0, 80) + (c.url.length > 80 ? '...' : '')
             })));
         }
-        
+
         if (results.refusals.length > 0) {
             console.log(`
 --- Policy Refusals (${results.refusals.length}) ---`);
