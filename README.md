@@ -1,56 +1,80 @@
 # HyperSnatch
 
-**Deterministic Static Analysis for Forensics (Vanguard v1.1.0)**
+**Deterministic Static Analysis for Forensics (Vanguard v1.2.0)**
 
 [![License](https://img.shields.io/badge/license-Founders-00d084)](https://cashdominion.gumroad.com/l/itpxg)
-[![Version](https://img.shields.io/badge/version-1.1.0_Vanguard-blue.svg)]()
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
+[![Version](https://img.shields.io/badge/version-1.2.0_Vanguard-blue.svg)]()
+[![Tests](https://img.shields.io/badge/tests-158%2F158_passing-brightgreen.svg)]()
+[![Platform](https://img.shields.io/badge/platform-Windows_10%2F11_x64-lightgrey)]()
 
-HyperSnatch is a legally conscious, offline-first forensic engine designed for the independent security consultant. It specializes in deterministically extracting buried artifacts (media, documents, archives) from obfuscated HTML payloads, HAR files, and JS snippets without executing potentially hostile code.
+HyperSnatch is an offline-first forensic engine for the independent security consultant. It deterministically extracts embedded media endpoints from HTML, HAR, and JS artifacts — without executing hostile code, making network requests, or sending telemetry.
 
 ---
 
 ## 🛡️ Core Capabilities
 
-*   **100% Offline & Deterministic:** No cloud APIs. No telemetry. Your evidence never leaves your machine. Results are strictly determined by mathematically reproducible static analysis.
-*   **Massive Payload Resilience:** Built-in chunking handles 25MB+ minified HTML/HAR blobs securely, guarding against V8 heap exhaustion and resource-exhaustion attacks.
-*   **Legal Boundary Enforcement:** The `Cash Policy Shield` automatically detects Age Gates, Premium Paywalls, and Login boundaries, logging them as *refusals* to preserve your legal standing during investigations.
-*   **Sovereign Audit Chain:** Every exported forensic case report is stamped with a deterministic Merkle Root and signed with an HMAC-SHA256 hardware-bound session key using Perfect Forward Secrecy.
-*   **Native Court-Ready Exports:** Seamlessly export tamper-proof, stylized PDF and HTML reports detailing certainty tiers, extracted URLs, and legal exclusions.
+- **100% Offline & Deterministic:** No cloud APIs. No telemetry. Same input = same output, SHA-256 verifiable.
+- **40+ Host Decoders:** Rapidgator, Mega, Emload, Pixeldrain, Doodstream, and 35+ more — each with `extract()` and `resurrect()` methods.
+- **ECDSA-Signed Licensing:** Hardware-bound license keys using secp256k1 signatures. Fully offline verification — no phone-home, no accounts.
+- **Auth Boundary Detection:** Automatically detects login gates, premium paywalls, and signed URLs. Logs as refusals to preserve legal standing.
+- **Sovereign Audit Chain:** Forensic exports stamped with deterministic Merkle Root and HMAC-SHA256 session keys with Perfect Forward Secrecy.
+- **Court-Ready Exports:** PDF, JSON, CSV reports with certainty tiers, extracted URLs, and legal exclusions.
 
-## 🚀 Usage 
+## 💰 Licensing
 
-### 1. The Offline UI (Standard Workflow)
-Launch the HyperSnatch Desktop client. The UI operates securely over a Native Electron IPC Bridge, decoupled entirely from local HTTP servers. Paste your source material (HTML, HAR, Logs), click **Decode**, and export your professional Security Report.
+| Tier | Price | Features |
+|------|-------|----------|
+| **Community** | Free | Core analysis, 40+ decoders, JSON export |
+| **Sovereign** | $149 one-time | + PDF export, Final Freeze, Audit Chain, Quantum Vault |
+| **Institutional** | $499 one-time | + Headless CLI, Site License (5 seats), Priority Support |
 
-### 2. The CLI Engine
-HyperSnatch core can be invoked headlessly in CI/CD environments.
+[Get the Founders License →](https://cashdominion.gumroad.com/l/itpxg)
 
+## 🚀 Usage
+
+### Desktop UI (Standard Workflow)
+Launch HyperSnatch, paste HTML/HAR/JS source, click **Decode**, review ranked candidates, export reports.
+
+### Headless CLI (Institutional)
 ```bash
-# Decode raw source
-hypersnatch "https://example.com/file.mp4"
-
-# Strict Rust Engine
-HYPERSNATCH_SMARTDECODE_ENGINE=rust hypersnatch -i <file>
+# Requires Institutional license
+hypersnatch-cli artifact.html --format table
+hypersnatch-cli evidence.har --out results.json
 ```
 
-## 🏗️ Architecture (Vanguard Edition)
-The bloated UI elements, experimental neural plugins, and external "marketplaces" have been strictly purged in the Vanguard release. 
+### Bookmarklet (Source Capture)
+Drag-to-install bookmarklet captures the live DOM (including JS-rendered content) for analysis. See [Bookmarklet Page](https://z3r0dayzion-install.github.io/hypersnatch-site/bookmarklet.html).
 
-HyperSnatch operates on a `SmartDecode 2.4` dual-engine philosophy:
-1. **JavaScript Engine:** Highly optimized, cross-platform fallback for forensic regex extraction.
-2. **Rust Engine (hs-core):** Blistering fast, memory-safe execution for extreme payload parsing.
+## 🏗️ Architecture
+
+SmartDecode v3.1 dual-engine:
+1. **JavaScript Engine:** Cross-platform fallback for forensic regex extraction.
+2. **Rust Engine (hs-core):** Memory-safe, high-speed parsing for extreme payloads.
 
 ### Extraction Layers
-1. **Direct Regex:** Standard static stream patterns (MP4, M3U8, PDF).
-2. **Base64 Decryption:** Uncovers deeply encoded `script` payloads up to 8MB in size.
-3. **Iframe Recursion:** Follows declarative `srcdoc` boundaries up to 3 levels deep.
-4. **HAR Response Scanning:** Automatically digs through network archive response bodies for obfuscated tokens.
+1. **Direct Regex** — MP4, M3U8, PDF stream patterns
+2. **Base64 Decryption** — Encoded `<script>` payloads up to 8MB
+3. **Iframe Recursion** — `srcdoc` boundaries up to 3 levels deep
+4. **HAR Response Scanning** — Network archive body inspection
+
+### Security
+- Electron with context isolation, sandbox, disabled Node integration
+- IPC allowlisting — only explicit channels exposed
+- Zero `eval()` in entire codebase
+- ECDSA secp256k1 for license verification
+
+## ✅ Test Suite
+
+| Suite | Count | Status |
+|-------|-------|--------|
+| SmartDecode Core | 75 | ✅ |
+| License System | 43 | ✅ |
+| Host Decoders | 40 | ✅ |
+| **Total** | **158** | **All Passing** |
 
 ## 📜 License
 
-[Founders License](https://cashdominion.gumroad.com/l/itpxg) — Single-User Independent Consultant License.
-*Hardware Binding strictly enforced.*
+[Founders License](https://cashdominion.gumroad.com/l/itpxg) — Hardware-bound, offline-verified, ECDSA-signed.
 
 ---
-*Generated by the HyperSnatch Security Team - 2026*
+*© 2026 HyperSnatch. Built for forensic analysts who bill $150/hr.*
