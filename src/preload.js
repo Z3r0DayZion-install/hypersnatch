@@ -15,7 +15,10 @@ const ALLOWED_IPC_CHANNELS = new Set([
   'import-evidence',
   'log-message',
   'export-security-report',
+  'export-pdf',
+  'final-freeze',
   'validate-license',
+  'get-license-info',
   'accept-legal-disclaimer',
   'get-hardware-status',
   'authenticate-license',
@@ -100,6 +103,21 @@ const electronAPI = {
   validateLicense: () => {
     validateIPCChannel('validate-license');
     return ipcRenderer.invoke('validate-license');
+  },
+
+  getLicenseInfo: () => {
+    validateIPCChannel('get-license-info');
+    return ipcRenderer.invoke('get-license-info');
+  },
+
+  exportPdf: (html, filename) => {
+    validateIPCChannel('export-pdf');
+    return ipcRenderer.invoke('export-pdf', { html, filename });
+  },
+
+  finalFreeze: (caseData, reports) => {
+    validateIPCChannel('final-freeze');
+    return ipcRenderer.invoke('final-freeze', { caseData, reports });
   }
 };
 

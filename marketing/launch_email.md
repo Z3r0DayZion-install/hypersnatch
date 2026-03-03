@@ -1,4 +1,4 @@
-# HyperSnatch Vanguard v1.2.0 — Launch Email
+# HyperSnatch Vanguard v2.0 — Launch Email
 
 > 1. `Stop leaking forensic artifacts to SaaS providers. Here's your fix.`
 > 2. `HyperSnatch: Zero-Trust AST evaluation. No cloud. No telemetry.`
@@ -15,7 +15,7 @@ Hey [First Name],
 
 I want to put something on your radar that solves a massive infrastructure vulnerability in digital forensics.
 
-**The problem:** Every consumer-grade link extractor or SaaS analysis tool on the market makes you pipe your investigation data through *their* cloud. Your HTML artifacts, the embedded media endpoints, the session metadata — it all touches someone else's servers. For forensic-grade casework, that is a direct chain-of-custody liability. It's unacceptable.
+**The problem:** Every consumer-grade resource locator or SaaS analysis tool on the market makes you pipe your investigation data through *their* cloud. Your HTML artifacts, the embedded media endpoints, the session metadata — it all touches someone else's servers. For forensic-grade casework, that is a direct chain-of-custody liability. It's unacceptable.
 
 **The solution:** [HyperSnatch](https://z3r0dayzion-install.github.io/hypersnatch-site/) is a zero-trust, offline-first desktop application. It performs deterministic, mathematical AST parsing on raw HTML and HAR files directly on your local hardware. No telemetry. No accounts. No tracking.
 
@@ -23,7 +23,7 @@ I want to put something on your radar that solves a massive infrastructure vulne
 
 - **Deterministic AST Parsing** — Same input always produces the same confidence-scored output. Verifiable via SHA-256 hash comparison. That's not a marketing claim — there's a [public proof in the repo you can run yourself](https://github.com/hypersnatch-security/hypersnatch/tree/main/demo).
 
-- **40+ Deterministic Decoders** — Covers the file hosts and streaming platforms you actually encounter in DFIR casework, including every major provider in the ecosystem.
+- **40+ Deterministic Decoders** — Covers the technical resource nodes and manifest types you actually encounter in digital forensic casework.
 
 - **AES-256 Evidence Vaults** (New in v1.2) — Exported case artifacts are encrypted at rest using AES-256-GCM, tied to your machine's hardware fingerprint. Evidence doesn't leave your custody unprotected.
 

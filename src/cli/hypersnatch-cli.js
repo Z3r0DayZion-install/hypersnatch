@@ -12,7 +12,6 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const SovereignAuth = require('../core/security/sovereign_auth');
-const machineIdSync = require('../utils/hwid-generator'); // Assume an HWID util exists, or use a naive fallback for the CLI
 
 const APP_VERSION = "1.2.0";
 
@@ -38,6 +37,15 @@ EXAMPLES:
     `);
 }
 
+// Native HWID matching main.js logic
+function getHardwareFingerprint() {
+    const os = require('os');
+    const crypto = require('crypto');
+    const cpuId = os.cpus()[0].model.replace(/\s+/g, '_');
+    const baseboardId = `${os.hostname()}_${os.userInfo().username}`;
+    return crypto.createHash('sha256').update(`HS-HWID-${cpuId}-${baseboardId}`).digest('hex');
+}
+
 async function run() {
     const args = process.argv.slice(2);
 
@@ -51,37 +59,43 @@ async function run() {
         return;
     }
 
-    // --- Enterprise License Verification ---
-    let hwid;
-    try {
-        hwid = require('node-machine-id').machineIdSync();
-    } catch (e) {
-        hwid = "UNKNOWN_HWID";
+    // --- Institutional License Verification ---
+    const hwid = getHardwareFingerprint();
+
+    // Search for license in multiple locations
+    const licensePaths = [
+        path.join(__dirname, '..', '..', 'license.json'),                          // project root
+        path.join(process.env.APPDATA || '', 'HyperSnatch', 'runtime', 'config', 'license.json'), // user data
+        path.join(process.env.HOME || process.env.USERPROFILE || '', '.hypersnatch', 'license.json') // home dir
+    ];
+
+    let licenseData = null;
+    let foundPath = null;
+    for (const lp of licensePaths) {
+        if (lp && fs.existsSync(lp)) {
+            try {
+                licenseData = JSON.parse(fs.readFileSync(lp, 'utf8'));
+                foundPath = lp;
+                break;
+            } catch (e) { /* skip corrupt */ }
+        }
     }
 
-    const licensePath = path.join(__dirname, '..', '..', 'license.json');
-    if (!fs.existsSync(licensePath)) {
+    if (!licenseData) {
         console.error("❌ LICENSE ERROR: Headless CLI execution requires an active Institutional License.");
-        console.error("Please place a valid 'license.json' in the root directory.");
+        console.error("   Place a valid 'license.json' in the project root or AppData/HyperSnatch/runtime/config/");
         process.exit(1);
     }
 
-    try {
-        const licenseData = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
-        const verification = SovereignAuth.verifyLicense(licenseData, hwid);
+    const verification = SovereignAuth.verifyLicense(licenseData, hwid);
+    if (!verification.valid) {
+        console.error(`❌ LICENSE ERROR: ${verification.reason}`);
+        process.exit(1);
+    }
 
-        if (!verification.valid) {
-            console.error(`❌ LICENSE ERROR: ${verification.reason}`);
-            process.exit(1);
-        }
-
-        if (!verification.features.includes("HEADLESS_CLI") && verification.tier !== "INSTITUTIONAL") {
-            console.error("❌ LICENSE ERROR: The Headless CLI is restricted to the Institutional Tier.");
-            console.error(`Current Tier: ${verification.tier}. Please upgrade to execute automated pipelines.`);
-            process.exit(1);
-        }
-    } catch (e) {
-        console.error("❌ LICENSE ERROR: Corrupted license.json structure.");
+    if (!SovereignAuth.meetsMinimumTier(verification.tier || verification.edition, 'INSTITUTIONAL')) {
+        console.error("❌ LICENSE ERROR: The Headless CLI is restricted to the Institutional Tier ($499).");
+        console.error(`   Current Tier: ${verification.tier || verification.edition}. Please upgrade.`);
         process.exit(1);
     }
     // ---------------------------------------

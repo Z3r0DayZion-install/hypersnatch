@@ -108,7 +108,7 @@ All v1.0.1 features are preserved. New capabilities are additive:
 
 ## Legal
 
-- **License:** Proprietary — Founders License ($39 one-time)
+- **License:** Proprietary — Founders License ($149 one-time)
 - **Terms:** See [Terms of Use](https://hypersnatch.com/terms)
 - **Support:** support@hypersnatch.com (12-hour response)
 - **Refund:** 14-day deterministic guarantee

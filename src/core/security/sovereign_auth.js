@@ -55,7 +55,8 @@ z3WLVPL7WhyqbG9zM9glepDBZYdnyc1Aq8u7aJ2s9q9BBbXRbmdJ1Q==
 
       return {
         valid: true,
-        tier: payload.edition || 'FREE',
+        tier: payload.edition || 'COMMUNITY',
+        edition: payload.edition || 'COMMUNITY',
         user: payload.user || 'Anonymous Analyst',
         features: payload.features || []
       };
@@ -67,17 +68,72 @@ z3WLVPL7WhyqbG9zM9glepDBZYdnyc1Aq8u7aJ2s9q9BBbXRbmdJ1Q==
   /**
    * Internal generator (used by the Founder to create keys)
    */
-  generateLicensePayload(user, hwid, edition = "ELITE") {
+  // Tier hierarchy for gating checks
+  TIER_LEVELS: {
+    'COMMUNITY': 0,
+    'SOVEREIGN': 1,
+    'INSTITUTIONAL': 2
+  },
+
+  // Feature definitions per tier
+  TIER_FEATURES: {
+    COMMUNITY: [
+      'UNLIMITED_ANALYSIS',
+      'JSON_EXPORT'
+    ],
+    SOVEREIGN: [
+      'UNLIMITED_ANALYSIS',
+      'JSON_EXPORT',
+      'PDF_EXPORT',
+      'FINAL_FREEZE',
+      'AUDIT_CHAIN',
+      'QUANTUM_VAULT',
+      'EVIDENCE_VAULT',
+      'POLICY_SHIELD'
+    ],
+    INSTITUTIONAL: [
+      'UNLIMITED_ANALYSIS',
+      'JSON_EXPORT',
+      'PDF_EXPORT',
+      'FINAL_FREEZE',
+      'AUDIT_CHAIN',
+      'QUANTUM_VAULT',
+      'EVIDENCE_VAULT',
+      'POLICY_SHIELD',
+      'HEADLESS_CLI',
+      'SITE_LICENSE_5',
+      'PRIORITY_SUPPORT'
+    ]
+  },
+
+  /**
+   * Check if a tier meets or exceeds the required minimum tier.
+   * @param {string} currentTier
+   * @param {string} requiredTier
+   * @returns {boolean}
+   */
+  meetsMinimumTier(currentTier, requiredTier) {
+    const current = this.TIER_LEVELS[currentTier] ?? 0;
+    const required = this.TIER_LEVELS[requiredTier] ?? 0;
+    return current >= required;
+  },
+
+  /**
+   * Check if a tier has a specific feature.
+   * @param {string} tier
+   * @param {string} feature
+   * @returns {boolean}
+   */
+  hasFeature(tier, feature) {
+    const features = this.TIER_FEATURES[tier] || this.TIER_FEATURES.COMMUNITY;
+    return features.includes(feature);
+  },
+
+  generateLicensePayload(user, hwid, edition = "SOVEREIGN") {
     const expiry = new Date();
     expiry.setFullYear(expiry.getFullYear() + 1); // 1 Year default
 
-    const features = ["ORACLE", "GHOST", "MAP", "FREEZE", "PDF", "EXFIL"];
-    if (edition === "SOVEREIGN" || edition === "INSTITUTIONAL") {
-      features.push("AI_WITNESS", "DEEP_TRACE");
-    }
-    if (edition === "INSTITUTIONAL") {
-      features.push("HEADLESS_CLI", "SITE_LICENSE");
-    }
+    const features = this.TIER_FEATURES[edition] || this.TIER_FEATURES.COMMUNITY;
 
     return {
       user,
@@ -85,7 +141,8 @@ z3WLVPL7WhyqbG9zM9glepDBZYdnyc1Aq8u7aJ2s9q9BBbXRbmdJ1Q==
       edition,
       expiry: expiry.toISOString(),
       issued: new Date().toISOString(),
-      features
+      features,
+      version: '1.0.0'
     };
   },
 

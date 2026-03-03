@@ -212,17 +212,45 @@ async function checkLicenseLocally() {
     const hwid = await getHardwareFingerprint();
     const licensePath = path.join(CONFIG_DIR, 'license.json');
     if (!fs.existsSync(licensePath)) {
-      return { tier: 'FORENSIC', valid: false };
+      return { tier: 'COMMUNITY', edition: 'COMMUNITY', valid: false, features: SovereignAuth.TIER_FEATURES.COMMUNITY };
     }
     const license = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
     const result = SovereignAuth.verifyLicense(license, hwid);
     if (result.valid) {
-      return { tier: result.edition || 'ELITE', valid: true, user: result.user };
+      const edition = result.edition || 'SOVEREIGN';
+      return {
+        tier: edition,
+        edition,
+        valid: true,
+        user: result.user,
+        features: result.features || SovereignAuth.TIER_FEATURES[edition] || SovereignAuth.TIER_FEATURES.COMMUNITY
+      };
     }
-    return { tier: 'FORENSIC', valid: false };
+    return { tier: 'COMMUNITY', edition: 'COMMUNITY', valid: false, features: SovereignAuth.TIER_FEATURES.COMMUNITY };
   } catch (e) {
-    return { tier: 'FORENSIC', valid: false };
+    return { tier: 'COMMUNITY', edition: 'COMMUNITY', valid: false, features: SovereignAuth.TIER_FEATURES.COMMUNITY };
   }
+}
+
+/**
+ * Returns an access-denied result if the current license doesn't meet the minimum tier.
+ * @param {string} requiredTier - 'SOVEREIGN' or 'INSTITUTIONAL'
+ * @param {string} featureName - human-readable feature name for the error message
+ * @returns {Object|null} - null if allowed, error object if denied
+ */
+async function requireTier(requiredTier, featureName) {
+  const license = await checkLicenseLocally();
+  if (!SovereignAuth.meetsMinimumTier(license.tier, requiredTier)) {
+    const tierPrice = requiredTier === 'INSTITUTIONAL' ? '$499' : '$149';
+    return {
+      success: false,
+      error: `ACCESS DENIED: ${featureName} requires ${requiredTier} Edition (${tierPrice}).`,
+      requiredTier,
+      currentTier: license.tier,
+      upgradeUrl: 'https://cashdominion.gumroad.com/l/itpxg'
+    };
+  }
+  return null;
 }
 
 ipcMain.handle('get-hardware-status', async () => {
@@ -250,10 +278,8 @@ ipcMain.handle('authenticate-license', async (event, licensePath) => {
 });
 
 ipcMain.handle('final-freeze', async (event, { caseData, reports }) => {
-  const license = await checkLicenseLocally();
-  if (license.tier === 'FORENSIC' && !license.valid) {
-    return { success: false, error: 'ACCESS DENIED: Elite Tier License Required for Final Freeze.' };
-  }
+  const gateCheck = await requireTier('SOVEREIGN', 'Final Freeze Evidence Vault');
+  if (gateCheck) return gateCheck;
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const caseFolderName = `CASE-FREEZE-${timestamp}`;
@@ -348,6 +374,8 @@ ipcMain.handle('final-freeze', async (event, { caseData, reports }) => {
 });
 
 ipcMain.handle('export-pdf', async (event, { html, filename }) => {
+  const gateCheck = await requireTier('SOVEREIGN', 'PDF Export');
+  if (gateCheck) return gateCheck;
   if (!validateFilename(filename)) {
     return { success: false, error: 'Illegal filename' };
   }
@@ -392,6 +420,8 @@ ipcMain.handle('export-pdf', async (event, { html, filename }) => {
 });
 
 ipcMain.handle('export-security-report', async (event, decodeData) => {
+  const gateCheck = await requireTier('SOVEREIGN', 'Security Report Export');
+  if (gateCheck) return gateCheck;
   try {
     const reportPath = path.join(app.getPath("desktop"), "hyperSnatch_report.pdf");
 
@@ -517,7 +547,8 @@ ipcMain.handle('validate-license', async (event) => {
     if (result.valid) {
       const storedLicense = path.join(CONFIG_DIR, 'license.json');
       fs.copyFileSync(licensePath, storedLicense);
-      log.info("LICENSE_ACTIVATED", { edition: result.edition });
+      logSecurityEvent('LICENSE_ACTIVATED', { edition: result.edition, tier: result.tier, user: result.user });
+      log.info("LICENSE_ACTIVATED", { edition: result.edition, tier: result.tier });
     }
 
     return result;
@@ -526,6 +557,22 @@ ipcMain.handle('validate-license', async (event) => {
     log.error("LICENSE_IMPORT_ERROR", { message: error.message });
     return { valid: false, reason: "Internal error processing license" };
   }
+});
+
+ipcMain.handle('get-license-info', async () => {
+  const license = await checkLicenseLocally();
+  const hwid = await getHardwareFingerprint();
+  return {
+    ...license,
+    hwid,
+    displayHwid: hwid.substring(0, 16),
+    tierDisplay: license.tier === 'COMMUNITY' ? 'COMMUNITY' : `${license.tier} EDITION`,
+    upgradeUrl: 'https://cashdominion.gumroad.com/l/itpxg',
+    tiers: {
+      SOVEREIGN: { price: '$149', features: SovereignAuth.TIER_FEATURES.SOVEREIGN },
+      INSTITUTIONAL: { price: '$499', features: SovereignAuth.TIER_FEATURES.INSTITUTIONAL }
+    }
+  };
 });
 
 ipcMain.handle('get-security-events', () => {
