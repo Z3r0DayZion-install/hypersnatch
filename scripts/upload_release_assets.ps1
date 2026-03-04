@@ -5,9 +5,8 @@ $repo = "Z3r0DayZion-install/hypersnatch"
 $tag = "v1.2.0"
 
 # Get GitHub token from credential manager
-$cred = $null
+$token = $null
 try {
-    $credStore = [System.Runtime.InteropServices.Marshal]
     Add-Type -AssemblyName System.Runtime.InteropServices
     $target = "gh:github.com:Z3r0DayZion-install"
     $credObj = Get-StoredCredential -Target $target -ErrorAction SilentlyContinue
@@ -50,7 +49,8 @@ Write-Host "Upload URL base: $uploadUrl"
 # Files to upload
 $files = @(
     @{ Path = "C:\Users\KickA\HyperSnatch_Work\verify.ps1"; ContentType = "text/plain" },
-    @{ Path = "C:\Users\KickA\HyperSnatch_Work\SHA256SUMS.txt"; ContentType = "text/plain" }
+    @{ Path = "C:\Users\KickA\HyperSnatch_Work\SHA256SUMS.txt"; ContentType = "text/plain" },
+    @{ Path = "C:\Users\KickA\HyperSnatch_Work\dist\HyperSnatch-Setup-1.2.0.exe"; ContentType = "application/octet-stream" }
 )
 
 foreach ($file in $files) {
