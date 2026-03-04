@@ -16,6 +16,18 @@ Software distribution architectures rely too heavily on trusted CDNs and OS-leve
 
 This repository demonstrates a **sovereign distribution model** designed to shift trust from the distributor to mathematics.
 
+```text
+       Source Code
+            ↓
+  Deterministic CI Build
+            ↓
+    Artifact Hashing
+            ↓
+     Signed Manifest
+            ↓
+    User Verification
+```
+
 Instead of trusting the download link, engineers can independently verify the payload using:
 1. **[Deterministic Builds](docs/REPRODUCIBILITY.md)**: `npm run build:repro` yields bit-identical artifacts.
 2. **[Signed Manifests](docs/VERIFICATION.md)**: Artifact hashes are auto-committed by CI.
