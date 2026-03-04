@@ -1,0 +1,77 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sundays
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: CodeQL Analysis
+    runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ] # Add 'rust' if using compiled modules
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  dependency-scan:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: npm audit
+        run: npm audit --production
+
+  powershell-analysis:
+    name: PSScriptAnalyzer
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path .\scripts\*.ps1 -Recurse | Invoke-ScriptAnalyzer -Severity Error
+
+  hash-integrity:
+    name: Manifest Integrity
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Manifest Format
+        shell: pwsh
+        run: |
+          $manifest = Get-Content .\hash_manifest.json | ConvertFrom-Json
+          $manifest.hashes.PSObject.Properties | ForEach-Object {
+            if ($_.Name -notmatch '^[a-f0-9]{64}$') {
+              Write-Error "Invalid SHA-256 hash formatting: $($_.Name)"
+              exit 1
+            }
+          }
+          Write-Host "✅ Hash manifest format verified."
