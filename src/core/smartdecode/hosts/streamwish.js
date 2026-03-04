@@ -13,7 +13,7 @@ const StreamwishExtractor = {
         const candidates = new Map();
         this.PATTERNS.forEach(regex => {
             let match;
-            const localRegex = new RegExp(regex, 'gi');
+            const localRegex = new RegExp(regex.source, 'gi');
             while ((match = localRegex.exec(input)) !== null) {
                 const url = match[0];
                 const fileId = match[1];
@@ -50,12 +50,12 @@ const StreamwishExtractor = {
 
         domPatterns.forEach(pattern => {
             let match;
-            const localRegex = new RegExp(pattern, 'gi');
+            const localRegex = new RegExp(pattern.source, 'gi');
             while ((match = localRegex.exec(html)) !== null) {
                 const url = match[1];
                 directCandidates.push({
                     url, fileId,
-                    host: 'streamwish.com',
+                    host: 'streamwish.to',
                     type: 'video',
                     sourceLayer: 'resurrection_streamwish_dom',
                     confidence: 0.96

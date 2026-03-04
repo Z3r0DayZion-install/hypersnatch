@@ -23,7 +23,7 @@ const KsharedExtractor = {
 
         this.PATTERNS.forEach(regex => {
             let match;
-            const localRegex = new RegExp(regex, 'gi');
+            const localRegex = new RegExp(regex.source, 'gi');
             while ((match = localRegex.exec(input)) !== null) {
                 // match[0] may include a trailing delimiter char from the lookahead — strip it
                 const rawUrl = match[0];
@@ -67,7 +67,7 @@ const KsharedExtractor = {
 
         domPatterns.forEach(pattern => {
             let match;
-            const localRegex = new RegExp(pattern, 'gi');
+            const localRegex = new RegExp(pattern.source, 'gi');
             while ((match = localRegex.exec(html)) !== null) {
                 const url = match[1];
                 directCandidates.push({
