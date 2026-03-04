@@ -42,6 +42,7 @@ This document serves as the definitive Hard Proof of the HyperSnatch v1.2.1 "Ins
 - **[WHITEPAPER.md](WHITEPAPER.md)**: Formalized offline verification architecture.
 - **[BUSINESS_PLAN.md](BUSINESS_PLAN.md)**: Monetization strategy for Institutional tier ($100k/year).
 - **[ROADMAP.md](ROADMAP.md)**: Q1-Q4 2026 execution path including HSM/GPG support.
+- **[AGENT_INTELLIGENCE.md](AGENT_INTELLIGENCE.md)**: Codified operational protocol for AI-led development.
 
 ---
 
