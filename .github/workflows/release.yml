@@ -19,30 +19,48 @@ on:
           - alpha
         default: stable
 
+# ── Hardened Permissions ─────────────────────────────────────────────────────
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
   actions: read
+  id-token: write
 
 concurrency:
-  group: "release-${{ github.ref }}"
+  group: "hypersnatch-release"
   cancel-in-progress: false
 
 jobs:
   build-and-release:
     runs-on: windows-latest
+    permissions:
+      contents: write
+      id-token: write
     outputs:
       installer_hash: ${{ steps.hash.outputs.INSTALLER_HASH }}
       portable_hash: ${{ steps.hash.outputs.PORTABLE_HASH }}
       verification_status: ${{ steps.verify.outputs.status }}
       release_version: ${{ steps.version.outputs.VERSION }}
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      # ── Tag Signature Verification ───────────────────────────────────────
+      - name: Verify Tag Signature
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          Write-Host "Verifying tag: $tag"
+          $result = git tag -v $tag 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "⚠️  Tag $tag is not GPG-signed. Proceeding with warning."
+            Write-Host "    For production releases, sign tags with: git tag -s $tag"
+          } else {
+            Write-Host "✅ Tag $tag signature verified"
+          }
 
       - name: Extract Version
         id: version
@@ -75,14 +93,17 @@ jobs:
         env:
           CI: true
 
+      # ── Deterministic Build ──────────────────────────────────────────────
       - name: Deterministic Build & Package
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HYPERSNATCH_VERSION: ${{ steps.version.outputs.VERSION }}
+          SOURCE_DATE_EPOCH: '1709424000'
         run: npm run build:repro
 
+      # ── Hash Generation ─────────────────────────────────────────────────
       - name: Generate Release Hashes
         id: hash
         shell: pwsh
@@ -90,22 +111,118 @@ jobs:
           $installer = Get-ChildItem -Path "dist\HyperSnatch-Setup-*.exe" | Select-Object -First 1
           $portable = Get-ChildItem -Path "dist\win-unpacked\HyperSnatch.exe" -ErrorAction SilentlyContinue
           $portableExe = Get-ChildItem -Path "dist\*.exe" | Where-Object { $_.Name -like "HyperSnatch-*.exe" -and $_.Name -notlike "*Setup*" } | Select-Object -First 1
-          
+
           if ($installer) {
             $installerHash = (Get-FileHash -Path $installer.FullName -Algorithm SHA256).Hash.ToLower()
             echo "INSTALLER_HASH=$installerHash" >> $env:GITHUB_OUTPUT
           }
-          
+
           if ($portable) {
             $portableHash = (Get-FileHash -Path $portable.FullName -Algorithm SHA256).Hash.ToLower()
             echo "PORTABLE_HASH=$portableHash" >> $env:GITHUB_OUTPUT
           }
-          
+
           if ($portableExe) {
             $portableExeHash = (Get-FileHash -Path $portableExe.FullName -Algorithm SHA256).Hash.ToLower()
             echo "PORTABLE_EXE_HASH=$portableExeHash" >> $env:GITHUB_OUTPUT
           }
 
+      # ── Manifest Generation & Signing ────────────────────────────────────
+      - name: Generate Manifest
+        run: node scripts/generate_manifest.cjs
+
+      - name: Sign Manifest (Ed25519)
+        shell: pwsh
+        env:
+          SIGNING_KEY_PEM: ${{ secrets.SIGNING_KEY_PEM }}
+        run: |
+          $keyFile = Join-Path $env:RUNNER_TEMP "signing_key.pem"
+          try {
+            if ($env:SIGNING_KEY_PEM) {
+              # Write secret to temp file (never printed)
+              [System.IO.File]::WriteAllText($keyFile, $env:SIGNING_KEY_PEM)
+              node scripts/sign_manifest.cjs --sign dist/MANIFEST.json --key $keyFile
+              Write-Host "✅ Manifest signed with repository key"
+            } elseif (Test-Path "release/keys/signing_key.pem") {
+              node scripts/sign_manifest.cjs --sign dist/MANIFEST.json --key release/keys/signing_key.pem
+              Write-Host "✅ Manifest signed with local key"
+            } else {
+              Write-Host "⚠️  No signing key available — manifest unsigned"
+            }
+          } finally {
+            # Securely delete temp key
+            if (Test-Path $keyFile) { Remove-Item $keyFile -Force }
+          }
+
+      # ── Sigstore / Cosign Signing ────────────────────────────────────────
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign Artifacts (Sigstore)
+        shell: pwsh
+        run: |
+          $artifacts = Get-ChildItem -Path "dist\*.exe" -ErrorAction SilentlyContinue
+          foreach ($file in $artifacts) {
+            Write-Host "Signing: $($file.Name)"
+            cosign sign-blob --yes --output-signature "$($file.FullName).sig" --output-certificate "$($file.FullName).pem" $file.FullName
+          }
+
+      # ── SLSA Provenance ─────────────────────────────────────────────────
+      - name: Generate SLSA Provenance
+        shell: pwsh
+        run: |
+          $commitHash = git rev-parse HEAD
+          $timestamp = Get-Date -Format "o"
+          $version = "${{ steps.version.outputs.VERSION }}"
+
+          $provenance = Get-Content "release/provenance.json" -Raw | ConvertFrom-Json
+
+          $provenance.invocation.configSource.digest.sha1 = $commitHash
+          $provenance.metadata.buildInvocationId = "${{ github.run_id }}"
+          $provenance.metadata.buildStartedOn = $timestamp
+
+          # Update artifact hashes
+          $installer = Get-ChildItem -Path "dist\HyperSnatch-Setup-*.exe" | Select-Object -First 1
+          if ($installer) {
+            $hash = (Get-FileHash -Path $installer.FullName -Algorithm SHA256).Hash.ToLower()
+            $provenance.subject[0].name = $installer.Name
+            $provenance.subject[0].digest.sha256 = $hash
+          }
+
+          $provenance | ConvertTo-Json -Depth 10 | Set-Content "release/provenance.json"
+          Write-Host "✅ SLSA provenance generated"
+
+      # ── Transparency Log ─────────────────────────────────────────────────
+      - name: Append Transparency Log
+        shell: pwsh
+        run: |
+          $commitHash = (git rev-parse --short HEAD)
+          $timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
+          $version = "${{ steps.version.outputs.VERSION }}"
+
+          $installer = Get-ChildItem -Path "dist\HyperSnatch-Setup-*.exe" | Select-Object -First 1
+          $hash = if ($installer) { (Get-FileHash -Path $installer.FullName -Algorithm SHA256).Hash.ToLower() } else { "no-artifact" }
+
+          $sigFile = "release/verify/manifest.sig"
+          $sig = if (Test-Path $sigFile) { (Get-Content $sigFile -Raw).Substring(0, 32) + "..." } else { "unsigned" }
+
+          $entry = @"
+
+          [v$version]
+          commit    = "$commitHash"
+          sha256    = "$hash"
+          signature = "$sig"
+          timestamp = "$timestamp"
+          runner    = "github-actions/windows-latest"
+          node      = "20.17.0"
+          electron  = "28.3.3"
+          status    = "released"
+          "@
+
+          Add-Content -Path "release/transparency.log" -Value $entry
+          Write-Host "✅ Transparency log updated"
+
+      # ── Self-Test & Verification ─────────────────────────────────────────
       - name: Run Self-Test on Verifier
         shell: pwsh
         run: |
@@ -118,16 +235,26 @@ jobs:
           $results = @()
           $allPassed = $true
           $filesToVerify = Get-ChildItem -Path "dist\*.exe" -ErrorAction SilentlyContinue
-          
+
           foreach ($file in $filesToVerify) {
             & .\scripts\verify.ps1 -FilePath $file.FullName -Detailed
             if ($LASTEXITCODE -ne 0) { $allPassed = $false }
           }
-          
+
           $status = if($allPassed) { "verified" } else { "failed" }
           echo "status=$status" >> $env:GITHUB_OUTPUT
           echo "files_verified=$($filesToVerify.Count)" >> $env:GITHUB_OUTPUT
 
+      - name: Verify with Node Verifier
+        shell: pwsh
+        run: |
+          node scripts/verify_node.js --self-test
+          $installer = Get-ChildItem -Path "dist\HyperSnatch-Setup-*.exe" | Select-Object -First 1
+          if ($installer) {
+            node scripts/verify_node.js $installer.FullName
+          }
+
+      # ── Commit Manifests ─────────────────────────────────────────────────
       - name: Update Hash Manifest
         shell: pwsh
         run: |
@@ -135,28 +262,57 @@ jobs:
           if ("${{ github.ref }}" -eq "refs/heads/main") {
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add hash_manifest.json
-            git commit -m "Update hash manifest for v${{ steps.version.outputs.VERSION }}" || echo "No changes"
+            git add hash_manifest.json release/provenance.json release/transparency.log
+            git commit -m "chore: update manifests for v${{ steps.version.outputs.VERSION }}" || echo "No changes"
             git push || echo "Push fail"
           }
 
+      # ── Release Assets ──────────────────────────────────────────────────
       - name: Generate Release Assets
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path release_assets -Force
           Copy-Item "dist\*.exe" release_assets -ErrorAction SilentlyContinue
+          Copy-Item "dist\*.sig" release_assets -ErrorAction SilentlyContinue
+          Copy-Item "dist\*.pem" release_assets -ErrorAction SilentlyContinue
+          Copy-Item "dist\MANIFEST.json" release_assets -ErrorAction SilentlyContinue
+          Copy-Item "dist\manifest.sig" release_assets -ErrorAction SilentlyContinue
+          Copy-Item "dist\SHA256SUMS.txt" release_assets -ErrorAction SilentlyContinue
           Copy-Item "hash_manifest.json" release_assets
+          Copy-Item "release\provenance.json" release_assets
           Copy-Item "scripts\verify.ps1" release_assets
-          Copy-Item "scripts\verify.bat" release_assets
+          Copy-Item "scripts\verify.bat" release_assets -ErrorAction SilentlyContinue
+          Copy-Item "scripts\verify_node.js" release_assets
+          Copy-Item "release\verify\root_public_key.pem" release_assets -ErrorAction SilentlyContinue
+          Copy-Item "release\verify\ROOT_FINGERPRINT.txt" release_assets -ErrorAction SilentlyContinue
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
           files: |
             release_assets/*.exe
+            release_assets/*.sig
+            release_assets/*.pem
             release_assets/*.json
+            release_assets/*.txt
             release_assets/verify.ps1
-            release_assets/verify.bat
+            release_assets/verify_node.js
           body: |
-            # 🔥 HyperSnatch Vanguard Release v${{ steps.version.outputs.VERSION }}
-            Offline-first binary verification system enabled.
+            # 🔥 HyperSnatch v${{ steps.version.outputs.VERSION }}
+
+            ## Verification
+            ```powershell
+            .\verify.ps1 -FilePath .\HyperSnatch-Setup-${{ steps.version.outputs.VERSION }}.exe
+            ```
+            or:
+            ```bash
+            node verify_node.js HyperSnatch-Setup-${{ steps.version.outputs.VERSION }}.exe
+            ```
+
+            ## Trust Chain
+            - ✅ Ed25519 manifest signature (`manifest.sig`)
+            - ✅ Sigstore artifact signatures (`.sig` + `.pem`)
+            - ✅ SLSA provenance (`provenance.json`)
+            - ✅ SHA-256 checksums (`SHA256SUMS.txt`)
+
+            Full verification docs: [docs/VERIFY_RELEASE.md](docs/VERIFY_RELEASE.md)

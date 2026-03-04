@@ -1,64 +1,82 @@
 # Security Policy
 
-## 🔒 Supported Versions
+## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| 1.2.x   | ✅ Active |
-| 1.1.x   | ⚠️ Security fixes |
+| Version | Status |
+|---------|--------|
+| 1.2.x   | ✅ Active — receiving security fixes |
+| 1.1.x   | ⚠️ Security fixes only |
 | < 1.1   | ❌ End of life |
 
-## 🛡️ Verification Requirements
+## Verification Requirements
 
 All HyperSnatch releases **MUST**:
 
-1. **Include `verify.ps1`** – Offline binary verifier
-2. **Provide SHA-256 hashes** – In release notes and manifest
-3. **Build deterministically** – Same source → same binary
-4. **Pass CI/CD tests** – Forensic core validation
-5. **Be self-verifying** – Users can verify offline
+1. **Include verification scripts** — `verify.ps1` and `verify_node.js`
+2. **Provide SHA-256 checksums** — `SHA256SUMS.txt` and `MANIFEST.json`
+3. **Be Ed25519 signed** — `manifest.sig` verified against `root_public_key.pem`
+4. **Include Sigstore signatures** — cosign blob signatures on all `.exe` artifacts
+5. **Generate SLSA provenance** — `provenance.json` with build metadata
+6. **Build deterministically** — same source → same binary via `Dockerfile.repro`
+7. **Pass CI tests** — `npm run test:ci` must succeed before release
+8. **Be self-verifying** — users can verify entirely offline
 
-## 🔐 Binary Verification Process
-
-Every release undergoes:
-- Deterministic build in GitHub Actions
-- SHA-256 hash generation
-- Self-verification with `verify.ps1`
-- Hash manifest update
-- Release with embedded verifier
-
-## 📋 Verifying a Release
+## Binary Verification
 
 ```powershell
-# Step 1: Download the binary
-# Step 2: Run the verifier (offline)
-.\scripts\verify.ps1 -FilePath .\HyperSnatch-Setup-*.exe
+# PowerShell (Windows)
+.\verify.ps1 -FilePath .\HyperSnatch-Setup-1.2.1.exe
 
-# Expected output: "VERIFICATION SUCCESSFUL"
+# Node.js (cross-platform)
+node verify_node.js HyperSnatch-Setup-1.2.1.exe
 ```
 
-## 🚨 Reporting a Vulnerability
+For the full verification walkthrough, see [docs/VERIFY_RELEASE.md](docs/VERIFY_RELEASE.md).
 
-If you discover a security vulnerability within HyperSnatch, please follow our responsible disclosure process.
+## Reporting a Vulnerability
 
-### **Where to report**
-Email: security@hypersnatch.dev
-PGP Key: keys.openpgp.org
+### Contact
 
-### **What to include**
+- **Email**: security@hypersnatch.dev
+- **PGP Key**: Available at [keys.openpgp.org](https://keys.openpgp.org)
+- **PGP Fingerprint**: Published in `release/verify/ROOT_FINGERPRINT.txt`
+
+### What to include
+
 - Detailed description of the vulnerability
-- Step-by-step instructions to reproduce
-- Potential impact
-- Any suggested fixes or mitigations
+- Steps to reproduce
+- Potential impact assessment
+- Suggested fix (if applicable)
 
-### **What to expect**
-- **48-72 hours**: Initial assessment and acknowledgement
-- **7-14 days**: Expected time for a patch or mitigation
-- **Up to 14 days**: Public disclosure (coordinated)
+### Response timeline
 
-## 📜 Security Principles
-- **Zero Telemetry**: We never collect data from your machine.
-- **Offline First**: Core functionality must work without an internet connection.
-- **Verified by Default**: Integrity checking is built into the distribution model.
+| Stage | Timeframe |
+|---|---|
+| Initial acknowledgement | 48–72 hours |
+| Severity assessment | 5 business days |
+| Patch or mitigation | 7–14 days |
+| Coordinated disclosure | Up to 14 days after patch |
+
+## Supply Chain Security
+
+HyperSnatch implements the following supply chain protections:
+
+- [x] Deterministic builds (pinned Node, Electron, lockfile)
+- [x] Ed25519 manifest signatures
+- [x] Sigstore artifact signatures
+- [x] SLSA Level 2 provenance
+- [x] Offline verification scripts
+- [x] Append-only transparency log
+- [x] Hardened CI permissions
+- [x] Tag signature verification
+
+For details, see [docs/SUPPLY_CHAIN_SECURITY.md](docs/SUPPLY_CHAIN_SECURITY.md).
+
+## Security Principles
+
+- **Zero Telemetry**: No data collection, no phone-home, no analytics
+- **Offline First**: Core functionality works without internet
+- **Verified by Default**: Integrity checking is built into the distribution model
+- **Minimal Attack Surface**: 3 dependencies, Electron sandboxed, no plugins
 
 Last updated: March 2026

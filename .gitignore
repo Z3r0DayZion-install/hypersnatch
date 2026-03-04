@@ -16,6 +16,11 @@ release_handoff/**/*.zip
 ops/reports/
 _TRASH/
 
+# signing keys — NEVER commit private keys
+release/keys/
+*.pem
+!release/verify/root_public_key.pem
+
 # build outputs
 dist/
 release/

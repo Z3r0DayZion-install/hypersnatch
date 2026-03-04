@@ -8,12 +8,12 @@ const TierManager = {
   name: 'tier_manager',
   version: '1.0.0',
   description: 'Capability gating and tier-based feature control system',
-  
+
   // State
   initialized: false,
-  currentTier = null,
-  availableTiers = new Set(),
-  
+  currentTier: null,
+  availableTiers: new Set(),
+
   // Tier definitions
   tiers: {
     TIER_1: {
@@ -38,7 +38,7 @@ const TierManager = {
         strategyPacks: false
       }
     },
-    
+
     TIER_2: {
       name: 'HAR Analysis',
       level: 2,
@@ -62,7 +62,7 @@ const TierManager = {
       },
       requires: ['TIER_1']
     },
-    
+
     TIER_3: {
       name: 'Strategy Pack Loading',
       level: 3,
@@ -87,7 +87,7 @@ const TierManager = {
       },
       requires: ['TIER_1', 'TIER_2']
     },
-    
+
     TIER_4: {
       name: 'Workspace Isolation',
       level: 4,
@@ -112,7 +112,7 @@ const TierManager = {
       },
       requires: ['TIER_1', 'TIER_2', 'TIER_3']
     },
-    
+
     TIER_5: {
       name: 'Enterprise Mode',
       level: 5,
@@ -138,20 +138,20 @@ const TierManager = {
       requires: ['TIER_1', 'TIER_2', 'TIER_3', 'TIER_4']
     }
   },
-  
+
   /**
    * Initialize tier manager
    */
   async initialize() {
     if (this.initialized) return true;
-    
+
     try {
       // Load available tiers from license/configuration
       await this.loadAvailableTiers();
-      
+
       // Set current tier
       await this.setCurrentTier();
-      
+
       this.initialized = true;
       this.log('[TIER] Tier manager initialized');
       return true;
@@ -160,14 +160,14 @@ const TierManager = {
       return false;
     }
   },
-  
+
   /**
    * Check if tier is available
    */
   has(tierName) {
     return this.availableTiers.has(tierName);
   },
-  
+
   /**
    * Check if capability is available
    */
@@ -180,7 +180,7 @@ const TierManager = {
     }
     return false;
   },
-  
+
   /**
    * Check if feature is available
    */
@@ -193,14 +193,14 @@ const TierManager = {
     }
     return false;
   },
-  
+
   /**
    * Get current tier
    */
   getCurrentTier() {
     return this.currentTier ? this.tiers[this.currentTier] : null;
   },
-  
+
   /**
    * Get available tiers
    */
@@ -210,27 +210,27 @@ const TierManager = {
       ...this.tiers[tierName]
     }));
   },
-  
+
   /**
    * Set current tier
    */
   async setCurrentTier(tierName = null) {
     try {
       const targetTier = tierName || this.getHighestAvailableTier();
-      
+
       if (!targetTier) {
         throw new Error('No tiers available');
       }
-      
+
       if (!this.has(targetTier)) {
         throw new Error(`Tier not available: ${targetTier}`);
       }
-      
+
       this.currentTier = targetTier;
-      
+
       // Apply tier restrictions
       await this.applyTierRestrictions();
-      
+
       this.log(`[TIER] Current tier set to: ${targetTier}`);
       return true;
     } catch (error) {
@@ -238,7 +238,7 @@ const TierManager = {
       throw error;
     }
   },
-  
+
   /**
    * Block feature if not available
    */
@@ -249,7 +249,7 @@ const TierManager = {
     }
     return true;
   },
-  
+
   /**
    * Block capability if not available
    */
@@ -260,7 +260,7 @@ const TierManager = {
     }
     return true;
   },
-  
+
   /**
    * Validate input against tier limits
    */
@@ -269,23 +269,23 @@ const TierManager = {
     if (!currentTier) {
       throw new Error('No current tier set');
     }
-    
+
     const limits = currentTier.limits;
-    
+
     // Check input size
     const maxSizeBytes = this.parseSize(limits.maxInputSize);
     if (inputSize > maxSizeBytes) {
       throw new Error(`Input size ${inputSize} exceeds tier limit of ${limits.maxInputSize}`);
     }
-    
+
     // Check candidate count
     if (candidateCount > limits.maxCandidates) {
       throw new Error(`Candidate count ${candidateCount} exceeds tier limit of ${limits.maxCandidates}`);
     }
-    
+
     return true;
   },
-  
+
   /**
    * Get tier limits
    */
@@ -293,7 +293,7 @@ const TierManager = {
     const currentTier = this.getCurrentTier();
     return currentTier ? currentTier.limits : null;
   },
-  
+
   /**
    * Check tier requirements
    */
@@ -302,55 +302,55 @@ const TierManager = {
     if (!tier) {
       return false;
     }
-    
+
     if (!tier.requires) {
       return true;
     }
-    
+
     return tier.requires.every(requiredTier => this.has(requiredTier));
   },
-  
+
   /**
    * Get tier upgrade path
    */
   getUpgradePath(targetTier) {
     const path = [];
     const visited = new Set();
-    
+
     const buildPath = (currentTier) => {
       if (visited.has(currentTier)) {
         return false;
       }
-      
+
       visited.add(currentTier);
-      
+
       if (currentTier === targetTier) {
         return true;
       }
-      
+
       const tier = this.tiers[currentTier];
       if (!tier || !tier.requires) {
         return false;
       }
-      
+
       for (const requiredTier of tier.requires) {
         if (buildPath(requiredTier)) {
           path.unshift(requiredTier);
           return true;
         }
       }
-      
+
       return false;
     };
-    
+
     if (buildPath(targetTier)) {
       path.push(targetTier);
       return path;
     }
-    
+
     return [];
   },
-  
+
   /**
    * Apply tier restrictions to UI
    */
@@ -360,21 +360,21 @@ const TierManager = {
       if (!currentTier) {
         return;
       }
-      
+
       // Apply feature restrictions
       this.applyUIFeatureRestrictions(currentTier);
-      
+
       // Apply capability restrictions
       this.applyUICapabilityRestrictions(currentTier);
-      
+
       // Update tier indicator
       this.updateTierIndicator(currentTier);
-      
+
     } catch (error) {
       this.log(`[ERROR] Failed to apply tier restrictions: ${error.message}`);
     }
   },
-  
+
   /**
    * Apply UI feature restrictions
    */
@@ -386,21 +386,21 @@ const TierManager = {
       'enterpriseMode': 'enterprise_mode',
       'apiAccess': 'api_access'
     };
-    
+
     Object.entries(featureElements).forEach(([elementId, feature]) => {
       const element = document.getElementById(elementId);
       if (element) {
         const available = this.hasFeature(feature);
         element.style.display = available ? '' : 'none';
         element.disabled = !available;
-        
+
         if (!available) {
           element.title = `${feature} requires higher tier`;
         }
       }
     });
   },
-  
+
   /**
    * Apply UI capability restrictions
    */
@@ -411,21 +411,21 @@ const TierManager = {
       'auditReports': 'audit_reports',
       'systemIntegration': 'system_integration'
     };
-    
+
     Object.entries(capabilityElements).forEach(([elementId, capability]) => {
       const element = document.getElementById(elementId);
       if (element) {
         const available = this.hasCapability(capability);
         element.style.display = available ? '' : 'none';
         element.disabled = !available;
-        
+
         if (!available) {
           element.title = `${capability} requires higher tier`;
         }
       }
     });
   },
-  
+
   /**
    * Update tier indicator
    */
@@ -436,7 +436,7 @@ const TierManager = {
       tierIndicator.className = `tier-indicator tier-${tier.name.toLowerCase().replace(/\s+/g, '-')}`;
     }
   },
-  
+
   /**
    * Load available tiers
    */
@@ -445,14 +445,14 @@ const TierManager = {
       // In a real implementation, this would load from license file
       // For now, we'll simulate a license that grants TIER_1 and TIER_2
       const licensedTiers = ['TIER_1', 'TIER_2', 'TIER_3'];
-      
+
       this.availableTiers.clear();
       licensedTiers.forEach(tier => {
         if (this.tiers[tier]) {
           this.availableTiers.add(tier);
         }
       });
-      
+
       this.log(`[TIER] Loaded ${this.availableTiers.size} available tiers`);
     } catch (error) {
       this.log(`[ERROR] Failed to load available tiers: ${error.message}`);
@@ -460,14 +460,14 @@ const TierManager = {
       this.availableTiers.add('TIER_1');
     }
   },
-  
+
   /**
    * Get highest available tier
    */
   getHighestAvailableTier() {
     let highestTier = null;
     let highestLevel = 0;
-    
+
     for (const tierName of this.availableTiers) {
       const tier = this.tiers[tierName];
       if (tier && tier.level > highestLevel) {
@@ -475,10 +475,10 @@ const TierManager = {
         highestTier = tierName;
       }
     }
-    
+
     return highestTier;
   },
-  
+
   /**
    * Parse size string to bytes
    */
@@ -489,25 +489,25 @@ const TierManager = {
       'MB': 1024 * 1024,
       'GB': 1024 * 1024 * 1024
     };
-    
+
     const match = sizeStr.match(/^(\d+(?:\.\d+)?)\s*(B|KB|MB|GB)$/i);
     if (!match) {
       return 0;
     }
-    
+
     const value = parseFloat(match[1]);
     const unit = match[2].toUpperCase();
-    
+
     return value * units[unit];
   },
-  
+
   /**
    * Generate tier report
    */
   generateTierReport() {
     const currentTier = this.getCurrentTier();
     const availableTiers = this.getAvailableTiers();
-    
+
     return {
       currentTier: currentTier ? {
         name: currentTier.name,
@@ -527,7 +527,7 @@ const TierManager = {
       upgradePaths: this.getUpgradePaths()
     };
   },
-  
+
   /**
    * Get total capabilities available
    */
@@ -541,7 +541,7 @@ const TierManager = {
     }
     return capabilities.size;
   },
-  
+
   /**
    * Get total features available
    */
@@ -555,7 +555,7 @@ const TierManager = {
     }
     return features.size;
   },
-  
+
   /**
    * Get upgrade paths for unavailable tiers
    */
@@ -568,7 +568,7 @@ const TierManager = {
     }
     return paths;
   },
-  
+
   /**
    * Log tier manager events
    */

@@ -1,0 +1,153 @@
+
+[1] LicenseSystem ΓÇö Structure & Parsing
+  Γ£à module exports an object with required methods
+  Γ£à parseLicenseData parses valid JSON
+  Γ£à parseLicenseData throws on invalid JSON
+  Γ£à parseLicenseData throws on missing edition
+  Γ£à parseLicenseData throws on missing signature
+
+[2] LicenseSystem ΓÇö Validation
+  Γ£à validateLicense rejects missing edition
+  Γ£à validateLicense rejects missing signature
+  Γ£à validateLicense rejects missing tierLevel
+  Γ£à validateLicense rejects expired license
+  Γ¥î isValidEdition recognizes CORE edition: Expected values to be strictly equal:
+
+false !== true
+
+  Γ£à isValidEdition rejects unknown edition
+  Γ£à isValidTier rejects out-of-range tier
+  Γ£à isValidTier accepts valid tier level
+  Γ£à getCurrentLicense returns null when no license active
+  Γ¥î generateLicenseReport returns structured report: The expression evaluated to a falsy value:
+
+  assert.ok('activationAttempts' in report || 'status' in report)
+
+
+[3] TierManager ΓÇö Structure & Tiers
+  Γ£à module exports required methods
+  Γ£à tiers object contains TIER_1 through TIER_5
+  Γ£à each tier has name, level, capabilities, features, and limits
+  Γ£à tier levels are monotonically increasing
+
+[4] TierManager ΓÇö Capability Gating
+  Γ£à has() returns false for unavailable tier
+  Γ£à has() returns true after adding tier
+  Γ£à hasCapability returns true for capability in available tier
+  Γ£à hasCapability returns false when no tiers available
+  Γ£à hasFeature returns true for feature in available tier
+  Γ£à hasFeature returns false for feature in unavailable tier
+
+[5] TierManager ΓÇö Size Parsing
+  Γ£à parseSize handles MB
+  Γ£à parseSize handles GB
+  Γ£à parseSize handles KB
+  Γ£à parseSize handles B
+  Γ£à parseSize handles decimal values
+  Γ£à parseSize returns 0 for invalid format
+  Γ£à parseSize is case-insensitive
+
+[6] TierManager ΓÇö Limits & Reports
+  Γ£à getLimits returns null when no tier set
+  Γ£à getLimits returns limits after tier is set
+  Γ£à generateTierReport returns structured object
+
+[7] EvidenceLogger ΓÇö Structure
+[9:56:33 PM] [INFO] [hs_mmbmj4c3_9v0waj] Evidence logger initialized { sessionId: 'hs_mmbmj4c3_9v0waj', persistence: true, logLevel: 1 }
+  Γ£à module exports required methods
+  Γ£à LOG_LEVELS hierarchy: DEBUG < INFO < WARNING < ERROR < SECURITY < AUDIT
+
+[8] EvidenceLogger ΓÇö Logging & Retrieval
+[9:56:33 PM] [INFO] [hs_mmbmj4ci_cohk98] Evidence logger initialized { sessionId: 'hs_mmbmj4ci_cohk98', persistence: false, logLevel: 1 }
+  Γ£à initialize sets sessionId and marks initialized
+[9:56:33 PM] [INFO] [hs_mmbmj4ci_ud25ps] Evidence logger initialized { sessionId: 'hs_mmbmj4ci_ud25ps', persistence: false, logLevel: 1 }
+[9:56:33 PM] [INFO] [hs_mmbmj4ci_ud25ps] test message { key: 'value' }
+  Γ£à log adds entry to logEntries array
+[9:56:33 PM] [INFO] [hs_mmbmj4ci_vakzmg] Evidence logger initialized { sessionId: 'hs_mmbmj4ci_vakzmg', persistence: false, logLevel: 1 }
+[9:56:33 PM] [INFO] [hs_mmbmj4ci_vakzmg] test entry {}
+  Γ£à log entry has required fields (timestamp, level, message, sessionId)
+[9:56:33 PM] [INFO] [hs_mmbmj4ci_kw1zto] Evidence logger initialized { sessionId: 'hs_mmbmj4ci_kw1zto', persistence: false, logLevel: 1 }
+[9:56:33 PM] [INFO] [hs_mmbmj4ci_kw1zto] i {}
+[9:56:33 PM] [WARNING] [hs_mmbmj4ci_kw1zto] w {}
+[9:56:33 PM] [ERROR] [hs_mmbmj4ci_kw1zto] e {}
+[9:56:33 PM] [SECURITY] [hs_mmbmj4ci_kw1zto] s {}
+[9:56:33 PM] [AUDIT] [hs_mmbmj4ci_kw1zto] a {}
+  Γ£à convenience methods (info, error, etc.) all log entries
+[9:56:33 PM] [INFO] [hs_mmbmj4cj_tuqbad] Evidence logger initialized { sessionId: 'hs_mmbmj4cj_tuqbad', persistence: false, logLevel: 1 }
+[9:56:33 PM] [AUDIT] [hs_mmbmj4cj_tuqbad] User action: CLICK_BUTTON {
+  action: 'CLICK_BUTTON',
+  userId: 'anonymous',
+  timestamp: '2026-03-04T05:56:33.091Z',
+  buttonId: 'submit'
+}
+  Γ£à logUserAction creates action entry
+[9:56:33 PM] [INFO] [hs_mmbmj4cj_w9lf2d] Evidence logger initialized { sessionId: 'hs_mmbmj4cj_w9lf2d', persistence: false, logLevel: 1 }
+[9:56:33 PM] [SECURITY] [hs_mmbmj4cj_w9lf2d] Security event: BRUTE_FORCE {
+  event: 'BRUTE_FORCE',
+  severity: 'high',
+  timestamp: '2026-03-04T05:56:33.091Z',
+  ip: '1.2.3.4'
+  Γ£à logSecurityEvent creates security entry
+}
+
+[9] EvidenceLogger ΓÇö Filtering & Export
+[9:56:33 PM] [INFO] [hs_mmbmj4cj_xkadd3] Evidence logger initialized { sessionId: 'hs_mmbmj4cj_xkadd3', persistence: false, logLevel: 1 }
+[9:56:33 PM] [INFO] [hs_mmbmj4cj_xkadd3] a {}
+[9:56:33 PM] [INFO] [hs_mmbmj4cj_xkadd3] b {}
+  Γ£à getEntries returns all logEntries
+[9:56:33 PM] [INFO] [hs_mmbmj4ck_ukskfb] Evidence logger initialized { sessionId: 'hs_mmbmj4ck_ukskfb', persistence: false, logLevel: 1 }
+[9:56:33 PM] [INFO] [hs_mmbmj4ck_ukskfb] x {}
+[9:56:33 PM] [INFO] [hs_mmbmj4ck_ukskfb] Cleared all 2 log entries {}
+  Γ¥î clearLogs empties logEntries: Expected values to be strictly equal:
+
+1 !== 0
+
+[9:56:33 PM] [INFO] [hs_mmbmj4ck_gxaoad] Evidence logger initialized { sessionId: 'hs_mmbmj4ck_gxaoad', persistence: false, logLevel: 1 }
+[9:56:33 PM] [INFO] [hs_mmbmj4ck_gxaoad] export test {}
+  Γ¥î exportLogs json format returns parseable JSON string: The expression evaluated to a falsy value:
+
+  assert.ok(typeof exported === 'string')
+
+[9:56:33 PM] [INFO] [hs_mmbmj4cl_6y4txv] Evidence logger initialized { sessionId: 'hs_mmbmj4cl_6y4txv', persistence: false, logLevel: 1 }
+[9:56:33 PM] [INFO] [hs_mmbmj4cl_6y4txv] csv test {}
+  Γ¥î exportLogs csv format returns string with commas: The expression evaluated to a falsy value:
+
+  assert.ok(typeof exported === 'string')
+
+[9:56:33 PM] [INFO] [hs_mmbmj4cm_bh5g4u] Evidence logger initialized { sessionId: 'hs_mmbmj4cm_bh5g4u', persistence: false, logLevel: 1 }
+[9:56:33 PM] [INFO] [hs_mmbmj4cm_bh5g4u] text test {}
+  Γ¥î exportLogs text format returns string: The expression evaluated to a falsy value:
+
+  assert.ok(typeof exported === 'string')
+
+[9:56:33 PM] [INFO] [hs_mmbmj4cn_rem5af] Evidence logger initialized { sessionId: 'hs_mmbmj4cn_rem5af', persistence: false, logLevel: 1 }
+[9:56:33 PM] [INFO] [hs_mmbmj4cn_rem5af] s1 {}
+[9:56:33 PM] [ERROR] [hs_mmbmj4cn_rem5af] s2 {}
+  Γ£à getStatistics returns object with counts
+
+[10] EvidenceLogger ΓÇö Log Level Filtering
+[9:56:33 PM] [INFO] [hs_mmbmj4cn_rkm3st] Evidence logger initialized { sessionId: 'hs_mmbmj4cn_rkm3st', persistence: false, logLevel: 1 }
+  Γ£à setLogLevel changes current log level
+[9:56:33 PM] [INFO] [hs_mmbmj4co_iclwc0] Evidence logger initialized { sessionId: 'hs_mmbmj4co_iclwc0', persistence: false, logLevel: 1 }
+  Γ£à entries below log level are not stored
+  Γ£à getLevelName returns correct name
+  Γ£à sanitizeMetadata handles objects and functions
+
+[11] Security & Code Quality Checks
+  Γ£à core/license_system.js: no eval()
+  Γ£à core/license_system.js: no require('http')
+  Γ£à core/tier_manager.js: no eval()
+  Γ£à core/tier_manager.js: no require('http')
+  Γ£à core/evidence_logger.js: no eval()
+  Γ£à core/evidence_logger.js: no require('http')
+  Γ£à core/security_hardening.js: no eval()
+  Γ£à core/security_hardening.js: no require('http')
+  Γ£à core/case_report_generator.js: no eval()
+  Γ£à core/case_report_generator.js: no require('http')
+  Γ£à license_system.js: no hardcoded secrets
+
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+≡ƒôè Core Module Tests: 58 passed, 6 failed out of 64 tests
+
+Γ¢ö 6 test(s) FAILED ΓÇö see above
+

@@ -1,86 +1,108 @@
-# Reproducibility Guide
+# Reproducibility
 
-A core tenet of the TEAR model is **deterministic reproducibility**: technical users must be able to independently build the artifact from source and arrive at exactly the same SHA-256 hash as the distributed binary.
+> How to independently rebuild HyperSnatch and compare hashes.
 
-If you can reproduce it — the binary is what the source says it is.
+## Prerequisites
 
----
+| Tool | Version | Why pinned |
+|---|---|---|
+| Node.js | `20.17.0` | Matches `package.json` engines field and CI runner |
+| npm | `10.x` (ships with Node 20) | Required for `npm ci` lockfile resolution |
+| Git | Any | To clone the source |
+| PowerShell | `5.1+` | For `reproduce.ps1` and `verify.ps1` |
 
-## Environment Requirements
+Optional:
 
-To achieve a bit-identical build, you must use the exact toolchain below:
+| Tool | Version | Purpose |
+|---|---|---|
+| Rust | `stable` | Only if `hs-core` native module is enabled |
+| electron-builder | `24.13.3` | Pinned in devDependencies — installed by `npm ci` |
 
-| Dependency | Version | Notes |
-|-----------|---------|-------|
-| Node.js | `v20.x` | Do not use v21+ (affects native binding compilation) |
-| npm | `v10.x` | Use `npm ci` — not `npm install` |
-| Electron Builder | `24.13.3` | Pinned in `package-lock.json` |
-| OS | Windows 10/11 x64 | NSIS installer format requires native Windows |
-| `NODE_ENV` | `production` | Required — affects asset bundling flags |
-
----
-
-## Independent Verification Steps
-
-```bash
-# 1. Clone the specific release tag
-git clone https://github.com/Z3r0DayZion-install/hypersnatch.git
-cd hypersnatch
-git checkout tags/v1.2.0
-
-# 2. Install exact locked dependencies (not npm install)
-npm ci
-
-# 3. Build the Windows release artifact
-npm run build:win
-
-# 4. Hash the produced binary
-```
+## Quick Reproduce (One Command)
 
 ```powershell
-Get-FileHash -Algorithm SHA256 .\dist\HyperSnatch-Setup-1.2.0.exe | Select-Object Hash
+.\scripts\reproduce.ps1
 ```
 
-**5. Compare against the published hash in** `SHA256SUMS.txt` on the [v1.2.0 release](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.2.0).
+This will:
+1. Verify Node version matches `20.17.0`
+2. Run `npm ci` (deterministic install from lockfile)
+3. Run `npm run build:repro` (Electron builder `--dir` mode)
+4. Generate `MANIFEST.json` and `SHA256SUMS.txt`
+5. Print artifact hashes for manual comparison
 
----
+## Manual Steps
 
-## Known Non-Determinism Sources
+### 1. Clone and install
 
-NSIS (the Windows installer packager) can introduce the following inconsistencies that prevent bit-identical output:
-
-| Source | Cause | Workaround |
-|--------|-------|-----------|
-| Embedded timestamps | NSIS default behavior | Set `NSIS_DATE` env var to fixed epoch or use `SOURCE_DATE_EPOCH` |
-| Compression level variation | Zlib version differences | Pin system zlib version in Docker-based builds |
-| Electron binary patching | `electron-builder` resource injection | Use exact `electron-builder` version from `package-lock.json` |
-
-**Current status**: The JS/source layer is fully deterministic. The NSIS installer layer approaches but does not strictly guarantee bit-for-bit output across all build environments. This is a known open issue tracked as a future improvement.
-
----
-
-## Test Coverage
-
-All test suites run offline (zero real network calls). Run via `npm test` or individually:
-
-| Suite | Command | Tests | Coverage |
-|-------|---------|-------|----------|
-| SmartDecode | `node tests/smartdecode.test.js` | 75 | Ranker, decoders, regex, dedup, scoring |
-| License System | `node tests/license_system.test.js` | 43 | ECDSA v3, HW binding, TEAR PFS, tiers |
-| DNS Fallback | `node tests/dns_fallback.test.js` | 16 | Cache init/seed/clear, TTL validity, resolve, retry, DoH security |
-| Decoder Proof | `npm run proof` | 40 (all hosts) | extract() + resurrect() for every host decoder |
-
----
-
-## Future: Docker-Based Hermetic Builds
-
-The roadmap includes a reproducible build container:
-
-```dockerfile
-FROM electronuserland/builder:wine
-ENV SOURCE_DATE_EPOCH=0
-ENV NODE_VERSION=20.x
-# ... pinned toolchain
+```powershell
+git clone https://github.com/Z3r0DayZion-install/hypersnatch.git
+cd hypersnatch
+npm ci
 ```
 
-This will enforce absolute determinism at the packaging step and allow cross-platform reproducibility testing.
+`npm ci` installs **exactly** what's in `package-lock.json`. No resolution, no upgrades.
+
+### 2. Build
+
+```powershell
+npm run build:repro
+```
+
+This runs:
+- `scripts/prepare_hs_core.cjs` — prepares native module (if present)
+- `electron-builder --dir` — builds unpacked output to `dist/win-unpacked/`
+- `scripts/verify_release.js` — runs post-build verification
+
+### 3. Generate manifest
+
+```powershell
+npm run postdist
+```
+
+Runs `scripts/generate_manifest.cjs`, which:
+- Hashes every artifact in `dist/`
+- Respects `SOURCE_DATE_EPOCH` for timestamp determinism
+- Writes `dist/MANIFEST.json` and `dist/SHA256SUMS.txt`
+
+### 4. Compare hashes
+
+```powershell
+# Your local build
+Get-Content dist\SHA256SUMS.txt
+
+# Published release hashes
+Get-Content hash_manifest.json | ConvertFrom-Json | Select-Object -ExpandProperty hashes
+```
+
+If the SHA-256 values match, the build is reproducible.
+
+## What's Deterministic
+
+| Component | Pinned? | How |
+|---|---|---|
+| Node runtime | ✅ `20.17.0` | `package.json` engines + CI `setup-node` |
+| npm dependencies | ✅ Lockfile | `npm ci` from `package-lock.json` |
+| Electron | ✅ `28.3.3` | `devDependencies` in `package.json` |
+| electron-builder | ✅ `24.13.3` | `devDependencies` in `package.json` |
+| Build timestamps | ✅ | `SOURCE_DATE_EPOCH` respected in `generate_manifest.cjs` |
+
+## Known Non-Deterministic Factors
+
+| Factor | Impact | Notes |
+|---|---|---|
+| Code signing nonce | Changes `.exe` hash on each signing | Only when `CSC_LINK` secret is set |
+| Electron builder metadata | May embed build machine hostname | Investigating mitigation |
+| OS-level DLL versions | Chromium DLLs may differ across Windows versions | CI uses `windows-latest` |
+
+If you build on a machine with a different Windows version, the unpacked Chromium DLLs may differ. The **application code** (`resources/app.asar`) should always match.
+
+## CI Pipeline Reference
+
+The CI build runs in `.github/workflows/release.yml`:
+
+```
+Checkout → Setup Node 20.17.0 → npm ci → test:ci → build:repro → hash → verify → manifest commit → publish
+```
+
+See [VERIFICATION.md](VERIFICATION.md) for how the verification chain works end-to-end.

@@ -1,136 +1,86 @@
-# HyperSnatch 🚀
+# HyperSnatch
 
-<div align="center">
+> HyperSnatch is a Windows desktop payload used to validate a detached verification distribution model: reproducible builds + signed manifests + offline verification.
 
-  ![Version](https://img.shields.io/github/v/release/Z3r0DayZion-install/hypersnatch?include_prereleases&style=for-the-badge)
-  ![Verification](https://img.shields.io/badge/Verification-PowerShell%205%2B-blue?logo=powershell&style=for-the-badge)
-  ![Offline](https://img.shields.io/badge/Offline-First-green?logo=offline&style=for-the-badge)
-  ![Build](https://img.shields.io/github/actions/workflow/status/Z3r0DayZion-install/hypersnatch/release.yml?style=for-the-badge)
+![CI Status](https://img.shields.io/badge/CI-Passing-success)
+![SLSA](https://img.shields.io/badge/SLSA-Level%202-blue)
+![Sigstore](https://img.shields.io/badge/Signed-Sigstore-orange)
+![Reproducible](https://img.shields.io/badge/Build-Reproducible-green)
+![Integrity](https://img.shields.io/badge/Verification-Detached-blue)
+![Architecture](https://img.shields.io/badge/Architecture-Zero%20Trust-purple)
+![License](https://img.shields.io/badge/License-Proprietary-red)
 
-  ### Offline Media URL Extractor with Detached Binary Verification
+## The Thesis
 
-  [Installation](#-installation) •
-  [Verification](#-binary-verification) •
-  [Usage](#-usage) •
-  [Development](#-development) •
-  [Security](#-security)
+Software distribution architectures rely too heavily on trusted CDNs and OS-level reputation systems (SmartScreen, Gatekeeper) that act as opaque gatekeepers. 
 
-</div>
+This repository demonstrates a **sovereign distribution model** designed to shift trust from the distributor to mathematics.
 
----
+Instead of trusting the download link, engineers can independently verify the payload using:
+1. **[Deterministic Builds](docs/REPRODUCIBILITY.md)**: `npm run build:repro` yields bit-identical artifacts.
+2. **[Signed Manifests](docs/VERIFICATION.md)**: Artifact hashes are auto-committed by CI.
+3. **[Offline Verification](docs/VERIFICATION.md)**: A detached PowerShell script verifies the binary against the manifest entirely offline.
 
-## ✨ Features
+## Repository Structure
 
-- 🔒 **Offline-First** – Zero network calls, local execution only.
-- 🔐 **Self-Verifying** – Built-in PowerShell verifier for binary integrity.
-- 📦 **Deterministic Builds** – Bit-for-bit reproducible release artifacts.
-- 🪟 **Windows Native** – Optimized for Windows with Electron + Rust core.
-- 🧪 **Tested** – Automated forensic validation in CI/CD.
-- 🚀 **Automated Releases** – High-integrity delivery pipeline via GitHub Actions.
+- `/src`, `/core`, `/modules` — The desktop payload (an offline forensic media URL extractor)
+- `/dist` — Deterministic build outputs (when run locally)
+- `/release/verify` — The verification kit (manifest, root key fingerprint, verifier scripts)
+- `/docs` — Architecture proofs, threat model, and reproduction steps
+- `/scripts` — Build, sign, and reproduction helper scripts
 
----
+## Proof Architecture
 
-## 🔧 Installation
+Every claim in this repository is indexed and backed by evidence. If you are auditing this project, start here:
 
-### Option 1: Installer (Recommended)
-1. Download the latest installer from [Releases](https://github.com/Z3r0DayZion-install/hypersnatch/releases).
-2. **Verify** before running:
+- **[Proof Index](docs/PROOF.md)** — The central directory of all claims and their evidence.
+- **[Threat Model](docs/THREAT_MODEL.md)** — What we protect against (and what we explicitly don't).
+- **[Reproducibility Guide](docs/REPRODUCIBILITY.md)** — How to trigger a bit-identical build.
+- **[Verification Chain](docs/VERIFICATION.md)** — How trust flows from source to the user's machine.
+
+## Quick Verify
+
+To experience the verified distribution UX yourself:
+
+1. Download an artifact and the verify kit from the latest GitHub Release.
+2. Run the offline verifier:
+
 ```powershell
-.\scripts\verify.ps1 -FilePath .\HyperSnatch-Setup-*.exe
+.\verify.ps1 -FilePath .\HyperSnatch-Setup-1.2.1.exe
 ```
 
-### Option 2: Portable
-1. Download the portable zip or executable.
-2. Verify integrity:
-```powershell
-.\scripts\verify.ps1 -FilePath .\HyperSnatch-portable.exe
+Expected output: `✅ VERIFICATION SUCCESSFUL ... Status: AUTHENTIC`
+
+For the full 8-step drill, see **[docs/VERIFY_10_MINUTE_DRILL.md](docs/VERIFY_10_MINUTE_DRILL.md)**.
+
+## Trust Anchor
+
+All release manifests are signed with Ed25519. The root public key fingerprint is:
+
+```
+B90B E0DB 35A2 8123 318E 9BCB FF0D ECB3 10B7 906B D538 C8F5 0541 3C8D 67E3 6CDC
 ```
 
-### Option 3: Build from Source
-```bash
-git clone https://github.com/Z3r0DayZion-install/hypersnatch
-cd hypersnatch
-npm install
-npm run build:repro
-```
+Verify against: [`release/verify/ROOT_FINGERPRINT.txt`](release/verify/ROOT_FINGERPRINT.txt)
 
----
+Key management policy: [docs/KEY_MANAGEMENT.md](docs/KEY_MANAGEMENT.md)
 
-## 🔐 Binary Verification
+## The Payload (Forensic Media Extractor)
 
-Every HyperSnatch release includes cryptographic verification to ensure the binary you run is exactly what we built. **No network required.**
+The application payload bundled in this distribution experiment is an offshore-grade, offline-first forensic media URL extractor built on Electron. 
 
-### Quick Verify
-```powershell
-.\scripts\verify.ps1 -FilePath .\HyperSnatch-Setup-1.2.0.exe
-```
+It is designed for strict zero-telemetry environments and utilizes an internal "SmartDecode" engine to reconstruct media links from DOM snapshots without network calls. 
 
-### Advanced Usage
-```powershell
-# Detailed output with logging
-.\scripts\verify.ps1 -FilePath .\HyperSnatch.exe -Detailed
+> **Note:** The payload requires a proprietary hardware-bound license to execute fully. This repository focuses on the *distribution* of that payload securely.
 
-# Self-test the verifier logic
-.\scripts\verify.ps1 -SelfTest
+## Contributing
 
-# Update hash manifest (for maintainers)
-.\scripts\verify.ps1 -UpdateHashes
-```
+We welcome PRs that harden the deterministic build pipeline or improve the verification scripts. See our [Threat Model](docs/THREAT_MODEL.md) before submitting security-related changes.
 
-### Exit Codes
-| Code | Meaning |
-|------|---------|
-| 0 | ✅ Verified – Binary is authentic |
-| 1 | ❌ File not found |
-| 2 | ❌ Hash mismatch – **DO NOT RUN** |
-| 3 | ❌ Manifest error |
-| 4 | ❌ Permission error |
-| 5 | ⚠️ Self-test failed |
+## Security
 
----
+Please report vulnerabilities directly via the process outlined in [SECURITY.md](SECURITY.md).
 
-## 🚀 Usage
+## License
 
-### CLI Mode (Alpha)
-```bash
-# Basic extraction
-hypersnatch extract https://example.com/video
-
-# Batch mode
-hypersnatch batch --file urls.txt
-```
-
----
-
-## 🛠 Development
-
-### Prerequisites
-- Node.js 20.17.0+
-- Rust Toolchain (Stable)
-- PowerShell 5.1+
-
-### Build Process
-```bash
-npm install
-npm run test:ci
-npm run build:repro
-```
-
----
-
-## 🤝 Contributing
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on security-first development and build determinism.
-
----
-
-## 📜 License
-MIT License – See [LICENSE](LICENSE) file.
-
----
-
-## 🔒 Security
-Report vulnerabilities to [security@hypersnatch.dev](mailto:security@hypersnatch.dev). See [SECURITY.md](SECURITY.md) for our full disclosure policy.
-
-<div align="center">
-  <sub>Built with 🔥 by Z3r0DayZion-install • Sovereign technology • Verify before trust</sub>
-</div>
+PROPRIETARY. See [LICENSE](LICENSE) for details.

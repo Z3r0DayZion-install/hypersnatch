@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -45,8 +45,7 @@
     "pack": "electron-builder --dir=dist",
     "verify": "node scripts/verify_release.js",
     "verify:golden": "node verify_golden.js",
-    "verify:schema": "node scripts/verify_schema.cjs",
-    "verify:release": "node ./scripts/verify_release.cjs",
+    "verify:release": "node scripts/verify_release.js",
     "ui:bridge": "node ./src/bridge/ui-bridge.js",
     "ui:open": "start ui/hypersnatch-ui.html",
     "build:wrapper": "node scripts/build_wrapper.js",

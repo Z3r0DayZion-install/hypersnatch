@@ -1,39 +1,38 @@
 {
   "buildId": "HS-NX-PLATFORM-01",
-  "appVersion": "1.0.0-beta",
+  "appVersion": "1.2.1",
   "engineVersion": "RES-CORE-01",
   "policyVersion": "CASH-SHIELD-01",
   "runtime": "ELECTRON AIRGAPPED",
-  "created": "2026-02-18T10:20:00.000Z",
+  "created": "2026-03-03T10:20:00.000Z",
   "description": "HyperSnatch Platform - Link Resurrection Engine",
   "fileHashes": {
-    "electron/main.js": "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
-    "electron/preload.js": "b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567",
-    "electron/secure_bridge.js": "c3d4e5f6789012345678901234567890abcdef1234567890abcdef12345678",
-    "hypersnatch.html": "d4e5f6789012345678901234567890abcdef1234567890abcdef123456789",
-    "modules/resurrection_core.js": "e5f6789012345678901234567890abcdef1234567890abcdef1234567890",
-    "modules/policy_guard.js": "f6789012345678901234567890abcdef1234567890abcdef12345678901",
-    "modules/strategy_runtime.js": "789012345678901234567890abcdef1234567890abcdef123456789012",
-    "core/engine_core.js": "89012345678901234567890abcdef1234567890abcdef12345678901234",
-    "core/evidence_logger.js": "9012345678901234567890abcdef1234567890abcdef123456789012345"
+    "src/main.js": "5500e5e01735166f2fcfe939bb5bc6310245addfa160357732a30bb04b901fcb",
+    "src/preload.js": "ac880d6b4129e92ad7c39b207eb32cf788fbacc2afc830db99a77cc54bd092d6",
+    "core/smartdecode/index.js": "ceb242e2b83445cdff3325cafa3bd761fdeb2ac2e5cfcd3fcc2be29c5ac8c4c7",
+    "core/smartdecode/ranker.js": "51bd670df52778736ac13b2c9fc2ce45217ae77950c4aa3db4eb68700efc3546",
+    "core/license_system.js": "b5db0c660cb0c538a4cd5df65d836605a968bd0a54e99a80e6ced7edabce09d4",
+    "core/tier_manager.js": "b0bc3ec5ba4d6735a72fd4ad611f71dfac90b3967ff35ff7e164d1f215ed596d",
+    "core/evidence_logger.js": "f8a75e3346e4fc34aa350cd9b9c9db8d0a876a3014aef9da67a8bd9cfde1433f",
+    "core/security_hardening.js": "da72721ab0735703f831969e71df97eb4b41ac3d052b6505bf479979c5feabe9"
   },
   "modules": [
     {
       "name": "resurrection_core",
-      "path": "modules/resurrection_core.js",
+      "path": "src/main.js",
       "required": true,
       "signed": true
     },
     {
-      "name": "policy_guard",
-      "path": "modules/policy_guard.js",
+      "name": "security_hardening",
+      "path": "core/security_hardening.js",
       "required": true,
       "signed": true
     },
     {
-      "name": "strategy_runtime",
-      "path": "modules/strategy_runtime.js",
-      "required": false,
+      "name": "smartdecode_engine",
+      "path": "core/smartdecode/index.js",
+      "required": true,
       "signed": false
     }
   ],
@@ -47,7 +46,11 @@
     "fileSystem": {
       "read": true,
       "write": true,
-      "restrictedPaths": ["system", "windows", "program files"]
+      "restrictedPaths": [
+        "system",
+        "windows",
+        "program files"
+      ]
     },
     "network": {
       "allowed": false,
@@ -59,21 +62,19 @@
     }
   },
   "telemetry": {
-    "enabled": true,
+    "enabled": false,
     "localOnly": true,
-    "metrics": [
-      "inputsProcessed",
-      "avgConfidence",
-      "refusalRate",
-      "strategyPackUsage",
-      "policyViolations"
-    ]
+    "metrics": []
   },
   "strategyPacks": {
     "enabled": true,
     "requireSignature": true,
     "maxPacks": 10,
-    "allowedTypes": ["dom_analysis", "link_extraction", "content_scoring"]
+    "allowedTypes": [
+      "dom_analysis",
+      "link_extraction",
+      "content_scoring"
+    ]
   },
   "extensionInterface": {
     "enabled": true,

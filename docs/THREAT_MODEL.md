@@ -1,62 +1,141 @@
 # Threat Model
 
-HyperSnatch ships unsigned Windows binaries using a detached verification model. This document defines the threat surface, trust boundaries, and mitigations.
+> HyperSnatch v1.2.1 — Last updated March 2026
 
-## Protected Assets
+## Scope
 
-1. **Binary Integrity** — The distributed `.exe` exactly matches the source code built by the CI pipeline.
-2. **Offline Trust** — Users can verify the binary without relying on external network calls or Certificate Authorities.
+This threat model covers the **distribution and verification pipeline** of HyperSnatch, not the forensic analysis payload itself. The goal is to ensure users can verify that the binary they received is identical to the one built in CI.
+
+## Assets
+
+| Asset | Description |
+|---|---|
+| **Build artifact integrity** | The `.exe` in `dist/` must be bit-identical to CI output |
+| **Manifest integrity** | `MANIFEST.json` and `SHA256SUMS.txt` must not be forged |
+| **Signing key integrity** | The JWK used for release gate reports must be protected |
+| **User trust** | Users must be able to independently verify without trusting the distributor |
+
+## Adversaries
+
+| Adversary | Capability | Goal |
+|---|---|---|
+| **CDN / mirror compromise** | Replace hosted `.exe` with trojanized binary | Distribute malware via HyperSnatch brand |
+| **CI compromise** | Modify GitHub Actions workflow or inject secrets | Produce signed but malicious artifacts |
+| **MITM on download** | Intercept HTTP download (non-HTTPS) | Swap binary in transit |
+| **Malware on user machine** | Modify binary after download | Bypass verification by altering both binary and verifier |
+| **Insider / maintainer** | Push malicious commit or tag | Ship backdoored release |
 
 ## Trust Boundaries
 
-| In Scope | Out of Scope |
-|----------|-------------|
-| Malicious modification of the hosted binary | Local host compromise (malware on the verifying machine) |
-| Transit MITM attacks on downloads | Electron framework 0-days |
-| Unauthorized repacking of the installer | Vulnerabilities in OS-level hardware abstractions |
+```
+TRUSTED                          UNTRUSTED
+─────────────────────────────    ─────────────────────────
+GitHub Actions runner            User's download channel
+Source code (reviewed commits)   User's filesystem
+npm lockfile (pinned deps)       Third-party CDN/mirror
+Electron builder (pinned)        User's OS integrity
+```
 
-## Threat Scenarios
+## Mitigations
 
-### 1. Supply-Chain Tampering (Release Asset Replacement)
-**Threat**: Attacker gains write access to GitHub Releases and replaces the `.exe` with a backdoored version.
+| Threat | Mitigation | Implementation | Status |
+|---|---|---|---|
+| Binary tampering | SHA-256 hash comparison | `verify.ps1`, `verify_node.js` | ✅ Implemented |
+| Manifest forgery | Ed25519 detached signature | `sign_manifest.cjs`, `manifest.sig` | ✅ Implemented |
+| Supply chain (npm) | `npm ci` from lockfile, pinned versions | `package-lock.json`, Node 20.17.0 | ✅ Implemented |
+| Supply chain (Electron) | Pinned `electron@28.3.3`, `electron-builder@24.13.3` | `package.json` devDependencies | ✅ Implemented |
+| Artifact substitution | Sigstore keyless signing | cosign in `release.yml` | ✅ Implemented |
+| CI compromise | Hardened permissions, tag verification, SLSA provenance | `release.yml`, `provenance.json` | ✅ Implemented |
+| Build non-determinism | `SOURCE_DATE_EPOCH`, Docker container | `Dockerfile.repro` | ✅ Implemented |
+| Silent releases | Append-only transparency log | `release/transparency.log` | ✅ Implemented |
+| Runtime code injection | Electron sandbox: `contextIsolation`, `nodeIntegration: false` | `src/main.js`, preload bridge | ✅ Implemented |
+| External script loading | CSP enforcement, navigation blocking | `security_hardening.js` | ✅ Implemented |
+| DevTools tampering | F12/right-click blocked in release mode | `security_hardening.js` | ✅ Implemented |
+| Key compromise | — | Rotation/revocation not yet defined | ⚠️ Partial |
+| Compromised host OS | — | Out of scope | ⛔ Not claimable |
+| SmartScreen reputation | — | Requires EV code signing certificate | ⛔ Not claimable |
 
-**Mitigation**:
-- `verify.ps1` computes the SHA-256 hash locally and compares it against `SHA256SUMS.txt`.
-- Any modification to the binary without updating the hash manifest results in immediate verification failure.
-- **Limitation**: If the attacker also controls the repository and modifies `SHA256SUMS.txt`, the user must have obtained the root public key / expected hash out-of-band (e.g., from a separate signed tweet or personal website).
+## Compromise Scenarios
 
-### 2. CI/CD Compromise (Build-Time Injection)
-**Threat**: The GitHub Actions build environment is compromised and malicious code is injected before the binary is hashed.
+### Scenario 1: CI Compromise
 
-**Mitigation**:
-- The build is designed to be deterministic (see [REPRODUCIBILITY.md](REPRODUCIBILITY.md)).
-- Any third party can clone the exact release tag, run `npm ci && npm run build:win`, and compare the resulting SHA-256 hash against the published value.
-- The CI pipeline does **not** hold root signing keys. Root keys remain offline.
+**Attacker workflow:**
+1. Attacker gains access to GitHub Actions (via compromised PAT or workflow injection)
+2. Modifies `release.yml` to inject malicious code into build step
+3. CI produces trojanized `.exe` with valid hashes (because CI generates the hashes)
 
-### 3. Key Compromise (Private Key Exposure)
-**Threat**: The Ed25519 private key used to sign manifests or commits is exposed.
+**Detection:**
+- Tag signature verification rejects unsigned tags
+- Transparency log shows unexpected release entries
+- `provenance.json` contains wrong commit hash — doesn't match tagged source
+- Independent rebuild via `Dockerfile.repro` produces different artifact hashes
+- Sigstore transparency log (rekor) records all signatures publicly
 
-**Mitigation**:
-- Sub-key delegation is practiced — release signing uses a distinct key from daily commit signing.
-- In the event of compromise, a revocation notice is published across multiple independent channels (GitHub, personal site, HN post) simultaneously to establish the new root of trust.
+**Residual risk:** If attacker also compromises the signing key, detection relies on independent rebuild only.
 
-### 4. SmartScreen Friction (Adversarial OS UI)
-**Threat**: Windows SmartScreen labels the unsigned binary as "unrecognized," training users to bypass warnings for all software rather than only verified software.
+### Scenario 2: Key Compromise
 
-**Mitigation**:
-- This model explicitly targets technical users who understand the distinction.
-- Running `verify.ps1` before executing the binary shifts the trust decision from opaque OS heuristics to explicit cryptographic verification. The SmartScreen dialog occurs *after* the user has already established their own chain of trust.
+**Attacker workflow:**
+1. Attacker obtains `release/keys/signing_key.pem`
+2. Signs malicious manifest with valid Ed25519 signature
+3. Publishes forged release with matching signature
 
-### 5. User Error (Bypassing Verification)
-**Threat**: A non-technical user downloads and runs the binary directly without running `verify.ps1`.
+**Detection:**
+- Sigstore signatures use ephemeral keys (no long-lived key to steal)
+- Transparency log entries can be cross-referenced with GitHub Actions run IDs
+- Independent rebuild produces different hashes
 
-**Mitigation**:
-- **Accepted risk.** This model relies on an opt-in trust contract.
-- README, releases page, and installer UI all contain prominent verification reminders.
-- Long-term: shell wrapper or NSIS pre-install check that prompts for hash verification.
+**Current limitations:**
+- No key rotation schedule defined
+- No revocation mechanism
+- No secondary/backup signing key
 
-## What We Are Not Protecting Against
+**Future mitigation:**
+- Define 90-day key rotation
+- Publish revocation list at `release/verify/revoked_keys.txt`
+- Add backup key for emergency re-signing
 
-- A fully compromised developer workstation at signing time
-- A malicious insider with repository write access who controls *both* the binary and the hash manifest simultaneously and also controls the out-of-band channels used for fingerprint publication
-- Quantum attacks on Ed25519 (out of scope for present threat horizon)
+### Scenario 3: Mirror / CDN Compromise
+
+**Attacker workflow:**
+1. Attacker compromises a download mirror or CDN
+2. Replaces `.exe` with trojanized binary
+3. User downloads compromised file
+
+**Detection:**
+```powershell
+.\verify.ps1 -FilePath .\HyperSnatch-Setup-1.2.1.exe
+# ❌ VERIFICATION FAILED — hash mismatch
+```
+
+**Why it works:** The verifier compares against hashes committed to the Git repository and signed by the Ed25519 root key. The attacker would need to compromise both the CDN *and* the signing key.
+
+## Explicitly Out of Scope
+
+- **Compromised user OS**: If the user's OS is rooted, verification is meaningless
+- **SmartScreen / Gatekeeper**: Reputation-based blocking requires EV certificates and download volume
+- **Network-level exfiltration**: HyperSnatch is offline-only — there is no network surface to attack
+- **Side-channel attacks**: Not applicable to a desktop analysis tool
+
+## Failure Modes
+
+| Scenario | User sees |
+|---|---|
+| Binary hash doesn't match manifest | `❌ VERIFICATION FAILED — DO NOT RUN THIS FILE` |
+| Ed25519 signature invalid | `❌ SIGNATURE INVALID — manifest may be tampered` |
+| Manifest file missing | `⚠️ No manifest found — cannot verify` |
+| Verifier script modified | Self-test fails: `❌ SELF TEST FAILED` |
+| Sigstore verification fails | `❌ cosign verify-blob failed` |
+| Release built outside CI | No matching hash in `SHA256SUMS.txt` |
+
+## Future Hardening
+
+- [x] SLSA Level 2 provenance attestation
+- [x] Sigstore/cosign signatures on release artifacts
+- [x] Ed25519 manifest signing
+- [x] Transparency log
+- [ ] SLSA Level 3 (hermetic build)
+- [ ] Key rotation schedule (90-day)
+- [ ] Key revocation mechanism
+- [ ] Merkle tree over source files
+- [ ] Hardware-bound license fingerprinting (CPU/MAC)
