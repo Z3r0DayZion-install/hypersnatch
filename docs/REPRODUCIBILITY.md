@@ -59,6 +59,19 @@ NSIS (the Windows installer packager) can introduce the following inconsistencie
 
 ---
 
+## Test Coverage
+
+All test suites run offline (zero real network calls). Run via `npm test` or individually:
+
+| Suite | Command | Tests | Coverage |
+|-------|---------|-------|----------|
+| SmartDecode | `node tests/smartdecode.test.js` | 75 | Ranker, decoders, regex, dedup, scoring |
+| License System | `node tests/license_system.test.js` | 43 | ECDSA v3, HW binding, TEAR PFS, tiers |
+| DNS Fallback | `node tests/dns_fallback.test.js` | 16 | Cache init/seed/clear, TTL validity, resolve, retry, DoH security |
+| Decoder Proof | `npm run proof` | 40 (all hosts) | extract() + resurrect() for every host decoder |
+
+---
+
 ## Future: Docker-Based Hermetic Builds
 
 The roadmap includes a reproducible build container:

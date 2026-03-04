@@ -51,9 +51,10 @@
     "ui:open": "start ui/hypersnatch-ui.html",
     "build:wrapper": "node scripts/build_wrapper.js",
     "release:pack": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Compress-Archive -Path release\\* -DestinationPath dist\\HyperSnatch_release.zip -Force\"",
-    "test": "node tests/smartdecode.test.js",
-    "test:ci": "node tests/smartdecode.test.js",
+    "test": "node tests/smartdecode.test.js && node tests/dns_fallback.test.js",
+    "test:ci": "node tests/smartdecode.test.js && node tests/dns_fallback.test.js",
     "test:online": "node scripts/verify_smartdecode.js --online",
+    "proof": "node tests/proof_all_decoders.js",
     "postinstall": "npx --yes electron-builder install-app-deps"
   },
   "build": {

@@ -1,8 +1,8 @@
 {
-    "hypersnatch_version": "1.1.0-rc.1",
+    "hypersnatch_version": "1.2.0",
     "analysis_mode": "deterministic",
     "input_file": "sample-payload.html",
-    "input_sha256": "pending_actual_hash",
+    "input_sha256": "086D8083E67602250D3131779EA687C28544FE29394563CAB0948F7B562C1A44",
     "timestamp_note": "Deterministic output — hash is reproducible regardless of execution time",
     "resources_detected": [
         {
