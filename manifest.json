@@ -4,18 +4,18 @@
   "engineVersion": "RES-CORE-01",
   "policyVersion": "CASH-SHIELD-01",
   "runtime": "ELECTRON AIRGAPPED",
-  "created": "2026-02-18T10:20:00.000Z",
+  "created": "2026-02-18T10:20:00Z",
   "description": "HyperSnatch Platform - Link Resurrection Engine",
   "fileHashes": {
-    "electron/main.js": "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
-    "electron/preload.js": "b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567",
-    "electron/secure_bridge.js": "c3d4e5f6789012345678901234567890abcdef1234567890abcdef12345678",
-    "hypersnatch.html": "d4e5f6789012345678901234567890abcdef1234567890abcdef123456789",
-    "modules/resurrection_core.js": "e5f6789012345678901234567890abcdef1234567890abcdef1234567890",
-    "modules/policy_guard.js": "f6789012345678901234567890abcdef1234567890abcdef12345678901",
-    "modules/strategy_runtime.js": "789012345678901234567890abcdef1234567890abcdef123456789012",
-    "core/engine_core.js": "89012345678901234567890abcdef1234567890abcdef12345678901234",
-    "core/evidence_logger.js": "9012345678901234567890abcdef1234567890abcdef123456789012345"
+    "electron/main.js": "9556422650b554cca32e7da5d19a2cd07fca051c0186f3dc0422c59f7ee81a4c",
+    "electron/preload.js": "3b9f71755fd46ce1c6806f0bff1bdc4a20bf722d4f106d9a8c7ff1ad84a50410",
+    "electron/secure_bridge.js": "899a16fe0427d36e5e9f73a649c5869085267713c395573a23a64e5096fe2bc2",
+    "hypersnatch.html": "c7c1809440f086514a0efaafdd2fbb208856b59f97a2a590e28f55d294c92440",
+    "modules/resurrection_core.js": "865f82bd3c864c22a38f049f3663b76631eb4a11d8f351f59c2ad7a82a3cfd5a",
+    "modules/policy_guard.js": "d062ec1815a454a9d9ce320f7294914a7b7cc7a896106c06f432cf9804a1b9fc",
+    "modules/strategy_runtime.js": "122c7c92acd00ce775a45c70fc44d31725bc925fdfd255b1782c1f96121abd26",
+    "core/engine_core.js": "7c7d7e90177af62a44de24a6c3c6449aa460a59bc84ff930a414ac455dd2f781",
+    "core/evidence_logger.js": "951202d804975de51ad0188108c1949f90a34217c05134ff4500ee35428d68b4"
   },
   "modules": [
     {
@@ -34,7 +34,7 @@
       "name": "strategy_runtime",
       "path": "modules/strategy_runtime.js",
       "required": false,
-      "signed": false
+      "signed": true
     }
   ],
   "security": {
@@ -47,7 +47,11 @@
     "fileSystem": {
       "read": true,
       "write": true,
-      "restrictedPaths": ["system", "windows", "program files"]
+      "restrictedPaths": [
+        "system",
+        "windows",
+        "program files"
+      ]
     },
     "network": {
       "allowed": false,
@@ -73,7 +77,11 @@
     "enabled": true,
     "requireSignature": true,
     "maxPacks": 10,
-    "allowedTypes": ["dom_analysis", "link_extraction", "content_scoring"]
+    "allowedTypes": [
+      "dom_analysis",
+      "link_extraction",
+      "content_scoring"
+    ]
   },
   "extensionInterface": {
     "enabled": true,
@@ -92,3 +100,4 @@
     "enforceSignedImports": true
   }
 }
+

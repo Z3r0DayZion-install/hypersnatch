@@ -39,6 +39,13 @@ contextBridge.exposeInMainWorld('hyper', {
 // Runtime Guard Layer - Override dangerous APIs when airgapped
 let isAirgapMode = true;
 
+// Store original API references BEFORE overriding so we can restore them
+const _originalFetch = window.fetch;
+const _originalXHR = window.XMLHttpRequest;
+const _originalWebSocket = window.WebSocket;
+const _originalEventSource = window.EventSource;
+const _originalSendBeacon = navigator.sendBeacon ? navigator.sendBeacon.bind(navigator) : null;
+
 // Listen for airgap mode changes
 ipcRenderer.on('airgap-mode-changed', (event, enabled) => {
   isAirgapMode = enabled;
@@ -76,8 +83,15 @@ function enforceAirgapMode() {
     
     console.log('[AIRGAP] Network access disabled');
   } else {
-    // Restore original APIs (would need to store references initially)
-    console.log('[AIRGAP] Network access enabled');
+    // Restore original APIs from stored references
+    window.fetch = _originalFetch;
+    window.XMLHttpRequest = _originalXHR;
+    window.WebSocket = _originalWebSocket;
+    window.EventSource = _originalEventSource;
+    if (_originalSendBeacon) {
+      navigator.sendBeacon = _originalSendBeacon;
+    }
+    console.log('[AIRGAP] Network access restored');
   }
 }
 
