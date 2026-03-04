@@ -4,387 +4,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HyperSnatch — Offline HTML Endpoint Analyzer for Forensic Reporting</title>
+    <title>HyperSnatch – Offline Media URL Extractor</title>
     <meta name="description"
-        content="Paste HTML source → identify embedded media endpoints → export tamper-evident forensic reports (CSV / JSON / PDF). Offline-first. No telemetry. No subscriptions.">
-    <link rel="stylesheet" href="style.css">
+        content="Offline-first media URL extractor with cryptographic binary verification. Sovereign technology.">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="HyperSnatch">
+    <meta property="og:description" content="Offline media URL extractor with detached binary verification">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://Z3r0DayZion-install.github.io/hypersnatch">
+
+    <!-- Styles -->
+    <style>
+        :root {
+            --bg-primary: #0a0c0f;
+            --bg-secondary: #111316;
+            --accent-primary: #00ff9d;
+            --accent-secondary: #0066ff;
+            --text-primary: #ffffff;
+            --text-secondary: #8899aa;
+            --border-color: #2a2f35;
+            --success: #00ff9d;
+            --error: #ff4d4d;
+            --warning: #ffaa00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        .header {
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 4rem 0;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Buttons */
+        .verify-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .verify-button.secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .verify-button:hover {
+            opacity: 0.8;
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .feature {
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .feature h3 {
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+        }
+
+        .feature-tag {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--accent-primary);
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            color: var(--accent-primary);
+        }
+
+        /* Release Info */
+        .release-info {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 3rem 0;
+        }
+
+        .hash-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .hash-table th,
+        .hash-table td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hash-value {
+            font-family: monospace;
+            color: var(--text-secondary);
+            word-break: break-all;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 4rem 0;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-secondary);
+        }
+    </style>
 </head>
 
 <body>
-
-    <!-- NAV -->
-    <nav>
-        <div class="container">
-            <a href="#" class="nav-brand">
-                <span class="brand-icon">⚡</span>
-                HyperSnatch
-            </a>
-            <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#demo">Demo</a></li>
-                <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#faq">FAQ</a></li>
-                <li><a href="https://cashdominion.gumroad.com/l/itpxg" class="nav-cta" target="_blank"
-                        rel="noopener">Get Founders License</a></li>
-            </ul>
+    <header class="header">
+        <div class="container nav">
+            <a href="#" class="logo">HyperSnatch</a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#verification">Verification</a>
+                <a href="#releases">Releases</a>
+                <a href="https://github.com/Z3r0DayZion-install/hypersnatch">GitHub</a>
+            </div>
         </div>
-    </nav>
+    </header>
 
-    <!-- HERO -->
-    <section class="hero">
+    <div class="container">
+        <section class="hero">
+            <h1>Sovereign Media Extraction</h1>
+            <p class="subtitle">An offshore-grade, offline-first media extractor with cryptographic binary verification.
+                Zero telemetry. Zero calls home.</p>
+
+            <div style="display: flex; justify-content: center; gap: 1rem;">
+                <a href="#releases" class="verify-button">⬇️ Get Latest Release</a>
+                <a href="https://github.com/Z3r0DayZion-install/hypersnatch" class="verify-button secondary">⭐ Star on
+                    GitHub</a>
+            </div>
+        </section>
+
+        <div class="features" id="features">
+            <div class="feature">
+                <h3>Offline-First</h3>
+                <p>Zero network calls. Works completely offline. Your privacy is paramount.</p>
+                <span class="feature-tag">No Telemetry</span>
+            </div>
+            <div class="feature">
+                <h3>Binary Verification</h3>
+                <p>Every release includes a PowerShell verifier. Check integrity before running.</p>
+                <span class="feature-tag">SHA-256</span>
+            </div>
+            <div class="feature">
+                <h3>Deterministic Builds</h3>
+                <p>Reproducible builds mean the same source always produces the same binary.</p>
+                <span class="feature-tag">Reproducible</span>
+            </div>
+        </div>
+
+        <div class="release-info" id="releases">
+            <h3 style="margin-bottom: 1rem;">🔐 Integrity Hashes (v1.2.0 Institutional)</h3>
+            <table class="hash-table">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>SHA-256 Hash</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Installer</td>
+                        <td class="hash-value">504d4ed8f4b11664553e88c3d85cb5c1297191a3a5aa1a8b943f29a5d24bbfd8</td>
+                    </tr>
+                    <tr>
+                        <td>Portable</td>
+                        <td class="hash-value">fb198e68af79fb67ea35d4335a44c3252a40bff3bd4df04d3191b05733254c13</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <a href="https://github.com/Z3r0DayZion-install/hypersnatch/releases" class="verify-button">View
+                    Releases</a>
+                <code
+                    style="padding: 0.75rem; background: var(--bg-primary); border-radius: 0.5rem; color: var(--text-secondary); flex-grow: 1;">
+                    .\scripts\verify.ps1 -FilePath .\HyperSnatch-Setup-1.2.0.exe
+                </code>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
         <div class="container">
-            <div class="hero-badge animate-in">🔒 Offline-First · Privacy-By-Design · Vanguard v1.2.0</div>
-            <h1 class="animate-in d1">
-                <span class="gradient-text">Offline HTML Endpoint Analyzer</span><br>
-                for Forensic Reporting
-            </h1>
-            <p class="hero-sub animate-in d2">
-                Paste HTML → Identify embedded media endpoints → Export tamper‑evident reports
-                (CSV / JSON / PDF) with SHA‑256 integrity hashes. Offline‑first. No telemetry.
-                No subscriptions.
+            <p>⚡ HyperSnatch – Sovereign technology. Verify before trust.</p>
+            <p style="margin-top: 1rem; font-size: 0.875rem;">
+                No telemetry. No tracking. No phone-home.
             </p>
-            <div class="hero-cta-row animate-in d3">
-                <a href="https://cashdominion.gumroad.com/l/itpxg" class="btn-primary" id="hero-cta" target="_blank"
-                    rel="noopener">
-                    Secure the Founders License — $149
-                </a>
-                <a href="#demo" class="btn-secondary">
-                    View Determinism Proof
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- PROOF MEDIA -->
-    <section class="proof-media" id="proof" style="padding:64px 0; text-align:center;">
-        <div class="container">
-            <p class="section-label">See It In Action</p>
-            <h2 class="section-title">The Vanguard v2.0 Interface</h2>
-            <p class="section-desc">
-                A living, forensic-grade analysis environment. Paste HTML, review scored candidates, export
-                tamper-evident reports.
-            </p>
-            <div
-                style="margin-top:32px; border-radius:16px; overflow:hidden; box-shadow: 0 12px 48px rgba(0,0,0,0.6); border: 1px solid rgba(56,189,248,0.15);">
-                <img src="hypersnatch_proof_ui.png"
-                    alt="HyperSnatch Vanguard v2.0 — Forensic HTML Endpoint Analysis Interface"
-                    style="width:100%; display:block;">
-            </div>
-            <p style="margin-top:16px; color: #94a3b8; font-size:14px;">
-                Real interface. Offline-first. No cloud dependencies.
-            </p>
-        </div>
-    </section>
-
-    <!-- FEATURES -->
-    <section class="features" id="features">
-        <div class="container">
-            <p class="section-label">Capabilities</p>
-            <h2 class="section-title">Built for Consultants.<br>Maintained by Engineering.</h2>
-            <p class="section-desc">
-                Solving a specific infrastructure problem: mapping underlying resource URLs from obfuscated HTML without
-                leaking analysis data to a SaaS provider.
-            </p>
-            <div class="features-grid">
-
-                <div class="feature-card animate-in">
-                    <div class="feature-icon">🛡️</div>
-                    <h3>Offline-First Architecture</h3>
-                    <p>The engine processes HTML entirely on your local hardware. No phone-home analytics, no cloud
-                        dependencies, no silent metrics. Ideal for airgapped forensic labs.</p>
-                </div>
-
-                <div class="feature-card animate-in d1">
-                    <div class="feature-icon">🧮</div>
-                    <h3>Deterministic AST Parsing</h3>
-                    <p>Mathematically parses the Abstract Syntax Tree of raw HTML. The same input always yields the
-                        exact same confidence-scored output. Verifiable via SHA-256.</p>
-                </div>
-
-                <div class="feature-card animate-in d2">
-                    <div class="feature-icon">📋</div>
-                    <h3>Tamper-Evident Evidence Logs</h3>
-                    <p>Immutable operation logging with timestamps, user attribution, and forensic-grade audit trails.
-                        Every action is recorded and exportable.</p>
-                </div>
-
-                <div class="feature-card animate-in d3">
-                    <div class="feature-icon">🔐</div>
-                    <h3>Cash Policy Shield</h3>
-                    <p>Automatically detects and logs authorization boundaries (e.g., Age Gates, Premium Paywalls,
-                        Logins) as legal refusals, preserving your operational standing.</p>
-                </div>
-
-                <div class="feature-card animate-in d4">
-                    <div class="feature-icon">📦</div>
-                    <h3>Sovereign Audit Chain</h3>
-                    <p>Export results as CSV, JSON, or structured HTML/PDF. Every report is cryptographically signed
-                        with a hardware-bound session key using HMAC-SHA256.</p>
-                </div>
-
-                <div class="feature-card animate-in d5">
-                    <div class="feature-icon">🖥️</div>
-                    <h3>Hardened Desktop App</h3>
-                    <p>Context isolation, disabled Node integration, sandboxed rendering. Includes an Enterprise
-                        Safe-Mode UI toggle for high-stress field operations.</p>
-                </div>
-
-            </div>
-
-            <!-- v1.2 Feature Banner -->
-            <div style="margin-top:56px; text-align:center;">
-                <p class="section-label">New in Vanguard v1.2</p>
-                <div class="features-grid" style="margin-top:24px;">
-                    <div class="feature-card animate-in">
-                        <div class="feature-icon">🦀</div>
-                        <h3>Rust Forensic Core (hs-core)</h3>
-                        <p>A native, memory-safe Rust binary operating outside the V8 heap. Safely processes massive
-                            100MB+ minified HTML or HAR logs without crashing.</p>
-                    </div>
-                    <div class="feature-card animate-in d1">
-                        <div class="feature-icon">📂</div>
-                        <h3>AES-256 Evidence Vaults</h3>
-                        <p>Exported case artifacts are fully encrypted at rest using AES-256-GCM, tied directly to your
-                            specific hardware node fingerprint.</p>
-                    </div>
-                    <div class="feature-card animate-in d2">
-                        <div class="feature-icon">⌨️</div>
-                        <h3>Headless CLI Integration</h3>
-                        <p>A polished Node wrapper (`hypersnatch-cli`) for the Rust core, allowing seamless integration
-                            into SOC/SOAR automated pipelines.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- DETERMINISM DEMO -->
-    <section class="demo" id="demo">
-        <div class="container">
-            <p class="section-label">Proof of Determinism</p>
-            <h2 class="section-title">Same Input. Same Output. Every Time.</h2>
-            <p class="section-desc">
-                Verify HyperSnatch's deterministic behavior yourself. Run the sample payload and check the SHA-256 hash
-                against our published proof.
-            </p>
-
-            <div class="demo-box">
-                <h3>🧪 Verification Steps</h3>
-                <div class="demo-steps">
-                    <div class="demo-step">
-                        <div class="step-num">1</div>
-                        <p>Download <code>sample-payload.html</code> from the <a
-                                href="https://github.com/hypersnatch-security/hypersnatch/tree/main/demo"
-                                target="_blank" rel="noopener">demo/ directory</a> on GitHub.</p>
-                    </div>
-                    <div class="demo-step">
-                        <div class="step-num">2</div>
-                        <p>Load the file into HyperSnatch (drag-and-drop or File → Open).</p>
-                    </div>
-                    <div class="demo-step">
-                        <div class="step-num">3</div>
-                        <p>Export the analysis manifest as JSON and compute its SHA-256 hash.</p>
-                    </div>
-                    <div class="demo-step">
-                        <div class="step-num">4</div>
-                        <p>Compare your hash against the published expected output below.</p>
-                    </div>
-                </div>
-
-                <div class="code-block">
-                    <span class="comment"># Expected SHA-256 of manifest output for sample-payload.html</span><br>
-                    <span class="hash">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</span><br><br>
-                    <span class="comment"># Verify on Windows PowerShell:</span><br>
-                    Get-FileHash -Algorithm SHA256 .\manifest_output.json | Select-Object Hash<br><br>
-                    <span class="comment"># Verify on macOS/Linux:</span><br>
-                    sha256sum manifest_output.json
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- PRICING -->
-    <section class="pricing" id="pricing">
-        <div class="container">
-            <p class="section-label">License Topology</p>
-            <h2 class="section-title">Transparent Pricing Tiers</h2>
-            <p class="section-desc">
-                From free community access to zero-friction enterprise deployments. No telemetry. No hidden recurring
-                fees.
-            </p>
-
-            <div class="pricing-grid">
-
-                <!-- Free Tier -->
-                <div class="pricing-card" style="border-top: 3px solid var(--text-muted);">
-                    <div class="pricing-badge" style="background: var(--text-muted);">Community</div>
-                    <div class="price">$0</div>
-                    <div class="price-note">Free Forever · Limited Exports</div>
-                    <ul class="pricing-list">
-                        <li>Unlimited HTML/HAR AST parsing</li>
-                        <li>Access to 40+ deterministic decoders</li>
-                        <li>Mathematical Determinism Engine</li>
-                        <li>Standard JSON manifest export</li>
-                        <li>Basic error logging</li>
-                    </ul>
-                    <a href="#demo" class="btn-secondary" style="margin-top: auto;">
-                        Download Free Core
-                    </a>
-                </div>
-
-                <!-- Sovereign Tier -->
-                <div class="pricing-card featured">
-                    <div class="pricing-badge">Sovereign Edition</div>
-                    <div class="price">$149</div>
-                    <div class="price-note">One-time payment · Includes v1.x core updates</div>
-                    <ul class="pricing-list">
-                        <li><strong>Everything in Community</strong></li>
-                        <li>Institutional reporting (CSV, formatted PDF)</li>
-                        <li><strong>Tactical Forensic Console (Live Log Stream)</strong></li>
-                        <li>Forensic-grade audit trails (Sovereign Seal)</li>
-                        <li>AES-256-GCM Evidence Vault encryption</li>
-                        <li>Cash Policy Shield detection</li>
-                        <li>Private Discord Community (Founder Access)</li>
-                    </ul>
-                    <a href="https://cashdominion.gumroad.com/l/itpxg" class="btn-primary" id="purchase-cta"
-                        target="_blank" rel="noopener">
-                        Purchase Founders License
-                    </a>
-                    <p class="guarantee">🛡️ 14-Day Deterministic Guarantee — Full refund if the engine doesn't meet its
-                        promises.</p>
-                </div>
-
-                <!-- Institutional Tier -->
-                <div class="pricing-card" style="border-top: 3px solid var(--success);">
-                    <div class="pricing-badge" style="background: var(--success); color: var(--bg-primary);">
-                        Institutional</div>
-                    <div class="price">$499</div>
-                    <div class="price-note">One-time volume license · Direct engineering access</div>
-                    <ul class="pricing-list">
-                        <li><strong>Everything in Sovereign</strong></li>
-                        <li><strong>Headless CLI Access</strong> (`hypersnatch-cli`)</li>
-                        <li>SOC / SOAR pipeline automation</li>
-                        <li>Volume site license (Up to 5 analysts)</li>
-                        <li>Dedicated private Discord support channel</li>
-                        <li>Archival static binary formats</li>
-                    </ul>
-                    <a href="https://cashdominion.gumroad.com/l/itpxg?variant=Institutional" class="btn-primary"
-                        style="margin-top: auto; background: var(--success); border-color: var(--success); color: var(--bg-primary);">
-                        Secure Institutional License
-                    </a>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ -->
-    <section class="faq" id="faq">
-        <div class="container">
-            <p class="section-label">Common Questions</p>
-            <h2 class="section-title">FAQ</h2>
-
-            <div class="faq-list">
-
-                <div class="faq-item">
-                    <button class="faq-q">What is deterministic static analysis?</button>
-                    <div class="faq-a">
-                        <p>Unlike dynamic automation that executes arbitrary scripts, HyperSnatch mathematically parses
-                            the Abstract Syntax Tree (AST) of raw HTML. The same input source always yields the exact
-                            same confidence-scored output. This is verifiable via SHA-256 hash comparison.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-q">Does HyperSnatch bypass DRM or access controls?</button>
-                    <div class="faq-a">
-                        <p>Absolutely not. HyperSnatch operates entirely on publicly accessible, static input data. It
-                            is an analysis utility, not a circumvention tool, and cannot decode encrypted DRM streams.
-                            The Cash Policy Shield proactively logs access boundaries as refusals.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-q">Does this require an internet connection?</button>
-                    <div class="faq-a">
-                        <p>The analysis engine processes HTML locally — completely offline. The application requires a
-                            brief internet connection solely for cryptographic license verification on first launch. All
-                            analysis operations remain entirely off-grid.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-q">Who is this built for?</button>
-                    <div class="faq-a">
-                        <p>Security researchers, digital forensics investigators, compliance auditors, and technical
-                            journalists who need to analyze digital artifacts offline with verifiable, tamper-evident
-                            audit trails — without relying on expensive enterprise tools or cloud SaaS providers.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-q">What file formats are supported?</button>
-                    <div class="faq-a">
-                        <p>HyperSnatch analyzes HTML files and HAR (HTTP Archive) logs. Results can be exported as CSV,
-                            JSON, plain text, or formatted PDF. Manifest files include SHA-256 hashes and HMAC
-                            signatures for data
-                            provenance verification.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-q">What's included in the Founders License?</button>
-                    <div class="faq-a">
-                        <p>A one-time $149 payment secures unlimited artifact processing, all export formats, email
-                            support with 12-hour response times, and every v1.x feature update. No subscription, no
-                            recurring charges, no telemetry. Backed by a 14-day deterministic guarantee.</p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer>
-        <div class="container">
-            <div class="footer-links">
-                <a href="terms.html">Terms of Use</a>
-                <a href="terms.html#aup">Acceptable Use Policy</a>
-                <a href="https://github.com/hypersnatch-security/hypersnatch" target="_blank" rel="noopener">GitHub</a>
-                <a href="mailto:support@hypersnatch.com">Support</a>
-            </div>
-            <p class="footer-copy">&copy; 2026 HyperSnatch Vanguard v1.2.0. Built for researchers. Maintained by
-                engineering.</p>
         </div>
     </footer>
-
-    <!-- FAQ Toggle Script -->
-    <script>
-        document.querySelectorAll('.faq-q').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const item = btn.closest('.faq-item');
-                const wasOpen = item.classList.contains('open');
-                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
-                if (!wasOpen) item.classList.add('open');
-            });
-        });
-
-        // Scroll animations
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(e => {
-                if (e.isIntersecting) {
-                    e.target.style.animationPlayState = 'running';
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.animate-in').forEach(el => {
-            el.style.animationPlayState = 'paused';
-            observer.observe(el);
-        });
-    </script>
-
 </body>
 
 </html>
