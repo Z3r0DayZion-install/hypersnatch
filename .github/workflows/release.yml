@@ -3,15 +3,58 @@ name: Vanguard Institutional Release
 on:
   push:
     tags:
-      - 'v1.*'
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      manual_verify:
+        description: 'Run full verification suite'
+        type: boolean
+        default: true
+      release_channel:
+        description: 'Release channel'
+        type: choice
+        options:
+          - stable
+          - beta
+          - alpha
+        default: stable
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  actions: read
+
+concurrency:
+  group: "release-${{ github.ref }}"
+  cancel-in-progress: false
 
 jobs:
   build-and-release:
     runs-on: windows-latest
+    outputs:
+      installer_hash: ${{ steps.hash.outputs.INSTALLER_HASH }}
+      portable_hash: ${{ steps.hash.outputs.PORTABLE_HASH }}
+      verification_status: ${{ steps.verify.outputs.status }}
+      release_version: ${{ steps.version.outputs.VERSION }}
     
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract Version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $version = "${{ github.ref_name }}".Replace('v', '')
+          } else {
+            $version = "1.2.1"
+          }
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "RELEASE_NAME=HyperSnatch v$version" >> $env:GITHUB_OUTPUT
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -29,41 +72,91 @@ jobs:
 
       - name: Run Forensic Core Tests
         run: npm run test:ci
+        env:
+          CI: true
 
       - name: Deterministic Build & Package
         env:
-          # Injected via GitHub Secrets for EV Code Signing
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HYPERSNATCH_VERSION: ${{ steps.version.outputs.VERSION }}
         run: npm run build:repro
 
       - name: Generate Release Hashes
         id: hash
+        shell: pwsh
         run: |
-          $installerHash = (Get-FileHash -Algorithm SHA256 "dist\HyperSnatch-Setup-*.exe").Hash
-          $exeHash = (Get-FileHash -Algorithm SHA256 "dist\win-unpacked\HyperSnatch.exe").Hash
+          $installer = Get-ChildItem -Path "dist\HyperSnatch-Setup-*.exe" | Select-Object -First 1
+          $portable = Get-ChildItem -Path "dist\win-unpacked\HyperSnatch.exe" -ErrorAction SilentlyContinue
+          $portableExe = Get-ChildItem -Path "dist\*.exe" | Where-Object { $_.Name -like "HyperSnatch-*.exe" -and $_.Name -notlike "*Setup*" } | Select-Object -First 1
           
-          $hashDoc = "HYPERSNATCH_VANGUARD_HASHES.txt"
-          "HyperSnatch-Setup (Installer): $installerHash" | Out-File $hashDoc
-          "HyperSnatch (Unpacked EXE): $exeHash" | Out-File -Append $hashDoc
+          if ($installer) {
+            $installerHash = (Get-FileHash -Path $installer.FullName -Algorithm SHA256).Hash.ToLower()
+            echo "INSTALLER_HASH=$installerHash" >> $env:GITHUB_OUTPUT
+          }
           
-          echo "INSTALLER_HASH=$installerHash" >> $env:GITHUB_OUTPUT
+          if ($portable) {
+            $portableHash = (Get-FileHash -Path $portable.FullName -Algorithm SHA256).Hash.ToLower()
+            echo "PORTABLE_HASH=$portableHash" >> $env:GITHUB_OUTPUT
+          }
+          
+          if ($portableExe) {
+            $portableExeHash = (Get-FileHash -Path $portableExe.FullName -Algorithm SHA256).Hash.ToLower()
+            echo "PORTABLE_EXE_HASH=$portableExeHash" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Run Self-Test on Verifier
+        shell: pwsh
+        run: |
+          & .\scripts\verify.ps1 -SelfTest
+
+      - name: Verify Binaries with HyperSnatch Verifier
+        id: verify
+        shell: pwsh
+        run: |
+          $results = @()
+          $allPassed = $true
+          $filesToVerify = Get-ChildItem -Path "dist\*.exe" -ErrorAction SilentlyContinue
+          
+          foreach ($file in $filesToVerify) {
+            & .\scripts\verify.ps1 -FilePath $file.FullName -Detailed
+            if ($LASTEXITCODE -ne 0) { $allPassed = $false }
+          }
+          
+          $status = if($allPassed) { "verified" } else { "failed" }
+          echo "status=$status" >> $env:GITHUB_OUTPUT
+          echo "files_verified=$($filesToVerify.Count)" >> $env:GITHUB_OUTPUT
+
+      - name: Update Hash Manifest
+        shell: pwsh
+        run: |
+          & .\scripts\verify.ps1 -UpdateHashes -HashManifestPath .\hash_manifest.json -Detailed
+          if ("${{ github.ref }}" -eq "refs/heads/main") {
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add hash_manifest.json
+            git commit -m "Update hash manifest for v${{ steps.version.outputs.VERSION }}" || echo "No changes"
+            git push || echo "Push fail"
+          }
+
+      - name: Generate Release Assets
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path release_assets -Force
+          Copy-Item "dist\*.exe" release_assets -ErrorAction SilentlyContinue
+          Copy-Item "hash_manifest.json" release_assets
+          Copy-Item "scripts\verify.ps1" release_assets
+          Copy-Item "scripts\verify.bat" release_assets
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/HyperSnatch-Setup-*.exe
-            HYPERSNATCH_VANGUARD_HASHES.txt
+            release_assets/*.exe
+            release_assets/*.json
+            release_assets/verify.ps1
+            release_assets/verify.bat
           body: |
-            ## HyperSnatch Vanguard Institutional Release
-            
-            This is a deterministic, Sovereign-Tier release. 
-            
-            ### Integrity Proof (SHA-256)
-            * **Installer:** `${{ steps.hash.outputs.INSTALLER_HASH }}`
-            
-            Please verify the downloaded artifact against this hash before execution.
-          draft: false
-          prerelease: false
+            # 🔥 HyperSnatch Vanguard Release v${{ steps.version.outputs.VERSION }}
+            Offline-first binary verification system enabled.

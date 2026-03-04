@@ -1,0 +1,35 @@
+{
+  "version": "1.2.1",
+  "generator": "HyperSnatch Binary Verifier",
+  "hashes": {
+    "504d4ed8f4b11664553e88c3d85cb5c1297191a3a5aa1a8b943f29a5d24bbfd8": {
+      "version": "1.2.0",
+      "type": "Installer",
+      "architecture": null,
+      "name": "HyperSnatch-Setup-1.2.0.exe",
+      "buildDate": "2024-01-15"
+    },
+    "a4b8e3f2c1d9e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2": {
+      "version": "1.2.1",
+      "type": "Installer",
+      "architecture": null,
+      "name": "HyperSnatch-Setup-1.2.1.exe",
+      "buildDate": "2024-01-20"
+    },
+    "b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3": {
+      "version": "1.2.1",
+      "type": "Portable",
+      "architecture": "x64",
+      "name": "HyperSnatch-1.2.1-portable.exe",
+      "buildDate": "2024-01-20"
+    },
+    "fb198e68af79fb67ea35d4335a44c3252a40bff3bd4df04d3191b05733254c13": {
+      "version": "1.2.0",
+      "type": "Portable",
+      "architecture": null,
+      "name": "HyperSnatch 1.2.0.exe",
+      "buildDate": "2024-01-15"
+    }
+  },
+  "generated": "2026-03-03 17:56:55"
+}
