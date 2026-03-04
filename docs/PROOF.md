@@ -76,13 +76,17 @@ npm test
 |---|---|
 | `scripts/verify.ps1` | Offline binary verifier (PowerShell) |
 | `scripts/verify_node.js` | Cross-platform verifier (Node.js) |
+| `scripts/verify.sh` | Minimal dependencies verifier (Bash/OpenSSL) |
+| `scripts/verify.py` | Minimal dependencies verifier (Python) |
 | `scripts/sign_manifest.cjs` | Ed25519 manifest signer |
 | `scripts/reproduce.ps1` | One-command reproducible build |
 | `scripts/reproduce_docker.sh` | Docker-based reproducible build |
+| `scripts/verify_repro.sh` | Single-command Docker repro verification proof |
 | `scripts/generate_manifest.cjs` | Artifact hash generator |
-| `.github/workflows/release.yml` | CI: build → sign → verify → publish |
+| `.github/workflows/release.yml` | CI: build → sign → diff → verify → publish |
 | `Dockerfile.repro` | Deterministic build container |
 | `release/provenance.json` | SLSA provenance attestation |
+| `release/sbom.json` | CycloneDX Software Bill of Materials (SBOM) |
 | `release/transparency.log` | Append-only release audit trail |
 | `release/verify/` | Verification kit (manifest, sig, key) |
 | `core/security_hardening.js` | Runtime integrity enforcement |
@@ -93,19 +97,30 @@ npm test
 |---|---|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Trust chain diagram and component map |
 | [THREAT_MODEL.md](THREAT_MODEL.md) | Adversary model, mitigations, scenarios |
+| [ATTACK_SURFACE.md](ATTACK_SURFACE.md) | Honest assessment of mitigated vs non-mitigated threats |
+| [DEPENDENCY_LOCKDOWN.md](DEPENDENCY_LOCKDOWN.md) | Immutable lockfile & zero-script install policy |
 | [REPRODUCIBILITY.md](REPRODUCIBILITY.md) | Build reproduction steps |
 | [VERIFICATION.md](VERIFICATION.md) | Verification chain explained |
 | [VERIFY_RELEASE.md](VERIFY_RELEASE.md) | User-facing verification walkthrough |
 | [VERIFY_10_MINUTE_DRILL.md](VERIFY_10_MINUTE_DRILL.md) | Cold-start engineering drill |
 | [SUPPLY_CHAIN_SECURITY.md](SUPPLY_CHAIN_SECURITY.md) | Attack protections and checklist |
-| [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md) | Key storage, rotation, and compromise procedures |
+| [TRANSPARENCY_INDEX.md](TRANSPARENCY_INDEX.md) | Public, immutable projection of the transparency log |
+| [RELEASE_DAY_CHECKLIST.md](RELEASE_DAY_CHECKLIST.md) | 15-step cryptographic launch execution guide |
+| [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md) | Key storage, rotation, and CI secret configuration |
+| [KEY_COMPROMISE.md](KEY_COMPROMISE.md) | Formal key compromise/revocation operational protocol |
 
 ## Trust Anchor
 
-Root public key fingerprint (Ed25519):
+### 1. Root Key Fingerprint
+All manifests are signed by the Ed25519 root key:
+> `B90B E0DB 35A2 8123 318E 9BCB FF0D ECB3 10B7 906B D538 C8F5 0541 3C8D 67E3 6CDC`
 
-```
-B90B E0DB 35A2 8123 318E 9BCB FF0D ECB3 10B7 906B D538 C8F5 0541 3C8D 67E3 6CDC
-```
+### 2. Verifier Anchors (SHA-256)
+Always verify the verifier scripts to prevent tampering:
+- `verify.ps1`: `45778151CF002F811088226E73193C4A55273505118AFF2954FC7708BB451237`
+- `verify.sh`: `2AF385A40A4D5BF663BA26286B37E2ED262D1A0F4944E35282F009D69195201C`
+- `verify.py`: `8E3C8781C2472256767152B99CFB9E875E46622CE88A0A4793C83BA321B1FFC5`
 
-Canonical source: `release/verify/ROOT_FINGERPRINT.txt`
+References:
+- [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md)
+- [VERIFY_10_MINUTE_DRILL.md](VERIFY_10_MINUTE_DRILL.md)

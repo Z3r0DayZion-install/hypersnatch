@@ -38,28 +38,31 @@ Every claim in this repository is indexed and backed by evidence. If you are aud
 - **[Reproducibility Guide](docs/REPRODUCIBILITY.md)** — How to trigger a bit-identical build.
 - **[Verification Chain](docs/VERIFICATION.md)** — How trust flows from source to the user's machine.
 
-## Quick Verify
+## 🔒 Verify this release in 60 seconds
 
-To experience the verified distribution UX yourself:
+HyperSnatch releases are reproducible and cryptographically verifiable.
 
-1. Download an artifact and the verify kit from the latest GitHub Release.
-2. Run the offline verifier:
+Run one command:
 
-```powershell
-.\verify.ps1 -FilePath .\HyperSnatch-Setup-1.2.1.exe
+```bash
+./verify.sh HyperSnatch-Setup-1.2.2.exe
 ```
 
-Expected output: `✅ VERIFICATION SUCCESSFUL ... Status: AUTHENTIC`
+*(Windows users: `.\verify.ps1 -FilePath .\HyperSnatch-Setup-1.2.2.exe`)*
 
-For the full 8-step drill, see **[docs/VERIFY_10_MINUTE_DRILL.md](docs/VERIFY_10_MINUTE_DRILL.md)**.
+For the full 8-step reproducible drill, see **[docs/VERIFY_10_MINUTE_DRILL.md](docs/VERIFY_10_MINUTE_DRILL.md)**.
 
 ## Trust Anchor
 
+### 1. Maintainer Root Key
 All release manifests are signed with Ed25519. The root public key fingerprint is:
+`B90B E0DB 35A2 8123 318E 9BCB FF0D ECB3 10B7 906B D538 C8F5 0541 3C8D 67E3 6CDC`
 
-```
-B90B E0DB 35A2 8123 318E 9BCB FF0D ECB3 10B7 906B D538 C8F5 0541 3C8D 67E3 6CDC
-```
+### 2. Verifier Anchors (SHA-256)
+Verify your verification scripts to prevent verifier tampering:
+- `verify.ps1` : `45778151CF002F811088226E73193C4A55273505118AFF2954FC7708BB451237`
+- `verify.sh`  : `2AF385A40A4D5BF663BA26286B37E2ED262D1A0F4944E35282F009D69195201C`
+- `verify.py`  : `8E3C8781C2472256767152B99CFB9E875E46622CE88A0A4793C83BA321B1FFC5`
 
 Verify against: [`release/verify/ROOT_FINGERPRINT.txt`](release/verify/ROOT_FINGERPRINT.txt)
 

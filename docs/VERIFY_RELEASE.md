@@ -20,8 +20,15 @@ Download **all** of these:
 - `manifest.sig` — Ed25519 signature (if available)
 - `root_public_key.pem` — signing public key (if available)
 - `provenance.json` — SLSA provenance attestation
+- `maintainer.sig` — (Optional) Offline GPG developer signature
 
-## Step 2: Verify (PowerShell)
+## Step 1a: Verify Your Verifier (Tamper-check)
+
+To ensure the verification scripts haven't been backdoored on the mirror:
+```bash
+sha256sum verify.ps1 verify.sh verify_node.js verify.py
+```
+Check the output against the `ROOT_FINGERPRINT.txt` or `PROOF.md` anchors.
 
 ```powershell
 .\verify.ps1 -FilePath .\HyperSnatch-Setup-1.2.1.exe
@@ -84,6 +91,19 @@ Open `provenance.json` and verify:
 - `invocation.configSource.digest.sha1` matches the tagged commit
 - `metadata.buildInvocationId` matches the GitHub Actions run ID
 - `subject[].digest.sha256` matches the artifact hash
+
+## Step 6: Verify Maintainer Signature (Two-Party Check)
+
+To mitigate CI compromise vectors, releases may include an offline `maintainer.sig` providing a **Two-Party Signature** (CI automated signing + Developer air-gapped signing).
+
+1. Import the maintainer's public GPG key (listed in `SECURITY.md`).
+2. Verify the detached signature:
+
+```bash
+gpg --verify maintainer.sig HyperSnatch-Setup-1.2.1.exe
+```
+
+If both `manifest.sig` (CI Keyless) and `maintainer.sig` (GPG Air-gapped) are valid, the release is strongly verified.
 
 ## Self-Test
 

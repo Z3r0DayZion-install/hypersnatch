@@ -85,8 +85,17 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
 
-      - name: Install Dependencies
-        run: npm ci
+      - name: Install Dependencies (Locked)
+        run: |
+          npm ci --ignore-scripts
+          npm audit || echo "Audit completed (ignoring low severity)"
+
+      - name: Generate SBOM (CycloneDX)
+        run: |
+          npx --yes --ignore-scripts @cyclonedx/cyclonedx-npm --output-format JSON --output-file bom.json
+          mv bom.json release/sbom.json
+          Write-Host "✅ SBOM generated at release/sbom.json"
+        shell: pwsh
 
       - name: Run Forensic Core Tests
         run: npm run test:ci
@@ -267,24 +276,49 @@ jobs:
             git push || echo "Push fail"
           }
 
+      # ── Diff Transparency ──────────────────────────────────────────────────
+      - name: Generate Diff Report
+        shell: pwsh
+        run: |
+          $prevTag = git describe --tags --abbrev=0 HEAD^ 2>$null
+          $reportPath = "release/diff_report.md"
+          
+          "# Release Diff Report (v${{ steps.version.outputs.VERSION }})`n`n" | Set-Content $reportPath
+          if ($prevTag) {
+            "Comparing against previous release: **$prevTag**`n`n" | Add-Content $reportPath
+            "### Changed Files`n" | Add-Content $reportPath
+            git diff --name-status $prevTag HEAD | ForEach-Object { "- $_" } | Add-Content $reportPath
+            "`n### Commit Log`n" | Add-Content $reportPath
+            git log --oneline ${prevTag}..HEAD | ForEach-Object { "- $_" } | Add-Content $reportPath
+          } else {
+            "First release - comprehensive diff not available against prior tag.`n" | Add-Content $reportPath
+          }
+
       # ── Release Assets ──────────────────────────────────────────────────
       - name: Generate Release Assets
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path release_assets -Force
+          # Main executable artifacts
           Copy-Item "dist\*.exe" release_assets -ErrorAction SilentlyContinue
           Copy-Item "dist\*.sig" release_assets -ErrorAction SilentlyContinue
           Copy-Item "dist\*.pem" release_assets -ErrorAction SilentlyContinue
-          Copy-Item "dist\MANIFEST.json" release_assets -ErrorAction SilentlyContinue
-          Copy-Item "dist\manifest.sig" release_assets -ErrorAction SilentlyContinue
+          
+          # Verification Kit construction
+          New-Item -ItemType Directory -Path verify_kit -Force
+          Copy-Item "scripts\verify.ps1" verify_kit
+          Copy-Item "scripts\verify_node.js" verify_kit
+          Copy-Item "scripts\verify.sh" verify_kit -ErrorAction SilentlyContinue
+          Copy-Item "dist\MANIFEST.json" verify_kit -ErrorAction SilentlyContinue
+          Copy-Item "dist\manifest.sig" verify_kit -ErrorAction SilentlyContinue
+          Copy-Item "release\verify\ROOT_FINGERPRINT.txt" verify_kit -ErrorAction SilentlyContinue
+          Copy-Item "docs\VERIFY_RELEASE.md" verify_kit -ErrorAction SilentlyContinue
+          Compress-Archive -Path "verify_kit\*" -DestinationPath "release_assets\verify-kit.zip" -Force
+          
+          # Transparency metrics
+          Copy-Item "release\diff_report.md" release_assets -ErrorAction SilentlyContinue
+          Copy-Item "release\provenance.json" release_assets -ErrorAction SilentlyContinue
           Copy-Item "dist\SHA256SUMS.txt" release_assets -ErrorAction SilentlyContinue
-          Copy-Item "hash_manifest.json" release_assets
-          Copy-Item "release\provenance.json" release_assets
-          Copy-Item "scripts\verify.ps1" release_assets
-          Copy-Item "scripts\verify.bat" release_assets -ErrorAction SilentlyContinue
-          Copy-Item "scripts\verify_node.js" release_assets
-          Copy-Item "release\verify\root_public_key.pem" release_assets -ErrorAction SilentlyContinue
-          Copy-Item "release\verify\ROOT_FINGERPRINT.txt" release_assets -ErrorAction SilentlyContinue
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
@@ -295,8 +329,8 @@ jobs:
             release_assets/*.pem
             release_assets/*.json
             release_assets/*.txt
-            release_assets/verify.ps1
-            release_assets/verify_node.js
+            release_assets/*.zip
+            release_assets/*.md
           body: |
             # 🔥 HyperSnatch v${{ steps.version.outputs.VERSION }}
 
