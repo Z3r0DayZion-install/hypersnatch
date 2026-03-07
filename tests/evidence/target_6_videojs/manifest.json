@@ -1,0 +1,18 @@
+{
+  "target": "https://videojs.com/",
+  "processedAt": "2026-03-06T05:41:19.600Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "9b5c90ee769f7dca57bc792a9fbca714e1ce21000568479d7f258d1c4eb9aaad",
+    "dom_snapshot.html": "3a1b75461500f91ba68d7ae2ab69f7441f9dd47d751f1f80774b5157d20480be",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "0714995f54893c6c5f675af9b1bc2ce927aa3f209db7c1fb0e45b58ec764f96d",
+    "captured_segments/segment_000.m4s": "2b6b2aaab300596cbd2bb0cc186856427bf445f2828431c96247b961c0d5973b",
+    "captured_segments/segment_001.m4a": "d6dd6867c84589f3bcab45f550f25a2640b05e5a0614ba5307cab9aadb64defc",
+    "mse_events.json": "e35f08338549d37b5b7567838e182707df5dacb656e92c32421bf0ea34cbfb44",
+    "har_classified.json": "05bbcce5a8e70014b2dc29760e1ff33ae6d3261a78e5b721770036299a096f0b",
+    "player_profile.json": "1e8302b821f47a0077e8f995b23aaf4251bee2c82a40b99727c80cace4993f98",
+    "stream_candidates.json": "88cd7f840b292c6e9b8fbda513d4b997aca9cebf10749fb6e8eaac2dd9d6b391",
+    "report.md": "69b5fc6f85818c87305a179d7f5ecdc8ca4f3e357ac957babb6c5f191b6dde2d"
+  }
+}

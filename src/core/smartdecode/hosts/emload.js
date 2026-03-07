@@ -9,7 +9,8 @@ const EmloadExtractor = {
         /https?:\/\/(?:www\.)?emload\.com\/v2\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
         /https?:\/\/(?:www\.)?emload\.com\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
         /https?:\/\/(?:www\.)?emload\.com\/file\/([a-zA-Z0-9_-]+)/i, // Support for IDs without filenames
-        /https?:\/\/(?:www\.)?emload\.com\/[fe]\/([a-zA-Z0-9_-]+)/i
+        /https?:\/\/(?:www\.)?emload\.com\/[fe]\/([a-zA-Z0-9_-]+)/i,
+        /https?:\/\/(?:www\.)?emload\.com\/folder\/([a-zA-Z0-9_-]+)/i // Phase 53 Folder Support
     ],
 
     /**
@@ -31,14 +32,16 @@ const EmloadExtractor = {
                 const filename = match[2] || 'unknown';
 
                 if (!candidates.has(url)) {
+                    const isFolder = /emload\.com\/folder\//i.test(url);
                     candidates.set(url, {
                         url,
                         fileId,
                         filename,
                         host: 'emload.com',
-                        type: this._inferType(filename),
+                        type: isFolder ? 'folder' : this._inferType(filename),
                         sourceLayer: 'host_emload',
-                        confidence: 0.95
+                        confidence: isFolder ? 0.90 : 0.95,
+                        requiresExpansion: isFolder
                     });
                 }
             }

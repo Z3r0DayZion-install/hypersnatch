@@ -1,0 +1,16 @@
+{
+  "hostname": "example.com",
+  "player_detected": "videojs",
+  "scripts_seen": [
+    "main.js",
+    "player.bundle.js"
+  ],
+  "network_patterns": [
+    "/master.m3u8",
+    "/seg-*.ts"
+  ],
+  "mse_detected": true,
+  "best_extraction_path": "window.playerConfig.sources[0].src",
+  "success_rate": 0.92,
+  "last_verified": "2026-03-05"
+}

@@ -1,0 +1,15 @@
+{
+  "target": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+  "processedAt": "2026-03-06T05:41:37.071Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "9258748122093551ee31503bae298a9d7b68f33d8acd8363929d8764713ca01c",
+    "dom_snapshot.html": "34f0b28b3c8208ff6dfa6fc26412d865c75c04fb71fcd045698615b4e3ccbac9",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "har_classified.json": "4092ecbedc1172167c19414027e9394bfea5e5b4d4e19bee207f12582c6cc997",
+    "player_profile.json": "c7a8967a502dedd736a46bcbcb5ec2a6fef2a9c8f9a07e519c8c1bd63968ab5e",
+    "stream_candidates.json": "fe8d075a16f4d41257ba0971d27136c7c41004a22503d83f44096320bf49133a",
+    "report.md": "c68e10b827339f7741bc08a8771ea111978cf8c1c82c27365086fb5e690a80eb"
+  }
+}

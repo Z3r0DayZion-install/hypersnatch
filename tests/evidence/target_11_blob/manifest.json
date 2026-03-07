@@ -1,0 +1,15 @@
+{
+  "target": "https://bitmovin.com/demos/stream-test",
+  "processedAt": "2026-03-06T05:41:34.996Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "a7546fb2837a8edc395a9bac5f24812849c1232c1afd6724e82681f7c9643de0",
+    "dom_snapshot.html": "2dc89b79268eaa1ba7380967941e6806e15c1a88b4494e02480f5dc0fd0e4617",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "19cf643d37f6387efc7b673da94cd8ecb4c188600c50a050140e7e64817a7535",
+    "har_classified.json": "7691bd8f52b961a5d93be792fbbe42dde48f5669fbd09de1ff380e2cf8aa1499",
+    "player_profile.json": "c7a8967a502dedd736a46bcbcb5ec2a6fef2a9c8f9a07e519c8c1bd63968ab5e",
+    "stream_candidates.json": "4cebb62da48ac961b96a091315680d10ff4dc1cecb00e45f095d63f0946a8989",
+    "report.md": "d12047db6d41aa59f2b5cd4ddf0d48db7c3da0c2e6271b21e88999d263777565"
+  }
+}

@@ -1,0 +1,435 @@
+=== HyperSnatch Real-World Extraction Test Matrix ===
+Loaded 14 targets for execution...
+[RESURRECTION_CORE] [CORE] Resurrection core initialized
+[ENGINE_CORE] [ENGINE] Module loaded: resurrection_core
+[POLICY_GUARD] [POLICY] Policy guard initialized with strict policy
+[ENGINE_CORE] [ENGINE] Module loaded: policy_guard
+[2:03:05 PM] [INFO] [hs_mme0hy1i_pvrfec] Evidence logger initialized { sessionId: 'hs_mme0hy1i_pvrfec', persistence: true, logLevel: 1 }
+[ENGINE_CORE] [ENGINE] Module loaded: evidence_logger
+[2:03:05 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Module loaded: evidence_logger {}
+[ENGINE_CORE] [ENGINE] Engine core initialized
+[2:03:05 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Engine core initialized {}
+
+[1/14] Testing: https://www.w3schools.com/html/html5_video.asp (html5)
+[TargetRunner] Attaching to CDP -> https://www.w3schools.com/html/html5_video.asp
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:09 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:09 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:09.743Z',
+  inputType: 'URL',
+  inputSize: 46
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:09 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:09.746Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 2
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:09 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://www.w3schools.com/html/html5_video.asp
+
+[2/14] Testing: https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4 (html5)
+[TargetRunner] Attaching to CDP -> https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:11 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:11 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:11.837Z',
+  inputType: 'URL',
+  inputSize: 72
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:11 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:11.838Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 1
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:11 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4
+
+[3/14] Testing: https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8 (hls)
+[TargetRunner] Attaching to CDP -> https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:13 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:13 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:13.899Z',
+  inputType: 'URL',
+  inputSize: 49
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:13 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:13.900Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 1
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:13 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+
+[4/14] Testing: https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8 (hls)
+[TargetRunner] Attaching to CDP -> https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:15 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:15 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:15.977Z',
+  inputType: 'URL',
+  inputSize: 63
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:15 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:15.977Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 1
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:15 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8
+
+[5/14] Testing: https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd (dash)
+[TargetRunner] Attaching to CDP -> https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:23 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:23 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:23.008Z',
+  inputType: 'URL',
+  inputSize: 60
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:23 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:23.008Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 1
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:23 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd
+
+[6/14] Testing: https://dash.akamaized.net/dash264/TestCases/1c/qualcomm/2/MultiRate.mpd (dash)
+[TargetRunner] Attaching to CDP -> https://dash.akamaized.net/dash264/TestCases/1c/qualcomm/2/MultiRate.mpd
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:30 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:30 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:30.187Z',
+  inputType: 'URL',
+  inputSize: 72
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:30 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:30.188Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 1
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:30 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://dash.akamaized.net/dash264/TestCases/1c/qualcomm/2/MultiRate.mpd
+
+[7/14] Testing: https://videojs.com/ (videojs)
+[TargetRunner] Attaching to CDP -> https://videojs.com/
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:33 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:33 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:33.026Z',
+  inputType: 'URL',
+  inputSize: 20
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:33 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:33.027Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 1
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:33 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://videojs.com/
+
+[8/14] Testing: https://vjs.zencdn.net/v/oceans.mp4 (videojs)
+[TargetRunner] Attaching to CDP -> https://vjs.zencdn.net/v/oceans.mp4
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:36 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:36 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:36.038Z',
+  inputType: 'URL',
+  inputSize: 35
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:36 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:36.038Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 0
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:36 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://vjs.zencdn.net/v/oceans.mp4
+
+[9/14] Testing: https://developer.jwplayer.com/tools/stream-tester/ (jwplayer)
+[TargetRunner] Attaching to CDP -> https://developer.jwplayer.com/tools/stream-tester/
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:38 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:38 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:38.482Z',
+  inputType: 'URL',
+  inputSize: 51
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:38 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:38.483Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 1
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:38 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://developer.jwplayer.com/tools/stream-tester/
+
+[10/14] Testing: https://hls-js.netlify.app/demo/ (hlsjs)
+[TargetRunner] Attaching to CDP -> https://hls-js.netlify.app/demo/
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:43 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:43 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:43.315Z',
+  inputType: 'URL',
+  inputSize: 32
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:43 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:43.315Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 0
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:43 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://hls-js.netlify.app/demo/
+
+[11/14] Testing: https://shaka-player-demo.appspot.com/demo/ (shaka)
+[TargetRunner] Attaching to CDP -> https://shaka-player-demo.appspot.com/demo/
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:47 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:47 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:47.898Z',
+  inputType: 'URL',
+  inputSize: 43
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:47 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:47.898Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 0
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:47 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://shaka-player-demo.appspot.com/demo/
+
+[12/14] Testing: https://bitmovin.com/demos/stream-test (blob)
+[TargetRunner] Attaching to CDP -> https://bitmovin.com/demos/stream-test
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:51 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:51 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:51.129Z',
+  inputType: 'URL',
+  inputSize: 38
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:51 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:51.130Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 1
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:51 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://bitmovin.com/demos/stream-test
+
+[13/14] Testing: https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8 (tokenized_hls)
+[TargetRunner] Attaching to CDP -> https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:55 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:55 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:55.124Z',
+  inputType: 'URL',
+  inputSize: 100
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:55 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:55.124Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 0
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:55 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8
+
+[14/14] Testing: https://test-streams.mux.dev/test_001/stream.m3u8 (live_hls)
+[TargetRunner] Attaching to CDP -> https://test-streams.mux.dev/test_001/stream.m3u8
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:03:57 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Starting processing pipeline {}
+[2:03:57 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:57.883Z',
+  inputType: 'URL',
+  inputSize: 49
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:03:57 PM] [INFO] [hs_mme0hy1i_pvrfec] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:03:57.884Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 1
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:03:57 PM] [INFO] [hs_mme0hy1i_pvrfec] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://test-streams.mux.dev/test_001/stream.m3u8
+
+=== Final Scorecard ===
+Success: 14 / 14
+===============================

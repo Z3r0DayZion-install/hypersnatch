@@ -1,0 +1,22 @@
+[
+  {
+    "index": 0,
+    "filename": "segment_000.m4s",
+    "hash": "2b6b2aaab300596cbd2bb0cc186856427bf445f2828431c96247b961c0d5973b",
+    "mseId": "mse_v1fa1mf6e",
+    "sbId": "sb_4zfacg78d",
+    "mime": "video/mp4;codecs=\"avc1.640020\"",
+    "byteLength": 801157,
+    "timestamp": 1772775677948
+  },
+  {
+    "index": 1,
+    "filename": "segment_001.m4a",
+    "hash": "d6dd6867c84589f3bcab45f550f25a2640b05e5a0614ba5307cab9aadb64defc",
+    "mseId": "mse_v1fa1mf6e",
+    "sbId": "sb_5l0stbmd0",
+    "mime": "audio/mp4;codecs=\"mp4a.40.2\"",
+    "byteLength": 83205,
+    "timestamp": 1772775677949
+  }
+]

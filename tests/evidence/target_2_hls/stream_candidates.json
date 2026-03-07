@@ -1,0 +1,16 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+    "domain": "test-streams.mux.dev",
+    "path": "/x36xhzz/x36xhzz.m3u8",
+    "finalScore": 65,
+    "certaintyTier": "Partial",
+    "scoreBreakdown": [
+      "+40: Explicit manifest match in HAR",
+      "+15: MSE Segment pattern confirmed in HAR",
+      "+10: Host/CDN matches standard media pattern"
+    ]
+  }
+]

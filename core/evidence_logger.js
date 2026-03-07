@@ -8,7 +8,7 @@ const EvidenceLogger = {
   name: 'evidence_logger',
   version: '1.0.0',
   description: 'Forensic evidence logging and audit trail management',
-  
+
   // Logger state
   initialized: false,
   sessionId: null,
@@ -16,7 +16,7 @@ const EvidenceLogger = {
   maxLogSize: 10000, // Maximum entries in memory
   persistenceEnabled: true,
   logFile: null,
-  
+
   // Log levels
   LOG_LEVELS: {
     DEBUG: 0,
@@ -26,40 +26,40 @@ const EvidenceLogger = {
     SECURITY: 4,
     AUDIT: 5
   },
-  
+
   currentLogLevel: 1, // INFO
-  
+
   /**
    * Initialize evidence logger
    */
   initialize(options = {}) {
     if (this.initialized) return true;
-    
+
     try {
       this.sessionId = this.generateSessionId();
       this.logEntries = [];
       this.persistenceEnabled = options.persistence !== false;
       this.currentLogLevel = options.logLevel || 1;
       this.maxLogSize = options.maxLogSize || 10000;
-      
+
       if (this.persistenceEnabled) {
         this.logFile = options.logFile || `hypersnatch_evidence_${this.sessionId}.log`;
       }
-      
+
       this.initialized = true;
       this.log('INFO', 'Evidence logger initialized', {
         sessionId: this.sessionId,
         persistence: this.persistenceEnabled,
         logLevel: this.currentLogLevel
       });
-      
+
       return true;
     } catch (error) {
       console.error(`[EVIDENCE_LOGGER] Initialization failed: ${error.message}`);
       return false;
     }
   },
-  
+
   /**
    * Add log entry
    */
@@ -68,13 +68,13 @@ const EvidenceLogger = {
       console.warn('[EVIDENCE_LOGGER] Logger not initialized');
       return false;
     }
-    
+
     const levelValue = typeof level === 'string' ? this.LOG_LEVELS[level.toUpperCase()] : level;
-    
+
     if (levelValue < this.currentLogLevel) {
       return false; // Skip if below log threshold
     }
-    
+
     const entry = {
       timestamp: new Date().toISOString(),
       sessionId: this.sessionId,
@@ -83,53 +83,53 @@ const EvidenceLogger = {
       metadata: this.sanitizeMetadata(metadata),
       sequence: this.logEntries.length + 1
     };
-    
+
     // Add to memory
     this.logEntries.push(entry);
-    
+
     // Maintain memory limit
     if (this.logEntries.length > this.maxLogSize) {
       this.logEntries = this.logEntries.slice(-this.maxLogSize);
     }
-    
+
     // Output to console
     this.outputToConsole(entry);
-    
+
     // Persist if enabled
     if (this.persistenceEnabled) {
       this.persistEntry(entry);
     }
-    
+
     return true;
   },
-  
+
   /**
    * Convenience logging methods
    */
   debug(message, metadata) {
     return this.log('DEBUG', message, metadata);
   },
-  
+
   info(message, metadata) {
     return this.log('INFO', message, metadata);
   },
-  
+
   warning(message, metadata) {
     return this.log('WARNING', message, metadata);
   },
-  
+
   error(message, metadata) {
     return this.log('ERROR', message, metadata);
   },
-  
+
   security(message, metadata) {
     return this.log('SECURITY', message, metadata);
   },
-  
+
   audit(message, metadata) {
     return this.log('AUDIT', message, metadata);
   },
-  
+
   /**
    * Log user action
    */
@@ -141,7 +141,7 @@ const EvidenceLogger = {
       ...details
     });
   },
-  
+
   /**
    * Log system event
    */
@@ -153,7 +153,7 @@ const EvidenceLogger = {
       ...details
     });
   },
-  
+
   /**
    * Log security event
    */
@@ -165,7 +165,7 @@ const EvidenceLogger = {
       ...details
     });
   },
-  
+
   /**
    * Log policy violation
    */
@@ -177,7 +177,7 @@ const EvidenceLogger = {
       ...details
     });
   },
-  
+
   /**
    * Log module operation
    */
@@ -190,51 +190,51 @@ const EvidenceLogger = {
       ...details
     });
   },
-  
+
   /**
    * Get log entries
    */
   getEntries(filter = {}) {
     let entries = [...this.logEntries];
-    
+
     // Filter by level
     if (filter.level) {
-      const filterLevel = typeof filter.level === 'string' ? 
+      const filterLevel = typeof filter.level === 'string' ?
         this.LOG_LEVELS[filter.level.toUpperCase()] : filter.level;
       entries = entries.filter(entry => {
         const entryLevel = this.LOG_LEVELS[entry.level];
         return entryLevel >= filterLevel;
       });
     }
-    
+
     // Filter by time range
     if (filter.since) {
       const since = new Date(filter.since);
       entries = entries.filter(entry => new Date(entry.timestamp) >= since);
     }
-    
+
     if (filter.until) {
       const until = new Date(filter.until);
       entries = entries.filter(entry => new Date(entry.timestamp) <= until);
     }
-    
+
     // Filter by message content
     if (filter.search) {
       const searchTerm = filter.search.toLowerCase();
-      entries = entries.filter(entry => 
+      entries = entries.filter(entry =>
         entry.message.toLowerCase().includes(searchTerm) ||
         JSON.stringify(entry.metadata).toLowerCase().includes(searchTerm)
       );
     }
-    
+
     // Limit results
     if (filter.limit) {
       entries = entries.slice(-filter.limit);
     }
-    
+
     return entries;
   },
-  
+
   /**
    * Get log statistics
    */
@@ -251,15 +251,15 @@ const EvidenceLogger = {
         last: null
       }
     };
-    
+
     // Count by level
     Object.keys(this.LOG_LEVELS).forEach(level => {
       stats.levelCounts[level] = 0;
     });
-    
+
     this.logEntries.forEach(entry => {
       stats.levelCounts[entry.level] = (stats.levelCounts[entry.level] || 0) + 1;
-      
+
       // Track time range
       const timestamp = new Date(entry.timestamp);
       if (!stats.timeRange.first || timestamp < new Date(stats.timeRange.first)) {
@@ -269,16 +269,16 @@ const EvidenceLogger = {
         stats.timeRange.last = entry.timestamp;
       }
     });
-    
+
     return stats;
   },
-  
+
   /**
    * Export logs
    */
   async exportLogs(format = 'json', filter = {}) {
     const entries = this.getEntries(filter);
-    
+
     switch (format.toLowerCase()) {
       case 'json':
         return JSON.stringify({
@@ -287,18 +287,18 @@ const EvidenceLogger = {
           statistics: this.getStatistics(),
           entries
         }, null, 2);
-        
+
       case 'csv':
         return this.exportToCSV(entries);
-        
+
       case 'txt':
         return this.exportToText(entries);
-        
+
       default:
         throw new Error(`Unsupported export format: ${format}`);
     }
   },
-  
+
   /**
    * Clear logs
    */
@@ -306,7 +306,7 @@ const EvidenceLogger = {
     if (olderThan) {
       const cutoff = new Date(olderThan);
       const beforeCount = this.logEntries.length;
-      this.logEntries = this.logEntries.filter(entry => 
+      this.logEntries = this.logEntries.filter(entry =>
         new Date(entry.timestamp) >= cutoff
       );
       const cleared = beforeCount - this.logEntries.length;
@@ -316,10 +316,10 @@ const EvidenceLogger = {
       this.logEntries = [];
       this.info(`Cleared all ${count} log entries`);
     }
-    
+
     return true;
   },
-  
+
   /**
    * Set log level
    */
@@ -332,7 +332,7 @@ const EvidenceLogger = {
     }
     return false;
   },
-  
+
   /**
    * Generate session ID
    */
@@ -341,7 +341,7 @@ const EvidenceLogger = {
     const random = Math.random().toString(36).substring(2, 8);
     return `hs_${timestamp}_${random}`;
   },
-  
+
   /**
    * Get level name from value
    */
@@ -353,18 +353,18 @@ const EvidenceLogger = {
     }
     return 'UNKNOWN';
   },
-  
+
   /**
    * Sanitize metadata for logging
    */
   sanitizeMetadata(metadata) {
     const sanitized = {};
-    
+
     for (const [key, value] of Object.entries(metadata)) {
       if (value === null || value === undefined) {
         continue;
       }
-      
+
       if (typeof value === 'object') {
         try {
           sanitized[key] = JSON.parse(JSON.stringify(value));
@@ -377,17 +377,17 @@ const EvidenceLogger = {
         sanitized[key] = value;
       }
     }
-    
+
     return sanitized;
   },
-  
+
   /**
    * Output to console
    */
   outputToConsole(entry) {
     const timestamp = new Date(entry.timestamp).toLocaleTimeString();
     const prefix = `[${timestamp}] [${entry.level}] [${entry.sessionId}]`;
-    
+
     switch (entry.level) {
       case 'DEBUG':
         console.debug(prefix, entry.message, entry.metadata);
@@ -407,25 +407,29 @@ const EvidenceLogger = {
         console.log(prefix, entry.message, entry.metadata);
     }
   },
-  
+
   /**
    * Persist entry to file
    */
   persistEntry(entry) {
     if (!this.logFile) return;
-    
+
     try {
       const logLine = JSON.stringify(entry) + '\n';
-      
-      if (window.hyper && window.hyper.saveFile) {
+
+      if (typeof window !== 'undefined' && window.hyper && window.hyper.saveFile) {
         // Append to existing log file
         window.hyper.saveFile(this.logFile, logLine);
+      } else {
+        // If in node test environment, we can optionally use fs 
+        // but for now just console log or skip.
+        // Skipping since we are already logging to console in outputToConsole.
       }
     } catch (error) {
       console.error('[EVIDENCE_LOGGER] Failed to persist log entry:', error);
     }
   },
-  
+
   /**
    * Export to CSV format
    */
@@ -437,17 +441,17 @@ const EvidenceLogger = {
       `"${entry.message.replace(/"/g, '""')}"`,
       `"${JSON.stringify(entry.metadata).replace(/"/g, '""')}"`
     ]);
-    
+
     return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
   },
-  
+
   /**
    * Export to text format
    */
   exportToText(entries) {
     return entries.map(entry => {
       const timestamp = new Date(entry.timestamp).toLocaleString();
-      const metadataStr = Object.keys(entry.metadata).length > 0 ? 
+      const metadataStr = Object.keys(entry.metadata).length > 0 ?
         ` | ${JSON.stringify(entry.metadata)}` : '';
       return `[${timestamp}] [${entry.level}] ${entry.message}${metadataStr}`;
     }).join('\n');

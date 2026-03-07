@@ -1,0 +1,18 @@
+{
+  "id": "CASE_999",
+  "title": "Akamai Investigation",
+  "bundles": [
+    {
+      "path": "B1.hyper",
+      "cdn": "Akamai",
+      "protocol": "HLS",
+      "playerSignature": "Shaka"
+    },
+    {
+      "path": "B2.hyper",
+      "cdn": "Akamai",
+      "protocol": "DASH",
+      "playerSignature": "VideoJS"
+    }
+  ]
+}

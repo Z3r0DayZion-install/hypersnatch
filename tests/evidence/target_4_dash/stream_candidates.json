@@ -1,0 +1,14 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd",
+    "domain": "dash.akamaized.net",
+    "path": "/envivio/EnvivioDash3/manifest.mpd",
+    "finalScore": 40,
+    "certaintyTier": "Partial",
+    "scoreBreakdown": [
+      "+40: Explicit manifest match in HAR"
+    ]
+  }
+]

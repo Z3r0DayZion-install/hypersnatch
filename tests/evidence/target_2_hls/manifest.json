@@ -1,0 +1,15 @@
+{
+  "target": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+  "processedAt": "2026-03-06T05:41:01.039Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "ab96c8089e8c2e53b0acee0e580ce346c06919186d56e39cedadd44a1f55042a",
+    "dom_snapshot.html": "16f6134ae50ac8db61a34d8b0828957a352a3bbf4d78e68a83c82e8738649803",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "har_classified.json": "731ead3e15b04d0f148d4e2b3eec4a7666e436d5a1bf6ed3845f1ad7b3c764a2",
+    "player_profile.json": "c7a8967a502dedd736a46bcbcb5ec2a6fef2a9c8f9a07e519c8c1bd63968ab5e",
+    "stream_candidates.json": "fc689f7915feb8f230db45a4a93fc0c6b7231b207fee2597295d803ebc9c5e9d",
+    "report.md": "a2b040982a45b17d49748bb465c5f5b3f12abb5fa3f5df8dc7954522b66d9f50"
+  }
+}

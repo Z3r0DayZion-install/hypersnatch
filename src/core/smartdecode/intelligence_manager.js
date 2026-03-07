@@ -33,7 +33,7 @@ const IntelligenceManager = {
 
             // In a production v1.2 build, we would verify the signature here
             // using the Founders Public Key.
-            
+
             if (data.patterns) {
                 for (const [key, p] of Object.entries(data.patterns)) {
                     this.patterns.set(key, {
@@ -80,6 +80,59 @@ const IntelligenceManager = {
 
     getAllPatterns() {
         return Array.from(this.patterns.values());
+    },
+
+    /**
+     * Adds a dynamically generated rule from the AI Analyzer
+     * and persists it to the intelligence file.
+     */
+    addDynamicRule(ruleId, ruleDefinition, intelligencePath = null) {
+        if (this.patterns.has(ruleId)) return false; // Already exists
+
+        console.log(`[IntelligenceManager] Learning new rule: ${ruleId}`);
+        this.patterns.set(ruleId, ruleDefinition);
+
+        if (intelligencePath) {
+            this._saveToDisk(intelligencePath);
+        }
+        return true;
+    },
+
+    /**
+     * Serializes the current pattern map back to the JSON file
+     */
+    _saveToDisk(intelligencePath) {
+        try {
+            const data = {
+                version: "1.2.0-ai-enhanced",
+                lastUpdated: new Date().toISOString(),
+                patterns: {}
+            };
+
+            for (const [key, p] of this.patterns.entries()) {
+                // Determine if it's a legacy static regex rule or a new dynamic script rule
+                if (p.scriptPattern) {
+                    data.patterns[key] = {
+                        type: p.type || 'dynamic_script',
+                        strategy: p.strategy,
+                        scriptPattern: p.scriptPattern,
+                        confidence: p.confidence || 0.85
+                    };
+                } else if (p.regex) {
+                    data.patterns[key] = {
+                        type: p.type,
+                        regex: p.regex.source,
+                        flags: p.regex.flags,
+                        confidence: p.confidence
+                    };
+                }
+            }
+
+            fs.writeFileSync(intelligencePath, JSON.stringify(data, null, 4), 'utf8');
+            console.log(`[IntelligenceManager] Successfully saved learned patterns to ${intelligencePath}`);
+        } catch (e) {
+            console.error("[IntelligenceManager] Failed to persist intelligence to disk:", e);
+        }
     }
 };
 

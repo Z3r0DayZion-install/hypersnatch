@@ -12,25 +12,18 @@ const Iframe = require("./iframe");
 const HostExtractors = require("./hosts");
 const RustEngine = require("./rust-engine");
 const IntelligenceManager = require("./intelligence_manager");
+const AutoPicker = require("../auto-picker");
+const { ConfidenceScorer } = require("./confidence_scorer");
 
-function scanHttpUrls(text) {
-  const s = String(text || "");
-  const re = /https?:\/\/[^\s"'<>]+/gi;
-  const out = [];
-  let m;
-  while ((m = re.exec(s))) {
-    const cleaned = m[0].replace(/[),.;]+$/g, "");
-    out.push(cleaned);
-  }
-  return out;
-}
+const scorer = new ConfidenceScorer();
+
 
 /**
- * SmartDecode 2.4.0 - Orchestration Module
- * Deterministic forensic extraction pipeline.
+ * SmartDecode 2.5.0 - Orchestration Module
+ * Deterministic forensic extraction pipeline with Multi-Link Phase 53 support.
  */
 const SmartDecode = {
-  VERSION: "2.4.0",
+  VERSION: "2.5.0",
   MAX_RECURSION_DEPTH: 3,
 
   /**
@@ -43,7 +36,7 @@ const SmartDecode = {
 
     const requested = String(options.engine || process.env.HYPERSNATCH_SMARTDECODE_ENGINE || "").toLowerCase();
     const engine = (requested === "auto" ? "" : requested) || (Boolean(process.versions && process.versions.electron) ? "rust" : "js");
-    
+
     if (engine === "rust") {
       const strict = Boolean(options.strictEngine) || process.env.HYPERSNATCH_SMARTDECODE_ENGINE_STRICT === "1";
       if (RustEngine.canRun()) {
@@ -62,6 +55,13 @@ const SmartDecode = {
     }
 
     const normalized = Preprocessor.normalize(input);
+
+    // Phase 53: Multi-Link detection
+    const links = Preprocessor.detectLinks(normalized);
+    if (links.length > 1) {
+      return await this.runBatch(links, options);
+    }
+
     let segments = [normalized];
 
     // Segment splitting for memory optimization on massive payloads
@@ -95,11 +95,37 @@ const SmartDecode = {
 
     const finalRanked = Ranker.rank(allAccepted.sort(sortC));
 
+    // Phase 57: Auto-Pick & Breakdown Attachment
+    const best = AutoPicker.pick(finalRanked.candidates, {
+      autoSelect: options.autoSelect !== false,
+      minConfidence: options.minConfidence || 0.4
+    });
+
     return {
       version: this.VERSION,
       candidates: finalRanked.candidates,
-      best: finalRanked.best,
+      best: best || finalRanked.best,
       refusals: allRefused.sort(sortR),
+    };
+  },
+
+  /**
+   * runBatch(links, options)
+   * Process multiple links as discrete forensic jobs.
+   */
+  async runBatch(links, options = {}) {
+    const results = [];
+    for (const link of links) {
+      const result = await this.run(link, { ...options, _isBatchItem: true });
+      results.push({
+        input: link,
+        ...result
+      });
+    }
+    return {
+      version: this.VERSION,
+      batch: true,
+      jobs: results
     };
   },
 
@@ -133,7 +159,7 @@ const SmartDecode = {
       let urlStr = String(c?.url || "");
       if (!urlStr) continue;
 
-      try { urlStr = new URL(urlStr).href; } catch (e) {}
+      try { urlStr = new URL(urlStr).href; } catch (e) { }
 
       if (!/^https?:\/\//i.test(urlStr)) {
         refused.push({ host: c?.host || "unknown", reason: "incomplete_or_relative_url", status: "rejected", url: urlStr });
@@ -144,12 +170,18 @@ const SmartDecode = {
       if (auth?.requiresAuthorization) {
         refused.push({ host: c?.host || "unknown", reason: auth.stopReason || "requires_auth", status: "rejected", url: urlStr });
       } else {
+        // Apply Confidence Scorer for Phase 57/58 details
+        const scoreResult = scorer.score(c, { playerConfig: html }); // Basic context for now
+
         const candidate = {
           ...c,
-          type: this.classifyType(urlStr, html),
+          type: (c.type && c.type !== 'unknown' && c.type !== 'link') ? c.type : this.classifyType(urlStr, html),
           fingerprint: crypto.createHash("sha256").update(urlStr).digest("hex"),
           status: "accepted",
           url: urlStr,
+          breakdown: scoreResult.breakdown,
+          forensicScore: scoreResult.score,
+          certaintyTier: scoreResult.certaintyTier
         };
 
         const keyNew = (String(candidate.host ?? "") + "\0" + String(candidate.type ?? "") + "\0" + String(candidate.url ?? ""));
@@ -164,7 +196,7 @@ const SmartDecode = {
     }
 
     // URL Sweep for Boundary Detection
-    for (const u of scanHttpUrls(html)) {
+    for (const u of Preprocessor.detectLinks(html)) {
       const auth = AuthBoundaryDetector.check(u, html);
       if (auth && auth.requiresAuthorization) {
         refused.push({

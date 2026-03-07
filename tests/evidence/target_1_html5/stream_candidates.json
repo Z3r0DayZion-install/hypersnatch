@@ -1,0 +1,14 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    "domain": "interactive-examples.mdn.mozilla.net",
+    "path": "/media/cc0-videos/flower.mp4",
+    "finalScore": 10,
+    "certaintyTier": "Low",
+    "scoreBreakdown": [
+      "+10: Host/CDN matches standard media pattern"
+    ]
+  }
+]

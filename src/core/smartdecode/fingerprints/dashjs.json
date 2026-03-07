@@ -1,0 +1,19 @@
+{
+    "player_name": "dash.js",
+    "window_objects": [
+        "dashjs"
+    ],
+    "dom_signatures": [],
+    "script_signatures": [
+        "dash.all.min.js",
+        "dashjs"
+    ],
+    "known_api_calls": [
+        "dashjs.MediaPlayer().create()",
+        "player.initialize("
+    ],
+    "extraction_paths": [
+        "player.getSource()"
+    ],
+    "confidence_weight": 0.8
+}

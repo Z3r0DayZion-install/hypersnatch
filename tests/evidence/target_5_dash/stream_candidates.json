@@ -1,0 +1,14 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://dash.akamaized.net/dash264/TestCases/1c/qualcomm/2/MultiRate.mpd",
+    "domain": "dash.akamaized.net",
+    "path": "/dash264/TestCases/1c/qualcomm/2/MultiRate.mpd",
+    "finalScore": 40,
+    "certaintyTier": "Partial",
+    "scoreBreakdown": [
+      "+40: Explicit manifest match in HAR"
+    ]
+  }
+]

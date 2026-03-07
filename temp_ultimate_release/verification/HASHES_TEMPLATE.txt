@@ -1,0 +1,5 @@
+
+# SHA256 Hash Manifest
+
+HyperSnatch.exe:
+hypersnatch-cli.exe:

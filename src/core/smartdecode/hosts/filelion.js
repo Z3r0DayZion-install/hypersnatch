@@ -5,7 +5,8 @@
 const FilelionExtractor = {
     PATTERNS: [
         /https?:\/\/(?:www\.)?(?:filelion\.(?:live|com|cc|xyz)|lion\.stream)\/v\/([a-zA-Z0-9]+)/i,
-        /https?:\/\/(?:www\.)?(?:filelion\.(?:live|com|cc|xyz)|lion\.stream)\/d\/([a-zA-Z0-9]+)/i
+        /https?:\/\/(?:www\.)?(?:filelion\.(?:live|com|cc|xyz)|lion\.stream)\/d\/([a-zA-Z0-9]+)/i,
+        /https?:\/\/(?:www\.)?(?:filelion\.(?:live|com|cc|xyz)|lion\.stream)\/list\/([a-zA-Z0-9]+)/i // Phase 54: List/Folder Support
     ],
 
     extract(input) {
@@ -18,12 +19,14 @@ const FilelionExtractor = {
                 const url = match[0];
                 const fileId = match[1];
                 if (!candidates.has(url)) {
+                    const isFolder = /\/list\//i.test(url);
                     candidates.set(url, {
                         url, fileId, filename: 'unknown',
                         host: 'filelion.live',
-                        type: 'video',
+                        type: isFolder ? 'folder' : 'video',
                         sourceLayer: 'host_filelion',
-                        confidence: 0.95
+                        confidence: isFolder ? 0.90 : 0.95,
+                        requiresExpansion: isFolder
                     });
                 }
             }

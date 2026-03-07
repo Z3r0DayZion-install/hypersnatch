@@ -1,0 +1,10 @@
+{
+  "id": "HS-2026-X1",
+  "status": "open",
+  "createdAt": "2026-03-06T20:33:00.717Z",
+  "bundles": [],
+  "observations": [
+    "Detected Widevine DRM signatures with Akamai pathing."
+  ],
+  "priority": "high"
+}

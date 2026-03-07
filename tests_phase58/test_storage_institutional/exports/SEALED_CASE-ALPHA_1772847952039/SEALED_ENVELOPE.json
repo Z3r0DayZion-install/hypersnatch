@@ -1,0 +1,15 @@
+{
+  "envelope_version": "1.0",
+  "sealed_at": "2026-03-07T01:45:52.040Z",
+  "data": {
+    "version": "Vanguards-1.0",
+    "case_id": "CASE-ALPHA",
+    "timestamp": "2026-03-07T01:45:52.040Z",
+    "manifest": {},
+    "integrity": {
+      "case_hash": "338c0ccfcfb4e7cbb3bc0a7603745a3a0a490f54a60fd86a7674b6848dd1e269"
+    }
+  },
+  "signature": "3046022100f9392f16245c2f14a10ba62796fcbb6d39a5a7c27f4c49b4add4300a590e33bd022100a13d46cb1aad41f2766bc52ab564c321864586f26616504d1099b8c578d6ad55",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEYzMR1j6NdRphRqgZHIvYpzjZNJ1fjShO\njHkNu2GTF7r5wLwivG1rVSmvWMm6AZrKRx0JagL7iMaiPN6kEMFdBw==\n-----END PUBLIC KEY-----\n"
+}

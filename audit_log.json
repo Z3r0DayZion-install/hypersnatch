@@ -1,0 +1,23 @@
+[
+  {
+    "timestamp": "2026-03-06T20:33:00.715Z",
+    "analystId": "AGENT_007",
+    "action": "LOGIN",
+    "details": "Analyst started session",
+    "signature": "verified-action-signature"
+  },
+  {
+    "timestamp": "2026-03-06T20:33:00.721Z",
+    "analystId": "AGENT_007",
+    "action": "CREATE_CASE",
+    "details": "HS-2026-X1",
+    "signature": "verified-action-signature"
+  },
+  {
+    "timestamp": "2026-03-06T20:33:00.729Z",
+    "analystId": "AGENT_007",
+    "action": "ADD_OBSERVATION",
+    "details": "DRM signatures identified",
+    "signature": "verified-action-signature"
+  }
+]

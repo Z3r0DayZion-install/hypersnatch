@@ -1,0 +1,15 @@
+{
+  "target": "https://test-streams.mux.dev/test_001/stream.m3u8",
+  "processedAt": "2026-03-06T05:41:39.314Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "5625075ffe88a628c966fb0c5595491f38a5e30cf92c8141a04632ccdf39d271",
+    "dom_snapshot.html": "6bf6f58b5e58d79fbc25339176de99ea8f7cf4d9f94c86bd7b2c0138ec5ca5c6",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "har_classified.json": "9349f114e0ad03b5e0fe42bb3c399811df740eb33795546eb1edc69cce5f85f9",
+    "player_profile.json": "c7a8967a502dedd736a46bcbcb5ec2a6fef2a9c8f9a07e519c8c1bd63968ab5e",
+    "stream_candidates.json": "65086443ccdfe40b50798a262753e53c64651e7bdd9d8561b27a2e17a04a3bb4",
+    "report.md": "b2f047add4726f5a3f1baf2d182476dc473f159cf4cb127c62f6e79ce60647a0"
+  }
+}

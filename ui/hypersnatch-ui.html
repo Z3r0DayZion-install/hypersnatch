@@ -5,251 +5,365 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>HyperSnatch — Offline Decode UI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <style>
     :root {
-      /* Vanguard v2.0 Vibrant Cyber Palette */
-      --bg-base: #020408;
-      --bg-surface: rgba(10, 14, 20, 0.7);
-      --bg-elevated: rgba(17, 24, 35, 0.82);
+      /* Command Center Palette */
+      --bg-base: #0A0D12;
+      --bg-panel: #121821;
+      --bg-panel-alt: #171F2B;
+      --border-soft: #263242;
+      --border-hard: #3b4c63;
 
-      --border-soft: rgba(56, 189, 248, 0.15);
-      --border-hard: rgba(56, 189, 248, 0.3);
-      --border-glow: rgba(56, 189, 248, 0.65);
+      --text-base: #EAF2FF;
+      --text-muted: #9FB0C7;
+      --text-muted-dark: #607089;
 
-      --text-base: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-accent: #38bdf8;
-      --text-accent-glow: #0ea5e9;
+      --text-accent: #20C7FF;
+      --text-accent-glow: #20C7FF80;
 
-      /* High-Vibrancy Status Colors */
-      --color-ok: #10b981;
-      --color-ok-glow: rgba(16, 185, 129, 0.6);
-      --color-bad: #f43f5e;
-      --color-bad-glow: rgba(244, 63, 94, 0.6);
-      --color-warn: #fbbf24;
-      --color-idle: #64748b;
-
-      --glass-blur: blur(24px);
-      --glass-saturate: saturate(180%);
+      /* Refined Status Colors */
+      --color-ok: #23D18B;
+      --color-ok-glow: rgba(35, 209, 139, 0.4);
+      --color-bad: #FF5C7A;
+      --color-bad-glow: rgba(255, 92, 122, 0.4);
+      --color-warn: #F5B83D;
+      --color-idle: #607089;
 
       color-scheme: dark;
     }
 
-    @keyframes pulse-glow {
 
-      0%,
-      100% {
-        box-shadow: 0 0 20px var(--border-glow);
-        border-color: var(--border-hard);
-      }
-
-      50% {
-        box-shadow: 0 0 35px var(--text-accent);
-        border-color: var(--text-accent);
-      }
-    }
-
-    @keyframes grid-drift-back {
-      from {
-        background-position: 0 0;
-      }
-
-      to {
-        background-position: 80px 80px;
-      }
-    }
-
-    @keyframes grid-drift-front {
-      from {
-        background-position: 0 0;
-      }
-
-      to {
-        background-position: -40px -40px;
-      }
-    }
-
-    @keyframes bloom-rotate {
-      0% {
-        transform: translate(-50%, -50%) rotate(0deg) scale(1);
-        opacity: 0.3;
-      }
-
-      50% {
-        transform: translate(-50%, -50%) rotate(180deg) scale(1.2);
-        opacity: 0.5;
-      }
-
-      100% {
-        transform: translate(-50%, -50%) rotate(360deg) scale(1);
-        opacity: 0.3;
-      }
-    }
 
     body {
       margin: 0;
-      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background-color: var(--bg-base);
       color: var(--text-base);
       -webkit-font-smoothing: antialiased;
-      line-height: 1.5;
-      position: relative;
-      overflow-x: hidden;
-      min-height: 100vh;
+      line-height: 1.6;
+      height: 100vh;
+      overflow: hidden;
+      font-weight: 300;
+
+      display: grid;
+      grid-template-columns: 240px 1fr 340px;
+      grid-template-rows: 60px 1fr 280px;
+      grid-template-areas:
+        "topbar topbar topbar"
+        "leftrail main rightpanel"
+        "leftrail bottomdock rightpanel";
     }
 
-    /* Dual-Layer Parallax Background */
-    .bg-vibrant {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: -2;
-      background:
-        linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
-      background-size: 80px 80px;
-      animation: grid-drift-back 15s linear infinite;
-    }
-
-    .bg-vibrant::after {
-      content: "";
-      position: absolute;
-      top: -100px;
-      left: -100px;
-      right: -100px;
-      bottom: -100px;
-      background-image:
-        linear-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
-      background-size: 40px 40px;
-      animation: grid-drift-front 8s linear infinite;
-      z-index: -1;
-      opacity: 0.6;
-    }
-
-    /* Central Bloom Glow */
-    .bg-bloom {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 800px;
-      height: 800px;
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
-      filter: blur(80px);
-      z-index: -1;
-      pointer-events: none;
-      animation: bloom-rotate 20s ease-in-out infinite;
-    }
-
-    /* Scrollbar Styling */
+    /* Scrollbar Modernization */
     ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
     }
 
     ::-webkit-scrollbar-track {
-      background: var(--bg-base);
+      background: transparent;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: var(--border-hard);
-      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: var(--text-accent);
+      background: rgba(255, 255, 255, 0.2);
     }
 
     header {
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--border-soft);
-      background: rgba(3, 5, 7, 0.75);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      padding: 16px 32px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(9, 9, 11, 0.7);
+      backdrop-filter: var(--glass-blur) var(--glass-saturate);
+      -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
       position: sticky;
       top: 0;
       z-index: 50;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(56, 189, 248, 0.1);
     }
 
     h1 {
       margin: 0;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      background: linear-gradient(90deg, #ffffff, var(--text-accent));
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #fff;
       display: flex;
       align-items: center;
       gap: 12px;
-      text-transform: uppercase;
     }
 
     h1::before {
       content: '';
       display: block;
-      width: 12px;
-      height: 12px;
-      background: var(--text-accent);
-      border-radius: 50%;
-      box-shadow: 0 0 12px var(--text-accent), 0 0 24px var(--text-accent);
+      width: 8px;
+      height: 24px;
+      background: linear-gradient(180deg, var(--text-accent), var(--text-accent-glow));
+      border-radius: 4px;
     }
 
-    .wrap {
-      padding: 32px 24px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .grid {
+    .workstation-layout {
       display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 24px;
-      align-items: start;
+      grid-template-columns: 250px 1fr 300px;
+      grid-template-rows: 60px 1fr 200px;
+      height: 100vh;
+      grid-template-areas:
+        "header header header"
+        "left-rail center-tabs right-panel"
+        "left-rail bottom-log right-panel";
     }
 
-    .card {
-      border: 1px solid var(--border-soft);
-      border-radius: 16px;
-      background: var(--bg-surface);
-      backdrop-filter: var(--glass-blur) var(--glass-saturate);
-      -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
-      padding: 24px;
-      position: relative;
+    /* Top Header */
+    .top-header {
+      grid-area: header;
+      background: var(--bg-panel-alt);
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      align-items: center;
+      padding: 0 1.5rem;
+      gap: 1rem;
+    }
+
+    .top-header h1 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-base);
+      letter-spacing: 0.5px;
+      margin-right: 2rem;
+    }
+
+    /* Left Rail */
+    .left-rail {
+      grid-area: left-rail;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-soft);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      overflow-y: auto;
+    }
+
+    /* Center Tabs */
+    .center-workspace {
+      grid-area: center-tabs;
+      background: var(--bg-base);
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
-      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
     }
 
-    .card::after {
-      content: '';
-      position: absolute;
+    .tab-bar {
+      display: flex;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 0;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      font-family: inherit;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-base);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn.active {
+      color: var(--text-accent);
+      border-bottom-color: var(--text-accent);
+      background: rgba(32, 199, 255, 0.1);
+    }
+
+    .tab-content {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Right Panel */
+    .right-panel {
+      grid-area: right-panel;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-soft);
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* Bottom Log */
+    .bottom-log {
+      grid-area: bottom-log;
+      background: var(--bg-panel-alt);
+      border-top: 1px solid var(--border-soft);
+      padding: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      overflow-y: auto;
+    }
+
+    /* Reusable Components */
+    .panel {
+      background: var(--bg-base);
+      border: 1px solid var(--border-soft);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+
+    .panel-header {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .data-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .data-value {
+      font-size: 0.9rem;
+      color: var(--text-base);
+      font-weight: 500;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-soft);
+      color: var(--text-muted);
+    }
+
+    .status-badge.ok {
+      background: rgba(35, 209, 139, 0.1);
+      border-color: rgba(35, 209, 139, 0.2);
+      color: var(--color-ok);
+    }
+
+    .status-badge.bad {
+      background: rgba(255, 92, 122, 0.1);
+      border-color: rgba(255, 92, 122, 0.2);
+      color: var(--color-bad);
+    }
+
+    .status-badge.warn {
+      background: rgba(245, 184, 61, 0.1);
+      border-color: rgba(245, 184, 61, 0.2);
+      color: var(--color-warn);
+    }
+
+    .val-list .val-item {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding: 0.3rem 0.5rem;
+      border-radius: 0.3rem;
+      transition: background 0.2s;
+    }
+
+    .val-list .val-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .intl-widget {
+      background: var(--bg-base);
+      border: 1px solid var(--border-soft);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+    }
+
+    .intl-header {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.25rem;
+    }
+
+    .intl-value {
+      font-size: 0.85rem;
+      color: var(--text-base);
+      font-weight: 500;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-soft);
+      border-radius: 0.75rem;
+      overflow: hidden;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .data-table th {
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(255, 255, 255, 0.02);
+      position: sticky;
       top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
-      opacity: 0;
-      transition: opacity 0.3s;
     }
 
-    .card:hover {
-      transform: translateY(-4px) perspective(1000px) rotateX(1deg);
-      border-color: var(--border-hard);
-      box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.1);
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
     }
 
-    .card:hover::after {
-      opacity: 1;
+    .data-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
     }
 
+    /* Old styles that might be reused or need adjustment */
     .row {
       display: flex;
-      gap: 12px;
+      gap: 16px;
       flex-wrap: wrap;
       align-items: center;
     }
@@ -259,82 +373,61 @@
     input[type="file"],
     select,
     input[type="number"] {
-      background: rgba(17, 24, 35, 0.6);
+      background: rgba(255, 255, 255, 0.03);
       color: var(--text-base);
       border: 1px solid var(--border-soft);
-      border-radius: 8px;
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 600;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
       font-family: inherit;
       backdrop-filter: blur(4px);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
     }
 
     button:hover:not(:disabled) {
-      background: rgba(51, 65, 85, 0.8);
-      border-color: var(--text-accent);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 10px var(--border-glow);
-    }
-
-    button:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: none;
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--border-hard);
+      transform: translateY(-1px);
     }
 
     button:disabled {
-      opacity: 0.3;
+      opacity: 0.4;
       cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important;
     }
 
     /* Primary CTA */
     #btnDecode {
       background: linear-gradient(135deg, var(--text-accent), var(--text-accent-glow));
-      color: #000;
+      color: #fff;
       border: none;
-      padding: 12px 24px;
+      padding: 14px 28px;
       border-radius: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      box-shadow: 0 0 15px var(--text-accent-glow);
-      position: relative;
-      overflow: hidden;
+      font-weight: 600;
+      box-shadow: 0 8px 20px -8px var(--text-accent-glow);
     }
 
     #btnDecode:hover {
-      background: linear-gradient(135deg, #7dd3fc, var(--text-accent));
-      box-shadow: 0 0 25px var(--text-accent), 0 0 50px var(--text-accent-glow);
-      transform: scale(1.04) translateY(-2px);
-    }
-
-    #btnDecode:active {
-      transform: scale(0.98);
+      background: linear-gradient(135deg, #a5b4fc, var(--text-accent));
+      box-shadow: 0 12px 25px -8px var(--text-accent-glow);
     }
 
     /* Staggered Data Entrance Animation */
-    @keyframes row-in {
+    @keyframes fade-in-up {
       from {
         opacity: 0;
-        transform: translateX(-20px);
-        filter: blur(10px);
+        transform: translateY(10px);
       }
 
       to {
         opacity: 1;
-        transform: translateX(0);
-        filter: blur(0);
+        transform: translateY(0);
       }
     }
 
     .data-row-animate {
-      animation: row-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation: fade-in-up 0.4s ease forwards;
     }
 
     textarea {
@@ -342,35 +435,36 @@
       min-height: 280px;
       resize: vertical;
       box-sizing: border-box;
-      background: var(--bg-base);
+      background: rgba(0, 0, 0, 0.2);
       color: #e2e8f0;
       border: 1px solid var(--border-soft);
-      border-radius: 8px;
-      padding: 14px;
-      line-height: 1.5;
-      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+      border-radius: 12px;
+      padding: 18px;
+      line-height: 1.6;
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
       font-size: 13px;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     textarea:focus {
       outline: none;
       border-color: var(--text-accent);
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15);
     }
 
     /* Typography Utilities */
     .muted {
       color: var(--text-muted);
-      font-size: 13px;
+      font-weight: 400;
+      font-size: 14px;
     }
 
     .tiny {
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .mono {
-      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
     }
 
     /* Badges/Pills */
@@ -378,311 +472,126 @@
       display: inline-flex;
       gap: 8px;
       align-items: center;
-      padding: 6px 12px;
-      background: rgba(17, 24, 35, 0.7);
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border-soft);
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
       backdrop-filter: blur(8px);
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
-    .pill:hover {
-      border-color: var(--border-hard);
-      transform: translateY(-1px);
-    }
-
-    /* Status Coloring w/ Glows */
+    /* Status Coloring */
     .ok {
       color: var(--color-ok);
-      text-shadow: 0 0 10px var(--color-ok-glow);
     }
 
     .bad {
       color: var(--color-bad);
-      text-shadow: 0 0 10px var(--color-bad-glow);
     }
 
     .warn {
       color: var(--color-warn);
-      text-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
     }
 
     .idle {
       color: var(--color-idle);
     }
 
-    /* Tables */
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin-top: 10px;
-    }
-
-    th,
-    td {
-      border-bottom: 1px solid var(--border-soft);
-      padding: 12px 16px;
-      font-size: 13px;
-      vertical-align: middle;
-    }
-
-    th {
-      text-align: left;
-      color: #94a3b8;
-      font-weight: 700;
-      text-transform: uppercase;
-      font-size: 11px;
-      letter-spacing: 1px;
-      background: rgba(15, 23, 42, 0.4);
-      backdrop-filter: blur(4px);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    tbody tr {
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    tbody tr:hover {
-      background: rgba(56, 189, 248, 0.05);
-      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.1);
-    }
-
     .cmdBox {
-      background: rgba(3, 5, 7, 0.8);
+      background: rgba(0, 0, 0, 0.2);
       border: 1px solid var(--border-soft);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 16px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
       color: #cbd5e1;
       white-space: pre-wrap;
       word-break: break-word;
-      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .cmdBox::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      width: 3px;
-      background: linear-gradient(180deg, transparent, var(--text-accent), transparent);
-      opacity: 0.5;
     }
 
     .logTerminal {
-      background: #000;
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-soft);
-      border-radius: 6px;
+      border-radius: 10px;
       height: 220px;
       overflow-y: auto;
-      padding: 12px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: #94a3b8;
-      line-height: 1.4;
-      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8);
-      scrollbar-width: thin;
+      padding: 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: #a1a1aa;
+      line-height: 1.5;
     }
 
     .logTerminal .entry {
-      margin-bottom: 4px;
-      border-left: 2px solid transparent;
-      padding-left: 8px;
+      margin-bottom: 6px;
     }
 
     .logTerminal .entry.probe {
-      border-color: var(--text-accent);
+      color: var(--text-accent);
     }
 
     .logTerminal .entry.decode {
-      border-color: var(--color-ok);
+      color: var(--color-ok);
     }
 
     .logTerminal .entry.warn {
-      border-color: var(--color-warn);
+      color: var(--color-warn);
     }
 
     .logTerminal .entry.bad {
-      border-color: var(--color-bad);
+      color: var(--color-bad);
     }
 
     .logTerminal .entry .ts {
       color: var(--text-muted);
       margin-right: 8px;
+      font-size: 11px;
     }
 
     .spacer {
-      height: 16px;
-    }
-
-    /* Next-Level Forensic Visuals */
-    @keyframes radar-pulse {
-      0% {
-        transform: scale(0.8);
-        opacity: 0;
-      }
-
-      50% {
-        opacity: 0.5;
-      }
-
-      100% {
-        transform: scale(1.5);
-        opacity: 0;
-      }
-    }
-
-    @keyframes matrix-scroll {
-      0% {
-        background-position: 0% 0%;
-      }
-
-      100% {
-        background-position: 0% 100%;
-      }
-    }
-
-    .radar-container {
-      position: relative;
-      width: 120px;
-      height: 120px;
-      margin: 0 auto;
-      border: 1px solid var(--border-soft);
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
-      overflow: hidden;
-    }
-
-    .radar-pulse {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border: 2px solid var(--text-accent);
-      border-radius: 50%;
-      animation: radar-pulse 2s infinite;
-      pointer-events: none;
-    }
-
-    .radar-sweep {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 50%;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--text-accent));
-      transform-origin: left center;
-      animation: rotate 4s linear infinite;
-    }
-
-    @keyframes rotate {
-      from {
-        transform: rotate(0deg);
-      }
-
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    .matrix-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(0deg, rgba(3, 5, 7, 0.8) 0%, transparent 50%, rgba(3, 5, 7, 0.8) 100%),
-        url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.5s ease;
-      z-index: 5;
-    }
-
-    .matrix-active .matrix-overlay {
-      opacity: 1;
-      animation: matrix-scroll 20s linear infinite;
+      height: 24px;
     }
 
     .confidence-gauge {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
-      font-weight: 800;
+      font-size: 11px;
+      font-weight: 700;
       border: 2px solid var(--border-soft);
-      position: relative;
-    }
-
-    .confidence-gauge::after {
-      content: '';
-      position: absolute;
-      inset: -3px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      border-top-color: var(--text-accent);
-      animation: rotate 2s linear infinite;
-      opacity: 0.5;
     }
 
     .audit-seal {
       margin-top: 24px;
       padding: 16px;
       background: rgba(16, 185, 129, 0.05);
-      border: 1px dashed var(--color-ok-glow);
-      border-radius: 8px;
+      border: 1px dashed rgba(16, 185, 129, 0.2);
+      border-radius: 12px;
       display: none;
       align-items: center;
       gap: 16px;
-      animation: slide-up 0.5s ease-out;
-    }
-
-    @keyframes slide-up {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
     }
 
     .seal-icon {
       width: 40px;
       height: 40px;
-      background: var(--color-ok);
-      color: #000;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--color-ok);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 20px var(--color-ok-glow);
     }
 
     /* Modal Overlay */
     .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(6, 9, 14, 0.9);
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -693,10 +602,10 @@
     .modal {
       background: var(--bg-surface);
       border: 1px solid var(--border-soft);
-      border-radius: 12px;
-      padding: 30px;
+      border-radius: 16px;
+      padding: 32px;
       max-width: 500px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
     }
 
     .modal h2 {
@@ -711,443 +620,1381 @@
       color: #fff;
       border: none;
       padding: 12px 20px;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: 600;
       width: 100%;
       margin-top: 20px;
     }
 
-    /* God Mode Overrides */
-    .safe-active .pill:not(#nodeIdPill):not(#bridgePill),
-    .safe-active .mono.tiny {
-      display: none !important;
-    }
-
-    .safe-active .grid {
-      grid-template-columns: 1fr;
-    }
-
     /* Tier Badge Styles */
     .tier-badge {
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
       text-transform: uppercase;
     }
 
     .tier-community {
-      background: rgba(100, 116, 139, 0.2);
-      color: #94a3b8;
-      border: 1px solid rgba(100, 116, 139, 0.3);
+      background: rgba(100, 116, 139, 0.1);
+      color: #a1a1aa;
+      border: 1px solid rgba(100, 116, 139, 0.2);
     }
 
     .tier-sovereign {
-      background: rgba(56, 189, 248, 0.15);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      text-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
     }
 
     .tier-institutional {
       background: rgba(168, 85, 247, 0.15);
-      color: #a855f7;
-      border: 1px solid rgba(168, 85, 247, 0.4);
-      text-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.3);
     }
 
     .btn-import-license {
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: var(--color-ok);
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid transparent;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
     }
 
-    .btn-import-license:hover {
-      background: rgba(16, 185, 129, 0.2);
-      border-color: rgba(16, 185, 129, 0.5);
+    /* Forensic Dashboard Premium Styles */
+    #forensicDashboard {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(9, 9, 11, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: none;
+      flex-direction: column;
+      padding: 32px 48px;
+      overflow-y: auto;
+      animation: fade-in 0.4s ease-out;
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .dashboard-header {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 24px;
+    }
+
+    .btn-close-dash {
+      margin-left: auto;
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--color-bad);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-close-dash:hover {
+      background: rgba(239, 68, 68, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .panel-glass {
+      background: rgba(24, 24, 27, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s ease, border-color 0.3s ease;
+      position: relative;
+    }
+
+    .panel-glass:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-content {
+      height: 320px;
+      overflow-y: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      line-height: 1.6;
+    }
+
+    /* Data Entry Animations */
+    @keyframes slideInUp {
+      from {
+        transform: translateY(10px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .log-item {
+      animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.2s;
+      border-radius: 4px;
+    }
+
+    .log-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .segment-block {
+      width: 24px;
+      height: 24px;
+      background: var(--color-ok);
+      border-radius: 4px;
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 800;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+      transition: all 0.2s;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      opacity: 0;
+      transform: scale(0.5);
+    }
+
+    @keyframes popIn {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .segment-block:hover {
+      transform: scale(1.2) !important;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+      z-index: 10;
+    }
+
+    /* Syntax Highlighting Base */
+    .syntax-key {
+      color: #818cf8;
+      font-weight: 600;
+    }
+
+    .syntax-str {
+      color: #a3e635;
+    }
+
+    .syntax-num {
+      color: #f472b6;
+    }
+
+    .syntax-bool {
+      color: #fbbf24;
     }
   </style>
 </head>
 
-<body class="vanguard-ready">
-  <div class="bg-vibrant"></div>
-  <div class="bg-bloom"></div>
-  <div class="matrix-overlay"></div>
-  <header>
-    <div class="row" style="justify-content:space-between;">
-      <h1>HyperSnatch <span style="color:var(--text-muted); font-weight:400;">//</span> Offline Decode UI</h1>
-      <div class="row" style="justify-content:space-between;">
-        <div class="row">
-          <span class="pill" id="nodeIdPill" title="Your unique Hardware Node ID"
-            style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-ok)" stroke-width="2">
-              <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-              <rect x="9" y="9" width="6" height="6"></rect>
-              <line x1="9" y1="1" x2="9" y2="4"></line>
-              <line x1="15" y1="1" x2="15" y2="4"></line>
-              <line x1="9" y1="20" x2="9" y2="23"></line>
-              <line x1="15" y1="20" x2="15" y2="23"></line>
-              <line x1="20" y1="9" x2="23" y2="9"></line>
-              <line x1="20" y1="14" x2="23" y2="14"></line>
-              <line x1="1" y1="9" x2="4" y2="9"></line>
-              <line x1="1" y1="14" x2="4" y2="14"></line>
-            </svg>
-            <span class="muted" id="nodeIdText" style="color:var(--color-ok);">Scanning...</span>
-          </span>
-          <span class="pill" id="bridgePill">
-            <span class="ok" id="bridgeDot">●</span>
-            <span class="muted" id="bridgeText">Bridge: Electron IPC Native</span>
-          </span>
-          <span class="pill"><span class="ok">●</span><span class="muted">Audit Chain: Active</span></span>
-          <span class="pill"><span class="ok">●</span><span class="muted">Offline Mode</span></span>
-          <span class="tier-badge tier-community" id="tierBadge">COMMUNITY</span>
-          <button class="btn-import-license" id="btnImportLicense" title="Import a license key file">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-            Import Key
-          </button>
-          <button id="btnSafeMode" class="pill"
-            style="background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); color: var(--text-accent);">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-            Safe Mode: OFF
-          </button>
-        </div>
-      </div>
-    </div>
-  </header>
+<body>
 
-  <!-- Forensic Legal Shield UI -->
-  <div id="legalModal" class="modal-overlay" style="display:none;">
-    <div class="modal">
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-        <div style="background:rgba(239, 68, 68, 0.1); color:var(--color-bad); padding:10px; border-radius:8px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-        </div>
-        <h2 style="margin:0;">Forensic Analysis Terms</h2>
+  <!-- Workstation Shell -->
+  <div class="workstation-layout">
+    <header class="top-header">
+      <h1>HyperSnatch<span style="color:var(--text-muted); font-weight:400; font-size:14px; margin-left:8px;">Forensic
+          Workstation</span></h1>
+      <div style="flex-grow:1;"></div>
+
+      <div style="display:flex; align-items:center; gap:8px; margin-right:16px;">
+        <span style="font-size:0.8rem; font-weight:600; color:var(--text-accent);">SmartSnatch Auto-Detect</span>
+        <label class="switch" style="position:relative; display:inline-block; width:34px; height:20px;">
+          <input type="checkbox" id="toggleSmartSnatch" style="opacity:0; width:0; height:0;">
+          <span class="slider round"
+            style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:var(--bg-panel-alt); border:1px solid var(--border-soft); border-radius:34px; transition:.4s;"></span>
+        </label>
       </div>
-      <p class="muted" style="margin-top:0;">By using HyperSnatch Vanguard, you acknowledge and agree to the following:
-      </p>
-      <ul
-        style="font-size: 13px; color: var(--text-base); background: var(--bg-elevated); padding: 16px 16px 16px 32px; border-radius: 8px; border: 1px solid var(--border-soft);">
-        <li style="margin-bottom:8px;"><b>Static Analysis Only:</b> This software is a specialized forensic utility for
-          identifying buried HTML artifacts. It is <b>not a downloader</b> and does not automate the retrieval of remote
-          content.</li>
-        <li style="margin-bottom:8px;"><b>Legal Authority:</b> You certify that you have the legal right and authority
-          to analyze any artifacts or page sources processed by this engine.</li>
-        <li style="margin-bottom:8px;"><b>No Liability:</b> HyperSnatch is provided "as is" for forensic investigation.
-          The developers assume no liability for misuse or unauthorized analysis.</li>
-        <li><b>Offline Integrity:</b> You acknowledge that this tool operates strictly offline. No telemetry or data is
-          exfiltrated from this workstation.</li>
-      </ul>
-      <p class="muted tiny"
-        style="margin-top:20px; border-top: 1px solid var(--border-hard); padding-top: 15px; display:flex; align-items:center; justify-content:space-between;">
-        <span>Vanguard Edition // Hardware-Bound Forensic Instance</span>
+
+      <div id="valGlobalStatus" class="status-badge idle">NO EVIDENCE LOADED</div>
+      <button id="btnLoadEvidence" class="pill" style="margin-left:16px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
         </svg>
-      </p>
-      <button class="modal-btn" id="btnAcceptLegal"
-        style="background: var(--color-ok); color:#000; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);">I Acknowledge &
-        Agree to Terms</button>
-    </div>
-  </div>
+        Load Target Folder
+      </button>
+    </header>
 
-  <!-- Upgrade Prompt Modal -->
-  <div id="upgradeModal" class="modal-overlay" style="display:none;">
-    <div class="modal" style="max-width:420px;">
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-        <div style="background:rgba(56,189,248,0.1); color:var(--text-accent); padding:10px; border-radius:8px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
+    <aside class="left-rail">
+      <div class="panel">
+        <div class="panel-header">Active Session</div>
+        <div class="data-label">Evidence Source Path</div>
+        <div id="lrSessionPath" class="data-value mono" style="font-size:0.75rem; word-break:break-all;">--</div>
+      </div>
+
+      <div class="panel" style="flex-grow:1; display:flex; flex-direction:column;">
+        <div class="panel-header" style="display:flex; justify-content:space-between;">
+          Artifact Bundle
+          <button id="btnVerifyIntegrity"
+            style="padding:2px 8px; font-size:0.65rem; background:transparent; border:1px solid var(--border-hard);">Verify</button>
         </div>
-        <h2 style="margin:0;" id="upgradeTitle">Upgrade Required</h2>
+        <div id="lrFileList" class="val-list"
+          style="display:flex; flex-direction:column; gap:4px; overflow-y:auto; flex-grow:1;">
+          <div class="muted" style="font-size:0.8rem; padding:1rem; text-align:center;">Awaiting evidence load.</div>
+        </div>
       </div>
-      <p class="muted" style="margin-top:0;" id="upgradeMessage">This feature requires the Sovereign Edition ($149).</p>
-      <div style="display:flex; gap:8px; margin-top:16px;">
-        <a href="https://cashdominion.gumroad.com/l/itpxg" target="_blank" rel="noopener"
-          style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px; background:var(--text-accent); color:#000; border-radius:8px; font-weight:700; text-decoration:none; font-size:13px;">
-          Get Sovereign — $149
-        </a>
-        <button onclick="el('upgradeModal').style.display='none'"
-          style="padding:10px 16px; background:var(--bg-elevated); border:1px solid var(--border-soft); border-radius:8px; color:var(--text-muted); cursor:pointer;">Close</button>
-      </div>
-    </div>
-  </div>
+    </aside>
 
-  <div class="wrap">
-    <div class="row" style="justify-content:stretch; gap:24px;">
-      <div style="flex:1;">
-        <div class="grid">
-          <div class="card">
-            <div class="row" style="justify-content:space-between; margin-bottom:16px;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-accent)"
-                  stroke-width="2">
-                  <polyline points="4 17 10 11 4 5"></polyline>
-                  <line x1="12" y1="19" x2="20" y2="19"></line>
-                </svg>
-                <div>
-                  <div style="font-weight:600; font-size:14px; color:var(--text-base);">Input Source</div>
-                  <div class="muted tiny">Paste HTML, page source, or logs.</div>
-                </div>
+    <main class="center-workspace">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="tabSummary">Summary</button>
+        <button class="tab-btn" data-tab="tabTimeline">Timeline</button>
+        <button class="tab-btn" data-tab="tabLadder">Stream Ladder</button>
+        <button class="tab-btn" data-tab="tabCandidates">Candidates</button>
+        <button class="tab-btn" data-tab="tabHar">Network HAR</button>
+        <button class="tab-btn" data-tab="tabReport">Report</button>
+        <button class="tab-btn" data-tab="tabAutomation" style="color:var(--text-accent);">SmartSnatch Queue</button>
+        <button class="tab-btn" data-tab="tabCases" style="color:var(--color-ok);">Investigation Cases</button>
+      </div>
+
+      <div id="tabSummary" class="tab-content active">
+        <h2 style="font-size:1.2rem; margin-top:0; margin-bottom:1.5rem;">Bundle Validation Summary</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+          <div class="panel">
+            <div class="panel-header">Target Context</div>
+            <div class="data-label">Original URL</div>
+            <div id="sumTargetUrl" class="data-value mono" style="margin-bottom:1rem; word-break:break-all;">--</div>
+
+            <div class="data-label">Schema Validity</div>
+            <div id="sumValidity" class="status-badge idle">--</div>
+          </div>
+
+          <div class="panel" style="border-color:var(--text-accent-glow); background:rgba(32, 199, 255, 0.02);">
+            <div class="panel-header" style="color:var(--text-accent);">Top Extraction Result</div>
+            <div class="data-label">Primary Candidate URI</div>
+            <div id="sumTopCandidate" class="data-value mono"
+              style="margin-bottom:1rem; word-break:break-all; font-weight:600;">--</div>
+
+            <div style="display:flex; gap:2rem;">
+              <div>
+                <div class="data-label">Confidence Score</div>
+                <div id="sumTopScore" class="data-value" style="font-size:1.5rem; color:var(--color-ok);">--</div>
               </div>
-              <div class="row">
-                <label for="file"
-                  style="cursor:pointer; display:flex; align-items:center; justify-content:center; background:var(--bg-elevated); border:1px solid var(--border-soft); border-radius:6px; padding:8px 10px; transition:0.2s;"
-                  onmouseover="this.style.background='var(--border-hard)'"
-                  onmouseout="this.style.background='var(--bg-elevated)'">
-                  <input id="file" type="file" style="display:none;" />
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="17 8 12 3 7 8"></polyline>
-                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                  </svg>
-                </label>
-                <button id="btnClear" title="Clear Input">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 6h18"></path>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                  </svg>
-                </button>
+              <div>
+                <div class="data-label">Format</div>
+                <div id="sumTopProtocol" class="data-value" style="font-size:1.5rem;">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3
+          style="font-size:1rem; margin-top:2rem; margin-bottom:1rem; border-bottom:1px solid var(--border-soft); padding-bottom:0.5rem;">
+          Intelligence Briefing</h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+          <div class="intl-widget">
+            <div class="intl-header">Identified Integrator</div>
+            <div id="sumPlayerName" class="intl-value">--</div>
+            <div id="sumPlayerConfidence" class="muted tiny" style="margin-top:4px;">--</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="legalModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content" style="max-width:500px;">
+          <h2 style="color:var(--color-bad); margin-top:0;">CRITICAL DISCLAIMER</h2>
+          <div style="font-size:0.9rem; line-height:1.5; color:var(--text-muted);">
+            This workstation is designed for <strong>OFFLINE FORENSIC ANALYSIS</strong> of media artifact bundles.
+            By proceeding, you acknowledge that you are authorized to deconstruct these objects and that
+            HyperSnatch is provided for legitimate digital preservation and research only.
+          </div>
+          <div style="margin-top:1.5rem; display:flex; justify-content:flex-end;">
+            <button id="btnAcceptLegal" class="pill" style="background:var(--color-bad); border:none; color:white;">I
+              ACCEPT TERMS</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="breakdownModal" class="modal-overlay" style="display:none; z-index:9000;">
+        <div class="modal-content"
+          style="max-width:450px; background:var(--bg-panel); border:1px solid var(--border-hard);">
+          <h2 id="breakdownTitle" style="color:var(--text-accent); margin-top:0; font-size:1.1rem;">Forensic Breakdown
+          </h2>
+          <div id="breakdownList" style="margin:1rem 0; max-height:300px; overflow-y:auto;">
+            <!-- Breakdown signals inserted here -->
+          </div>
+          <div style="display:flex; justify-content:flex-end;">
+            <button onclick="document.getElementById('breakdownModal').style.display='none'"
+              class="pill-btn">Close</button>
+          </div>
+        </div>
+      </div>
+      <div id="tabCases" class="tab-content" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <h2 style="font-size:1.2rem; margin:0;">Case Management System</h2>
+          <button id="btnCreateCase" class="pill" style="background:var(--color-ok); color:#000; border:none;">+ New
+            Investigation</button>
+        </div>
+
+        <!-- Case Explorer (Shown when no case is active) -->
+        <div id="caseExplorer" class="panel" style="display:block;">
+          <div class="panel-header">Investigation Registry</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Case ID</th>
+                <th>Title</th>
+                <th>Bundles</th>
+                <th>Last Modified</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="caseListBody">
+              <tr>
+                <td colspan="5" class="muted" style="text-align:center; padding:2rem;">Searching for active cases...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Active Case Dashboard (Shown when a case is loaded) -->
+        <div id="activeCaseDashboard" style="display:none; flex-direction:column; gap:1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <h3 id="activeCaseTitle" style="margin:0; font-size:1.4rem; color:var(--text-accent);">--</h3>
+              <div id="activeCaseId" class="muted tiny mono">--</div>
+            </div>
+            <button id="btnCloseCase" class="pill-btn">Close Case</button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+            <!-- Bundle Alignment Panel -->
+            <div id="caseBundlePanel" class="panel">
+              <div class="panel-header" style="display:flex; justify-content:space-between;">
+                Attached Bundles
+                <button id="btnAttachBundle" class="pill-btn" style="font-size:0.65rem;">+ Attach .hyper</button>
+              </div>
+              <div id="caseBundleList" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                <div class="muted tiny">No bundles attached.</div>
               </div>
             </div>
 
-            <div style="display:flex; gap:24px; align-items:flex-start;">
-              <textarea id="input" style="flex:1;"
-                placeholder="Paste page source, HTML, logs, or any captured text here…"></textarea>
-
-              <!-- Pulse-Scanning Hub -->
-              <div class="card"
-                style="width:160px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; background:rgba(30,41,59,0.2);">
-                <div class="radar-container" id="radarHub">
-                  <div class="radar-sweep"></div>
-                  <div class="radar-pulse" style="animation-delay: 0s;"></div>
-                  <div class="radar-pulse" style="animation-delay: 1s;"></div>
+            <!-- Notes Panel -->
+            <div id="caseNotesPanel" class="panel">
+              <div class="panel-header">Analyst Briefing</div>
+              <div id="caseNotesList"
+                style="max-height:200px; overflow-y:auto; margin-bottom:12px; border-bottom:1px solid var(--border-soft); padding-bottom:12px;">
+                <div class="muted tiny">No notes found.</div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <textarea id="caseNoteInput" placeholder="Add forensic observation (Markdown)..."
+                  style="background:var(--bg-base); border:1px solid var(--border-soft); color:var(--text-base); padding:8px; border-radius:4px; height:60px; font-size:0.8rem;"></textarea>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                  <button id="btnExportNotes" class="pill-btn" style="font-size:0.7rem;">Export MD</button>
+                  <button id="btnAddNote" class="pill" style="padding:4px 12px; font-size:0.75rem;">Post Entry</button>
                 </div>
-                <div class="muted tiny mono" id="radarStatus">HUB: STANDBY</div>
               </div>
             </div>
+          </div>
 
-            <div class="spacer"></div>
-            <div class="row"
-              style="background:var(--bg-elevated); padding:12px; border-radius:8px; border:1px solid var(--border-soft); justify-content:space-between;">
-              <div class="row">
-                <button id="btnDecode"
-                  style="padding:10px 24px; font-size:14px; display:flex; align-items:center; gap:8px;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                  </svg>
-                  Execute Decode
-                </button>
-                <select id="mode" style="padding:10px; max-width:200px;">
-                  <option value="bridge">Bridge Mode (Local Server)</option>
-                  <option value="offline">Offline-only (Analysis)</option>
+          <!-- Findings & Comparison -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+            <div id="caseFindingsPanel" class="panel">
+              <div class="panel-header">Critical Findings</div>
+              <table class="data-table" style="font-size:0.75rem;">
+                <thead>
+                  <tr>
+                    <th>Finding</th>
+                    <th>Severity</th>
+                    <th style="text-align:right;">Bundle</th>
+                  </tr>
+                </thead>
+                <tbody id="caseFindingsBody">
+                  <tr>
+                    <td colspan="3" class="muted" style="text-align:center; padding:1rem;">No findings logged.</td>
+                  </tr>
+                </tbody>
+              </table>
+              <button id="btnLogFinding" class="pill-btn" style="margin-top:12px; width:100%;">+ Log New
+                Finding</button>
+            </div>
+
+            <div id="caseComparePanel" class="panel">
+              <div class="panel-header">Infrastructure Comparison</div>
+              <div style="display:flex; gap:12px; margin-bottom:12px;">
+                <select id="compareSelectA"
+                  style="flex:1; background:var(--bg-base); color:var(--text-base); border:1px solid var(--border-soft); font-size:0.75rem;">
+                  <option>Select Bundle A</option>
+                </select>
+                <select id="compareSelectB"
+                  style="flex:1; background:var(--bg-base); color:var(--text-base); border:1px solid var(--border-soft); font-size:0.75rem;">
+                  <option>Select Bundle B</option>
                 </select>
               </div>
-              <span class="muted tiny" style="display:flex; align-items:center; gap:6px;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                Bridge endpoint: <span class="mono" id="bridgeUrlTxt">http://127.0.0.1:4179/decode</span>
-              </span>
+              <button id="btnRunComparison" class="pill" style="width:100%; padding:8px; font-size:0.8rem;">Run
+                Comparison Delta</button>
+              <div id="compareResultArea" style="margin-top:12px; font-size:0.75rem; white-space:pre-wrap;"
+                class="mono muted"></div>
             </div>
           </div>
 
-          <!-- Sidebar Column -->
-          <div style="display:flex; flex-direction:column; gap:20px;">
-            <div class="card" style="display:flex; flex-direction:column;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <div style="font-weight:600; font-size:14px;">Engine Status</div>
+          <!-- Trust & Audit Layer (Phase 58) -->
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem;">
+            <!-- Audit Trail Panel -->
+            <div id="auditTrailPanel" class="panel">
+              <div class="panel-header">Station Audit Trail</div>
+              <div id="auditLogList"
+                style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+                <div class="muted">No audit events recorded.</div>
               </div>
-              <div id="status" class="muted"
-                style="background:var(--bg-base); border:1px solid var(--border-soft); padding:12px; border-radius:8px; font-size:13px; font-weight:500;">
-                Idle. Ready for input.</div>
-
-              <div class="spacer" style="height:24px;"></div>
-
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="3" y1="9" x2="21" y2="9"></line>
-                  <line x1="9" y1="21" x2="9" y2="9"></line>
-                </svg>
-                <div style="font-weight:600; font-size:14px;">Download Plan</div>
-              </div>
-              <div class="muted tiny" style="margin-bottom:8px;">Generated command for the selected/best candidate.
-              </div>
-              <div id="cmd" class="cmdBox muted"
-                style="flex-grow:1; display:flex; align-items:center; justify-content:center;">No plan generated yet.
-              </div>
-
-              <div class="spacer"></div>
-              <div class="row" style="gap:8px; justify-content:stretch;">
-                <button id="btnCopyCmd" disabled style="flex:1;">Copy Cmd</button>
-                <button id="btnCopyJson" disabled style="flex:1;">Copy JSON</button>
-              </div>
-              <div class="spacer" style="height:8px;"></div>
-              <div class="row" style="gap:8px;">
-                <button id="btnSavePlan" disabled style="flex:1; font-size:11px; padding:6px;">Save plan.json</button>
-                <button id="btnSaveCands" disabled style="flex:1; font-size:11px; padding:6px;">Save candidates</button>
-                <button id="btnSaveRefs" disabled style="flex:1; font-size:11px; padding:6px;">Save refusals</button>
-              </div>
+              <button id="btnRefreshAudit" class="pill-btn"
+                style="margin-top:12px; width:100%; font-size:0.65rem;">Refresh Logs</button>
             </div>
 
-            <!-- Forensic Analysis Log (Tactical Console) -->
-            <div class="card" id="forensicCard" style="display: none;">
-              <div class="row" style="justify-content:space-between; margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <svg width="16" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-accent)"
-                    stroke-width="2">
-                    <polyline points="4 17 10 11 4 5"></polyline>
-                    <line x1="12" y1="19" x2="20" y2="19"></line>
-                  </svg>
-                  <div style="font-weight:600; font-size:14px;">Forensic Console</div>
+            <!-- Signature & Signing Panel -->
+            <div id="signaturePanel" class="panel">
+              <div class="panel-header">Sovereign Seal</div>
+              <div id="signatureStatus" class="pill tiny muted" style="margin-bottom:12px;">UNISIGNED</div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <button id="btnSignEvidence" class="pill" style="background:var(--color-ok); color:#000;">Sign Case
+                  State</button>
+                <button id="btnVerifySignature" class="pill-btn">Verify Integrity</button>
+              </div>
+              <div id="signingInfo" class="tiny muted mono" style="margin-top:8px; word-break:break-all;"></div>
+            </div>
+
+            <!-- Custody Chain Panel -->
+            <div id="custodyPanel" class="panel">
+              <div class="panel-header">Evidence Custody</div>
+              <div id="custodyList"
+                style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+                <div class="muted">Select a bundle to view lineage.</div>
+              </div>
+              <button id="btnSealPackage" class="pill-btn"
+                style="margin-top:12px; width:100%; font-size:0.65rem; border-color:var(--color-ok); color:var(--color-ok);">Seal
+                Evidence Package</button>
+            </div>
+          </div>
+
+          <!-- Intelligence Layer (Phase 59) -->
+          <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.5rem;">
+            <!-- Infrastructure Graph Panel -->
+            <div id="intelGraphPanel" class="panel">
+              <div class="panel-header">Infrastructure Intelligence Graph</div>
+              <div id="intelGraphList"
+                style="max-height:200px; overflow-y:auto; font-size:0.65rem; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                <div class="muted" style="grid-column: span 2;">No relational data available.</div>
+              </div>
+              <button id="btnRebuildGraph" class="pill-btn"
+                style="margin-top:12px; width:100%; font-size:0.65rem;">Rebuild Intelligence Graph</button>
+            </div>
+
+            <!-- Forensic Similarity Panel -->
+            <div id="similarityPanel" class="panel">
+              <div class="panel-header">Forensic Similarity</div>
+              <div id="similarityList"
+                style="max-height:200px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+                <div class="muted">Select a bundle to scan for similarities.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Plugin Ecosystem (Phase 60) -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+            <!-- Plugin Management Panel -->
+            <div id="pluginPanel" class="panel">
+              <div class="panel-header">Plugin Management</div>
+              <div id="pluginList"
+                style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+                <div class="muted">Scanning for plugins...</div>
+              </div>
+              <button id="btnLoadPlugin" class="pill-btn" style="margin-top:12px; width:100%; font-size:0.65rem;">Load
+                External Plugin</button>
+            </div>
+
+            <!-- Plugin Diagnostics Panel -->
+            <div id="pluginDiagnosticsPanel" class="panel">
+              <div class="panel-header">Plugin Diagnostics</div>
+              <div id="pluginDiagnostics" style="font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; justify-content:space-between;">
+                  <span class="muted">Plugins Loaded:</span>
+                  <span id="pluginsLoadedCount" class="ok">0</span>
                 </div>
-                <span class="pill tiny ok" style="padding:2px 6px; border-radius:4px; font-size:10px;">TACTICAL</span>
-              </div>
-              <div id="forensicLog" class="logTerminal">
-                <div class="entry"><span class="ts">[SYSTEM]</span> Tactical Console Offline. Awaiting Session.</div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span class="muted">Last Capability Execution:</span>
+                  <span id="lastPluginAction" class="muted">N/A</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span class="muted">Security Mode:</span>
+                  <span class="ok">RESTRICTED_VM</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="spacer" style="height:24px;"></div>
+          <!-- HyperQuery Layer (Phase 61) -->
+          <div class="panel">
+            <div class="panel-header">Forensic HyperQuery Console</div>
+            <div style="display:flex; gap:12px; margin-bottom:12px;">
+              <input type="text" id="hyperQueryInput"
+                placeholder="Search (e.g., cdn:akamai, protocol:hls, or generic text)..."
+                style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px 12px; border-radius:4px; font-family:'JetBrains Mono', monospace; font-size:0.75rem;">
+              <button id="btnExecuteQuery" class="pill-btn" style="padding:0 20px;">Execute Query</button>
+            </div>
+            <div id="queryStatsLine" class="tiny muted" style="margin-bottom:8px; display:flex; gap:12px;">
+              <span>CDNs: <b id="statCdns" class="ok">-</b></span>
+              <span>Protocols: <b id="statProtos" class="ok">-</b></span>
+              <span>Players: <b id="statPlayers" class="ok">-</b></span>
+              <span>Fingerprints: <b id="statFps" class="ok">-</b></span>
+            </div>
+            <div id="hyperQueryResults"
+              style="max-height:250px; overflow-y:auto; font-size:0.65rem; display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:8px;">
+              <div class="muted" style="grid-column: 1 / -1;">Enter a query to begin relational analysis.</div>
+            </div>
+            <!-- Forensic Detection Alerts (Phase 63) -->
+            <div id="detectionAlertsPanel" class="panel">
+              <div class="panel-header">Forensic Detection Alerts</div>
+              <div id="detectionAlertList"
+                style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+                <div class="muted">Scanning bundles for anomalies...</div>
+              </div>
+            </div>
+          </div>
 
-        <div class="card">
-          <div class="row" style="justify-content:space-between; margin-bottom:16px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-accent)" stroke-width="2">
-                <line x1="8" y1="6" x2="21" y2="6"></line>
-                <line x1="8" y1="12" x2="21" y2="12"></line>
-                <line x1="8" y1="18" x2="21" y2="18"></line>
-                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                <line x1="3" y1="18" x2="3.01" y2="18"></line>
-              </svg>
+          <!-- Replay Mutation (Phase 62) -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+            <div class="panel">
+              <div class="panel-header">Replay Mutation Control</div>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <span class="tiny muted">Enable Mutation:</span>
+                  <label class="switch" style="position:relative; display:inline-block; width:34px; height:20px;">
+                    <input type="checkbox" id="chkMutationEnabled" style="opacity:0; width:0; height:0;">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div>
+                  <div class="tiny muted" style="margin-bottom:4px;">Header Mutations (JSON):</div>
+                  <textarea id="txtMutationHeaders" placeholder='{"User-Agent": "Mozilla/5.0..."}'
+                    style="width:100%; height:80px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:var(--text-ok); font-family:monospace; padding:8px; border-radius:4px; font-size:0.65rem;"></textarea>
+                </div>
+                <div>
+                  <div class="tiny muted" style="margin-bottom:4px;">Token Injection (Query String):</div>
+                  <input type="text" id="txtMutationToken" placeholder="auth=123&trace=xyz"
+                    style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:var(--text-ok); padding:6px; border-radius:4px; font-size:0.65rem;">
+                </div>
+                <button id="btnApplyMutation" class="pill-btn tiny" style="margin-top:8px;">Apply to Current
+                  Replay</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">Mutation Status</div>
+              <div id="mutationStatus" style="font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; justify-content:space-between;">
+                  <span class="muted">Status:</span>
+                  <span id="mutationActiveState" class="muted">INACTIVE</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span class="muted">Active Mutations:</span>
+                  <span id="mutationCount" class="ok">0</span>
+                </div>
+                <div class="tiny muted"
+                  style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
+                  Mutations are applied to all requests in the current replay session. Changes take effect on the next
+                  network event.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Research Mode Sandbox (Phase 64) -->
+          <div class="panel">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Research Mode Sandbox</span>
+              <div class="pill tiny secure" style="background:var(--color-warn); color:#000; font-weight:700;">
+                EXPERIMENTAL</div>
+            </div>
+            <div style="display:flex; gap:12px; margin-bottom:12px;">
+              <select id="researchScriptSelect"
+                style="flex:1; background:rgba(0,0,0,0.3); color:white; border:1px solid rgba(255,255,255,0.1); padding:6px; border-radius:4px; font-size:0.7rem;">
+                <option value="">-- No scripts found --</option>
+              </select>
+              <button id="btnRunResearch" class="pill-btn tiny">Run Script</button>
+            </div>
+            <div id="researchConsole"
+              style="background:#000; border:1px solid rgba(255,255,255,0.05); height:120px; overflow-y:auto; padding:8px; font-family:'JetBrains Mono', monospace; font-size:0.6rem; color:var(--text-ok);">
+              <div class="muted">> Initializing Research Sandbox... [OK]</div>
+              <div class="muted">> Use research mode for experimental or unverified evidence analysis.</div>
+            </div>
+          </div>
+          <!-- Dataset Export System (Phase 65) -->
+          <div class="panel">
+            <div class="panel-header">Dataset Export Center</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
               <div>
-                <div style="font-weight:600; font-size:14px; color:var(--text-base);">Extraction Candidates</div>
-                <div class="muted tiny">Pick one to generate a plan. "Best" is pinned.</div>
+                <div class="tiny muted" style="margin-bottom:4px;">Export Format:</div>
+                <select id="exportFormatSelect"
+                  style="width:100%; background:rgba(0,0,0,0.3); color:white; border:1px solid rgba(255,255,255,0.1); padding:6px; border-radius:4px; font-size:0.7rem;">
+                  <option value="json">Standard JSON (Full Case)</option>
+                  <option value="csv">Forensic CSV (Bundle Stats)</option>
+                  <option value="relational">Relational Graph (JSON)</option>
+                </select>
+              </div>
+              <div style="display:flex; align-items:flex-end;">
+                <button id="btnExportCase" class="pill-btn tiny" style="width:100%;">Generate Export</button>
               </div>
             </div>
-            <div class="row"
-              style="background:var(--bg-elevated); padding:6px; border-radius:8px; border:1px solid var(--border-soft);">
-              <input type="number" id="pickIndex" placeholder="Idx" min="0"
-                style="width:60px; padding:6px; background:var(--bg-base);" />
-              <button id="btnPickIdx" style="padding:6px 12px;">Pick Idx</button>
-              <div style="width:1px; height:20px; background:var(--border-hard); margin:0 4px;"></div>
-              <button id="btnUseBest"
-                style="padding:6px 12px; background:rgba(59, 130, 246, 0.1); border-color:rgba(59, 130, 246, 0.3); color:var(--text-accent);">Use
-                Best</button>
-              <button id="btnCopyBestUrl" style="padding:6px 12px;">Copy Best URL</button>
-            </div>
-          </div>
-
-          <div class="row" style="margin-bottom:16px;">
-            <span class="pill" style="border-color:var(--text-accent);">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-accent)" stroke-width="2">
-                <polygon
-                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                </polygon>
-              </svg>
-              <span style="color:var(--text-base);">Best match:</span> <span id="bestTag" class="muted">none</span>
-            </span>
-            <span class="pill">Found: <span id="countTag"
-                style="color:var(--text-base); font-weight:700;">0</span></span>
-            <span class="pill">Refusals: <span id="refTag"
-                style="color:var(--color-bad); font-weight:700;">0</span></span>
-          </div>
-
-          <div
-            style="overflow:auto; border:1px solid var(--border-soft); border-radius:8px; background:var(--bg-base);">
-            <table style="margin-top:0;">
-              <thead style="background:var(--bg-elevated);">
-                <tr>
-                  <th style="width:50px; padding-left:16px;">Idx</th>
-                  <th style="width:180px;">Host Integrator</th>
-                  <th style="width:120px;">Stream Type</th>
-                  <th style="width:70px;">Conf</th>
-                  <th style="width:90px;">Status</th>
-                  <th>Resolved URL</th>
-                  <th style="width:90px; padding-right:16px; text-align:right;">Action</th>
-                </tr>
-              </thead>
-              <tbody id="candBody">
-                <tr>
-                  <td colspan="7" class="muted" style="text-align:center; padding:30px;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--border-hard)"
-                      stroke-width="2" style="margin-bottom:10px;">
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <div>No candidates generated yet. Drop HTML and decode.</div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="spacer" style="height:24px;"></div>
-
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-bad)" stroke-width="2">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            <div style="font-weight:600; font-size:14px; color:var(--color-bad);">Refusals & Boundaries</div>
-          </div>
-          <div class="muted tiny" style="margin-bottom:12px;">Auth walls, premium limits, login boundaries, and other
-            network rejections.</div>
-          <div id="refusals" class="muted"
-            style="background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.2); border-radius:8px; padding:16px; font-size:13px;">
-            None detected.</div>
-        </div>
-
-        <!-- Audit Seal Display -->
-        <div id="auditSeal" class="audit-seal">
-          <div class="seal-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </div>
-          <div>
-            <div
-              style="font-weight:800; font-size:12px; color:var(--color-ok); text-transform:uppercase; letter-spacing:1px;">
-              Sovereign Audit Seal // Authenticated</div>
-            <div class="mono tiny" id="sealHash" style="color:var(--text-muted); margin-top:4px;">HASH: -- pending --
+            <div class="tiny muted">
+              Exports are saved to the <span class="mono">exports/</span> directory in the project root. Relational
+              exports can be imported into external intelligence tools.
             </div>
           </div>
         </div>
+
+        <!-- Pattern Intelligence (Phase 66) -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+          <div class="panel">
+            <div class="panel-header">Pattern Discovery</div>
+            <div id="patternDiscoveryList"
+              style="max-height:180px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Awaiting pattern analysis...</div>
+            </div>
+            <button id="btnRunPatternDiscovery" class="pill-btn tiny" style="margin-top:8px; width:100%;">Discover
+              Patterns</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">Anomaly Detection</div>
+            <div id="anomalyList"
+              style="max-height:180px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Run pattern discovery first.</div>
+            </div>
+            <div id="patternStatsBar" class="tiny muted" style="margin-top:8px; display:flex; gap:12px;">
+              <span>Patterns: <b id="statPatterns" class="ok">-</b></span>
+              <span>Clusters: <b id="statClusters" class="ok">-</b></span>
+              <span>Anomalies: <b id="statAnomalies" class="ok">-</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Topology Visualization (Phase 67) -->
+        <div class="panel">
+          <div class="panel-header">Infrastructure Topology Map</div>
+          <div id="topologyMapView"
+            style="max-height:200px; overflow-y:auto; font-size:0.65rem; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <div class="muted" style="grid-column: span 2;">Run pattern discovery to generate topology.</div>
+          </div>
+          <div class="tiny muted" style="margin-top:8px; display:flex; gap:12px;">
+            <span>Nodes: <b id="statTopoNodes" class="ok">-</b></span>
+            <span>Edges: <b id="statTopoEdges" class="ok">-</b></span>
+          </div>
+        </div>
+
+        <!-- Autonomous Insights (Phase 68) -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Autonomous Insights</span>
+            <div class="pill tiny secure" style="background:var(--color-ok); color:#000; font-weight:700;">AI-GENERATED
+            </div>
+          </div>
+          <div id="insightsList"
+            style="max-height:200px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:6px;">
+            <div class="muted">Awaiting insight generation...</div>
+          </div>
+        </div>
+
+        <!-- Case Intelligence Assistant (Phase 69) -->
+        <div class="panel">
+          <div class="panel-header">Case Intelligence Briefing</div>
+          <div id="assistantBriefing" style="font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+            <div class="muted">Load a case and run analysis for an AI-generated briefing.</div>
+          </div>
+          <button id="btnGenerateBriefing" class="pill-btn tiny" style="margin-top:8px; width:100%;">Generate
+            Briefing</button>
+        </div>
+
+        <!-- Autonomous Investigation (Phase 70) -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Autonomous Investigation</span>
+            <div class="pill tiny secure" style="background:var(--color-accent); font-weight:700;">AUTO-PILOT</div>
+          </div>
+          <div id="autoInvestigationReport"
+            style="max-height:200px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:6px;">
+            <div class="muted">Click below to run the full autonomous pipeline on the active case.</div>
+          </div>
+          <button id="btnAutoInvestigate" class="pill-btn"
+            style="margin-top:8px; width:100%; background:linear-gradient(135deg, var(--color-accent), var(--color-ok));">Launch
+            Autonomous Investigation</button>
+        </div>
+
+        <!-- AI Pattern Classification (Phase 71) -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>AI Pattern Classification</span>
+            <div class="pill tiny secure" style="background:var(--color-ok); color:#000; font-weight:700;">ML</div>
+          </div>
+          <div id="classificationList"
+            style="max-height:180px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+            <div class="muted">Run classification to identify known infrastructure patterns.</div>
+          </div>
+          <button id="btnClassifyBundles" class="pill-btn tiny" style="margin-top:8px; width:100%;">Classify Active
+            Case</button>
+        </div>
+
+        <!-- Anomaly Scoring (Phase 72) -->
+        <div class="panel">
+          <div class="panel-header">Anomaly ML Scoring</div>
+          <div id="anomalyScoringList"
+            style="max-height:180px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+            <div class="muted">Scores bundles for unusual delivery behavior.</div>
+          </div>
+        </div>
+
+        <!-- Fingerprint Library (Phase 73) -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+          <div class="panel">
+            <div class="panel-header">Fingerprint Library</div>
+            <div id="fpLibraryList"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">No entries. Classify bundles to populate.</div>
+            </div>
+            <div class="tiny muted" style="margin-top:8px;">
+              Entries: <b id="statFpLibEntries" class="ok">0</b> | Avg Confidence: <b id="statFpLibConf"
+                class="ok">-</b>
+            </div>
+          </div>
+
+          <!-- Cross-Case Mining (Phase 74) -->
+          <div class="panel">
+            <div class="panel-header">Cross-Case Intelligence</div>
+            <div id="crossCaseResults"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Multi-case analysis not yet run.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Autonomous Research Queue (Phase 75) -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Autonomous Research Queue</span>
+            <div class="pill tiny secure" style="background:var(--color-warn); color:#000; font-weight:700;">REVIEW
+              REQUIRED</div>
+          </div>
+          <div id="researchQueueList"
+            style="max-height:180px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:6px;">
+            <div class="muted">No research suggestions generated.</div>
+          </div>
+          <button id="btnGenerateResearch" class="pill-btn tiny" style="margin-top:8px; width:100%;">Generate Research
+            Suggestions</button>
+        </div>
+
+        <!-- Enterprise Intelligence (Phases 76-80) -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+          <!-- Workspace Management (Phase 76) -->
+          <div class="panel">
+            <div class="panel-header">Workspace Management</div>
+            <div id="workspacePanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">No workspaces created.</div>
+            </div>
+            <div class="tiny muted" style="margin-top:6px;">Workspaces: <b id="statWorkspaces" class="ok">0</b></div>
+          </div>
+
+          <!-- Federation Status (Phase 77) -->
+          <div class="panel">
+            <div class="panel-header">Federation / Trust Registry</div>
+            <div id="trustRegistryPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">No trusted sources registered.</div>
+            </div>
+            <div class="tiny muted" style="margin-top:6px;">Sources: <b id="statTrustSources" class="ok">0</b> |
+              Exchanges: <b id="statExchanges" class="ok">0</b></div>
+          </div>
+        </div>
+
+        <!-- Graph Analytics (Phase 78) -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Graph Analytics</span>
+            <div class="pill tiny secure" style="background:var(--color-ok); color:#000; font-weight:700;">ANALYTICS
+            </div>
+          </div>
+          <div id="graphAnalyticsPanel"
+            style="max-height:180px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+            <div class="muted">Run autonomous investigation to populate graph analytics.</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+          <!-- Policy Engine (Phase 79) -->
+          <div class="panel">
+            <div class="panel-header">Policy Engine</div>
+            <div id="policyPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">No policies loaded.</div>
+            </div>
+            <div class="tiny muted" style="margin-top:6px;">Decisions: <b id="statPolicyDecisions" class="ok">0</b>
+            </div>
+          </div>
+
+          <!-- Enterprise Controls (Phase 80) -->
+          <div class="panel">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Enterprise Controls</span>
+              <div class="pill tiny secure" style="background:var(--color-accent); font-weight:700;">ENTERPRISE</div>
+            </div>
+            <div id="enterprisePanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">No deployment profile active.</div>
+            </div>
+            <div class="tiny muted" style="margin-top:6px;">Profile: <b id="statActiveProfile" class="ok">none</b></div>
+          </div>
+        </div>
+
+        <!-- Collaboration & Publication (Phases 81-85) -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+          <!-- Review Workflow (Phase 81) -->
+          <div class="panel">
+            <div class="panel-header">Collaborative Review</div>
+            <div id="reviewWorkflowPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">No active reviews.</div>
+            </div>
+            <div class="tiny muted" style="margin-top:6px;">Pending: <b id="statPendingReviews" class="ok">0</b></div>
+          </div>
+
+          <!-- Redaction Engine (Phase 82) -->
+          <div class="panel">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Redaction Engine</span>
+              <div class="pill tiny secure" style="background:var(--color-bad); font-weight:700;">SENSITIVE</div>
+            </div>
+            <div id="redactionPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Redact tokens, URLs, emails, IPs before export.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1.5rem;">
+          <!-- Publication Pipeline (Phase 83) -->
+          <div class="panel">
+            <div class="panel-header">Publication Pipeline</div>
+            <div id="publicationPanel"
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">draft → review → approved → exported</div>
+            </div>
+          </div>
+
+          <!-- Model Reporter (Phase 84) -->
+          <div class="panel">
+            <div class="panel-header">Model Reporter</div>
+            <div id="reporterPanel"
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">AI-assisted report generation.</div>
+            </div>
+          </div>
+
+          <!-- Deployment Orchestrator (Phase 85) -->
+          <div class="panel">
+            <div class="panel-header">Deployment Orchestrator</div>
+            <div id="orchestrationPanel"
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">No deployments.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Predictive Intelligence (Phases 86-90) -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-top:1.5rem;">
+          <!-- Timeline Engine (Phase 86) -->
+          <div class="panel">
+            <div class="panel-header">Timeline Reconstruction</div>
+            <div id="timelinePanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">No timelines reconstructed.</div>
+            </div>
+          </div>
+
+          <!-- Infrastructure Evolution (Phase 87) -->
+          <div class="panel">
+            <div class="panel-header">Infrastructure Evolution</div>
+            <div id="infraEvolutionPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Tracking node lifetimes and migrations.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1.5rem;">
+          <!-- Predictive Anomaly (Phase 88) -->
+          <div class="panel">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Predictive Risk</span>
+              <div class="pill tiny outline" style="border-color:var(--color-warn); color:var(--color-warn);">AI ASSIST
+              </div>
+            </div>
+            <div id="predictivePanel"
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Forecasting trajectory risk.</div>
+            </div>
+          </div>
+
+          <!-- Forensic Simulator (Phase 89) -->
+          <div class="panel">
+            <div class="panel-header">Forensic Simulator</div>
+            <div id="simulatorPanel"
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Simulation history available.</div>
+            </div>
+          </div>
+
+          <!-- Threat Reporter (Phase 90) -->
+          <div class="panel">
+            <div class="panel-header">Automated Threat Reports</div>
+            <div id="threatReportPanel"
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Generating intelligence briefs.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strategic Intelligence (Phases 91-95) -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-top:1.5rem;">
+          <!-- Global Intelligence Graph (Phase 91) -->
+          <div class="panel">
+            <div class="panel-header">Global Intelligence Graph</div>
+            <div id="globalGraphPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Awaiting multi-workspace graph merge.</div>
+            </div>
+            <div class="tiny muted" style="margin-top:6px;">Nodes: <b id="statGlobalNodes" class="ok">0</b> | Edges: <b
+                id="statGlobalEdges" class="ok">0</b></div>
+          </div>
+
+          <!-- Infra Attribution (Phase 92) -->
+          <div class="panel">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Infrastructure Attribution</span>
+              <div class="pill tiny secure"
+                style="background:var(--color-bg); border-color:var(--color-fg); color:var(--color-fg);">ATTRIBUTION
+              </div>
+            </div>
+            <div id="attributionPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">No attributions generated.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1.5rem;">
+          <!-- Adversary Fingerprinting (Phase 93) -->
+          <div class="panel">
+            <div class="panel-header">Adversary Fingerprints</div>
+            <div id="fingerprintPanel"
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Matching operational patterns.</div>
+            </div>
+          </div>
+
+          <!-- Self-Healing Pipelines (Phase 94) -->
+          <div class="panel">
+            <div class="panel-header">Self-Healing Orchestrator</div>
+            <div id="healingPanel"
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">Pipeline healthy.</div>
+            </div>
+          </div>
+
+          <!-- Autonomous Discovery (Phase 95) -->
+          <div class="panel">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Autonomous Discovery</span>
+              <div class="pill tiny outline" style="border-color:var(--color-bad); color:var(--color-bad);">NEW INQUIRY
+              </div>
+            </div>
+            <div id="discoveryPanel"
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted">No research suggestions queued.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ENDGAME COMMAND LAYER (Phases 96-100) -->
+        <h2
+          style="font-size:1.1rem; margin:1.5rem 0 1rem 0; color:var(--color-bg); background:var(--color-fg); padding:5px; text-transform:uppercase;">
+          Endgame Strategic Command HQ</h2>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+          <!-- Mission Replay (Phase 96) & Counterfactual (Phase 97) -->
+          <div class="panel">
+            <div class="panel-header">Temporal Operations</div>
+            <div id="temporalPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              <div style="border-bottom:1px solid #333; padding-bottom:5px;">
+                <strong class="fg">Mission Replay:</strong> <span class="muted">Awaiting timeline ingestion.</span>
+              </div>
+              <div>
+                <strong class="fg">Counterfactual Simulator:</strong> <span class="muted">Awaiting hypothesis
+                  parameters.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Constitution (Phase 98) & Challenge Mode (Phase 99) -->
+          <div class="panel">
+            <div class="panel-header">Argument Verification</div>
+            <div id="argumentPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              <div style="border-bottom:1px solid #333; padding-bottom:5px;">
+                <strong class="fg">Evidence Constitution:</strong> <span class="muted">Awaiting evidence vector for
+                  weighting.</span>
+              </div>
+              <div>
+                <strong class="fg">Challenge Mode:</strong> <span class="muted">Awaiting conclusion for subversion
+                  analysis.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- POST-100 EXPANSION (Advanced Intel Features) -->
+        <h2
+          style="font-size:1.1rem; margin:1.5rem 0 1rem 0; color:var(--color-bg); background:var(--color-bad); padding:5px; text-transform:uppercase;">
+          Post-100 Expansion Core</h2>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+          <!-- Heatmap & Provenance -->
+          <div class="panel">
+            <div class="panel-header">Threat Heatmaps & Provenance</div>
+            <div id="heatmapPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              <div style="border-bottom:1px solid #333; padding-bottom:5px;">
+                <strong class="fg">Global Heatmap:</strong> <span class="muted">No clusters analyzed.</span>
+              </div>
+              <div>
+                <strong class="fg">Data Provenance Engine:</strong> <span class="muted">Tracking signal pedigree.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Memory & Explainability -->
+          <div class="panel">
+            <div class="panel-header">Analyst Memory & Explainability</div>
+            <div id="memoryPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              <div style="border-bottom:1px solid #333; padding-bottom:5px;">
+                <strong class="fg">Institutional Memory:</strong> <span class="muted">0 records synced.</span>
+              </div>
+              <div>
+                <strong class="fg">Explainable AI Layer:</strong> <span class="muted">Ready for reasoning
+                  queries.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ULTIMATE EVOLUTION (Phases 101-150) -->
+        <h2
+          style="font-size:1.1rem; margin:1.5rem 0 1rem 0; color:var(--color-bg); background:var(--color-secure); padding:5px; text-transform:uppercase;">
+          Ultimate Analytical Evolution HQ</h2>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1.5rem;">
+          <!-- Narrative Propagation & Behavior Model -->
+          <div class="panel">
+            <div class="panel-header">Narrative & Behavior Tracking</div>
+            <div id="narrativeBehaviorPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              <div style="border-bottom:1px solid #333; padding-bottom:5px;">
+                <strong class="fg">Propagation Amplifiers:</strong> <span class="muted">0 identified</span>
+              </div>
+              <div>
+                <strong class="fg">Operator Profile:</strong> <span class="muted">Awaiting telemetry.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Predictive Forecasting -->
+          <div class="panel">
+            <div class="panel-header">Predictive Intelligence Model</div>
+            <div id="advPredictPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              <div class="muted">No temporal forecasting generated.</div>
+            </div>
+          </div>
+
+          <!-- Autonomous Assistant Copilot -->
+          <div class="panel">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>AI Investigation Copilot</span>
+              <div class="pill tiny secure"
+                style="background:var(--color-bg); border-color:var(--color-fg); color:var(--color-fg);">ACTIVE</div>
+            </div>
+            <div id="copilotPanel"
+              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              <div class="muted">Awaiting subsystem synthesis data to suggest queries.</div>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
-  </div>
-  <!-- Rest of UI remains the same inside logic -->
-  <div style="text-align:center; padding-top:20px;" class="muted mono tiny">HyperSnatch UI <span id="uiVer">v?</span>
-  </div>
+
+      <div id="tabTimeline" class="tab-content" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1rem;">
+          <h2 style="font-size:1.1rem; margin:0;">Network Event Timeline</h2>
+          <span class="muted tiny">Chronological Forensics</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:50px;">Idx</th>
+              <th style="width:100px;">Classification</th>
+              <th style="width:80px;">MIME</th>
+              <th>Requested URI</th>
+            </tr>
+          </thead>
+          <tbody id="timelineTbody">
+            <tr>
+              <td colspan="4" class="muted" style="text-align:center; padding:2rem;">Timeline not rendered.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="tabLadder" class="tab-content" style="display:none;">
+        <h2 style="font-size:1.1rem; margin-top:0; margin-bottom:1rem;">M3U8 / MPD Stream Ladder</h2>
+        <div style="display:flex; gap:1.5rem; margin-bottom:1rem;">
+          <div class="panel" style="flex:1;">
+            <div class="data-label">Detected Manifest Protocol</div>
+            <div id="ladderProtocol" class="data-value mono" style="font-size:1.2rem; color:var(--text-accent);">
+              --
+            </div>
+          </div>
+          <div class="panel" style="flex:1;">
+            <div class="data-label">Identified Delivery Streams</div>
+            <div id="ladderTiers" class="data-value" style="font-size:1.2rem;">--</div>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:120px;">Resolution</th>
+              <th style="width:120px;">Bitrate (bps)</th>
+              <th>Codec Profile</th>
+            </tr>
+          </thead>
+          <tbody id="ladderTbody">
+            <tr>
+              <td colspan="3" class="muted" style="text-align:center; padding:2rem;">Manifest not parsed.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="tabCandidates" class="tab-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h2 style="font-size:1.1rem; margin:0;">Extracted Video Candidates</h2>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:0.75rem; color:var(--text-muted);">Auto Choose Best</span>
+            <label class="switch" style="position:relative; display:inline-block; width:34px; height:20px;">
+              <input type="checkbox" id="toggleAutoPick" checked style="opacity:0; width:0; height:0;">
+              <span class="slider round"
+                style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:var(--bg-panel-alt); border:1px solid var(--border-soft); border-radius:34px; transition:.4s;"></span>
+            </label>
+            <span class="muted tiny">Ranked by Confidence Score</span>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:50px; padding-left:16px;">Rank</th>
+              <th style="width:60px;">Score</th>
+              <th style="width:80px;">Layer</th>
+              <th>Deterministic Candidate URI</th>
+              <th style="width:90px;">MIME</th>
+              <th style="width:50px; text-align:center;">Auth</th>
+              <th style="width:50px; text-align:center;">MSE</th>
+              <th style="width:50px; text-align:center;">DRM</th>
+              <th style="width:70px; text-align:center;">Vault</th>
+              <th style="width:140px; padding-right:16px; text-align:right;">Decision</th>
+            </tr>
+          </thead>
+          <tbody id="candidatesTbody">
+            <tr>
+              <td colspan="10" class="muted" style="text-align:center; padding:2rem;">No candidates available.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="tabHar" class="tab-content">
+        <h2 style="font-size:1.1rem; margin-top:0; margin-bottom:1rem;">Classified Network Activity</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:80px;">Method</th>
+              <th style="width:80px;">Status</th>
+              <th style="width:100px;">Resource</th>
+              <th>Intercepted URL</th>
+            </tr>
+          </thead>
+          <tbody id="harTbody">
+            <tr>
+              <td colspan="4" class="muted" style="text-align:center; padding:2rem;">No network trace available.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="tabReport" class="tab-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h2 style="font-size:1.1rem; margin:0;">Automated Markdown Report</h2>
+          <button class="pill" style="font-size:0.75rem;">Export MD</button>
+        </div>
+        <textarea id="reportTextarea" readonly
+          style="height:calc(100% - 60px); font-size:0.8rem; background:var(--bg-panel); color:var(--text-muted); border-color:var(--border-hard);">No report loaded.</textarea>
+      </div>
+
+      <div id="tabAutomation" class="tab-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <h2 style="font-size:1.2rem; margin:0; color:var(--text-accent);">SmartSnatch Orchestration</h2>
+          <div style="display:flex; gap:1rem;">
+            <div class="panel" style="padding:0.5rem 1rem; border-color:var(--border-soft);">
+              <div class="data-label" style="display:inline-block; margin-right:8px;">Mode:</div>
+              <select id="selAutoMode" style="padding:4px 8px; font-size:0.8rem;">
+                <option value="OFF">OFF</option>
+                <option value="QUEUE ONLY">QUEUE ONLY</option>
+                <option value="AUTO DECODE">AUTO DECODE</option>
+                <option value="MANUAL REVIEW">MANUAL REVIEW</option>
+              </select>
+            </div>
+            <div class="panel" style="padding:0.5rem 1rem; display:flex; gap:1rem;">
+              <span class="muted tiny">Pending: <span id="metPending"
+                  style="color:var(--text-base); font-weight:600;">0</span></span>
+              <span class="muted tiny">Done: <span id="metCompleted"
+                  style="color:var(--color-ok); font-weight:600;">0</span></span>
+              <span class="muted tiny">Failed: <span id="metFailed"
+                  style="color:var(--color-bad); font-weight:600;">0</span></span>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="font-size:1rem; margin-top:1rem; margin-bottom:0.5rem;">Active Queue</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:120px;">Host</th>
+              <th>Target URL</th>
+              <th style="width:100px;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="queueTbody">
+            <tr>
+              <td colspan="3" class="muted" style="text-align:center; padding:1rem;">Queue is empty.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="font-size:1rem; margin-top:2rem; margin-bottom:0.5rem;">Recent History</h3>
+        <table class="data-table" style="opacity:0.7;">
+          <thead>
+            <tr>
+              <th style="width:120px;">Host</th>
+              <th>Target URL</th>
+              <th style="width:100px;">Result</th>
+            </tr>
+          </thead>
+          <tbody id="historyTbody">
+            <tr>
+              <td colspan="3" class="muted" style="text-align:center; padding:1rem;">No history.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+
+    <aside class="right-panel">
+      <div class="panel-header">Signature Intel</div>
+
+      <div class="row" style="justify-content:space-between; font-size:0.8rem;">
+        <span style="color:var(--text-muted);">Player Runtime</span>
+        <span id="intPlayer" class="data-value" style="font-weight:600;">--</span>
+      </div>
+      <div class="row" style="justify-content:space-between; font-size:0.8rem;">
+        <span style="color:var(--text-muted);">Edge Provider</span>
+        <span id="intCdn" class="data-value" style="font-weight:600;">--</span>
+      </div>
+
+      <hr style="border:none; border-top:1px solid var(--border-soft); margin:0.5rem 0;">
+
+      <div class="row" style="justify-content:space-between; font-size:0.8rem; align-items:center;">
+        <span style="color:var(--text-muted);">Content Protection</span>
+        <div id="intDrm" class="status-badge idle" style="font-size:0.65rem;">--</div>
+      </div>
+      <div class="row" style="justify-content:space-between; font-size:0.8rem; align-items:center;">
+        <span style="color:var(--text-muted);">Browser Buffers</span>
+        <div id="intMse" class="status-badge idle" style="font-size:0.65rem;">--</div>
+      </div>
+
+      <div style="flex-grow:1;"></div>
+
+      <div class="panel" style="padding:0.75rem;">
+        <div class="data-label" style="font-size:0.65rem;">Evidence Hash (SHA-256)</div>
+        <div id="intHash" class="mono muted" style="font-size:0.65rem; word-break:break-all;">--</div>
+      </div>
+    </aside>
+
+    <section class="bottom-log">
+      <div id="statusLog" style="height:100%; display:flex; flex-direction:column; gap:4px;">
+        <div style="color:var(--text-muted);">[SYSTEM] Workstation initialized. Awaiting evidence injection.</div>
+      </div>
+    </section>
+
   </div>
 
   <script>
@@ -1162,7 +2009,10 @@
       bridgePort: 4179,
       token: null,
       safeMode: false,
-      currentTier: 'COMMUNITY'
+      currentTier: 'COMMUNITY',
+      smartSnatchEnabled: false,
+      lastClipboardContent: "",
+      smartSnatchInterval: null
     };
 
     // Safe Mode Toggle
@@ -1381,6 +2231,11 @@
     function render(result) {
       state.lastJson = result || null;
 
+      if (result?.batch && Array.isArray(result.jobs)) {
+        renderBatch(result);
+        return;
+      }
+
       const candidates = Array.isArray(result?.candidates) ? result.candidates : [];
       const refusals = Array.isArray(result?.refusals) ? result.refusals : [];
       const best = result?.best || null;
@@ -1389,25 +2244,29 @@
       el("refTag").textContent = String(refusals.length);
       el("bestTag").textContent = best?.host ? `${best.host}` : "none";
 
-      const body = el("candBody");
+      const body = el("candidatesTbody"); // Changed from candBody to candidatesTbody
       body.innerHTML = "";
       if (!candidates.length) {
-        body.innerHTML = `<tr><td colspan="7" class="muted">No candidates returned.</td></tr>`;
+        body.innerHTML = `<tr><td colspan="10" class="muted">No candidates returned.</td></tr>`; // Updated colspan
       } else {
-        const bestUrl = best?.url || null;
-
         candidates.forEach((c, idx) => {
-          const isBest = bestUrl && safeStr(c.url) === safeStr(bestUrl);
-          const host = safeStr(c.host || "unknown");
+          const isBest = best && safeStr(c.url) === safeStr(best.url); // Use best.url for comparison
+          const urlStr = safeStr(c.url || "");
+          let proto = "http";
+          try { proto = new URL(urlStr).protocol.replace(':', ''); } catch (e) { }
+
           const type = safeStr(c.type || "unknown");
-          const conf = typeof c.confidence === "number" ? c.confidence.toFixed(2) : "0.00";
-          const status = safeStr(c.status || "unknown");
-          const url = safeStr(c.url || "");
+          const score = typeof c.finalScore === "number" ? c.finalScore : 0;
+
+          const token = urlStr.includes('token') || urlStr.includes('sig') || urlStr.includes('auth') ? 'Y' : 'N';
+          const mse = urlStr.startsWith('blob:') || type === 'blob' || type.includes('ai') ? 'Y' : 'N';
+          const drm = urlStr.includes('drm') || urlStr.includes('wv') ? 'Y' : 'N';
+          const status = score >= 40 ? 'OK' : 'FAIL';
 
           const row = document.createElement("tr");
           row.className = "data-row-animate";
           row.style.animationDelay = `${idx * 0.08}s`;
-          row.style.background = isBest ? "rgba(59, 130, 246, 0.08)" : "transparent";
+          row.style.background = isBest ? "rgba(32, 199, 255, 0.08)" : "transparent";
           if (isBest) {
             row.style.borderLeft = "3px solid var(--text-accent)";
             row.style.boxShadow = "inset 4px 0 0 var(--text-accent)";
@@ -1415,26 +2274,27 @@
           row.innerHTML = `
             <td style="padding-left:16px;"><span class="muted">[${idx}]</span></td>
             <td>
-              <div style="display:flex; align-items:center; gap:8px;">
-                ${isBest ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-accent)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>` : ""}
-                <span style="font-weight:600; color:var(--text-base);">${escapeHtml(host)}</span>
+              <div class="confidence-gauge" style="border-color: ${score >= 80 ? 'var(--color-ok)' : score >= 50 ? 'var(--color-warn)' : 'var(--color-bad)'}">
+                ${score}
               </div>
+            </td>
+            <td><span class="pill mono" style="font-size:11px; padding:2px 6px;">${escapeHtml(proto.toUpperCase())}</span></td>
+            <td class="mono" style="max-width:350px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; color:var(--text-muted);" title="${escapeHtml(urlStr)}">
+              ${isBest ? `<svg width="12" height="12" style="margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="var(--text-accent)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>` : ""}
+              ${escapeHtml(urlStr)}
             </td>
             <td><span class="pill mono" style="font-size:11px; padding:2px 6px;">${escapeHtml(type)}</span></td>
-            <td>
-              <div class="confidence-gauge" style="border-color: ${conf > 0.8 ? 'var(--color-ok)' : conf > 0.5 ? 'var(--color-warn)' : 'var(--color-bad)'}">
-                ${(conf * 100).toFixed(0)}%
-              </div>
-            </td>
-            <td>
-              <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:${status.toLowerCase() === 'ok' ? 'var(--color-ok)' : 'var(--color-bad)'}; text-shadow: 0 0 10px ${status.toLowerCase() === 'ok' ? 'var(--color-ok-glow)' : 'var(--color-bad-glow)'}">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"></circle></svg>
+            <td style="text-align:center;"><span class="${token === 'Y' ? 'warn' : 'muted'}">${token}</span></td>
+            <td style="text-align:center;"><span class="${mse === 'Y' ? 'ok' : 'muted'}">${mse}</span></td>
+            <td style="text-align:center;"><span class="${drm === 'Y' ? 'bad' : 'muted'}">${drm}</span></td>
+            <td style="text-align:center;">
+              <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:${status === 'OK' ? 'var(--color-ok)' : 'var(--color-bad)'}; text-shadow: 0 0 10px ${status === 'OK' ? 'rgba(35, 209, 139, 0.2)' : 'rgba(255, 92, 122, 0.2)'}">
                 ${escapeHtml(status)}
               </span>
             </td>
-            <td class="mono" style="max-width:350px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; color:var(--text-muted);" title="${escapeHtml(url)}">${escapeHtml(url)}</td>
-            <td style="padding-right:16px; text-align:right;">
-              <button data-pick="${idx}" style="padding:4px 10px; font-size:11px; background:var(--bg-elevated); border:1px solid var(--border-soft);">Target Config</button>
+            <td style="padding-right:16px; text-align:right; display:flex; gap:4px; justify-content:content-end;">
+              <button class="pill-btn" data-why="${idx}" style="background:transparent; border-color:var(--border-soft); color:var(--text-muted);">Why?</button>
+              <button class="pill-btn" data-pick="${idx}" style="background:${isBest ? 'var(--text-accent)' : 'var(--bg-panel-alt)'}; color:${isBest ? '#000' : 'var(--text-base)'}; border-color:${isBest ? 'transparent' : 'var(--border-soft)'}">${isBest ? 'Accepted' : 'Select'}</button>
             </td>
           `;
           body.appendChild(row);
@@ -1446,6 +2306,33 @@
             pickCandidate(idx);
           });
         });
+
+        body.querySelectorAll("button[data-why]").forEach((b) => {
+          b.addEventListener("click", () => {
+            const idx = Number(b.getAttribute("data-why"));
+            showBreakdown(candidates[idx]);
+          });
+        });
+      }
+
+      function showBreakdown(c) {
+        const modal = el("breakdownModal");
+        el("breakdownTitle").textContent = `Forensic Breakdown: ${c.host || "Unknown"}`;
+        const list = el("breakdownList");
+        list.innerHTML = "";
+
+        const breakdown = c.breakdown || ["No detailed signals captured."];
+        breakdown.forEach(s => {
+          const li = document.createElement("div");
+          li.style.padding = "8px 0";
+          li.style.borderBottom = "1px solid var(--border-soft)";
+          li.style.fontSize = "0.85rem";
+          li.innerHTML = s.replace(/^\+(?:\d+):/, '<span style="color:var(--color-ok); font-weight:700;">$&</span>')
+            .replace(/^\-(?:\d+):/, '<span style="color:var(--color-bad); font-weight:700;">$&</span>');
+          list.appendChild(li);
+        });
+
+        modal.style.display = "flex";
       }
 
       const rEl = el("refusals");
@@ -1504,6 +2391,47 @@
       }
     }
 
+    function renderBatch(result) {
+      const body = el("candidatesTbody"); // Changed from candBody to candidatesTbody
+      body.innerHTML = "";
+
+      el("countTag").textContent = String(result.jobs.length);
+      el("bestTag").textContent = "BATCH MODE";
+
+      result.jobs.forEach((job, idx) => {
+        const candidates = job.candidates || [];
+        const best = job.best || null;
+        const status = job.candidates.length > 0 ? "OK" : "NONE";
+
+        const row = document.createElement("tr");
+        row.className = "data-row-animate";
+        row.style.animationDelay = `${idx * 0.05}s`;
+        row.innerHTML = `
+          <td style="padding-left:16px;"><span class="muted">[Job ${idx + 1}]</span></td>
+          <td><span class="pill mono ok">${candidates.length}</span></td>
+          <td><span class="pill mono muted">Multi</span></td>
+          <td class="mono" style="max-width:350px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; color:var(--text-accent);" title="${escapeHtml(job.input)}">
+            ${escapeHtml(job.input)}
+          </td>
+          <td><span class="pill mono">${best?.type || 'mixed'}</span></td>
+          <td colspan="3" style="text-align:center;"><span class="muted">Batch Item</span></td>
+          <td style="text-align:center;">
+            <span style="font-weight:700; color:${status === 'OK' ? 'var(--color-ok)' : 'var(--color-bad)'}">
+              ${status}
+            </span>
+          </td>
+          <td style="padding-right:16px; text-align:right;">
+             <button onclick="render(state.lastJson.jobs[${idx}])" style="padding:4px 10px; font-size:11px; background:var(--bg-panel-alt); border:1px solid var(--border-soft);">Inspect</button>
+          </td>
+        `;
+        body.appendChild(row);
+      });
+
+      el("refusals").innerHTML = `<div class="muted">Multiple jobs active. Inspect individual jobs for details.</div>`;
+      el("cmd").textContent = "Batch processing complete. Use 'Inspect' to generate individual plans.";
+      el("btnCopyCmd").disabled = true;
+    }
+
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, (c) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
@@ -1513,7 +2441,8 @@
     async function decodeViaBridge(text, pickIndex = null) {
       if (window.smartDecode && window.smartDecode.run) {
         // Native Electron IPC mode
-        const result = await window.smartDecode.run(text, {});
+        const autoPick = el("toggleAutoPick") ? el("toggleAutoPick").checked : true;
+        const result = await window.smartDecode.run(text, { autoSelect: autoPick });
 
         // Emulate the bridge 'best' assignment logic if pickIndex is provided
         if (pickIndex !== null && result.candidates && result.candidates[pickIndex]) {
@@ -1522,7 +2451,27 @@
           result.best = result.candidates[0]; // fallback
         }
 
-        // Emulate the download plan assignment
+        // Syntax highlighting utility
+        const syntaxHighlight = (json) => {
+          if (typeof json !== 'string') json = JSON.stringify(json, undefined, 2);
+          json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            let cls = 'syntax-num';
+            if (/^"/.test(match)) {
+              if (/:$/.test(match)) {
+                cls = 'syntax-key';
+              } else {
+                cls = 'syntax-str';
+                match = match.replace(/\\n/g, "<br>");
+              }
+            } else if (/true|false/.test(match)) {
+              cls = 'syntax-bool';
+            } else if (/null/.test(match)) {
+              cls = 'syntax-bool';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+          });
+        };
         if (result.best) {
           const c = result.best;
           let cmd = `curl -O "${c.url}"`;
@@ -1562,6 +2511,14 @@
         const out = await decodeViaBridge(input, idx);
         render(out);
         setStatus(idx === null ? "Optimized plan generated." : "Assigned target plan generated.", "ok");
+
+        // Log decision for metrics
+        if (idx !== null) {
+          logToConsole(`User Manual Override: Accepted candidate [${idx}]`, "ok");
+          if (window.electronAPI && window.electronAPI.logEvent) {
+            window.electronAPI.logEvent('CANDIDATE_MANUAL_PICK', { index: idx, url: out.best?.url });
+          }
+        }
       } catch (e) {
         setStatus("Analysis failed: The host may have updated or the input is malformed. (" + (e.message || "Unknown error") + ")", "bad");
       }
@@ -1585,26 +2542,138 @@
       logToConsole(`Target: ${input.substring(0, 50)}...`, "probe");
 
       // Next-Level UX Trigger
-      document.body.classList.add("matrix-active");
       el("radarStatus").textContent = "HUB: SCANNING";
       el("radarStatus").style.color = "var(--text-accent)";
 
       setStatus(`Executing SmartDecode sequence via native bridge...`, "muted");
       try {
-        const out = await decodeViaBridge(input, null);
+        const out = await decodeViaBridge(inputTarget, null);
         render(out);
         setStatus("Decode execution completed successfully.", "ok");
 
         // Next-Level UX Finalize
         el("radarStatus").textContent = "HUB: COMPLETE";
         el("radarStatus").style.color = "var(--color-ok)";
-        setTimeout(() => document.body.classList.remove("matrix-active"), 1500);
       } catch (e) {
         setStatus("Extraction engine encountered an unexpected layout. Host may have updated.", "bad");
         el("radarStatus").textContent = "HUB: ERROR";
         el("radarStatus").style.color = "var(--color-bad)";
-        document.body.classList.remove("matrix-active");
       }
+    }
+
+    async function syncAutomationState() {
+      if (!window.electronAPI || !window.electronAPI.automationGetState) return;
+      const state = await window.electronAPI.automationGetState();
+
+      // Update Metrics
+      el('metPending').textContent = state.metrics.pending;
+      el('metCompleted').textContent = state.metrics.completed;
+      el('metFailed').textContent = state.metrics.failed;
+
+      // Update Mode Selector without re-triggering event
+      const sel = el('selAutoMode');
+      if (sel && sel.value !== state.mode) {
+        sel.value = state.mode;
+
+        // Sync the top header toggle visual based on mode
+        const toggle = el('toggleSmartSnatch');
+        if (toggle) {
+          const isActive = state.mode !== 'OFF';
+          toggle.checked = isActive;
+          const slider = toggle.nextElementSibling;
+          if (isActive) {
+            slider.style.backgroundColor = "var(--text-accent)";
+            slider.style.boxShadow = "inset 0 0 5px rgba(0,0,0,0.5)";
+          } else {
+            slider.style.backgroundColor = "var(--bg-panel-alt)";
+            slider.style.boxShadow = "none";
+          }
+        }
+      }
+
+      // Render Queue
+      const qBody = el('queueTbody');
+      if (state.queue.length === 0) {
+        qBody.innerHTML = `<tr><td colspan="3" class="muted" style="text-align:center; padding:1rem;">Queue is empty.</td></tr>`;
+      } else {
+        qBody.innerHTML = state.queue.map(j => `
+            <tr>
+              <td><span class="pill">${escapeHtml(j.host)}</span></td>
+              <td class="mono tiny">${escapeHtml(j.url)}</td>
+              <td><span class="status-badge ${j.status === 'active' ? 'ok' : 'warn'}">${j.status.toUpperCase()}</span></td>
+            </tr>
+         `).join('');
+      }
+
+      // Render History
+      const hBody = el('historyTbody');
+      if (state.history.length === 0) {
+        hBody.innerHTML = `<tr><td colspan="3" class="muted" style="text-align:center; padding:1rem;">No history.</td></tr>`;
+      } else {
+        hBody.innerHTML = state.history.map(j => `
+            <tr>
+              <td><span class="pill">${escapeHtml(j.host)}</span></td>
+              <td class="mono tiny">${escapeHtml(j.url)}</td>
+              <td><span class="status-badge ${j.status === 'completed' ? 'ok' : 'bad'}">${j.status.toUpperCase()}</span></td>
+            </tr>
+         `).join('');
+      }
+    }
+
+    // Wiring SmartSnatch Top Toggle & Mode Selector
+    const toggleSmartSnatch = el("toggleSmartSnatch");
+    const selAutoMode = el("selAutoMode");
+
+    if (toggleSmartSnatch && window.electronAPI) {
+      toggleSmartSnatch.addEventListener("change", async (e) => {
+        const mode = e.target.checked ? "AUTO DECODE" : "OFF";
+        await window.electronAPI.automationSetMode(mode);
+        syncAutomationState();
+      });
+      // Set initial knob CSS
+      const style = document.createElement('style');
+      style.id = 'slider-knob-css';
+      style.innerHTML = `
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider:before { transform: translateX(14px); }
+      `;
+      document.head.appendChild(style);
+    }
+
+    if (selAutoMode && window.electronAPI) {
+      selAutoMode.addEventListener("change", async (e) => {
+        await window.electronAPI.automationSetMode(e.target.value);
+        syncAutomationState();
+      });
+    }
+
+    // Listen to backend events
+    if (window.electronAPI && window.electronAPI.onAutomationEvent) {
+      window.electronAPI.onAutomationEvent((payload) => {
+        if (payload.type === 'POLL_ERROR') return;
+        syncAutomationState();
+
+        if (payload.type === 'DECODE_START') {
+          logToConsole(`SmartSnatch orchestration triggered for ${payload.data.host}`, 'probe');
+          setStatus(`SmartSnatch Engine processing queue...`, 'ok');
+        }
+        if (payload.type === 'DECODE_COMPLETE') {
+          // We can optionally render output here or rely on user navigating the tabs
+          logToConsole(`SmartSnatch extracted payload from ${payload.data.url.substring(0, 30)}...`, 'decode');
+        }
+      });
+
+      // Setup state polling 
+      setInterval(syncAutomationState, 1500);
+      syncAutomationState(); // Initial run
+    }
+
+    // Phase 57: Global Toggle Handling
+    const toggleAutoPick = el("toggleAutoPick");
+    if (toggleAutoPick) {
+      toggleAutoPick.addEventListener("change", (e) => {
+        logToConsole(`Auto-Pick Decision Engine: ${e.target.checked ? "ENABLED" : "DISABLED"}`, "probe");
+      });
     }
 
     async function copyText(txt) {
@@ -1674,6 +2743,179 @@
 
     render(null);
 
+    // Evidence Loader Registration
+    const btnLoadEvidence = el("btnLoadEvidence");
+    if (btnLoadEvidence) {
+      btnLoadEvidence.addEventListener("click", async () => {
+        if (window.electronAPI && window.electronAPI.getForensicSnapshot) {
+          setStatus("Loading Forensic Artifact bundle...", "muted");
+          const res = await window.electronAPI.getForensicSnapshot();
+          if (res && res.success) {
+
+            const artifacts = res.artifacts || {};
+
+            // Network HAR
+            let netHtml = "";
+            let harCount = 0;
+            if (artifacts.networkHar?.log?.entries) {
+              artifacts.networkHar.log.entries.forEach((e, idx) => {
+                const url = e.request?.url || "";
+                let color = "#94a3b8";
+                if (url.includes('.m3u8') || url.includes('.mpd')) color = "var(--text-accent)";
+                else if (url.includes('.ts') || url.includes('.m4s')) color = "var(--color-ok)";
+
+                netHtml += `< div class= "log-item" style = "color:${color}; animation-delay: ${idx * 0.05}s" >
+                              <span style="font-weight:700;">[${e.request.method}]</span> 
+                              <span title="${escapeHtml(url)}">${escapeHtml(url.substring(0, 80))}${url.length > 80 ? '...' : ''}</span>
+                            </div > `;
+                harCount++;
+              });
+            }
+            if (harCount === 0) netHtml = "<div class='muted'>No HAR data found.</div>";
+            el("networkTimeline").innerHTML = netHtml;
+
+            // Segment Map (derive from HAR and streams)
+            let segHtml = "";
+            const fragments = (artifacts.networkHar?.log?.entries || []).filter(e => e.request?.url?.includes('.ts') || e.request?.url?.includes('.m4s') || e.request?.url?.match(/video|audio/i));
+            segHtml += `< div style = "margin-bottom:8px; font-weight:600; font-size:12px;" > Extracted ${fragments.length} media fragments.</div > `;
+            segHtml += `< div style = "display:flex; flex-wrap:wrap; gap:4px; padding: 4px;" > `;
+            fragments.forEach((f, idx) => {
+              segHtml += `< div class= "segment-block" title = "${f.request?.url}" style = "animation-delay: ${idx * 0.02}s; background:var(--color-ok); color:#000; padding:2px 4px; font-size:10px; font-weight:700; border-radius:4px;" > ${idx}</div > `;
+            });
+            segHtml += `</div > `;
+            el("segmentMap").innerHTML = segHtml;
+
+            // Intelligence Widget Population
+            // Phase 5 Integration: Load Forensic Modules dynamically
+            let CDN_MODULE, TOKEN_MODULE, TIMELINE_MODULE, LADDER_MODULE;
+            try {
+              if (typeof require !== 'undefined') {
+                CDN_MODULE = require('../src/forensics/detectCDN');
+                TOKEN_MODULE = require('../src/forensics/detectTokenPatterns');
+                TIMELINE_MODULE = require('../src/forensics/parseTimeline');
+                LADDER_MODULE = require('../src/forensics/buildStreamLadder');
+              }
+            } catch (e) {
+              console.error("Failed to load Phase 5 forensic modules", e);
+            }
+
+            // Timeline Parse & Render
+            if (TIMELINE_MODULE && artifacts.harObject) {
+              const timelineEvents = TIMELINE_MODULE(artifacts.harObject);
+              let timeHtml = "";
+              timelineEvents.forEach(e => {
+                timeHtml += `< tr >
+                        <td class="muted">${e.index}</td>
+                        <td><span class="pill tiny mono">${escapeHtml(e.classification.toUpperCase())}</span></td>
+                        <td>${escapeHtml(e.mime)}</td>
+                        <td class="mono" style="font-size:11px; max-width:350px; overflow:hidden; text-overflow:ellipsis;">
+                            ${escapeHtml(e.url)}
+                        </td>
+                    </tr > `;
+              });
+              if (timeHtml) el("timelineTbody").innerHTML = timeHtml;
+            }
+
+            // Stream Ladder Parse & Render
+            if (LADDER_MODULE && artifacts.manifestBuffer) {
+              const urlHint = artifacts.candidates && artifacts.candidates.length > 0 ? artifacts.candidates[0].url : "";
+              const ladderData = LADDER_MODULE(artifacts.manifestBuffer, urlHint);
+              el("ladderProtocol").textContent = ladderData.protocol.toUpperCase();
+              el("ladderTiers").textContent = ladderData.levels.length;
+              let ladHtml = "";
+              ladderData.levels.forEach(lv => {
+                ladHtml += `< tr >
+                       <td style="font-weight:600;">${escapeHtml(lv.resolution)}</td>
+                       <td class="mono">${lv.bitrate > 0 ? lv.bitrate : 'Auto'}</td>
+                       <td class="mono muted">${escapeHtml(lv.codecs)}</td>
+                   </tr > `;
+              });
+              if (ladHtml) el("ladderTbody").innerHTML = ladHtml;
+            }
+
+            if (artifacts.fingerprintResult) {
+              const playerStr = typeof artifacts.fingerprintResult === 'string' ? artifacts.fingerprintResult : (artifacts.fingerprintResult.integrator || artifacts.fingerprintResult.player || 'UNKNOWN');
+              el("intPlayer").textContent = playerStr;
+              el("intPlayer").className = "pill tiny " + (playerStr !== 'UNKNOWN' ? "ok" : "muted");
+            }
+
+            let hasDrm = false;
+            let cdnGuess = "Generic Edge";
+
+            // Phase 5 Token and CDN Detection overriding basic string matches
+            if (TOKEN_MODULE && artifacts.candidates) {
+              const tokenIntel = TOKEN_MODULE(artifacts.candidates);
+              if (tokenIntel.detected) {
+                hasDrm = tokenIntel.tokenTypes.some(t => t.includes('Policy') || t.includes('Signature') || t.includes('Auth'));
+              }
+            }
+
+            if (CDN_MODULE && TIMELINE_MODULE && artifacts.harObject) {
+              const events = TIMELINE_MODULE(artifacts.harObject);
+              const cdnIntel = CDN_MODULE(events);
+              if (cdnIntel.cdn !== 'Unknown Origin') {
+                cdnGuess = cdnIntel.cdn;
+              }
+            }
+
+            el("intProto").textContent = artifacts.networkHar ? "HTTPS/H2" : "--";
+            el("intProto").className = "pill tiny ok";
+
+            el("intCdn").textContent = cdnGuess;
+            el("intCdn").className = "pill tiny muted";
+
+            el("intDrm").textContent = hasDrm ? "Detected" : "Cleartext";
+            el("intDrm").className = hasDrm ? "pill tiny bad" : "pill tiny ok";
+
+            const mseActive = artifacts.mseEvents && artifacts.mseEvents.length > 0;
+            el("intMse").textContent = mseActive ? "Confirmed" : "None";
+            el("intMse").className = mseActive ? "pill tiny ok" : "pill tiny muted";
+
+            el("intSw").textContent = "Intercepted";
+            el("intSw").className = "pill tiny warn";
+
+            // Seed the extraction engine with this evidence 
+            // (Mock completion to populate best candidate widget if Enginecore ran in real life)
+            if (window.smartDecode && window.smartDecode.run) {
+              const engineRes = await window.smartDecode.run(artifacts.domContext?.dom || "", {});
+              if (engineRes.candidates && engineRes.candidates.length > 0) {
+                el("intBest").textContent = engineRes.candidates[0].url;
+                el("intLadder").textContent = "1080p, 720p, chunked";
+                el("intLadder").className = "mono tiny ok";
+              }
+            }
+            const traceEl = el("scriptTrace") || document.createElement("div");
+            traceEl.id = "scriptTrace";
+
+            let traceHtml = "";
+            let traceCount = 0;
+            if (artifacts.streamTrace && Array.isArray(artifacts.streamTrace)) {
+              artifacts.streamTrace.forEach((t, idx) => {
+                const time = new Date(t.timestamp).toISOString().split('T')[1].replace('Z', '');
+                const action = t.type === 'MSE' ? `[MSE] ${t.action} ${t.mime ? '- ' + t.mime : ''}` : `[${t.type}]${t.method || ''} ${t.url || ''}`;
+                traceHtml += `< div class= "log-item" style = "color: ${t.type === 'MSE' ? 'var(--color-warn)' : '#a855f7'}; animation-delay: ${idx * 0.05}s" >
+        <span class="muted" style="margin-right:8px;">(${time})</span>
+                                ${escapeHtml(action)}
+                               </div > `;
+                traceCount++;
+              });
+            }
+            if (traceCount === 0) traceHtml = "<div class='muted'>No execution trace found.</div>";
+
+            traceEl.innerHTML = traceHtml;
+
+            setStatus("Evidence Bundle loaded directly into the console grids.", "ok");
+          } else {
+            if (!res?.error?.includes("No directory selected")) {
+              setStatus(`Failed to load snapshot: ${res?.error}`, "bad");
+            }
+          }
+        } else {
+          setStatus("Forensic Snapshots are only supported in Vanguard Desktop.", "warn");
+        }
+      });
+    }
+
     // Tier Badge Update
     function updateTierBadge(tier) {
       const badge = el('tierBadge');
@@ -1696,7 +2938,7 @@
       const tier = requiredTier || 'SOVEREIGN';
       const price = tier === 'INSTITUTIONAL' ? '$499' : '$149';
       el('upgradeTitle').textContent = `${featureName} — Upgrade Required`;
-      el('upgradeMessage').textContent = `This feature requires the ${tier} Edition (${price} one-time).`;
+      el('upgradeMessage').textContent = `This feature requires the ${tier} Edition(${price} one - time).`;
       el('upgradeModal').style.display = 'flex';
     }
 
@@ -1708,7 +2950,7 @@
         if (result && result.valid) {
           state.currentTier = result.tier || result.edition || 'SOVEREIGN';
           updateTierBadge(state.currentTier);
-          setStatus(`License activated: ${state.currentTier} Edition. Welcome, ${result.user || 'Analyst'}!`, 'ok');
+          setStatus(`License activated: ${state.currentTier} Edition.Welcome, ${result.user || 'Analyst'}!`, 'ok');
           if (state.currentTier === 'SOVEREIGN' || state.currentTier === 'INSTITUTIONAL') {
             el('forensicCard').style.display = 'flex';
             logToConsole(`License upgraded to ${state.currentTier}.`, 'decode');
@@ -1720,6 +2962,788 @@
         setStatus('License import is only available in the desktop app.', 'warn');
       }
     });
+
+    // Tab Switching Logic
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Reset all tabs
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+
+        // Activate target
+        btn.classList.add('active');
+        const tabId = btn.getAttribute('data-tab');
+        if (el(tabId)) {
+          el(tabId).style.display = 'block';
+        }
+      });
+    });
+
+    // ==================== PHASE 57: CASE MANAGEMENT LOGIC ====================
+    class CaseManager {
+      constructor() {
+        this.activeCase = null;
+        this.initListeners();
+        this.refreshCaseList();
+      }
+
+      initListeners() {
+        el('btnCreateCase').addEventListener('click', () => this.createCase());
+        el('btnCloseCase').addEventListener('click', () => this.closeCase());
+        el('btnAddNote').addEventListener('click', () => this.addNote());
+        el('btnExportNotes').addEventListener('click', () => this.exportNotes());
+        el('btnAttachBundle').addEventListener('click', () => this.attachBundle());
+        el('btnLogFinding').addEventListener('click', () => this.logFinding());
+        el('btnRunComparison').addEventListener('click', () => this.runComparison());
+        el('btnRefreshAudit').addEventListener('click', () => this.refreshAuditLogs());
+        el('btnSignEvidence').addEventListener('click', () => this.signCase());
+        el('btnVerifySignature').addEventListener('click', () => this.verifyCaseSignature());
+        el('btnSealPackage').addEventListener('click', () => this.sealEvidencePackage());
+        el('btnRebuildGraph').addEventListener('click', () => this.rebuildGraph());
+        el('btnLoadPlugin').addEventListener('click', () => this.loadExternalPlugin());
+        el('btnExecuteQuery').addEventListener('click', () => this.executeHyperQuery());
+        el('btnApplyMutation').addEventListener('click', () => this.applyMutation());
+        el('btnRunResearch').addEventListener('click', () => this.runResearchScript());
+        el('btnExportCase').addEventListener('click', () => this.exportActiveCase());
+        el('btnRunPatternDiscovery').addEventListener('click', () => this.runPatternDiscovery());
+        el('btnGenerateBriefing').addEventListener('click', () => this.generateBriefing());
+        el('btnAutoInvestigate').addEventListener('click', () => this.launchAutoInvestigation());
+        el('btnClassifyBundles').addEventListener('click', () => this.classifyBundles());
+        el('btnGenerateResearch').addEventListener('click', () => this.generateResearchSuggestions());
+      }
+
+      async refreshCaseList() {
+        if (!window.electronAPI || !window.electronAPI.caseList) return;
+        const cases = await window.electronAPI.caseList();
+        const body = el('caseListBody');
+
+        if (cases.length === 0) {
+          body.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center; padding:2rem;">No cases found. Create a new one to begin.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = cases.map(c => `
+                <tr>
+                    <td class="mono tiny">${c.case_id}</td>
+                    <td style="font-weight:600;">${escapeHtml(c.title)}</td>
+                    <td><span class="pill tiny">${c.bundleCount} items</span></td>
+                    <td class="muted tiny">${new Date(c.modified).toLocaleString()}</td>
+                    <td style="text-align:right;">
+                        <button class="pill-btn" onclick="caseMgr.loadCase('${c.case_id}')">Open</button>
+                        <button class="pill-btn" style="color:var(--color-bad);" onclick="caseMgr.deleteCase('${c.case_id}')">Del</button>
+                    </td>
+                </tr>
+            `).join('');
+      }
+
+      async loadCase(caseId) {
+        const c = await window.electronAPI.caseLoad(caseId);
+        if (!c) return;
+        this.activeCase = c;
+
+        el('caseExplorer').style.display = 'none';
+        el('activeCaseDashboard').style.display = 'flex';
+        el('activeCaseTitle').textContent = c.title;
+        el('activeCaseId').textContent = "CASE ID: " + c.case_id;
+
+        this.renderBundles();
+        this.renderNotes();
+        this.renderFindings();
+        this.updateCompareSelects();
+        this.refreshAuditLogs();
+        this.renderIntelligenceGraph();
+        this.refreshPluginList();
+        this.refreshQueryStats();
+        this.scanAllBundlesForAlerts();
+        this.refreshResearchScripts();
+
+        logToConsole(`Case Loaded: ${c.title}`, "ok");
+        window.electronAPI.auditLog('CASE_OPEN', { caseId: caseId, title: c.title });
+      }
+
+      closeCase() {
+        this.activeCase = null;
+        el('activeCaseDashboard').style.display = 'none';
+        el('caseExplorer').style.display = 'block';
+        this.refreshCaseList();
+      }
+
+      async deleteCase(caseId) {
+        if (!confirm("Are you sure you want to delete this case?")) return;
+        await window.electronAPI.caseDelete(caseId);
+        this.refreshCaseList();
+      }
+
+      renderBundles() {
+        const list = el('caseBundleList');
+        if (this.activeCase.bundles.length === 0) {
+          list.innerHTML = '<div class="muted tiny">No bundles attached. Use "Attach .hyper"</div>';
+          return;
+        }
+        list.innerHTML = this.activeCase.bundles.map(b => `
+                <div class="panel" style="padding:8px; border-style:dashed; background:rgba(0,0,0,0.2);">
+                    <div style="display:flex; justify-content:space-between; font-size:0.7rem;">
+                        <span class="ok" style="font-weight:700;">${escapeHtml(b.host)}</span>
+                        <span class="muted mono tiny">${b.fingerprint.substring(0, 8)}</span>
+                    </div>
+                    <div class="mono muted" style="font-size:0.6rem; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(b.sourceUrl)}</div>
+                    <div style="display:flex; gap:4px; margin-top:4px;">
+                        <button class="pill-btn tiny" style="flex:1; border:none; background:rgba(255,255,255,0.05);" onclick="caseMgr.viewBundleCustody('${b.fingerprint}')">Lineage</button>
+                        <button class="pill-btn tiny" style="flex:1; border:none; background:rgba(255,255,255,0.05);" onclick="caseMgr.scanSimilarity('${b.fingerprint}')">Similar</button>
+                    </div>
+                </div>
+            `).join('');
+      }
+
+      async attachBundle() {
+        if (!this.activeCase) return;
+        // Mock file dialog via prompt for now or use real dialog if available in electronAPI
+        const bundlePath = prompt("Enter full path to .hyper bundle:");
+        if (!bundlePath) return;
+
+        try {
+          const updated = await window.electronAPI.caseAttachBundle(this.activeCase.case_id, bundlePath);
+          this.activeCase = updated;
+          this.renderBundles();
+          this.updateCompareSelects();
+          logToConsole(`Bundle attached: ${bundlePath}`, "ok");
+        } catch (err) {
+          alert("Error attaching bundle: " + err.message);
+        }
+      }
+
+      renderNotes() {
+        const list = el('caseNotesList');
+        if (this.activeCase.notes.length === 0) {
+          list.innerHTML = '<div class="muted tiny">No notes found.</div>';
+          return;
+        }
+        list.innerHTML = this.activeCase.notes.map(n => `
+                <div style="margin-bottom:12px; font-size:0.8rem;">
+                    <div class="muted tiny">${new Date(n.timestamp).toLocaleString()}</div>
+                    <div style="margin-top:4px;">${escapeHtml(n.content)}</div>
+                </div>
+            `).join('');
+        list.scrollTop = list.scrollHeight;
+      }
+
+      async addNote() {
+        const content = el('caseNoteInput').value.trim();
+        if (!content) return;
+        const updated = await window.electronAPI.caseAddNote(this.activeCase.case_id, content);
+        this.activeCase = updated;
+        el('caseNoteInput').value = "";
+        this.renderNotes();
+      }
+
+      async exportNotes() {
+        if (!this.activeCase) return;
+        const res = await window.electronAPI.caseExportNotes(this.activeCase.case_id, `${this.activeCase.case_id}_notes.md`);
+        if (res.success) setStatus("Notes exported to " + res.filePath, "ok");
+      }
+
+      renderFindings() {
+        const body = el('caseFindingsBody');
+        if (this.activeCase.findings.length === 0) {
+          body.innerHTML = '<tr><td colspan="3" class="muted" style="text-align:center; padding:1rem;">No findings logged.</td></tr>';
+          return;
+        }
+        body.innerHTML = this.activeCase.findings.map(f => `
+                <tr>
+                    <td style="font-weight:600;">${escapeHtml(f.title)}</td>
+                    <td><span class="status-badge ${f.severity}">${f.severity.toUpperCase()}</span></td>
+                    <td style="text-align:right;" class="mono tiny muted">${f.bundle_id.substring(0, 8) || 'N/A'}</td>
+                </tr>
+            `).join('');
+      }
+
+      async logFinding() {
+        const title = prompt("Finding Title:");
+        if (!title) return;
+        const severity = prompt("Severity (info/warn/bad):", "info");
+
+        // Just use first bundle as example
+        const bundleId = this.activeCase.bundles.length > 0 ? this.activeCase.bundles[0].fingerprint : "NONE";
+
+        const updated = await window.electronAPI.caseAddFinding(this.activeCase.case_id, {
+          title, severity, bundle_id: bundleId
+        });
+        this.activeCase = updated;
+        this.renderFindings();
+      }
+
+      updateCompareSelects() {
+        const selA = el('compareSelectA');
+        const selB = el('compareSelectB');
+        const options = this.activeCase.bundles.map(b => `<option value="${b.path}">${b.host} (${b.fingerprint.substring(0, 6)})</option>`).join('');
+        selA.innerHTML = '<option value="">Select Bundle A</option>' + options;
+        selB.innerHTML = '<option value="">Select Bundle B</option>' + options;
+      }
+
+      async runComparison() {
+        const pathA = el('compareSelectA').value;
+        const pathB = el('compareSelectB').value;
+        if (!pathA || !pathB) {
+          alert("Please select two bundles for comparison.");
+          return;
+        }
+
+        const res = await window.electronAPI.caseCompare(pathA, pathB);
+        const area = el('compareResultArea');
+        area.textContent = res.markdown;
+        area.className = "mono ok";
+        logToConsole(`Forensic Comparison complete.`, "decode");
+        window.electronAPI.auditLog('COMPARISON_RUN', { caseId: this.activeCase.case_id });
+      }
+
+      async refreshAuditLogs() {
+        if (!window.electronAPI.auditGetLogs) return;
+        const logs = await window.electronAPI.auditGetLogs();
+        const list = el('auditLogList');
+        const filtered = logs.filter(l => l.data?.caseId === this.activeCase?.case_id || !l.data?.caseId);
+
+        if (filtered.length === 0) {
+          list.innerHTML = '<div class="muted">No audit events recorded.</div>';
+          return;
+        }
+
+        list.innerHTML = filtered.slice(-10).reverse().map(l => `
+                <div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:2px 0;">
+                    <span class="muted" style="font-size:0.55rem;">${new Date(l.timestamp).toLocaleTimeString()}</span>
+                    <span class="ok" style="font-weight:700;">${l.type}</span>
+                    <span class="tiny muted">${l.analyst}</span>
+                </div>
+            `).join('');
+      }
+
+      async signCase() {
+        if (!this.activeCase) return;
+        const signResult = await window.electronAPI.evidenceSign(this.activeCase);
+        this.activeCase.signature = signResult.signature;
+        this.activeCase.publicKey = signResult.publicKey;
+
+        el('signatureStatus').textContent = "SIGNED (ECDSA)";
+        el('signatureStatus').className = "pill tiny ok";
+        el('signingInfo').textContent = "Sig: " + signResult.signature.substring(0, 32) + "...";
+
+        await window.electronAPI.caseSave(this.activeCase);
+        window.electronAPI.auditLog('CASE_SIGNED', { caseId: this.activeCase.case_id });
+        setStatus("Case state cryptographically signed.", "ok");
+      }
+
+      async verifyCaseSignature() {
+        if (!this.activeCase || !this.activeCase.signature) {
+          alert("Case is not signed.");
+          return;
+        }
+
+        const isValid = await window.electronAPI.evidenceVerify(
+          this.activeCase,
+          this.activeCase.signature,
+          this.activeCase.publicKey
+        );
+
+        if (isValid) {
+          alert("Forensic Integrity Confirmed: Signature is valid.");
+          setStatus("Signature verification successful.", "ok");
+        } else {
+          alert("CRITICAL ALERT: Signature verification FAILED! Integrity may be compromised.");
+          setStatus("Signature verification FAILED!", "bad");
+        }
+      }
+
+      async viewBundleCustody(fingerprint) {
+        const chain = await window.electronAPI.custodyGetChain(fingerprint);
+        const list = el('custodyList');
+
+        if (chain.length === 0) {
+          list.innerHTML = `<div class="muted">No lineage for ${fingerprint.substring(0, 8)}</div>`;
+          return;
+        }
+
+        list.innerHTML = chain.map(e => `
+                <div style="padding:4px; background:rgba(255,255,255,0.03); border-radius:4px; margin-bottom:4px;">
+                    <div style="font-weight:700; color:var(--text-accent);">${e.action}</div>
+                    <div class="muted" style="font-size:0.55rem;">${new Date(e.timestamp).toLocaleString()}</div>
+                    <div class="tiny mono">${e.details?.machine || 'STATION-01'}</div>
+                </div>
+            `).join('');
+      }
+
+      async sealEvidencePackage() {
+        if (!this.activeCase) return;
+        const dest = prompt("Enter destination directory for Sealed Package:");
+        if (!dest) return;
+
+        const res = await window.electronAPI.evidenceSealCase(this.activeCase.case_id, dest);
+        if (res.success) {
+          alert(`Sealed Evidence Package created:\n${res.packagePath}`);
+          window.electronAPI.auditLog('PACKAGE_SEALED', { caseId: this.activeCase.case_id, path: res.packagePath });
+        } else if (res.error) {
+          alert("Error sealing package: " + res.error);
+        }
+      }
+
+      async rebuildGraph() {
+        setStatus("Rebuilding Intelligence Graph...", "decode");
+        await window.electronAPI.intelligenceRebuildGraph();
+        this.renderIntelligenceGraph();
+        setStatus("Intelligence Graph rebuilt.", "ok");
+      }
+
+      async renderIntelligenceGraph() {
+        if (!window.electronAPI.intelligenceGetGraph) return;
+        const res = await window.electronAPI.intelligenceGetGraph();
+        const list = el('intelGraphList');
+
+        if (res.nodes.length === 0) {
+          list.innerHTML = '<div class="muted" style="grid-column: span 2;">No relational data available.</div>';
+          return;
+        }
+
+        const byType = {};
+        res.nodes.forEach(n => {
+          if (!byType[n.type]) byType[n.type] = [];
+          byType[n.type].push(n);
+        });
+
+        list.innerHTML = Object.entries(byType).map(([type, nodes]) => `
+                <div style="grid-column: span 2; border-bottom: 1px solid rgba(255,255,255,0.1); margin-top:8px; font-weight:700; color:var(--text-accent);">${type}S</div>
+                ${nodes.map(n => `
+                    <div class="panel" style="background:rgba(255,255,255,0.02); padding:4px; display:flex; flex-direction:column; gap:2px;">
+                        <div class="mono" style="font-size:0.6rem; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(n.id)}</div>
+                        <div class="tiny muted">${res.edges.filter(e => e.source === n.id || e.target === n.id).length} connections</div>
+                    </div>
+                `).join('')}
+            `).join('');
+      }
+
+      async scanSimilarity(fingerprint) {
+        setStatus("Scanning for forensic similarities...", "decode");
+        const similar = await window.electronAPI.intelligenceGetSimilar(fingerprint);
+        const list = el('similarityList');
+
+        if (similar.length === 0) {
+          list.innerHTML = '<div class="muted">No similar infrastructure found.</div>';
+          return;
+        }
+
+        list.innerHTML = similar.map(item => `
+                <div class="panel" style="background:rgba(255,255,255,0.03); margin-bottom:4px; padding:6px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="flex:1;">
+                        <div class="mono" style="font-size:0.65rem;">${escapeHtml(item.bundle.path.split(/[\\/]/).pop())}</div>
+                        <div class="tiny muted">${item.bundle.cdn || 'Local'} | ${item.bundle.protocol || 'Unknown'}</div>
+                    </div>
+                    <div class="pill tiny ${item.score > 70 ? 'ok' : 'muted'}" style="font-weight:700;">${item.score}% Match</div>
+                </div>
+            `).join('');
+
+        setStatus(`Scan complete: ${similar.length} related artifacts found.`, "ok");
+      }
+
+      async refreshPluginList() {
+        if (!window.electronAPI.pluginsList) return;
+        const plugins = await window.electronAPI.pluginsList();
+        const list = el('pluginList');
+        el('pluginsLoadedCount').textContent = plugins.length;
+
+        if (plugins.length === 0) {
+          list.innerHTML = '<div class="muted">No plugins loaded.</div>';
+          return;
+        }
+
+        list.innerHTML = plugins.map(p => `
+                <div class="panel" style="background:rgba(255,255,255,0.03); margin-bottom:4px; padding:6px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="flex:1;">
+                        <div style="font-weight:700; color:var(--text-accent); font-size:0.65rem;">${escapeHtml(p.name)} v${p.version}</div>
+                        <div class="tiny muted">${p.capabilities.join(', ')}</div>
+                    </div>
+                    <div class="pill tiny ${p.enabled ? 'ok' : 'muted'}" style="font-weight:700;">${p.enabled ? 'ACTIVE' : 'OFF'}</div>
+                </div>
+            `).join('');
+      }
+
+      async loadExternalPlugin() {
+        const pPath = prompt("Enter full path to plugin directory (must contain manifest.json):");
+        if (!pPath) return;
+
+        setStatus("Loading plugin...", "decode");
+        const res = await window.electronAPI.pluginsLoad(pPath);
+        if (res) {
+          this.refreshPluginList();
+          setStatus(`Plugin "${res.name}" loaded successfully.`, "ok");
+          logToConsole(`Plugin ${res.id} initialized with capabilities: ${res.capabilities.join(', ')}`, "ok");
+        } else {
+          alert("Failed to load plugin. Check console for details.");
+          setStatus("Plugin load failed.", "bad");
+        }
+      }
+
+      async executeHyperQuery() {
+        const queryStr = el('hyperQueryInput').value.trim();
+        if (!queryStr) return;
+
+        setStatus("Executing HyperQuery...", "decode");
+        const results = await window.electronAPI.queryExecute(queryStr);
+        const list = el('hyperQueryResults');
+
+        if (results.length === 0) {
+          list.innerHTML = '<div class="muted" style="grid-column: 1 / -1;">No relational matches found for query.</div>';
+          return;
+        }
+
+        list.innerHTML = results.map(r => `
+                <div class="panel" style="background:rgba(255,255,255,0.03); padding:8px; border-style:dashed;">
+                    <div style="font-weight:700; color:var(--text-accent);">${r.type}</div>
+                    <div class="mono tiny muted" style="overflow:hidden; text-overflow:ellipsis;">${escapeHtml(r.id)}</div>
+                    <button class="pill-btn tiny" style="margin-top:4px; width:100%;" onclick="caseMgr.loadCaseByBundleId('${r.id}')">Jump to Case</button>
+                </div>
+            `).join('');
+
+        this.refreshQueryStats();
+        setStatus(`Query returned ${results.length} relational matches.`, "ok");
+      }
+
+      async refreshQueryStats() {
+        if (!window.electronAPI.queryStats) return;
+        const stats = await window.electronAPI.queryStats();
+        el('statCdns').textContent = stats.cdns;
+        el('statProtos').textContent = stats.protocols;
+        el('statPlayers').textContent = stats.players;
+        el('statFps').textContent = stats.fingerprints;
+      }
+
+      async loadCaseByBundleId(bundleId) {
+        // Find which case owns this bundle
+        const node = await window.electronAPI.intelligenceGetGraph();
+        const found = node.nodes.find(n => n.id === bundleId);
+        if (found && found.data.caseId) {
+          this.loadCase(found.data.caseId);
+          setStatus(`Switched to case for bundle ${bundleId.substring(0, 8)}`, "ok");
+        }
+      }
+
+      async applyMutation() {
+        const enabled = el('chkMutationEnabled').checked;
+        const headersJson = el('txtMutationHeaders').value.trim();
+        const tokenStr = el('txtMutationToken').value.trim();
+
+        let headers = {};
+        if (headersJson) {
+          try {
+            headers = JSON.parse(headersJson);
+          } catch (e) {
+            alert("Invalid JSON for Header Mutations.");
+            return;
+          }
+        }
+
+        const config = {
+          enabled,
+          modifyHeaders: headers,
+          injectTokens: tokenStr
+        };
+
+        // For simplicity in this UI, we apply to current "active" session if any
+        // In a real multi-session scenario, we'd pick a session ID
+        const activeSessionId = "DEFAULT_REPLAY_SESSION";
+
+        setStatus("Applying replay mutations...", "decode");
+        await window.electronAPI.replayMutateSet(activeSessionId, config);
+
+        el('mutationActiveState').textContent = enabled ? 'ACTIVE' : 'INACTIVE';
+        el('mutationActiveState').className = enabled ? 'ok' : 'muted';
+        el('mutationCount').textContent = (headersJson ? Object.keys(headers).length : 0) + (tokenStr ? 1 : 0);
+
+        setStatus(enabled ? "Replay mutations active." : "Mutations disabled.", "ok");
+      }
+
+      async refreshResearchScripts() {
+        if (!window.electronAPI.researchListScripts) return;
+        const scripts = await window.electronAPI.researchListScripts();
+        const select = el('researchScriptSelect');
+        if (scripts.length === 0) {
+          select.innerHTML = '<option value="">-- No scripts found --</option>';
+          return;
+        }
+
+        select.innerHTML = scripts.map(s => `<option value="${s}">${s}</option>`).join('');
+      }
+
+      async runResearchScript() {
+        const scriptName = el('researchScriptSelect').value;
+        if (!scriptName) return;
+
+        this.researchLog(`Starting experimental execution: ${scriptName}`, "warn");
+        setStatus("Running research script...", "decode");
+
+        try {
+          const res = await window.electronAPI.researchRunScript(scriptName, {
+            activeCase: this.activeCase,
+            timestamp: new Date().toISOString()
+          });
+          this.researchLog(`Script complete. Result: ${JSON.stringify(res)}`, "ok");
+          setStatus("Research script completed.", "ok");
+        } catch (e) {
+          this.researchLog(`Execution Error: ${e.message}`, "bad");
+          setStatus("Research script failed.", "bad");
+        }
+      }
+
+      researchLog(msg, type = "ok") {
+        const console = el('researchConsole');
+        const entry = document.createElement('div');
+        entry.className = type;
+        entry.textContent = `> [${new Date().toLocaleTimeString()}] ${msg}`;
+        console.appendChild(entry);
+        console.scrollTop = console.scrollHeight;
+      }
+
+      async exportActiveCase() {
+        if (!this.activeCase) return;
+        const format = el('exportFormatSelect').value;
+        const filename = `export_${this.activeCase.id}_${Date.now()}.${format === 'csv' ? 'csv' : 'json'}`;
+        const targetPath = `exports/${filename}`;
+
+        setStatus(`Generating ${format.toUpperCase()} export...`, "decode");
+        try {
+          await window.electronAPI.exportCaseData(this.activeCase, format, targetPath);
+          setStatus(`Export saved to ${targetPath}`, "ok");
+          logToConsole(`Case export generated: ${targetPath}`, "ok");
+        } catch (e) {
+          setStatus("Export failed.", "bad");
+          logToConsole(`Export Error: ${e.message}`, "bad");
+        }
+      }
+
+      async scanAllBundlesForAlerts() {
+        if (!this.activeCase || !this.activeCase.bundles) return;
+        const list = el('detectionAlertList');
+        list.innerHTML = '';
+
+        let totalAlerts = 0;
+        for (const bundle of this.activeCase.bundles) {
+          const alerts = await window.electronAPI.rulesScanBundle(bundle);
+          if (alerts.length > 0) {
+            totalAlerts += alerts.length;
+            alerts.forEach(alert => {
+              const item = document.createElement('div');
+              item.className = 'panel';
+              item.style.background = 'rgba(255,100,100,0.05)';
+              item.style.borderLeft = `3px solid var(--color-${alert.severity.toLowerCase() === 'critical' ? 'bad' : 'warn'})`;
+              item.style.marginBottom = '4px';
+              item.style.padding = '6px';
+              item.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-weight:700; color:var(--text-accent);">${escapeHtml(alert.name)}</span>
+                                <span class="tiny pill" style="background:rgba(255,255,255,0.1);">${alert.severity}</span>
+                            </div>
+                            <div class="tiny muted">${bundle.path.split('/').pop()}</div>
+                        `;
+              list.appendChild(item);
+            });
+          }
+        }
+
+        if (totalAlerts === 0) {
+          list.innerHTML = '<div class="ok tiny">No forensic anomalies detected in active case.</div>';
+        }
+      }
+
+      async runPatternDiscovery() {
+        if (!this.activeCase || !this.activeCase.bundles) return;
+        setStatus("Discovering infrastructure patterns...", "decode");
+
+        const patterns = await window.electronAPI.patternsDiscover(this.activeCase.bundles);
+        const pList = el('patternDiscoveryList');
+        pList.innerHTML = '';
+
+        if (patterns.length === 0) {
+          pList.innerHTML = '<div class="muted">No recurring patterns found.</div>';
+        } else {
+          patterns.forEach(p => {
+            const item = document.createElement('div');
+            item.style.cssText = 'display:flex; justify-content:space-between; padding:4px 6px; background:rgba(255,255,255,0.03); border-radius:4px;';
+            item.innerHTML = `<span class="mono">${escapeHtml(p.key.replace(/::/g, ' > '))}</span><span class="pill tiny" style="background:rgba(255,255,255,0.1);">${p.frequency}x</span>`;
+            pList.appendChild(item);
+          });
+        }
+
+        const anomalies = await window.electronAPI.patternsAnomalies(this.activeCase.bundles, patterns);
+        const aList = el('anomalyList');
+        aList.innerHTML = '';
+        if (anomalies.length === 0) {
+          aList.innerHTML = '<div class="ok tiny">No anomalies detected.</div>';
+        } else {
+          anomalies.forEach(a => {
+            const item = document.createElement('div');
+            item.style.cssText = 'padding:4px 6px; border-left:3px solid var(--color-warn); background:rgba(255,100,100,0.03);';
+            item.innerHTML = `<b>${a.reason}</b> <span class="muted">${a.bundleId}</span>`;
+            aList.appendChild(item);
+          });
+        }
+
+        const stats = await window.electronAPI.patternsStats();
+        el('statPatterns').textContent = stats.patterns.totalPatterns;
+        el('statClusters').textContent = stats.clusters.totalClusters;
+        el('statAnomalies').textContent = stats.anomalies.totalAnomalies;
+        setStatus(`Discovered ${patterns.length} patterns, ${anomalies.length} anomalies.`, "ok");
+      }
+
+      async generateBriefing() {
+        if (!this.activeCase) return;
+        setStatus("Generating AI intelligence briefing...", "decode");
+
+        const briefing = await window.electronAPI.assistantBriefing(this.activeCase);
+        const bDiv = el('assistantBriefing');
+        bDiv.innerHTML = '';
+
+        // Summary stats
+        const s = briefing.summary;
+        bDiv.innerHTML += `<div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <span>Bundles: <b class="ok">${s.totalBundles}</b></span>
+          <span>Patterns: <b class="ok">${s.patterns}</b></span>
+          <span>Anomalies: <b class="ok">${s.anomalies}</b></span>
+          <span>Insights: <b class="ok">${s.insights}</b></span>
+        </div>`;
+
+        // Top findings
+        if (briefing.topFindings.length > 0) {
+          briefing.topFindings.forEach(f => {
+            const d = document.createElement('div');
+            d.style.cssText = 'padding:4px 6px; background:rgba(255,255,255,0.03); border-radius:4px; border-left:3px solid var(--color-ok);';
+            d.innerHTML = `<b>${f.type}</b>: ${escapeHtml(f.message)}`;
+            bDiv.appendChild(d);
+          });
+        }
+
+        // Recommendations
+        if (briefing.recommendations.length > 0) {
+          const recDiv = document.createElement('div');
+          recDiv.style.cssText = 'margin-top:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px;';
+          recDiv.innerHTML = '<b class="muted">Recommendations:</b><ul style="margin:4px 0; padding-left:16px;">' +
+            briefing.recommendations.map(r => `<li>${escapeHtml(r)}</li>`).join('') + '</ul>';
+          bDiv.appendChild(recDiv);
+        }
+
+        // Update topology view
+        if (this.activeCase.bundles) {
+          const topo = await window.electronAPI.topologyMapCase(this.activeCase.bundles);
+          const tv = el('topologyMapView');
+          tv.innerHTML = '';
+          topo.nodes.forEach(n => {
+            const nd = document.createElement('div');
+            nd.style.cssText = 'padding:4px 6px; background:rgba(255,255,255,0.03); border-radius:4px;';
+            nd.innerHTML = `<span class="pill tiny" style="background:rgba(255,255,255,0.1);">${n.type}</span> ${escapeHtml(n.label)}`;
+            tv.appendChild(nd);
+          });
+          el('statTopoNodes').textContent = topo.totalNodes;
+          el('statTopoEdges').textContent = topo.totalEdges;
+        }
+
+        setStatus("Intelligence briefing generated.", "ok");
+      }
+
+      async launchAutoInvestigation() {
+        if (!this.activeCase || !this.activeCase.bundles) return;
+        setStatus("Launching autonomous investigation...", "decode");
+
+        const reportDiv = el('autoInvestigationReport');
+        reportDiv.innerHTML = '<div class="ok">Pipeline running...</div>';
+
+        const report = await window.electronAPI.autoInvestigate(this.activeCase.bundles);
+        reportDiv.innerHTML = '';
+
+        if (report.status === 'COMPLETE') {
+          const s = report.summary;
+          reportDiv.innerHTML = `
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+              <span>Patterns: <b class="ok">${s.patterns}</b></span>
+              <span>Anomalies: <b class="ok">${s.anomalies}</b></span>
+              <span>Insights: <b class="ok">${s.insights}</b></span>
+              <span>Topology: <b class="ok">${s.topologyNodes} nodes</b></span>
+            </div>
+            <div style="padding:6px; background:rgba(255,255,255,0.03); border-radius:4px; border-left:3px solid var(--color-${s.verdict === 'CLEAN' ? 'ok' : s.verdict === 'SUSPICIOUS' ? 'bad' : 'warn'});">
+              <b>Verdict:</b> <span class="${s.verdict === 'CLEAN' ? 'ok' : 'bad'}">${s.verdict}</span>
+            </div>`;
+
+          // Render insights
+          if (report.stages.insights && report.stages.insights.data) {
+            const iList = el('insightsList');
+            iList.innerHTML = '';
+            report.stages.insights.data.forEach(i => {
+              const d = document.createElement('div');
+              d.style.cssText = 'padding:4px 6px; background:rgba(255,255,255,0.03); border-radius:4px;';
+              d.innerHTML = `<b class="${i.severity === 'WARNING' ? 'bad' : 'ok'}">${i.type}</b>: ${escapeHtml(i.message)}`;
+              iList.appendChild(d);
+            });
+          }
+
+          setStatus(`Autonomous investigation complete. Verdict: ${s.verdict}`, "ok");
+        } else {
+          reportDiv.innerHTML = `<div class="bad">Investigation failed: ${report.error}</div>`;
+          setStatus("Investigation failed.", "bad");
+        }
+      }
+
+      async classifyBundles() {
+        if (!this.activeCase || !this.activeCase.bundles) return;
+        setStatus("Running AI pattern classification...", "decode");
+
+        const results = await window.electronAPI.aiClassifyBundles(this.activeCase.bundles);
+        const cList = el('classificationList');
+        cList.innerHTML = '';
+        results.forEach(r => {
+          const d = document.createElement('div');
+          d.style.cssText = 'display:flex; justify-content:space-between; padding:4px 6px; background:rgba(255,255,255,0.03); border-radius:4px;';
+          d.innerHTML = `<span class="mono">${escapeHtml(r.label)}</span><span class="pill tiny" style="background:rgba(255,255,255,0.1);">${(r.confidence * 100).toFixed(0)}%</span>`;
+          cList.appendChild(d);
+        });
+
+        const scores = await window.electronAPI.aiScoreAnomalies(this.activeCase.bundles);
+        const sList = el('anomalyScoringList');
+        sList.innerHTML = '';
+        scores.forEach(s => {
+          const d = document.createElement('div');
+          d.style.cssText = `padding:4px 6px; border-left:3px solid var(--color-${s.severity === 'HIGH' ? 'bad' : s.severity === 'MEDIUM' ? 'warn' : 'ok'}); background:rgba(255,255,255,0.03);`;
+          d.innerHTML = `<b>${s.bundleId}</b>: Score <b>${s.anomaly_score}</b> [${s.severity}]`;
+          sList.appendChild(d);
+        });
+
+        setStatus(`Classified ${results.length} bundles, scored ${scores.length} for anomalies.`, "ok");
+      }
+
+      async generateResearchSuggestions() {
+        if (!this.activeCase) return;
+        setStatus("Generating autonomous research suggestions...", "decode");
+
+        const context = {
+          anomaly_score: 65,
+          similar_bundle_count: (this.activeCase.bundles || []).length,
+          singleton_patterns: 1,
+          unknown_classifications: 0
+        };
+
+        const result = await window.electronAPI.researchGenerate(context);
+        const rList = el('researchQueueList');
+        rList.innerHTML = '';
+        if (result.suggestions.length === 0) {
+          rList.innerHTML = '<div class="ok tiny">No research suggestions at this time.</div>';
+        } else {
+          result.suggestions.forEach(s => {
+            const d = document.createElement('div');
+            d.style.cssText = 'padding:6px; background:rgba(255,255,255,0.03); border-radius:4px; border-left:3px solid var(--color-warn);';
+            d.innerHTML = `<div><b>${s.type}</b> <span class="pill tiny" style="background:rgba(255,200,0,0.2);">${s.review_state.toUpperCase()}</span></div><div class="muted tiny">${escapeHtml(s.reason)}</div>`;
+            rList.appendChild(d);
+          });
+        }
+        setStatus(`${result.suggestions.length} research suggestions generated (review required).`, "ok");
+      }
+    }
+
+    const caseMgr = new CaseManager();
+    window.caseMgr = caseMgr; // Expose globally for onclick handlers
+
   </script>
 </body>
 

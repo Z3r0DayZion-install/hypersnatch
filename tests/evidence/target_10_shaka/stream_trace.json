@@ -1,0 +1,115 @@
+[
+  {
+    "type": "fetch",
+    "url": "https://shaka-player-demo.appspot.com/node_modules/lcevc_dec.js/dist/liblcevc_dpi.wasm",
+    "timestamp": 1772775690204
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/controls.less",
+    "timestamp": 1772775690275
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/demo/demo.less",
+    "timestamp": 1772775690275
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/general.less",
+    "timestamp": 1772775690367
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/containers.less",
+    "timestamp": 1772775690367
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/buttons.less",
+    "timestamp": 1772775690368
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/range_elements.less",
+    "timestamp": 1772775690368
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/other_elements.less",
+    "timestamp": 1772775690368
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/overflow_menu.less",
+    "timestamp": 1772775690368
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/ad_controls.less",
+    "timestamp": 1772775690368
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/tooltip.less",
+    "timestamp": 1772775690369
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/thumbnails.less",
+    "timestamp": 1772775690369
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/material_svg_icon.less",
+    "timestamp": 1772775690369
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://fonts.googleapis.com/css?family=Roboto",
+    "timestamp": 1772775690369
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/node_modules/material-design-lite/dist/material.indigo-blue.min.css",
+    "timestamp": 1772775690374
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/node_modules/dialog-polyfill/dialog-polyfill.css",
+    "timestamp": 1772775690374
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/node_modules/awesomplete/awesomplete.css",
+    "timestamp": 1772775690374
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/node_modules/tippy.js/index.css",
+    "timestamp": 1772775690375
+  },
+  {
+    "type": "MSE",
+    "action": "construct",
+    "mseId": "mse_0d6zj7pdy",
+    "timestamp": 1772775690788
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "id": "rule_global_variable_7dcef9f4740df639",
+  "strategy": "global_variable",
+  "confidence": 0.85,
+  "sample": "https://streams.example.com/live/hidden-stream.m3u8?token=xyz",
+  "generatedAt": 1772750673362
+}

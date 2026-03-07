@@ -1,0 +1,114 @@
+[
+  {
+    "type": "fetch",
+    "url": "https://shaka-player-demo.appspot.com/node_modules/lcevc_dec.js/dist/liblcevc_dpi.wasm",
+    "timestamp": 1772748397284
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/controls.less",
+    "timestamp": 1772748397416
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/demo/demo.less",
+    "timestamp": 1772748397417
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/node_modules/material-design-lite/dist/material.indigo-blue.min.css",
+    "timestamp": 1772748397766
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/node_modules/dialog-polyfill/dialog-polyfill.css",
+    "timestamp": 1772748397766
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/node_modules/awesomplete/awesomplete.css",
+    "timestamp": 1772748397766
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/node_modules/tippy.js/index.css",
+    "timestamp": 1772748397766
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/general.less",
+    "timestamp": 1772748397768
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/containers.less",
+    "timestamp": 1772748397768
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/buttons.less",
+    "timestamp": 1772748397768
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/range_elements.less",
+    "timestamp": 1772748397768
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/other_elements.less",
+    "timestamp": 1772748397768
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/overflow_menu.less",
+    "timestamp": 1772748397768
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/ad_controls.less",
+    "timestamp": 1772748397768
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/tooltip.less",
+    "timestamp": 1772748397768
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/thumbnails.less",
+    "timestamp": 1772748397768
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://shaka-player-demo.appspot.com/ui/less/material_svg_icon.less",
+    "timestamp": 1772748397768
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://fonts.googleapis.com/css?family=Roboto",
+    "timestamp": 1772748397769
+  },
+  {
+    "type": "MSE",
+    "action": "construct",
+    "timestamp": 1772748397780
+  }
+]

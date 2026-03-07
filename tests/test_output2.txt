@@ -1,0 +1,75 @@
+=== HyperSnatch Real-World Extraction Test Matrix ===
+Loaded 2 targets for execution...
+[RESURRECTION_CORE] [CORE] Resurrection core initialized
+[ENGINE_CORE] [ENGINE] Module loaded: resurrection_core
+[POLICY_GUARD] [POLICY] Policy guard initialized with strict policy
+[ENGINE_CORE] [ENGINE] Module loaded: policy_guard
+[1:52:43 PM] [INFO] [hs_mme04me4_lii7tg] Evidence logger initialized { sessionId: 'hs_mme04me4_lii7tg', persistence: true, logLevel: 1 }
+[ENGINE_CORE] [ENGINE] Module loaded: evidence_logger
+[1:52:43 PM] [INFO] [hs_mme04me4_lii7tg] [ENGINE] Module loaded: evidence_logger {}
+[ENGINE_CORE] [ENGINE] Engine core initialized
+[1:52:43 PM] [INFO] [hs_mme04me4_lii7tg] [ENGINE] Engine core initialized {}
+
+[1/2] Testing: https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8 (hls)
+[TargetRunner] Attaching to CDP -> https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[1:52:47 PM] [INFO] [hs_mme04me4_lii7tg] [ENGINE] Starting processing pipeline {}
+[1:52:47 PM] [INFO] [hs_mme04me4_lii7tg] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T21:52:47.706Z',
+  inputType: 'URL',
+  inputSize: 49
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[1:52:47 PM] [INFO] [hs_mme04me4_lii7tg] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T21:52:47.708Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 2
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[1:52:47 PM] [INFO] [hs_mme04me4_lii7tg] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+
+[2/2] Testing: https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd (dash)
+[TargetRunner] Attaching to CDP -> https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd
+[TargetRunner] Navigating...
+[ENGINE_CORE] [ENGINE] Starting processing pipeline
+[2:00:30 PM] [INFO] [hs_mme04me4_lii7tg] [ENGINE] Starting processing pipeline {}
+[2:00:30 PM] [INFO] [hs_mme04me4_lii7tg] Module operation: engine_core.process_start {
+  module: 'engine_core',
+  operation: 'process_start',
+  result: 'success',
+  timestamp: '2026-03-05T22:00:30.275Z',
+  inputType: 'URL',
+  inputSize: 57
+}
+[RESURRECTION_CORE] [ENGINE] Processing URL input with policy: relaxed
+[RESURRECTION_CORE] [ENGINE] Processing complete. Found 1 candidates
+[POLICY_GUARD] [POLICY] Validation result: PASS (0 violations)
+[2:00:30 PM] [INFO] [hs_mme04me4_lii7tg] Module operation: engine_core.process_complete {
+  module: 'engine_core',
+  operation: 'process_complete',
+  result: 'success',
+  timestamp: '2026-03-05T22:00:30.276Z',
+  candidatesFound: 1,
+  policyViolation: false,
+  processingTime: 1
+}
+[ENGINE_CORE] [ENGINE] Processing complete. 1 candidates found
+[2:00:30 PM] [INFO] [hs_mme04me4_lii7tg] [ENGINE] Processing complete. 1 candidates found {}
+  -> SUCCESS! Found 1 candidates.
+  -> Best Rule/URL: https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd
+
+=== Final Scorecard ===
+Success: 2 / 2
+===============================

@@ -1,0 +1,32 @@
+{
+  "manifests": [
+    {
+      "url": "https://stream.mux.com/UZMwOY6MgmhFNXLbSFXAuPKlRPss5XNA.m3u8",
+      "mime": ""
+    },
+    {
+      "url": "https://manifest-gcp-us-east4-vop1.fastly.mux.com/elXhatnrMM00U9gIj01gGtgWM1fuxRSFUNa776WqS01lgSoBJUyI1ymwke4HnK101e4MdT6CynCuvWyT8ZK29kXQ1lrmBAc8x2ZRd6yWjhCxwCQ/rendition.m3u8?cdn=fastly&expires=1773381600&skid=default&signature=NjliM2EzN2VfZDU2OGI4NmQ0MTNkYTJhZTJlYWUxNzlkNjVhOTg2OGM4ZDMxYTc5ODljYThiOGVjNDUyYjdkNTk2MmQyMjBhYw==&vsid=7IfBpxegwIOJLKLEDr16EPT87WKvTUyJuqWVZE5wTi9jwk1m500ZCtVHutwc5p5PIDik2iOUS029Y",
+      "mime": ""
+    }
+  ],
+  "segments": [
+    {
+      "url": "https://chunk-gcp-us-east4-vop1.fastly.mux.com/v1/chunk/J7FNu2n1ekPJ01sMXd8BJ8qHZhWsi302UpR8n01DVZdMJCUGM6NZFT2nju71d8LT7l8Jp02UMZFGzlXyvm2w8CaTiqJqfSQFGN2nctP01kaBea8g/0.ts?skid=default&signature=NjliM2E3ZTBfYjU4NDE2ZGVjYjFmNWNhZjlhNDg0ZmE1ODhlNmFlNDllZGE2NTc2MGM0OTU2YjUyNTlhYzhkOTU5MjkzMGU5ZQ==&zone=0",
+      "mime": ""
+    }
+  ],
+  "keys": [],
+  "telemetry": [],
+  "other": [
+    {
+      "url": "https://vjs.zencdn.net/v/oceans.mp4",
+      "mime": "",
+      "category": "media"
+    }
+  ],
+  "flags": {
+    "drmDetected": false,
+    "accessTokenRejected": false,
+    "mseStreamDetected": true
+  }
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://videojs.com/",
+    "domain": "videojs.com",
+    "path": "/",
+    "finalScore": 25,
+    "certaintyTier": "Low",
+    "scoreBreakdown": [
+      "+15: MSE Segment pattern confirmed in HAR",
+      "+10: Host/CDN matches standard media pattern"
+    ]
+  }
+]

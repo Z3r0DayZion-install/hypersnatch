@@ -5,7 +5,9 @@
 const RapidgatorExtractor = {
     PATTERNS: [
         /https?:\/\/(?:www\.)?rapidgator\.net\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
-        /https?:\/\/rg\.to\/file\/([a-zA-Z0-9_-]+)/i
+        /https?:\/\/rg\.to\/file\/([a-zA-Z0-9_-]+)/i,
+        /https?:\/\/(?:www\.)?rapidgator\.net\/folder\/([a-zA-Z0-9_-]+)/i, // Phase 54: Folder Support
+        /https?:\/\/rg\.to\/folder\/([a-zA-Z0-9_-]+)/i
     ],
 
     extract(input) {
@@ -19,12 +21,14 @@ const RapidgatorExtractor = {
                 const fileId = match[1];
                 const filename = match[2] || 'unknown';
                 if (!candidates.has(url)) {
+                    const isFolder = /\/folder\//i.test(url);
                     candidates.set(url, {
                         url, fileId, filename,
                         host: 'rapidgator.net',
-                        type: this._inferType(filename),
+                        type: isFolder ? 'folder' : this._inferType(filename),
                         sourceLayer: 'host_rapidgator',
-                        confidence: 0.95
+                        confidence: isFolder ? 0.90 : 0.95,
+                        requiresExpansion: isFolder
                     });
                 }
             }

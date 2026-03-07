@@ -7,8 +7,10 @@ const KsharedExtractor = {
     // Patterns derived from documentation and legacy logic
     PATTERNS: [
         /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
+        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
         /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/file\/([a-zA-Z0-9_-]+)(?:[\/\?\s"']|$)/i,
-        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/f\/([a-zA-Z0-9_-]+)/i
+        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/f\/([a-zA-Z0-9_-]+)/i, // Phase 54: Folder Support
+        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/folder\/([a-zA-Z0-9_-]+)/i // Optional longer format
     ],
 
     /**
@@ -33,14 +35,16 @@ const KsharedExtractor = {
                 const host = url.includes('khared.com') ? 'khared.com' : 'kshared.com';
 
                 if (!candidates.has(url)) {
+                    const isFolder = /\/[f|folder]\//i.test(url);
                     candidates.set(url, {
                         url,
                         fileId,
                         filename,
                         host,
-                        type: this._inferType(filename),
+                        type: isFolder ? 'folder' : this._inferType(filename),
                         sourceLayer: 'host_kshared',
-                        confidence: 0.95
+                        confidence: isFolder ? 0.90 : 0.95,
+                        requiresExpansion: isFolder
                     });
                 }
             }

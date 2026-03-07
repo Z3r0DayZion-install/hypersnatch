@@ -1,7 +1,7 @@
 // ==================== ELECTRON MAIN PROCESS ====================
 "use strict";
 
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -186,6 +186,894 @@ ipcMain.handle('smart-decode-verify-session', async (event, bundle) => {
     return false;
   }
 });
+
+// ==================== SMARTSNATCH AUTOMATION ENGINE ====================
+const clipboardWatcher = require('./automation/clipboardWatcher');
+const decodeQueue = require('./automation/decodeQueue');
+const decodeScheduler = require('./automation/decodeScheduler');
+
+// Configure Watcher
+clipboardWatcher.setProvider(async () => {
+  return clipboard.readText();
+});
+
+// Configure Scheduler
+decodeScheduler.setExecutor(async (url, host) => {
+  log.info('AUTOMATION_DECODE_START', { url, host });
+  BrowserWindow.getAllWindows().forEach(w => w.webContents.send('automation-event', { type: 'DECODE_START', data: { url, host } }));
+
+  const intelPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'config', 'forensic_intelligence.json')
+    : path.join(__dirname, '..', 'config', 'forensic_intelligence.json');
+
+  const out = await SmartDecode.run(url, { intelligencePath: intelPath });
+
+  BrowserWindow.getAllWindows().forEach(w => w.webContents.send('automation-event', { type: 'DECODE_COMPLETE', data: { url, out } }));
+  return out;
+});
+
+// Start loopers
+decodeScheduler.start(1000);
+clipboardWatcher.start(1000);
+
+// ==================== CASE MANAGEMENT SYSTEM (Phase 57) ====================
+const CaseStore = require('./cases/caseStore');
+const BundleAttachment = require('./cases/bundleAttachment');
+const CaseNotes = require('./cases/caseNotes');
+const FindingsRegistry = require('./cases/findingsRegistry');
+const CaseComparator = require('./cases/caseComparator');
+
+// ==================== INSTITUTIONAL TRUST LAYER (Phase 58) ====================
+const AuditLogger = require('./audit/auditLogger');
+const CustodyChain = require('./audit/custodyChain');
+const BundleSigner = require('./audit/bundleSigner');
+const SignatureVerifier = require('./audit/signatureVerifier');
+const ExportSeal = require('./audit/exportSeal');
+
+const SimilarityEngine = require('./intelligence/similarityEngine');
+
+// ==================== PLUGIN ECOSYSTEM (Phase 60) ====================
+const PluginLoader = require('./plugins/pluginLoader');
+const PluginSandbox = require('./plugins/pluginSandbox');
+
+// ==================== HYPERQUERY ENGINE (Phase 61) ====================
+const IndexManager = require('./query/indexManager');
+const HyperQueryEngine = require('./query/hyperQueryEngine');
+
+// ==================== REPLAY MUTATION ENGINE (Phase 62) ====================
+const ReplayMutationEngine = require('./replay/replayMutationEngine');
+const mutationEngine = new ReplayMutationEngine();
+
+// ==================== DETECTION RULE ENGINE (Phase 63) ====================
+const DetectionRuleEngine = require('./rules/detectionRuleEngine');
+const ruleEngine = new DetectionRuleEngine();
+
+// ==================== RESEARCH MODE TOOLKIT (Phase 64) ====================
+const ResearchSandbox = require('./research/researchSandbox');
+const RESEARCH_DIR = path.join(RUNTIME_DIR, 'research');
+const researchSandbox = new ResearchSandbox(RESEARCH_DIR);
+
+// ==================== DATASET EXPORT SYSTEM (Phase 65) ====================
+const DatasetExporter = require('./export/datasetExporter');
+const exporter = new DatasetExporter();
+
+// ==================== PATTERN DISCOVERY ENGINE (Phase 66) ====================
+const PatternDiscoveryEngine = require('./intelligence/patternDiscoveryEngine');
+const ClusterEngine = require('./intelligence/clusterEngine');
+const AnomalyDetector = require('./intelligence/anomalyDetector');
+const patternEngine = new PatternDiscoveryEngine();
+const clusterEngine = new ClusterEngine();
+const anomalyDetector = new AnomalyDetector();
+
+// ==================== TOPOLOGY MAPPER (Phase 67) ====================
+const TopologyMapper = require('./intelligence/topologyMapper');
+const topologyMapper = new TopologyMapper();
+
+// ==================== INSIGHT GENERATOR (Phase 68) ====================
+const InsightGenerator = require('./intelligence/insightGenerator');
+const insightGenerator = new InsightGenerator();
+
+// ==================== CASE INTELLIGENCE ASSISTANT (Phase 69) ====================
+const CaseIntelligenceAssistant = require('./assistant/caseIntelligenceAssistant');
+const caseAssistant = new CaseIntelligenceAssistant(patternEngine, anomalyDetector, insightGenerator);
+
+// ==================== AUTONOMOUS INVESTIGATOR (Phase 70) ====================
+const AutonomousInvestigator = require('./autonomy/autonomousInvestigator');
+const autoInvestigator = new AutonomousInvestigator({
+  patternDiscovery: patternEngine,
+  anomalyDetector: anomalyDetector,
+  insightGenerator: insightGenerator,
+  topologyMapper: topologyMapper,
+  ruleEngine: ruleEngine
+});
+
+// ==================== AI PATTERN CLASSIFIER (Phase 71) ====================
+const PatternClassifier = require('./ai/patternClassifier');
+const patternClassifier = new PatternClassifier();
+
+// ==================== ANOMALY SCORER (Phase 72) ====================
+const AnomalyScorer = require('./ai/anomalyScorer');
+const anomalyScorer = new AnomalyScorer();
+
+// ==================== FINGERPRINT LIBRARY (Phase 73) ====================
+const FingerprintLibrary = require('./library/fingerprintLibrary');
+const fpLibraryPath = path.join(RUNTIME_DIR, 'fingerprint_library.json');
+const fingerprintLibrary = new FingerprintLibrary(fpLibraryPath);
+
+// ==================== CROSS-CASE MINER (Phase 74) ====================
+const CrossCaseMiner = require('./intelligence/crossCaseMiner');
+const crossCaseMiner = new CrossCaseMiner();
+
+// ==================== AUTONOMOUS RESEARCH MODE (Phase 75) ====================
+const AutonomousResearchMode = require('./research/autonomousResearchMode');
+const autoResearch = new AutonomousResearchMode();
+
+// ==================== WORKSPACE STORE (Phase 76) ====================
+const WorkspaceStore = require('./workspaces/workspaceStore');
+const workspaceStore = new WorkspaceStore();
+
+// ==================== TRUST REGISTRY (Phase 77) ====================
+const TrustRegistry = require('./federation/trustRegistry');
+const trustRegistry = new TrustRegistry();
+
+// ==================== CENTRALITY ENGINE (Phase 78) ====================
+const CentralityEngine = require('./graph/centralityEngine');
+const centralityEngine = new CentralityEngine();
+
+// ==================== POLICY ENGINE (Phase 79) ====================
+const PolicyEngine = require('./policy/policyEngine');
+const policyEngine = new PolicyEngine();
+
+// ==================== DEPLOYMENT PROFILES (Phase 80) ====================
+const DeploymentProfiles = require('./enterprise/deploymentProfiles');
+const deploymentProfiles = new DeploymentProfiles();
+
+// ==================== REVIEW WORKFLOW (Phase 81) ====================
+const ReviewWorkflow = require('./collaboration/reviewWorkflow');
+const reviewWorkflow = new ReviewWorkflow();
+
+// ==================== REDACTION ENGINE (Phase 82) ====================
+const RedactionEngine = require('./redaction/redactionEngine');
+const redactionEngine = new RedactionEngine();
+
+// ==================== PUBLICATION PIPELINE (Phase 83) ====================
+const PublicationPipeline = require('./publication/publicationPipeline');
+const publicationPipeline = new PublicationPipeline();
+
+// ==================== MODEL REPORTER (Phase 84) ====================
+const ModelReporter = require('./reporting/modelReporter');
+const modelReporter = new ModelReporter();
+
+// ==================== DEPLOYMENT ORCHESTRATOR (Phase 85) ====================
+const DeploymentOrchestrator = require('./deployment/deploymentOrchestrator');
+const deploymentOrchestrator = new DeploymentOrchestrator();
+
+// ==================== TIMELINE ENGINE (Phase 86) ====================
+const TimelineEngine = require('./timeline/timelineEngine');
+const timelineEngine = new TimelineEngine();
+
+// ==================== INFRASTRUCTURE TRACKER (Phase 87) ====================
+const InfrastructureTracker = require('./evolution/infrastructureTracker');
+const infrastructureTracker = new InfrastructureTracker();
+
+// ==================== PREDICTIVE ANOMALY (Phase 88) ====================
+const PredictiveAnomaly = require('./predictive/predictiveAnomaly');
+const predictiveAnomaly = new PredictiveAnomaly();
+
+// ==================== FORENSIC SIMULATOR (Phase 89) ====================
+const ForensicSimulator = require('./simulation/forensicSimulator');
+const forensicSimulator = new ForensicSimulator();
+
+// ==================== THREAT REPORTER (Phase 90) ====================
+const ThreatReporter = require('./threat/threatReporter');
+const threatReporter = new ThreatReporter();
+
+// ==================== GLOBAL GRAPH (Phase 91) ====================
+const GlobalGraph = require('./global/globalGraph');
+const globalGraph = new GlobalGraph();
+
+// ==================== INFRA ATTRIBUTION (Phase 92) ====================
+const InfraAttributionEngine = require('./attribution/infraAttributionEngine');
+const infraAttributionEngine = new InfraAttributionEngine();
+
+// ==================== ADVERSARY FINGERPRINTING (Phase 93) ====================
+const AdversaryFingerprintEngine = require('./fingerprinting/adversaryFingerprintEngine');
+const adversaryFingerprintEngine = new AdversaryFingerprintEngine();
+
+// ==================== SELF HEALING (Phase 94) ====================
+const SelfHealingOrchestrator = require('./healing/selfHealingOrchestrator');
+const selfHealingOrchestrator = new SelfHealingOrchestrator();
+
+// ==================== AUTONOMOUS DISCOVERY (Phase 95) ====================
+const AutonomousDiscoveryEngine = require('./discovery/autonomousDiscoveryEngine');
+const autonomousDiscoveryEngine = new AutonomousDiscoveryEngine();
+
+// ==================== ENDGAME MASTER PACK (Phases 96-100) ====================
+const MissionReplayEngine = require('./endgame/missionReplayEngine');
+const missionReplayEngine = new MissionReplayEngine();
+
+const CounterfactualSimulator = require('./endgame/counterfactualEngine');
+const counterfactualSimulator = new CounterfactualSimulator();
+
+const EvidenceWeightEngine = require('./endgame/evidenceWeightEngine');
+const evidenceWeightEngine = new EvidenceWeightEngine();
+
+const ChallengeModeEngine = require('./endgame/challengeModeEngine');
+const challengeModeEngine = new ChallengeModeEngine();
+
+const StrategicCommandEngine = require('./endgame/strategicCommandEngine');
+const strategicCommandEngine = new StrategicCommandEngine(
+  missionReplayEngine,
+  counterfactualSimulator,
+  evidenceWeightEngine,
+  challengeModeEngine
+);
+
+const indexManager = new IndexManager();
+
+const PLUGINS_DIR = path.join(RUNTIME_DIR, 'plugins');
+const pluginLoader = new PluginLoader(PLUGINS_DIR);
+const pluginSandbox = new PluginSandbox();
+
+const intelGraph = new IntelligenceGraph();
+const hyperQuery = new HyperQueryEngine(indexManager, intelGraph);
+
+// Trust Layer IPC Handlers
+const AUDIT_STORAGE = path.join(RUNTIME_DIR, 'audit');
+const KEYS_DIR = path.join(RUNTIME_DIR, 'identity');
+
+const auditLogger = new AuditLogger(AUDIT_STORAGE);
+const custodyChain = new CustodyChain(AUDIT_STORAGE);
+const bundleSigner = new BundleSigner(KEYS_DIR);
+const exportSeal = new ExportSeal(bundleSigner, SignatureVerifier);
+
+// Ensure workstation identity on boot
+const workstationPubKey = bundleSigner.ensureKeyPair();
+log.info("FORENSIC_STATION_IDENTITY_READY", { publicKey: workstationPubKey.substring(0, 64) + "..." });
+
+// Trust Layer IPC Handlers
+ipcMain.handle('audit-log', (event, { type, data }) => {
+  auditLogger.log(type, data, 'ANALYST_01'); // In real build, current analyst ID
+  return { success: true };
+});
+
+ipcMain.handle('audit-get-logs', () => auditLogger.getLogs());
+
+ipcMain.handle('custody-record', (event, { fingerprint, action, details }) => {
+  custodyChain.recordEvent(fingerprint, action, details);
+  return { success: true };
+});
+
+ipcMain.handle('custody-get-chain', (event, fingerprint) => custodyChain.getChain(fingerprint));
+
+ipcMain.handle('evidence-sign', (event, data) => {
+  return bundleSigner.signData(data);
+});
+
+ipcMain.handle('evidence-verify', (event, { data, signature, publicKey }) => {
+  return SignatureVerifier.verifyData(data, signature, publicKey);
+});
+
+ipcMain.handle('evidence-seal-case', async (event, { caseId, destinationDir }) => {
+  const gateCheck = await requireTier('INSTITUTIONAL', 'Sealed Evidence Packaging');
+  if (gateCheck) return gateCheck;
+
+  const caseData = caseStore.loadCase(caseId);
+  if (!caseData) throw new Error("Case not found");
+
+  const context = {
+    custodyChain: caseData.bundles.map(b => ({
+      fingerprint: b.fingerprint,
+      chain: custodyChain.getChain(b.fingerprint)
+    })),
+    auditLogs: auditLogger.getLogs().filter(l => l.data?.caseId === caseId)
+  };
+
+  return exportSeal.sealCase(caseData, destinationDir, context);
+});
+
+// Intelligence Graph IPC Handlers
+ipcMain.handle('intelligence-get-graph', () => {
+  return {
+    nodes: intelGraph.getAllNodes(),
+    edges: intelGraph.getAllEdges()
+  };
+});
+
+ipcMain.handle('intelligence-get-similar', (event, fingerprint) => {
+  const allBundles = [];
+  // Gather all bundles from all cases for similarity comparison
+  caseStore.listCases().forEach(cSummary => {
+    const fullCase = caseStore.loadCase(cSummary.id);
+    if (fullCase && fullCase.bundles) {
+      fullCase.bundles.forEach(b => {
+        if (b.fingerprint_data) allBundles.push(b);
+      });
+    }
+  });
+
+  const targetNode = intelGraph.getNode(fingerprint);
+  if (!targetNode || !targetNode.data.fingerprint) return [];
+
+  return SimilarityEngine.findSimilar(targetNode.data.fingerprint, allBundles);
+});
+
+ipcMain.handle('intelligence-rebuild-graph', () => {
+  intelGraph.clear();
+  caseStore.listCases().forEach(cSummary => {
+    const fullCase = caseStore.loadCase(cSummary.id);
+    if (fullCase && fullCase.bundles) {
+      fullCase.bundles.forEach(bundle => {
+        updateIntelligenceGraph(bundle, fullCase.case_id);
+      });
+    }
+  });
+  return { success: true };
+});
+
+// Plugin Ecosystem IPC Handlers
+ipcMain.handle('plugins-list', () => pluginLoader.getAllPlugins());
+
+ipcMain.handle('plugins-load', (event, pluginPath) => {
+  return pluginLoader.loadPlugin(pluginPath);
+});
+
+ipcMain.handle('plugins-run-capability', async (event, { pluginId, capability, context }) => {
+  const plugin = pluginLoader.getPlugin(pluginId);
+  if (!plugin || !plugin.enabled) throw new Error("Plugin not found or disabled");
+
+  if (!plugin.capabilities.includes(capability)) {
+    throw new Error(`Plugin ${pluginId} does not support capability: ${capability}`);
+  }
+
+  return await pluginSandbox.run(plugin.main, { capability, context });
+});
+
+// HyperQuery IPC Handlers
+ipcMain.handle('query-execute', (event, queryStr) => {
+  return hyperQuery.execute(queryStr).map(bid => {
+    const node = intelGraph.getNode(bid);
+    return node ? { id: bid, ...node } : { id: bid, type: 'UNKNOWN' };
+  });
+});
+
+ipcMain.handle('query-stats', () => {
+  return indexManager.getStatistics();
+});
+
+// Replay Mutation IPC Handlers
+ipcMain.handle('replay-mutate-set', (event, { sessionId, config }) => {
+  mutationEngine.setMutation(sessionId, config);
+  return { success: true };
+});
+
+ipcMain.handle('replay-mutate-clear', (event, sessionId) => {
+  mutationEngine.clearMutation(sessionId);
+  return { success: true };
+});
+
+// Detection Rules IPC Handlers
+ipcMain.handle('rules-scan-bundle', (event, bundle) => {
+  return ruleEngine.evaluate(bundle);
+});
+
+// Research Mode IPC Handlers
+ipcMain.handle('research-list-scripts', () => researchSandbox.listScripts());
+
+ipcMain.handle('research-run-script', async (event, { scriptName, context }) => {
+  return await researchSandbox.executeResearchScript(scriptName, context);
+});
+
+// Dataset Export IPC Handlers
+ipcMain.handle('export-case-data', async (event, { caseData, format, targetPath }) => {
+  await exporter.exportCase(caseData, format, targetPath);
+  return { success: true };
+});
+
+// Pattern Discovery IPC Handlers (Phase 66)
+ipcMain.handle('patterns-discover', (event, bundles) => {
+  return patternEngine.discover(bundles);
+});
+
+ipcMain.handle('patterns-cluster', (event, { bundles, traits }) => {
+  return clusterEngine.cluster(bundles, traits);
+});
+
+ipcMain.handle('patterns-anomalies', (event, { bundles, patterns }) => {
+  return anomalyDetector.detect(bundles, patterns);
+});
+
+ipcMain.handle('patterns-stats', () => {
+  return {
+    patterns: patternEngine.getStats(),
+    clusters: clusterEngine.getStats(),
+    anomalies: anomalyDetector.getStats()
+  };
+});
+
+// Topology Mapper IPC (Phase 67)
+ipcMain.handle('topology-map-case', (event, bundles) => {
+  return topologyMapper.mapCase(bundles);
+});
+
+// Insight Generator IPC (Phase 68)
+ipcMain.handle('insights-generate', (event, { patterns, anomalies, topology }) => {
+  return insightGenerator.generate(patterns, anomalies, topology);
+});
+
+// Case Assistant IPC (Phase 69)
+ipcMain.handle('assistant-briefing', (event, caseData) => {
+  return caseAssistant.generateBriefing(caseData);
+});
+
+ipcMain.handle('assistant-suggest-related', (event, { targetBundle, allBundles }) => {
+  return caseAssistant.suggestRelated(targetBundle, allBundles);
+});
+
+ipcMain.handle('assistant-propose-experiments', (event, bundle) => {
+  return caseAssistant.proposeExperiments(bundle);
+});
+
+// Autonomous Investigator IPC (Phase 70)
+ipcMain.handle('auto-investigate', async (event, bundles) => {
+  return await autoInvestigator.run(bundles);
+});
+
+// Pattern Classifier IPC (Phase 71)
+ipcMain.handle('ai-classify-bundles', (event, bundles) => {
+  return patternClassifier.classifyBundles(bundles);
+});
+
+// Anomaly Scorer IPC (Phase 72)
+ipcMain.handle('ai-score-anomalies', (event, observations) => {
+  return anomalyScorer.scoreBundles(observations);
+});
+
+// Fingerprint Library IPC (Phase 73)
+ipcMain.handle('fplib-add', (event, entry) => {
+  return fingerprintLibrary.add(entry);
+});
+ipcMain.handle('fplib-search', (event, features) => {
+  return fingerprintLibrary.findSimilar(features);
+});
+ipcMain.handle('fplib-compare', (event, candidate) => {
+  return fingerprintLibrary.compare(candidate);
+});
+ipcMain.handle('fplib-export', () => {
+  return fingerprintLibrary.export();
+});
+
+// Cross-Case Miner IPC (Phase 74)
+ipcMain.handle('cross-case-mine', (event, cases) => {
+  return crossCaseMiner.mine(cases);
+});
+
+// Autonomous Research Mode IPC (Phase 75)
+ipcMain.handle('research-generate', (event, context) => {
+  return autoResearch.generate(context);
+});
+ipcMain.handle('research-update-state', (event, { id, state }) => {
+  return autoResearch.updateState(id, state);
+});
+ipcMain.handle('research-review-packet', () => {
+  return autoResearch.generateReviewPacket();
+});
+
+// Workspace Store IPC (Phase 76)
+ipcMain.handle('ws-create', (event, { name, options }) => {
+  return workspaceStore.createWorkspace(name, options);
+});
+ipcMain.handle('ws-list', () => {
+  return workspaceStore.listWorkspaces();
+});
+ipcMain.handle('ws-add-member', (event, { wsId, member }) => {
+  return workspaceStore.addMember(wsId, member);
+});
+ipcMain.handle('ws-assign-case', (event, { wsId, caseId, analystId }) => {
+  return workspaceStore.assignCase(wsId, caseId, analystId);
+});
+ipcMain.handle('ws-activity-feed', (event, wsId) => {
+  return workspaceStore.getActivityFeed(wsId);
+});
+
+// Trust Registry IPC (Phase 77)
+ipcMain.handle('trust-add-source', (event, source) => {
+  return trustRegistry.addSource(source);
+});
+ipcMain.handle('trust-verify', (event, sourceId) => {
+  return trustRegistry.verifySource(sourceId);
+});
+ipcMain.handle('trust-log-exchange', (event, data) => {
+  return trustRegistry.logExchange(data);
+});
+ipcMain.handle('trust-audit', () => {
+  return trustRegistry.getExchangeAudit();
+});
+
+// Centrality Engine IPC (Phase 78)
+ipcMain.handle('graph-centrality', (event, graph) => {
+  return centralityEngine.score(graph);
+});
+ipcMain.handle('graph-bridges', (event, graph) => {
+  return centralityEngine.detectBridges(graph);
+});
+ipcMain.handle('graph-rank-clusters', (event, graph) => {
+  return centralityEngine.rankClusters(graph);
+});
+ipcMain.handle('graph-hot-nodes', (event, graph) => {
+  return centralityEngine.scoreHotNodes(graph);
+});
+
+// Policy Engine IPC (Phase 79)
+ipcMain.handle('policy-load', (event, rules) => {
+  return policyEngine.loadPolicies(rules);
+});
+ipcMain.handle('policy-evaluate', (event, { context, actor }) => {
+  return policyEngine.evaluate(context, actor);
+});
+ipcMain.handle('policy-check', (event, { action, context }) => {
+  return policyEngine.isAllowed(action, context);
+});
+ipcMain.handle('policy-audit', () => {
+  return policyEngine.getAuditLog();
+});
+
+// Deployment Profiles IPC (Phase 80)
+ipcMain.handle('deploy-list', () => {
+  return deploymentProfiles.listProfiles();
+});
+ipcMain.handle('deploy-activate', (event, name) => {
+  return deploymentProfiles.activateProfile(name);
+});
+ipcMain.handle('deploy-compliance', (event, { action, context }) => {
+  return deploymentProfiles.checkCompliance(action, context);
+});
+ipcMain.handle('deploy-quota', () => {
+  return deploymentProfiles.getQuotaReport();
+});
+
+// Review Workflow IPC (Phase 81)
+ipcMain.handle('review-create', (event, { caseId, reviewer, options }) => {
+  return reviewWorkflow.createReview(caseId, reviewer, options);
+});
+ipcMain.handle('review-comment', (event, { reviewId, author, text }) => {
+  return reviewWorkflow.comment(reviewId, author, text);
+});
+ipcMain.handle('review-decide', (event, { reviewId, decision, reason }) => {
+  return reviewWorkflow.decide(reviewId, decision, reason);
+});
+ipcMain.handle('review-pending', () => {
+  return reviewWorkflow.getPending();
+});
+
+// Redaction Engine IPC (Phase 82)
+ipcMain.handle('redact-text', (event, { text, rules }) => {
+  return redactionEngine.redact(text, { rules });
+});
+ipcMain.handle('redact-bundle', (event, bundle) => {
+  return redactionEngine.redactBundle(bundle);
+});
+
+// Publication Pipeline IPC (Phase 83)
+ipcMain.handle('pub-submit', (event, { report, author }) => {
+  return publicationPipeline.submit(report, author);
+});
+ipcMain.handle('pub-transition', (event, { itemId, state, actor }) => {
+  return publicationPipeline.transition(itemId, state, actor);
+});
+ipcMain.handle('pub-list', (event, state) => {
+  return state ? publicationPipeline.getByState(state) : publicationPipeline.items;
+});
+
+// Model Reporter IPC (Phase 84)
+ipcMain.handle('report-generate', (event, caseData) => {
+  return modelReporter.generate(caseData);
+});
+
+// Deployment Orchestrator IPC (Phase 85)
+ipcMain.handle('orchestrate-deploy', (event, { profile, environment }) => {
+  return deploymentOrchestrator.deploy(profile, environment);
+});
+ipcMain.handle('orchestrate-rollback', (event, deploymentId) => {
+  return deploymentOrchestrator.rollback(deploymentId);
+});
+ipcMain.handle('orchestrate-history', () => {
+  return deploymentOrchestrator.getHistory();
+});
+
+// Timeline Engine IPC (Phase 86)
+ipcMain.handle('timeline-reconstruct', (event, { caseId, events }) => {
+  return timelineEngine.reconstruct(caseId, events);
+});
+ipcMain.handle('timeline-get', (event, caseId) => {
+  return timelineEngine.getTimeline(caseId);
+});
+
+// Infrastructure Tracker IPC (Phase 87)
+ipcMain.handle('infra-record', (event, { node, caseId, timestamp }) => {
+  return infrastructureTracker.record(node, caseId, timestamp);
+});
+ipcMain.handle('infra-history', (event, nodeId) => {
+  return infrastructureTracker.getHistory(nodeId);
+});
+ipcMain.handle('infra-migrations', () => {
+  return infrastructureTracker.getMigrations();
+});
+ipcMain.handle('infra-drift', () => {
+  return infrastructureTracker.getDriftAnalysis();
+});
+
+// Predictive Anomaly IPC (Phase 88)
+ipcMain.handle('predict-risk', (event, { patternHistory, context }) => {
+  return predictiveAnomaly.predict(patternHistory, context);
+});
+ipcMain.handle('predict-high-risk', () => {
+  return predictiveAnomaly.getHighRiskPredictions();
+});
+
+// Forensic Simulator IPC (Phase 89)
+ipcMain.handle('simulate-scenario', (event, { scenario, bundle }) => {
+  return forensicSimulator.simulate(scenario, bundle);
+});
+ipcMain.handle('simulate-history', () => {
+  return forensicSimulator.getHistory();
+});
+
+// Threat Reporter IPC (Phase 90)
+ipcMain.handle('threat-generate', (event, caseData) => {
+  return threatReporter.generate(caseData);
+});
+ipcMain.handle('threat-list', () => {
+  return threatReporter.getReports();
+});
+
+// Global Graph IPC (Phase 91)
+ipcMain.handle('global-graph-add-node', (event, { id, type, data, sourceCtx }) => {
+  return globalGraph.addNode(id, type, data, sourceCtx);
+});
+ipcMain.handle('global-graph-add-edge', (event, { sourceId, targetId, relation, data, sourceCtx }) => {
+  return globalGraph.addEdge(sourceId, targetId, relation, data, sourceCtx);
+});
+ipcMain.handle('global-graph-neighborhood', (event, { nodeId, depth }) => {
+  return globalGraph.getNeighborhood(nodeId, depth);
+});
+ipcMain.handle('global-graph-lineage', (event, elementId) => {
+  return globalGraph.getLineage(elementId);
+});
+ipcMain.handle('global-graph-summary', () => {
+  return globalGraph.summary();
+});
+
+// Infra Attribution IPC (Phase 92)
+ipcMain.handle('attrib-attribute', (event, context) => {
+  return infraAttributionEngine.attribute(context);
+});
+
+// Adversary Fingerprinting IPC (Phase 93)
+ipcMain.handle('advfp-fingerprint', (event, observation) => {
+  return adversaryFingerprintEngine.fingerprint(observation);
+});
+ipcMain.handle('advfp-compare', (event, { fp1_label, fp2_label }) => {
+  return adversaryFingerprintEngine.compare(fp1_label, fp2_label);
+});
+ipcMain.handle('advfp-group', () => {
+  return adversaryFingerprintEngine.groupPatterns();
+});
+
+// Self-Healing Orchestrator IPC (Phase 94)
+ipcMain.handle('heal-recover', (event, failureContext) => {
+  return selfHealingOrchestrator.recover(failureContext);
+});
+ipcMain.handle('heal-audit', () => {
+  return selfHealingOrchestrator.getAuditLog();
+});
+
+// Autonomous Discovery IPC (Phase 95)
+ipcMain.handle('discovery-run', (event, context) => {
+  return autonomousDiscoveryEngine.discover(context);
+});
+ipcMain.handle('discovery-history', () => {
+  return autonomousDiscoveryEngine.getHistory();
+});
+
+// Endgame Command Layer IPC (Phases 96-100)
+ipcMain.handle('endgame-command', (event, { command, payload }) => {
+  return strategicCommandEngine.executeCommand(command, payload);
+});
+ipcMain.handle('endgame-history', () => {
+  return strategicCommandEngine.getCommandHistory();
+});
+ipcMain.handle('endgame-replay-get', (event, caseId) => {
+  return missionReplayEngine.getReplay(caseId);
+});
+
+// Expansion APIs
+ipcMain.handle('exp-memory-record', (event, { caseId, analystId, suggestionId, decision, notes }) => {
+  return analystMemoryLayer.recordDecision(caseId, analystId, suggestionId, decision, notes);
+});
+ipcMain.handle('exp-memory-annotate', (event, { caseId, analystId, targetId, text }) => {
+  return analystMemoryLayer.annotate(caseId, analystId, targetId, text);
+});
+ipcMain.handle('exp-heatmap-generate', (event, graphContext) => {
+  return threatHeatmapEngine.generateHeatmap(graphContext);
+});
+ipcMain.handle('exp-prov-tag', (event, { signalId, source, dataset }) => {
+  return dataProvenanceSystem.tagSignal(signalId, source, dataset);
+});
+ipcMain.handle('exp-prov-step', (event, { signalId, stepName, weight }) => {
+  return dataProvenanceSystem.appendStep(signalId, stepName, weight);
+});
+ipcMain.handle('exp-explain', (event, { type, context }) => {
+  return explainabilityLayer.explain(type, context);
+});
+
+// Ultimate Evolution APIs (Phases 101-150)
+ipcMain.handle('adv-narrative-track', (event, graphSequence) => {
+  return narrativePropagationEngine.trackPropagation(graphSequence);
+});
+ipcMain.handle('adv-operator-model', (event, { operatorId, telemetryLogs }) => {
+  return operatorBehaviorEngine.modelBehavior(operatorId, telemetryLogs);
+});
+ipcMain.handle('adv-operator-get', (event, operatorId) => {
+  return operatorBehaviorEngine.getProfile(operatorId);
+});
+ipcMain.handle('adv-predict-future', (event, { graphTrends, behaviorProfile }) => {
+  return advPredictiveEngine.forecast(graphTrends, behaviorProfile);
+});
+ipcMain.handle('adv-assistant-synthesize', (event, { graphSequence, telemetryLogs }) => {
+  return advAssistantEngine.synthesize(graphSequence, telemetryLogs);
+});
+
+function updateIntelligenceGraph(bundle, caseId) {
+  const fingerprint = FingerprintEngine.generateFingerprint(bundle);
+  bundle.fingerprint_data = fingerprint; // Tag bundle with fingerprint
+
+  indexManager.indexBundle(bundle); // Index for HyperQuery
+
+  const bid = bundle.fingerprint || bundle.path;
+
+  // Add Bundle Node
+  intelGraph.addNode('BUNDLE', bid, {
+    caseId,
+    path: bundle.path,
+    fingerprint: fingerprint
+  });
+
+  // Add Infrastructure Nodes and Edges
+  if (bundle.cdn) {
+    intelGraph.addNode('CDN', bundle.cdn);
+    intelGraph.addEdge(bid, bundle.cdn, 'SERVED_BY');
+  }
+  if (bundle.protocol) {
+    intelGraph.addNode('PROTOCOL', bundle.protocol);
+    intelGraph.addEdge(bid, bundle.protocol, 'USES_PROTOCOL');
+  }
+  if (bundle.playerSignature) {
+    intelGraph.addNode('PLAYER', bundle.playerSignature);
+    intelGraph.addEdge(bid, bundle.playerSignature, 'MANAGED_BY');
+  }
+}
+
+const CASES_DIR = path.join(RUNTIME_DIR, 'cases');
+const caseStore = new CaseStore(CASES_DIR);
+
+ipcMain.handle('case-list', () => caseStore.listCases());
+ipcMain.handle('case-create', (event, title) => caseStore.createCase(title));
+ipcMain.handle('case-load', (event, caseId) => caseStore.loadCase(caseId));
+ipcMain.handle('case-save', (event, caseData) => {
+  caseStore.saveCase(caseData);
+  return { success: true };
+});
+ipcMain.handle('case-delete', (event, caseId) => caseStore.deleteCase(caseId));
+
+ipcMain.handle('case-attach-bundle', (event, { caseId, bundlePath }) => {
+  const fullCase = caseStore.loadCase(caseId);
+  if (!fullCase) throw new Error("Case not found");
+
+  // Update bundle with intelligence data before attaching
+  const bundleInfo = {
+    path: bundlePath,
+    // Add dummy data if bundle file doesn't exist yet for testing, 
+    // in real flow this would be parsed from the .hyper file
+    cdn: 'MOCK_CDN',
+    protocol: 'MOCK_PROTO',
+    playerSignature: 'MOCK_PLAYER'
+  };
+
+  updateIntelligenceGraph(bundleInfo, caseId);
+
+  const updated = BundleAttachment.attachBundle(fullCase, bundlePath);
+  updated.bundles[updated.bundles.length - 1].fingerprint_data = bundleInfo.fingerprint_data;
+
+  caseStore.saveCase(updated);
+  return updated;
+});
+
+ipcMain.handle('case-add-note', (event, { caseId, content }) => {
+  const caseData = caseStore.loadCase(caseId);
+  if (!caseData) throw new Error("Case not found");
+  const updated = CaseNotes.addNote(caseData, content);
+  caseStore.saveCase(updated);
+  return updated;
+});
+
+ipcMain.handle('case-export-notes', async (event, { caseId, filename }) => {
+  const caseData = caseStore.loadCase(caseId);
+  if (!caseData) throw new Error("Case not found");
+
+  const { filePath } = await dialog.showSaveDialog({
+    title: 'Export Case Notes',
+    defaultPath: path.join(app.getPath('downloads'), filename || 'notes.md'),
+    filters: [{ name: 'Markdown Files', extensions: ['md'] }]
+  });
+
+  if (filePath) {
+    CaseNotes.exportToMarkdown(caseData, filePath);
+    return { success: true, filePath };
+  }
+  return { success: false, reason: 'Export cancelled' };
+});
+
+ipcMain.handle('case-add-finding', (event, { caseId, findingData }) => {
+  const caseData = caseStore.loadCase(caseId);
+  if (!caseData) throw new Error("Case not found");
+  const updated = FindingsRegistry.addFinding(caseData, findingData);
+  caseStore.saveCase(updated);
+  return updated;
+});
+
+ipcMain.handle('case-update-finding', (event, { caseId, findingId, updates }) => {
+  const caseData = caseStore.loadCase(caseId);
+  if (!caseData) throw new Error("Case not found");
+  const updated = FindingsRegistry.updateFinding(caseData, findingId, updates);
+  caseStore.saveCase(updated);
+  return updated;
+});
+
+ipcMain.handle('case-compare', (event, { bundlePathA, bundlePathB }) => {
+  const report = CaseComparator.compare(bundlePathA, bundlePathB);
+  const markdown = CaseComparator.generateMarkdown(report);
+  return { report, markdown };
+});
+
+// IPC Endpoints
+ipcMain.handle('automation-set-mode', (event, mode) => {
+  clipboardWatcher.setMode(mode);
+  return true;
+});
+
+ipcMain.handle('automation-get-state', () => {
+  return {
+    mode: clipboardWatcher.mode,
+    queue: decodeQueue.getQueue(),
+    history: decodeQueue.getHistory(20),
+    metrics: decodeQueue.getMetrics()
+  };
+});
+
+// Periodic State Persistence
+const automationEventsLog = [];
+clipboardWatcher.setEventHandler((type, data) => {
+  log.info(`AUTOMATION_${type}`, data);
+  automationEventsLog.unshift({ type, data, ts: Date.now() });
+  if (automationEventsLog.length > 500) automationEventsLog.pop();
+
+  BrowserWindow.getAllWindows().forEach(w => w.webContents.send('automation-event', { type, data }));
+});
+
+function persistAutomationState() {
+  try {
+    const RUNTIME_DIR = path.join(app.getPath('userData'), 'HyperSnatch', 'runtime');
+    const autoPath = path.join(RUNTIME_DIR, 'automation');
+    if (!fs.existsSync(autoPath)) fs.mkdirSync(autoPath, { recursive: true });
+
+    fs.writeFileSync(path.join(autoPath, 'clipboard_events.json'), JSON.stringify(automationEventsLog, null, 2));
+    fs.writeFileSync(path.join(autoPath, 'decode_queue.json'), JSON.stringify(decodeQueue.getQueue(), null, 2));
+    fs.writeFileSync(path.join(autoPath, 'decode_history.json'), JSON.stringify(decodeQueue.getHistory(100), null, 2));
+  } catch (e) { }
+}
+
+setInterval(persistAutomationState, 5000);
 
 // ==================== SOVEREIGN HARDWARE BINDING ====================
 async function getRawHardwareIds() {
@@ -625,6 +1513,39 @@ ipcMain.handle('import-evidence', async (event, evidenceData) => {
   } catch (error) {
     logSecurityEvent('EVIDENCE_IMPORT_ERROR', { error: error.message });
     event.reply({ success: false, error: error.message });
+  }
+});
+
+ipcMain.handle('get-forensic-snapshot', async (event, snapshotPath) => {
+  try {
+    let targetDir = snapshotPath;
+    if (!targetDir) {
+      const { canceled, filePaths } = await dialog.showOpenDialog({
+        title: 'Select Target Evidence Directory',
+        properties: ['openDirectory'],
+        defaultPath: path.join(__dirname, '..', 'tests', 'evidence')
+      });
+      if (canceled || filePaths.length === 0) {
+        return { success: false, error: 'No directory selected' };
+      }
+      targetDir = filePaths[0];
+    }
+
+    const harPath = path.join(targetDir, 'network.har');
+    const domPath = path.join(targetDir, 'dom_snapshot.html');
+    const configPath = path.join(targetDir, 'player_config.json');
+    const tracePath = path.join(targetDir, 'stream_trace.json');
+
+    const result = { success: true, targetDir, artifacts: {} };
+    if (fs.existsSync(harPath)) result.artifacts.networkHar = JSON.parse(fs.readFileSync(harPath, 'utf8'));
+    if (fs.existsSync(domPath)) result.artifacts.domSnapshot = fs.readFileSync(domPath, 'utf8');
+    if (fs.existsSync(configPath)) result.artifacts.playerConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    if (fs.existsSync(tracePath)) result.artifacts.streamTrace = JSON.parse(fs.readFileSync(tracePath, 'utf8'));
+
+    return result;
+  } catch (error) {
+    log.error('FORENSIC_SNAPSHOT_ERROR', { error: error.message });
+    return { success: false, error: error.message };
   }
 });
 

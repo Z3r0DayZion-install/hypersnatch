@@ -1,0 +1,28 @@
+{
+  "target": "https://hls-js.netlify.app/demo/",
+  "processedAt": "2026-03-06T05:41:30.110Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "ef2f4ce2ecd81c110979fc58058f77119daf09b78da8d39ebc5ea678ff12af89",
+    "dom_snapshot.html": "8fc76fb39cfdde57631ecf0e290c46e835c04840d019123f0a44af04a9b4dfc3",
+    "player_config.json": "181a900094abea0d79e0a673279606c2fa88ad3bc15c86781e2a2f73fe136f3f",
+    "stream_trace.json": "ba8c4dfaa14b0e9d9cffb27f0ded6850d4d64c10fe07efdc344ffbd008a757de",
+    "captured_segments/segment_000.m4a": "e3ba932b813a2323485e002c3e9c58da02eb342fcfc99da6dd6b8b2a0039dc69",
+    "captured_segments/segment_001.m4s": "198e35ee8af0bb6ae4280b6767182d3f697e7c216ed177375b2578340c3b6b03",
+    "captured_segments/segment_002.m4a": "5aa2f1261c33fc58b7dd802995651edeb89d162a2c190918dedd8b2ad5fc37e7",
+    "captured_segments/segment_003.m4s": "1d79ecd3c387085370ae0b4dbcc7817b408631d1317d4c23fbfb9ee2e81c6a1b",
+    "captured_segments/segment_004.m4a": "06b73af629ade0039ee28a79b1eb47f1ed92f489663612eebcbd31ec946bbe82",
+    "captured_segments/segment_005.m4s": "5f6352c28654a1ab389fffdc9b0bcbdafb74ff93c650b5817bdc2269233010b0",
+    "captured_segments/segment_006.m4a": "91322a5ecd71a32cf7b640e64f1735c6b12ab0cba3a2b838229057d5e5063bd4",
+    "captured_segments/segment_007.m4s": "df2d81b236e52cd08e759240cec58870f324d0105601218df1e39744fdb717de",
+    "captured_segments/segment_008.m4s": "26e3ebd08acd7db7b8b7e41b3a5727ebd67bdf22681f5b9423dac3639758563c",
+    "captured_segments/segment_009.m4a": "425b78e59168a198bbb7710d02d867c2050288f7fdc05dc21884af9797d591ea",
+    "captured_segments/segment_010.m4s": "d7c0d7850a6a6cbcd1243acbd3cf38d2ac2938a1941834c0de7a8a7f0ef95663",
+    "captured_segments/segment_011.m4a": "2d46f5b1ecea78df4e4297cde57bfffdfbb7ddd13f16b7e9e816d40086d2f547",
+    "mse_events.json": "5dd0c61e707154f514772bc2fea2138f3568d55893a793deac497f5e9fd20042",
+    "har_classified.json": "209d2c3fcddce307ba0844f2b627e75b42cc967fa4d71d30fc3d9dabcd4603ca",
+    "player_profile.json": "e14de989e33c64e328ad6e933bf96add5f25720cd2915a1a143da14b25a8d11f",
+    "stream_candidates.json": "df1b5011ae123d0471fab79643cb22168b5e0f4b4d25faf7ec23b6abd6868a62",
+    "report.md": "b473cecf2f1fb107443f1b2d2d9d5a4d4700a61d5928a929a6cda755637af7b9"
+  }
+}

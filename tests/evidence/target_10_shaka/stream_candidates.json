@@ -1,0 +1,15 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://shaka-player-demo.appspot.com/demo/",
+    "domain": "shaka-player-demo.appspot.com",
+    "path": "/demo/",
+    "finalScore": 0,
+    "certaintyTier": "Low",
+    "scoreBreakdown": [
+      "+15: MSE Segment pattern confirmed in HAR",
+      "-50: DRM/EME Key request detected in HAR"
+    ]
+  }
+]

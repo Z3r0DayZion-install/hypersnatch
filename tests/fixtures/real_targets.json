@@ -1,0 +1,72 @@
+[
+    {
+        "url": "https://www.w3schools.com/html/html5_video.asp",
+        "type": "html5",
+        "description": "Basic HTML5 Video"
+    },
+    {
+        "url": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+        "type": "html5",
+        "description": "Direct MP4 Source"
+    },
+    {
+        "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+        "type": "hls",
+        "description": "HLS Streaming (Mux)"
+    },
+    {
+        "url": "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+        "type": "hls",
+        "description": "HLS Streaming (Sintel)"
+    },
+    {
+        "url": "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd",
+        "type": "dash",
+        "description": "MPEG-DASH (Envivio)"
+    },
+    {
+        "url": "https://dash.akamaized.net/dash264/TestCases/1c/qualcomm/2/MultiRate.mpd",
+        "type": "dash",
+        "description": "MPEG-DASH (Qualcomm)"
+    },
+    {
+        "url": "https://videojs.com/",
+        "type": "videojs",
+        "description": "VideoJS Player"
+    },
+    {
+        "url": "https://vjs.zencdn.net/v/oceans.mp4",
+        "type": "videojs",
+        "description": "VideoJS Direct MP4"
+    },
+    {
+        "url": "https://developer.jwplayer.com/tools/stream-tester/",
+        "type": "jwplayer",
+        "description": "JWPlayer Stream Tester"
+    },
+    {
+        "url": "https://hls-js.netlify.app/demo/",
+        "type": "hlsjs",
+        "description": "HLS.js Demo"
+    },
+    {
+        "url": "https://shaka-player-demo.appspot.com/demo/",
+        "type": "shaka",
+        "description": "Shaka Player Demo"
+    },
+    {
+        "url": "https://bitmovin.com/demos/stream-test",
+        "type": "blob",
+        "description": "Bitmovin MSE Blob Stream"
+    },
+    {
+        "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+        "type": "tokenized_hls",
+        "description": "Tokenized Unified Streaming HLS"
+    },
+    {
+        "url": "https://test-streams.mux.dev/test_001/stream.m3u8",
+        "type": "live_hls",
+        "description": "Live HLS Stream (Mux)"
+    }
+]

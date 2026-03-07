@@ -1,0 +1,22 @@
+{
+    "player_name": "ShakaPlayer",
+    "window_objects": [
+        "shaka"
+    ],
+    "dom_signatures": [
+        ".shaka-video-container"
+    ],
+    "script_signatures": [
+        "shaka-player.compiled.js",
+        "shaka"
+    ],
+    "known_api_calls": [
+        "new shaka.Player(",
+        "player.load("
+    ],
+    "extraction_paths": [
+        "player.getManifest()",
+        "player.getAssetUri()"
+    ],
+    "confidence_weight": 0.95
+}

@@ -1,0 +1,15 @@
+{
+  "target": "https://www.w3schools.com/html/html5_video.asp",
+  "processedAt": "2026-03-06T05:40:56.832Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "8739e72c17ea1c73370d7c1240653963b580e3918b1a84ed727bf6c735c4bd56",
+    "dom_snapshot.html": "0db07eae607cd4782ed4542f85732c0ed1d93fa95e42d76c4da9133a2decd0fd",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "63a777e89151e335b5465733af50991e728bd53e073467485bcaadaf92a00021",
+    "har_classified.json": "644bcf58a7eff4cb097da7bb2895f1c2b002aa7810945781cf955855cb45d63a",
+    "player_profile.json": "c7a8967a502dedd736a46bcbcb5ec2a6fef2a9c8f9a07e519c8c1bd63968ab5e",
+    "stream_candidates.json": "63ac072aeeed64942591b6cfd787fe1ad0038712b0450503aa405d4700b106ea",
+    "report.md": "aaf21a2b43e5c8868890aec390ee23af6ba5020ddd76ec1c11478ca5d25de73a"
+  }
+}

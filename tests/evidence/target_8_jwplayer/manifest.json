@@ -1,0 +1,15 @@
+{
+  "target": "https://developer.jwplayer.com/tools/stream-tester/",
+  "processedAt": "2026-03-06T05:41:26.976Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "bf4e231fdaccabc495ec482e53dd6962e1facda0726307df17db61512cc18667",
+    "dom_snapshot.html": "b6659a37c5acdf91474905b22643086ee7c0096e9a538ef4fd229e318057ba97",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "har_classified.json": "7691bd8f52b961a5d93be792fbbe42dde48f5669fbd09de1ff380e2cf8aa1499",
+    "player_profile.json": "6f0d47a18eebe65e1f9cd826a3e5a8738b9fe5a71dc2bf2253f0e70afb6a4929",
+    "stream_candidates.json": "31ea4ef418c3723d57c208db381d582c8535ec68b9a3070a908f164de5cb5730",
+    "report.md": "85560a371f36803b7c0514f4572388e579b3647b2787339227bea1d5bb83c0ba"
+  }
+}

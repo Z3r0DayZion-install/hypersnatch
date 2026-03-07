@@ -1,0 +1,50 @@
+{
+  "manifests": [
+    {
+      "url": "https://test-streams.mux.dev/test_001/stream.m3u8",
+      "mime": ""
+    },
+    {
+      "url": "https://test-streams.mux.dev/test_001/stream.m3u8",
+      "mime": ""
+    },
+    {
+      "url": "https://test-streams.mux.dev/test_001/stream.m3u8",
+      "mime": ""
+    },
+    {
+      "url": "https://test-streams.mux.dev/test_001/stream_110k_48k_416x234.m3u8",
+      "mime": ""
+    },
+    {
+      "url": "https://test-streams.mux.dev/test_001/stream_1000k_48k_640x360.m3u8",
+      "mime": ""
+    }
+  ],
+  "segments": [
+    {
+      "url": "https://test-streams.mux.dev/test_001/stream_110k_48k_416x234_000.ts",
+      "mime": ""
+    },
+    {
+      "url": "https://test-streams.mux.dev/test_001/stream_1000k_48k_640x360_001.ts",
+      "mime": ""
+    },
+    {
+      "url": "https://test-streams.mux.dev/test_001/stream_1000k_48k_640x360_000.ts",
+      "mime": ""
+    },
+    {
+      "url": "https://test-streams.mux.dev/test_001/stream_1000k_48k_640x360_001.ts",
+      "mime": ""
+    }
+  ],
+  "keys": [],
+  "telemetry": [],
+  "other": [],
+  "flags": {
+    "drmDetected": false,
+    "accessTokenRejected": false,
+    "mseStreamDetected": true
+  }
+}

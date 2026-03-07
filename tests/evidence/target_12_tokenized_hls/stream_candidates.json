@@ -1,0 +1,16 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+    "domain": "demo.unified-streaming.com",
+    "path": "/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+    "finalScore": 65,
+    "certaintyTier": "Partial",
+    "scoreBreakdown": [
+      "+40: Explicit manifest match in HAR",
+      "+15: MSE Segment pattern confirmed in HAR",
+      "+10: Host/CDN matches standard media pattern"
+    ]
+  }
+]

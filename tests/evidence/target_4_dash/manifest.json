@@ -1,0 +1,15 @@
+{
+  "target": "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd",
+  "processedAt": "2026-03-06T05:41:10.166Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "2de6099a739678da6f8ae191a90d19c6a3c6c45834a867b11535db4048bf32a7",
+    "dom_snapshot.html": "0c4f953fb844428ab9aca1cc45eb31d89f6f4b7344b9c6c16ffc36ebec968df9",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "har_classified.json": "96506e0e1b610d9c327330bba3c00363f2d7c2ad057ece1dd24999afe0e3f065",
+    "player_profile.json": "c7a8967a502dedd736a46bcbcb5ec2a6fef2a9c8f9a07e519c8c1bd63968ab5e",
+    "stream_candidates.json": "54f4faf4663aa5cb2b8b04bbd8644ff89d2cebeeb939e5a9ec2315f23dcc5536",
+    "report.md": "22520ce2acc420a4484544005eac2ae5a45d35a02b2ff8f82fc9ee4368ed0728"
+  }
+}

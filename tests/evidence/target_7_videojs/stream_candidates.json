@@ -1,0 +1,14 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://vjs.zencdn.net/v/oceans.mp4",
+    "domain": "vjs.zencdn.net",
+    "path": "/v/oceans.mp4",
+    "finalScore": 10,
+    "certaintyTier": "Low",
+    "scoreBreakdown": [
+      "+10: Host/CDN matches standard media pattern"
+    ]
+  }
+]
