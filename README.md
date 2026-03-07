@@ -5,8 +5,13 @@
 **STATE**: Stable / preserved  
 **FUTURE DEVELOPMENT**: paused
 
-## Overview
+## Stewardship & Onboarding
+- **ARCHIVE_RECORD.md**: Immediate verification summary
+- **BUILD_ENVIRONMENT.md**: Runtime requirements
+- **docs/agent/**: Onboarding guide for future AI coding agents
+- **CAPSULE_SCHEMA.md**: Sealed .hsn structure definition
 
+## Overview
 This pack contains the main pieces that were still missing from `HyperSnatch_Master_Dev_Pack_v2`.
 
 Included:
@@ -27,13 +32,9 @@ Turn v2 from a strong build pack into a stricter autonomous execution pack with:
 - clearer success/fail conditions for agents
 
 ## Institutional Summary
-
 HyperSnatch is an offline investigation platform that stores investigations as cryptographically verifiable capsules and automatically identifies connections between cases through infrastructure, entity, and narrative analysis.
 
 ## Future Expansion Rules
-
-If development resumes in a future cycle, the following architectural invariants must be preserved:
-
-1. **Capsules remain backward compatible**: All existing `.hsn` files must remain readable and verifiable.
-2. **Intelligence engines remain explainable**: AI components must output verifiable reasoning chains, not black-box answers.
-3. **Evidence provenance is never removed**: The cryptographically hashed EventLedger cannot be mutated or bypassed by any subsystem.
+1. **Core Immobility**: Never modify the `src/` core or `CAPSULE_SCHEMA.md`.
+2. **Plugin Expansion**: All new features must be implemented as separate plugins via the v2 API.
+3. **Deterministic Verification**: All changes must pass the capstone `scripts/verify_system.js`.

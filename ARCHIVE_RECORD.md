@@ -12,6 +12,7 @@ The following verification steps were successfully performed prior to archival:
 - `verify_system.js` executed successfully (100% trace match)
 - Capsule schema (`.hsn`) locked for backward compatibility
 - Plugin API formally frozen
+- AI Agent Onboarding Pack included in `docs/agent/`
 
 ## ENVIRONMENT
 Documentation for reproduction and runtime requirements can be found in `BUILD_ENVIRONMENT.md`.
