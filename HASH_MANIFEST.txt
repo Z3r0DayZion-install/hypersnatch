@@ -1,0 +1,2 @@
+SHA256 hash of HyperSnatch_v1.3.1_sovereign.zip:
+19f30b54382c9dd95be31c675c560ccfdbbaa63b37e5cfd8a29a9d395e5ce0f4
