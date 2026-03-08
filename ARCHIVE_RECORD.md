@@ -3,7 +3,7 @@ VERSION: v1.3.1-sovereign
 STATUS: Archived (Final)
 
 ## ARCHIVE HASH
-aa2b62bd9cb7f7bddee2b916f8a431a2ff5c09e67c9594327e38eb942150ddb4
+fcade18e34f110a160f7d9dfa2cdfcf2590ab7e3e293dfce0773cdcf6acc4862
 
 ## ARCHIVE VERIFICATION
 The following verification steps were successfully performed prior to archival:
@@ -16,6 +16,7 @@ The following verification steps were successfully performed prior to archival:
 - Ultimate Evolution (v2) Roadmap included in `docs/ultimate/`
 - GodMode v2 Development Pack included in `docs/v2_godmode/`
 - Ultimate DevKit (Skeleton & Blueprints) included in `docs/v2_ultimate_devkit/`
+- GodMode DevPack (Autonomous Build Kit) included in `docs/v2_godmode_devpack/`
 
 ## ENVIRONMENT
 Documentation for reproduction and runtime requirements can be found in `BUILD_ENVIRONMENT.md`.
