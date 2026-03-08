@@ -3,7 +3,7 @@ VERSION: v1.3.1-sovereign
 STATUS: Archived (Final)
 
 ## ARCHIVE HASH
-f190086c5b43a79b19dff04128c616b370b7fec68490fb67bab672fefcb271f5
+aa2b62bd9cb7f7bddee2b916f8a431a2ff5c09e67c9594327e38eb942150ddb4
 
 ## ARCHIVE VERIFICATION
 The following verification steps were successfully performed prior to archival:
