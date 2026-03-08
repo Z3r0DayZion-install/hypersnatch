@@ -11,6 +11,7 @@
 - **docs/agent/**: Onboarding guide for future AI coding agents
 - **docs/ultimate/**: HyperSnatch v2 strategic roadmap
 - **docs/v2_godmode/**: Definitive GodMode v2 development blueprints
+- **docs/v2_ultimate_devkit/**: Complete v2 repository skeleton and DevKit
 - **CAPSULE_SCHEMA.md**: Sealed .hsn structure definition
 
 ## Overview
