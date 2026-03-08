@@ -9,6 +9,7 @@
 - **ARCHIVE_RECORD.md**: Immediate verification summary
 - **BUILD_ENVIRONMENT.md**: Runtime requirements
 - **docs/agent/**: Onboarding guide for future AI coding agents
+- **docs/ultimate/**: HyperSnatch v2 strategic roadmap (Narrative Intelligence/Timeline Engines)
 - **CAPSULE_SCHEMA.md**: Sealed .hsn structure definition
 
 ## Overview
