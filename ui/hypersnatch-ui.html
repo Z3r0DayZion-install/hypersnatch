@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
     rel="stylesheet">
   <style>
     :root {
@@ -834,6 +834,342 @@
     .syntax-bool {
       color: #fbbf24;
     }
+
+    /* UI polish v1.4.0 */
+    :root {
+      --accent-main: #2ac6ff;
+      --accent-soft: rgba(42, 198, 255, 0.16);
+      --accent-border: rgba(42, 198, 255, 0.38);
+      --surface-0: #071019;
+      --surface-1: #0d1824;
+      --surface-2: #122234;
+      --surface-3: #172c43;
+      --shadow-xl: 0 18px 46px rgba(1, 8, 14, 0.54);
+    }
+
+    body {
+      font-family: 'Sora', system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 14% -20%, rgba(42, 198, 255, 0.18), transparent 44%),
+        radial-gradient(circle at 86% -24%, rgba(35, 209, 139, 0.14), transparent 38%),
+        linear-gradient(180deg, #060b12 0%, #080f18 45%, #050911 100%);
+      color: var(--text-base);
+      letter-spacing: 0.02em;
+    }
+
+    .workstation-layout {
+      grid-template-columns: 268px 1fr 364px;
+      grid-template-rows: 68px 1fr 232px;
+    }
+
+    .top-header {
+      background:
+        linear-gradient(120deg, rgba(11, 24, 35, 0.92), rgba(8, 17, 25, 0.9)),
+        radial-gradient(circle at 80% 10%, rgba(42, 198, 255, 0.14), transparent 45%);
+      border-bottom: 1px solid rgba(82, 114, 146, 0.4);
+      box-shadow: 0 8px 22px rgba(5, 12, 20, 0.44);
+    }
+
+    .top-header h1 {
+      font-size: 1.06rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #f3f8ff;
+    }
+
+    .status-badge {
+      border-radius: 999px;
+      font-size: 0.66rem;
+      padding: 0.28rem 0.72rem;
+    }
+
+    .panel,
+    .data-table,
+    .tab-bar,
+    .bottom-log {
+      box-shadow: var(--shadow-xl);
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(9, 21, 34, 0.96), rgba(7, 16, 27, 0.96));
+      border: 1px solid rgba(66, 93, 124, 0.5);
+      border-radius: 14px;
+      animation: panel-rise 260ms ease-out both;
+    }
+
+    @keyframes panel-rise {
+      from {
+        transform: translateY(6px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .panel-header {
+      color: #e5f4ff;
+      letter-spacing: 0.08em;
+      font-size: 0.68rem;
+    }
+
+    .left-rail,
+    .right-panel {
+      background:
+        linear-gradient(180deg, rgba(8, 17, 27, 0.97), rgba(6, 14, 22, 0.97)),
+        radial-gradient(circle at 70% -30%, rgba(42, 198, 255, 0.09), transparent 36%);
+      border-color: rgba(71, 102, 133, 0.38);
+    }
+
+    .center-workspace {
+      background:
+        linear-gradient(180deg, rgba(7, 16, 27, 0.96), rgba(5, 12, 20, 0.97)),
+        radial-gradient(circle at 30% -20%, rgba(42, 198, 255, 0.09), transparent 40%);
+    }
+
+    .tab-bar {
+      background: linear-gradient(180deg, rgba(12, 27, 42, 0.92), rgba(9, 20, 31, 0.92));
+      border-bottom: 1px solid rgba(66, 93, 124, 0.48);
+    }
+
+    .tab-btn {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.7rem;
+      padding: 0.88rem 1.3rem;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-soft);
+      color: #e7f7ff;
+      border-bottom-color: var(--accent-main);
+      box-shadow: inset 0 -1px 0 var(--accent-main);
+    }
+
+    .tab-content {
+      padding: 1.35rem;
+    }
+
+    .input-dropzone {
+      border: 1px dashed rgba(42, 198, 255, 0.56);
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(11, 24, 37, 0.78), rgba(7, 16, 25, 0.86)),
+        radial-gradient(circle at 20% 8%, rgba(42, 198, 255, 0.14), transparent 42%);
+      padding: 1rem;
+    }
+
+    .input-dropzone h3 {
+      margin: 0 0 0.3rem;
+      font-size: 0.9rem;
+      letter-spacing: 0.03em;
+      color: #e8f7ff;
+    }
+
+    .dropzone-help {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .split-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.72rem;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    .control-row button,
+    .control-row select,
+    .control-row input[type="number"] {
+      min-height: 36px;
+    }
+
+    .control-row .primary-btn {
+      background: linear-gradient(135deg, #11bef7, #2ac6ff);
+      color: #012235;
+      border: 1px solid rgba(16, 182, 235, 0.58);
+      font-weight: 700;
+    }
+
+    .control-row .primary-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #3ccfff, #6ad9ff);
+      color: #02243a;
+      transform: translateY(-1px);
+    }
+
+    .operator-status {
+      border: 1px solid rgba(68, 96, 126, 0.52);
+      border-radius: 10px;
+      background: rgba(3, 10, 16, 0.5);
+      padding: 0.65rem 0.78rem;
+      font-size: 0.76rem;
+      color: #d8ebff;
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 0.65rem;
+      margin-top: 0.55rem;
+    }
+
+    .summary-pill {
+      border-radius: 10px;
+      border: 1px solid rgba(66, 94, 126, 0.48);
+      background: rgba(8, 20, 33, 0.92);
+      padding: 0.58rem 0.72rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.22rem;
+    }
+
+    .summary-pill .label {
+      color: var(--text-muted);
+      font-size: 0.64rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .summary-pill .value {
+      color: #e7f6ff;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .cmdBox {
+      background: linear-gradient(180deg, rgba(7, 19, 31, 0.9), rgba(6, 14, 23, 0.92));
+      border: 1px solid rgba(66, 94, 126, 0.56);
+      border-radius: 12px;
+      min-height: 62px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.74rem;
+      color: #dceeff;
+    }
+
+    .trust-panel {
+      border: 1px solid var(--accent-border);
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(8, 21, 33, 0.96), rgba(7, 16, 26, 0.96)),
+        radial-gradient(circle at 10% 10%, rgba(42, 198, 255, 0.14), transparent 42%);
+      padding: 0.86rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.58rem;
+    }
+
+    .trust-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      font-size: 0.72rem;
+    }
+
+    .forensic-console {
+      display: none;
+      flex-direction: column;
+      gap: 0.45rem;
+      margin-top: 0.85rem;
+    }
+
+    .forensic-console .panel-header {
+      margin-bottom: 0;
+    }
+
+    .logTerminal {
+      background: rgba(1, 8, 13, 0.9);
+      border: 1px solid rgba(62, 90, 118, 0.5);
+      border-radius: 10px;
+      height: 200px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.68rem;
+    }
+
+    .audit-seal {
+      background: linear-gradient(180deg, rgba(35, 209, 139, 0.09), rgba(35, 209, 139, 0.04));
+      border: 1px dashed rgba(35, 209, 139, 0.44);
+      border-radius: 12px;
+    }
+
+    .bottom-log {
+      background: linear-gradient(180deg, rgba(10, 22, 34, 0.95), rgba(8, 18, 28, 0.95));
+      border-top: 1px solid rgba(66, 94, 126, 0.5);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: 2px solid var(--accent-main);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 1480px) {
+      .workstation-layout {
+        grid-template-columns: 238px 1fr 320px;
+      }
+
+      .tab-btn {
+        padding: 0.78rem 0.95rem;
+        font-size: 0.66rem;
+      }
+    }
+
+    @media (max-width: 1220px) {
+      .workstation-layout {
+        grid-template-columns: 210px 1fr;
+        grid-template-rows: 68px 1fr 230px 230px;
+        grid-template-areas:
+          "header header"
+          "left-rail center-tabs"
+          "right-panel right-panel"
+          "bottom-log bottom-log";
+      }
+
+      .split-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      body,
+      .workstation-layout {
+        display: block;
+        height: auto;
+      }
+
+      .left-rail,
+      .right-panel,
+      .center-workspace,
+      .bottom-log {
+        border: 0;
+        min-height: auto;
+      }
+
+      .tab-bar {
+        flex-wrap: wrap;
+      }
+
+      .summary-strip {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 
@@ -842,21 +1178,31 @@
   <!-- Workstation Shell -->
   <div class="workstation-layout">
     <header class="top-header">
-      <h1>HyperSnatch<span style="color:var(--text-muted); font-weight:400; font-size:14px; margin-left:8px;">Forensic
-          Workstation</span></h1>
+      <h1>HyperSnatch<span style="color:var(--text-muted); font-weight:500; font-size:0.72rem; margin-left:8px;">Operator
+          Console</span></h1>
+      <div class="control-row" style="margin-left:1rem;">
+        <span id="bridgeDot" class="idle" aria-hidden="true">●</span>
+        <span id="bridgeText" class="tiny muted">Bridge: Initializing</span>
+        <span class="pill tiny mono" id="uiVer">v?</span>
+        <button id="nodeIdPill" class="pill tiny mono" type="button" title="Copy hardware node fingerprint">
+          NODE <span id="nodeIdText">--</span>
+        </button>
+        <button id="btnSafeMode" class="pill tiny" type="button">Safe Mode: OFF</button>
+      </div>
       <div style="flex-grow:1;"></div>
 
-      <div style="display:flex; align-items:center; gap:8px; margin-right:16px;">
-        <span style="font-size:0.8rem; font-weight:600; color:var(--text-accent);">SmartSnatch Auto-Detect</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:0.72rem; font-weight:600; color:var(--text-accent); letter-spacing:0.08em; text-transform:uppercase;">SmartSnatch
+          Auto-Detect</span>
         <label class="switch" style="position:relative; display:inline-block; width:34px; height:20px;">
-          <input type="checkbox" id="toggleSmartSnatch" style="opacity:0; width:0; height:0;">
+          <input type="checkbox" id="toggleSmartSnatch" style="opacity:0; width:0; height:0;" aria-label="Toggle SmartSnatch auto-detect">
           <span class="slider round"
             style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:var(--bg-panel-alt); border:1px solid var(--border-soft); border-radius:34px; transition:.4s;"></span>
         </label>
       </div>
 
-      <div id="valGlobalStatus" class="status-badge idle">NO EVIDENCE LOADED</div>
-      <button id="btnLoadEvidence" class="pill" style="margin-left:16px;">
+      <div id="valGlobalStatus" class="status-badge idle" style="margin-left:0.8rem;">NO EVIDENCE LOADED</div>
+      <button id="btnLoadEvidence" class="pill" style="margin-left:0.8rem;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="7 10 12 15 17 10"></polyline>
@@ -899,6 +1245,90 @@
       </div>
 
       <div id="tabSummary" class="tab-content active">
+        <section class="input-dropzone" aria-label="Evidence intake and decode controls">
+          <h3>Intake and Decode Pipeline</h3>
+          <div class="dropzone-help">Drop/paste HTML, HAR, or direct URL inputs. HyperSnatch analyzes locally and produces deterministic candidate and proof output.</div>
+          <div class="control-row" style="margin-bottom:0.65rem;">
+            <input id="file" type="file" accept=".txt,.html,.json,.har" aria-label="Import evidence file">
+            <select id="mode" aria-label="Decode mode">
+              <option value="bridge">Bridge Decode</option>
+              <option value="offline">Offline Hold</option>
+            </select>
+            <span class="pill tiny mono" id="bridgeUrlTxt">http://127.0.0.1:4179/decode</span>
+            <span class="pill tiny" id="radarStatus">HUB: IDLE</span>
+          </div>
+          <textarea id="input" aria-label="Evidence input payload" placeholder="Paste target URL, inline script blob, page snapshot HTML, or extracted network text."></textarea>
+          <div class="control-row" style="margin-top:0.72rem;">
+            <button id="btnDecode" class="primary-btn" type="button">Run SmartDecode</button>
+            <button id="btnClear" type="button">Clear</button>
+            <button id="btnUseBest" type="button">Use Best Candidate</button>
+            <input id="pickIndex" type="number" min="0" value="0" aria-label="Candidate index to pick" style="width:72px;">
+            <button id="btnPickIdx" type="button">Pick Index</button>
+            <button id="btnCopyBestUrl" type="button">Copy Best URL</button>
+          </div>
+          <div id="status" class="operator-status" role="status" aria-live="polite">Awaiting payload. Ready for bridge decode.</div>
+          <div class="summary-strip" aria-label="Decode summary counters">
+            <div class="summary-pill">
+              <span class="label">Candidates</span>
+              <span id="countTag" class="value">0</span>
+            </div>
+            <div class="summary-pill">
+              <span class="label">Best Host</span>
+              <span id="bestTag" class="value">none</span>
+            </div>
+            <div class="summary-pill">
+              <span class="label">Refusals</span>
+              <span id="refTag" class="value">0</span>
+            </div>
+          </div>
+          <div class="split-grid" style="margin-top:0.85rem;">
+            <div class="stack">
+              <div class="panel">
+                <div class="panel-header">Download Plan</div>
+                <div id="cmd" class="cmdBox">No plan generated yet.</div>
+                <div class="control-row" style="margin-top:0.65rem;">
+                  <button id="btnCopyCmd" type="button" disabled>Copy Command</button>
+                  <button id="btnCopyJson" type="button" disabled>Copy JSON</button>
+                  <button id="btnSavePlan" type="button" disabled>Save Plan</button>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-header">Candidate and Refusal Exports</div>
+                <div class="control-row">
+                  <button id="btnSaveCands" type="button" disabled>Save Candidates</button>
+                  <button id="btnSaveRefs" type="button" disabled>Save Refusals</button>
+                </div>
+                <div id="refusals" style="margin-top:0.65rem;">
+                  <div class="muted">No refusal analysis yet.</div>
+                </div>
+              </div>
+              <div id="auditSeal" class="audit-seal" aria-live="polite">
+                <div class="seal-icon">OK</div>
+                <div>
+                  <div style="font-weight:700; color:var(--color-ok);">Proof Seal Updated</div>
+                  <div class="tiny muted mono">Hash: <span id="sealHash">--</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="stack">
+              <div class="panel">
+                <div class="panel-header">Script Trace</div>
+                <div id="scriptTrace" class="logTerminal" style="height:160px;">
+                  <div class="entry warn"><span class="ts">[BOOT]</span>No trace loaded.</div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-header">Network Timeline Snapshot</div>
+                <div id="networkTimeline" class="logTerminal" style="height:140px;">
+                  <div class="entry probe"><span class="ts">[BOOT]</span>Awaiting network reconstruction.</div>
+                </div>
+                <div class="panel-header" style="margin-top:0.8rem;">Segment Map</div>
+                <div id="segmentMap" class="control-row tiny muted">No segments mapped.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <h2 style="font-size:1.2rem; margin-top:0; margin-bottom:1.5rem;">Bundle Validation Summary</h2>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
           <div class="panel">
@@ -1959,33 +2389,57 @@
     </main>
 
     <aside class="right-panel">
-      <div class="panel-header">Signature Intel</div>
+      <div class="panel-header">Trust and Proof Control</div>
 
-      <div class="row" style="justify-content:space-between; font-size:0.8rem;">
-        <span style="color:var(--text-muted);">Player Runtime</span>
-        <span id="intPlayer" class="data-value" style="font-weight:600;">--</span>
+      <div class="trust-panel">
+        <div class="trust-row">
+          <span class="muted">Player Runtime</span>
+          <span id="intPlayer" class="data-value">--</span>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Edge Provider</span>
+          <span id="intCdn" class="data-value">--</span>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Best Candidate</span>
+          <span id="intBest" class="mono tiny">--</span>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Protocol</span>
+          <span id="intProto" class="pill tiny idle">--</span>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Stream Ladder</span>
+          <span id="intLadder" class="mono tiny">--</span>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Switch State</span>
+          <span id="intSw" class="pill tiny idle">idle</span>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Content Protection</span>
+          <div id="intDrm" class="status-badge idle">--</div>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Browser Buffers</span>
+          <div id="intMse" class="status-badge idle">--</div>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Export Readiness</span>
+          <span class="pill tiny ok">Policy-Aware</span>
+        </div>
       </div>
-      <div class="row" style="justify-content:space-between; font-size:0.8rem;">
-        <span style="color:var(--text-muted);">Edge Provider</span>
-        <span id="intCdn" class="data-value" style="font-weight:600;">--</span>
-      </div>
-
-      <hr style="border:none; border-top:1px solid var(--border-soft); margin:0.5rem 0;">
-
-      <div class="row" style="justify-content:space-between; font-size:0.8rem; align-items:center;">
-        <span style="color:var(--text-muted);">Content Protection</span>
-        <div id="intDrm" class="status-badge idle" style="font-size:0.65rem;">--</div>
-      </div>
-      <div class="row" style="justify-content:space-between; font-size:0.8rem; align-items:center;">
-        <span style="color:var(--text-muted);">Browser Buffers</span>
-        <div id="intMse" class="status-badge idle" style="font-size:0.65rem;">--</div>
-      </div>
-
-      <div style="flex-grow:1;"></div>
 
       <div class="panel" style="padding:0.75rem;">
         <div class="data-label" style="font-size:0.65rem;">Evidence Hash (SHA-256)</div>
         <div id="intHash" class="mono muted" style="font-size:0.65rem; word-break:break-all;">--</div>
+      </div>
+
+      <div id="forensicCard" class="forensic-console">
+        <div class="panel-header">Tactical Event Console</div>
+        <div id="forensicLog" class="logTerminal" aria-live="polite">
+          <div class="entry probe"><span class="ts">[BOOT]</span>Forensic console offline.</div>
+        </div>
       </div>
     </aside>
 
@@ -2037,7 +2491,7 @@
 
     function setStatus(text, kind = "muted") {
       const s = el("status");
-      s.className = kind;
+      s.className = `operator-status ${kind}`;
       s.textContent = text;
 
       // Mirror to Tactical Console if active
@@ -2547,7 +3001,7 @@
 
       setStatus(`Executing SmartDecode sequence via native bridge...`, "muted");
       try {
-        const out = await decodeViaBridge(inputTarget, null);
+        const out = await decodeViaBridge(input, null);
         render(out);
         setStatus("Decode execution completed successfully.", "ok");
 
