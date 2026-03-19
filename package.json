@@ -22,7 +22,7 @@
     "hypersnatch-cli": "src/cli/hypersnatch-cli.js"
   },
   "dependencies": {
-    "ajv": "6.12.6",
+    "ajv": "6.14.0",
     "chrome-remote-interface": "^0.34.0"
   },
   "devDependencies": {

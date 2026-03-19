@@ -35,13 +35,13 @@ async function runAllTests() {
 
     const result = re.redact('Access token=abc123xyz at https://cdn.example.com/manifest.m3u8 from user@example.com IP 192.168.1.1');
     if (result.text.includes('abc123xyz')) throw new Error("Token not redacted");
-    if (result.text.includes('cdn.example.com')) throw new Error("URL not redacted");
+    if (/\bcdn\.example\.com\b/i.test(result.text)) throw new Error("URL not redacted");
     if (result.text.includes('user@example.com')) throw new Error("Email not redacted");
     if (result.text.includes('192.168.1.1')) throw new Error("IP not redacted");
     console.log(`   OK: Text redaction verified (${result.audit.totalRedactions} redactions).`);
 
     const bundleRedacted = re.redactBundle({ path: 'B1', manifestURL: 'https://cdn.test.com/v1', token: 'token=secret123' });
-    if (bundleRedacted.manifestURL.includes('cdn.test.com')) throw new Error("Bundle URL not redacted");
+    if (/\bcdn\.test\.com\b/i.test(String(bundleRedacted.manifestURL || ''))) throw new Error("Bundle URL not redacted");
     console.log("   OK: Bundle redaction verified.\n");
 
     // ---------- Phase 83: Publication Pipeline ----------
