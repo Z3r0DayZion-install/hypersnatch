@@ -10,7 +10,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
-const APP_VERSION = String(pkg.version || "1.3.1");
+const APP_VERSION = String(pkg.version || "0.0.0-dev");
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 const OUTPUT_ZIP = path.join(DIST_DIR, `HyperSnatch_Vanguard_v${APP_VERSION}.zip`);
 const STAGING_DIR = path.join(DIST_DIR, 'staging_vanguard');

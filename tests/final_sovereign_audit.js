@@ -6,7 +6,9 @@ const crypto = require("crypto");
 
 const ROOT = path.join(__dirname, "..");
 const DIST_DIR = path.join(ROOT, "dist");
-const LEGACY_RELEASE_DIR = path.join(ROOT, "release", "HyperSnatch_v1.3.1");
+const PKG = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+const RELEASE_DIR_NAME = `HyperSnatch_v${PKG.version}`;
+const LEGACY_RELEASE_DIR = path.join(ROOT, "release", RELEASE_DIR_NAME);
 
 function sha256(filePath) {
   const hash = crypto.createHash("sha256");
@@ -58,7 +60,7 @@ function main() {
 
   const artifactRoot = findArtifactsRoot();
   if (!artifactRoot) {
-    throw new Error("No artifact root found. Expected dist/ or release/HyperSnatch_v1.3.1.");
+    throw new Error(`No artifact root found. Expected dist/ or release/${RELEASE_DIR_NAME}.`);
   }
   console.log(`Artifacts root: ${artifactRoot}`);
 

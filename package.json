@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.3.1",
+  "version": "1.4.0-beta.1",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -52,7 +52,7 @@
     "ui:bridge": "node ./src/bridge/ui-bridge.js",
     "ui:open": "start ui/hypersnatch-ui.html",
     "build:wrapper": "node scripts/build_release_pack.js",
-    "release:pack": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Compress-Archive -Path release\\* -DestinationPath dist\\HyperSnatch_release.zip -Force\"",
+    "release:pack": "node scripts/build_release_pack.js",
     "test": "node tests/smartdecode.test.js && node tests/dns_fallback.test.js",
     "test:ci": "node tests/smartdecode.test.js && node tests/dns_fallback.test.js",
     "test:online": "node tests/proof_all_decoders.js",

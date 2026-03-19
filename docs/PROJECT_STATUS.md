@@ -1,30 +1,21 @@
 # HyperSnatch Status Summary
 
-Current version: 1.3.1 Sovereign
+Current stable release: `1.3.1` (frozen)
+Current prerelease target: `1.4.0-beta.1`
 
-Core achievements:
-- offline integrity verification (verify.ps1)
-- deterministic builds
-- cryptographic hash anchors
-
-Forensic capabilities:
-- timeline reconstruction
-- adaptive bitrate ladder extraction
-- waterfall clustering
-- CDN fingerprinting
-- token pattern analysis
-
-GUI:
-- Electron forensic dashboard
-- secure IPC bridge
-- .hyper snapshot bundles
-
-Phase status:
+Core platform status:
 - Phase 6 Runtime Forensics: complete
 - Phase 7 Intelligence Layer: complete
+- Operator UI v1.4 polish baseline: merged
+- Beta identity alignment: complete on `release-readiness/v1.4.0-beta.1`
 
-Current release blockers (release-readiness branch):
-- SmartDecode multi-link compatibility drift (`batch/jobs` vs legacy `candidates/best`)
-- dead npm script targets removed/replaced
-- fixture drift in `tests/run_tests.js` normalized to deterministic output
-- final sovereign audit now validates actual artifact roots (`dist/` or legacy release path)
+Release discipline status:
+- `v1.3.1` proof chain is immutable and preserved
+- `v1.4.0-alpha.1` is preserved as prerelease checkpoint
+- Beta line requires clean-worktree proof before tagging
+
+Beta readiness focus:
+- version identity alignment across package, runtime metadata, and UI surfaces
+- artifact naming alignment (`HyperSnatch_Vanguard_v1.4.0-beta.1.zip`)
+- deterministic UI acceptance checks (`npm run verify:ui`)
+- full branch gate pass before PR and clean-main proof before tag
