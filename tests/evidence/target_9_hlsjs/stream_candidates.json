@@ -1,0 +1,14 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://hls-js.netlify.app/demo/",
+    "domain": "hls-js.netlify.app",
+    "path": "/demo/",
+    "finalScore": 15,
+    "certaintyTier": "Low",
+    "scoreBreakdown": [
+      "+15: MSE Segment pattern confirmed in HAR"
+    ]
+  }
+]

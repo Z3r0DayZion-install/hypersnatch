@@ -1,0 +1,15 @@
+{
+  "target": "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+  "processedAt": "2026-03-06T05:41:03.123Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "7c4deed4b8ca38e081256acb6e753782c9cbf17b98434f4d9c397551614c8b36",
+    "dom_snapshot.html": "0c4f953fb844428ab9aca1cc45eb31d89f6f4b7344b9c6c16ffc36ebec968df9",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "har_classified.json": "72f822566a10778e40d2b98043cffecfe9f1baa2f737c5cdfbcfc4c201be309f",
+    "player_profile.json": "c7a8967a502dedd736a46bcbcb5ec2a6fef2a9c8f9a07e519c8c1bd63968ab5e",
+    "stream_candidates.json": "6dbd87582fd06b94c8043c572b28b79cb461a5c2e2496b02722f54c77a4cf674",
+    "report.md": "5be943adc70fc8d4917e8f34c9698445524d13119c26ecc8ea1a95196f6ca5d5"
+  }
+}

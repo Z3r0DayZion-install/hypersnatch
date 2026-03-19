@@ -1,0 +1,83 @@
+{
+  "manifests": [],
+  "segments": [],
+  "keys": [],
+  "telemetry": [
+    {
+      "url": "https://www.w3schools.com/signup/lynxlogo.svg",
+      "mime": ""
+    },
+    {
+      "url": "https://t.fastcmp.com/beacon",
+      "mime": ""
+    },
+    {
+      "url": "https://t.fastcmp.com/beacon",
+      "mime": ""
+    },
+    {
+      "url": "https://tn.flashb.id/beacon",
+      "mime": ""
+    },
+    {
+      "url": "https://tn.flashb.id/beacon",
+      "mime": ""
+    },
+    {
+      "url": "https://match.adsrvr.org/track/rid?ttd_pid=k552xq0&fmt=json",
+      "mime": ""
+    },
+    {
+      "url": "https://tn.flashb.id/beacon",
+      "mime": ""
+    },
+    {
+      "url": "https://e.viously.com/beacon",
+      "mime": ""
+    },
+    {
+      "url": "https://e.viously.com/beacon",
+      "mime": ""
+    },
+    {
+      "url": "https://e.viously.com/beacon",
+      "mime": ""
+    },
+    {
+      "url": "https://www.w3schools.com/images/w3schools_logo_436_2.png",
+      "mime": ""
+    }
+  ],
+  "other": [
+    {
+      "url": "https://www.w3schools.com/html/mov_bbb.mp4",
+      "mime": "",
+      "category": "media"
+    },
+    {
+      "url": "https://www.w3schools.com/html/mov_bbb.mp4",
+      "mime": "",
+      "category": "media"
+    },
+    {
+      "url": "https://www.w3schools.com/html/mov_bbb.mp4",
+      "mime": "",
+      "category": "media"
+    },
+    {
+      "url": "https://www.w3schools.com/html/mov_bbb.mp4",
+      "mime": "",
+      "category": "media"
+    },
+    {
+      "url": "https://www.w3schools.com/html/mov_bbb.mp4",
+      "mime": "",
+      "category": "media"
+    }
+  ],
+  "flags": {
+    "drmDetected": false,
+    "accessTokenRejected": false,
+    "mseStreamDetected": false
+  }
+}

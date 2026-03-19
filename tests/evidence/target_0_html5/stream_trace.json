@@ -1,0 +1,102 @@
+[
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://srv.flashb.id/cfg/37dc2490-e69a-50b6-b814-d999fdbee40b?do=w3schools.com&r=&p=https%3A%2F%2Fwww.w3schools.com%2Fhtml%2Fhtml5_video.asp&cb=0.7081601607885674&b=Chrome+Headless&d=desktop&c=0&aot=1&as_thr=1&pid=1&custom1=html&custom5=unknown",
+    "timestamp": 1772775654460
+  },
+  {
+    "type": "xhr",
+    "method": "POST",
+    "url": "https://eu.fastcmp.com/consent-require-renewal?_profile=stub-2",
+    "timestamp": 1772775654493
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://pbsj.bricks-co.com/sync?gdpr=0&gdpr_consent=&us_privacy=1---&cb=0.813645721945704&if=0&origin=https%3A%2F%2Fwww.w3schools.com%2F&src=default&type=f",
+    "timestamp": 1772775655166
+  },
+  {
+    "type": "xhr",
+    "method": "POST",
+    "url": "https://t.fastcmp.com/beacon",
+    "timestamp": 1772775655168
+  },
+  {
+    "type": "xhr",
+    "method": "POST",
+    "url": "https://t.fastcmp.com/beacon",
+    "timestamp": 1772775655169
+  },
+  {
+    "type": "xhr",
+    "method": "POST",
+    "url": "https://tn.flashb.id/beacon",
+    "timestamp": 1772775655209
+  },
+  {
+    "type": "fetch",
+    "url": "https://pbsj.bricks-co.com/health?src=actirise",
+    "timestamp": 1772775655217
+  },
+  {
+    "type": "xhr",
+    "method": "POST",
+    "url": "https://tn.flashb.id/beacon",
+    "timestamp": 1772775655219
+  },
+  {
+    "type": "fetch",
+    "url": "https://idrs.adtelligent.com/get?gdpr=0&gdprConsent=",
+    "timestamp": 1772775655815
+  },
+  {
+    "type": "fetch",
+    "url": "https://gum.criteo.com/sid/json?origin=prebid&topUrl=https%3A%2F%2Fwww.w3schools.com%2F&domain=www.w3schools.com&bundle=l3_ieF82Z2FNdjJReFBuMXBLU3c2Z2s4QnclMkZmaEN3JTJGWm5zTXJJVHJTWjNrJTJGam0xQ01ZaDFUcmJxVklFU3FuSGtRTjFGbzJ1dmc1N0JOU2l6aGY0RU9mQVVIZ0ljem1BMzc5SyUyRnNDM2dYNnlhZSUyQjJISCUyQlNwWUpvelJnUlJmaU90akptMnQlMkY3QkY2UjhSN3ZDdk1aUEo0akczZyUzRCUzRA&cw=1&lsw=1",
+    "timestamp": 1772775655817
+  },
+  {
+    "type": "fetch",
+    "url": "https://id5-sync.com/api/config/prebid",
+    "timestamp": 1772775655817
+  },
+  {
+    "type": "fetch",
+    "url": "https://at.teads.tv/fpc?analytics_tag_id=PUB_19579&tfpvi=&gdpr_consent=&gdpr_status=22&gdpr_reason=220&ccpa_consent=&sv=prebid-v1",
+    "timestamp": 1772775655818
+  },
+  {
+    "type": "fetch",
+    "url": "https://match.adsrvr.org/track/rid?ttd_pid=k552xq0&fmt=json",
+    "timestamp": 1772775655818
+  },
+  {
+    "type": "fetch",
+    "url": "https://www.flashb.id/bidder/demo",
+    "timestamp": 1772775655881
+  },
+  {
+    "type": "xhr",
+    "method": "POST",
+    "url": "https://tn.flashb.id/beacon",
+    "timestamp": 1772775656078
+  },
+  {
+    "type": "xhr",
+    "method": "POST",
+    "url": "https://e.viously.com/beacon",
+    "timestamp": 1772775656193
+  },
+  {
+    "type": "xhr",
+    "method": "POST",
+    "url": "https://e.viously.com/beacon",
+    "timestamp": 1772775656195
+  },
+  {
+    "type": "fetch",
+    "url": "https://lb.eu-1-id5-sync.com/lb/v1",
+    "timestamp": 1772775656371
+  }
+]

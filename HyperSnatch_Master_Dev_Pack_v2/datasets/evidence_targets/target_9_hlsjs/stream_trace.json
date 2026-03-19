@@ -1,0 +1,55 @@
+[
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+    "timestamp": 1772748394777
+  },
+  {
+    "type": "MSE",
+    "action": "construct",
+    "timestamp": 1772748394778
+  },
+  {
+    "type": "xhr",
+    "method": "POST",
+    "url": "https://cloudflareinsights.com/cdn-cgi/rum",
+    "timestamp": 1772748394809
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_0/193039199_mp4_h264_aac_hd_7.m3u8",
+    "timestamp": 1772748394830
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_0/url_462/193039199_mp4_h264_aac_hd_7.ts",
+    "timestamp": 1772748394856
+  },
+  {
+    "type": "MSE",
+    "action": "addSourceBuffer",
+    "mime": "audio/mp4;codecs=mp4a.40.2",
+    "timestamp": 1772748395596
+  },
+  {
+    "type": "MSE",
+    "action": "addSourceBuffer",
+    "mime": "video/mp4;codecs=avc1.64001f",
+    "timestamp": 1772748395597
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_8/193039199_mp4_h264_aac_fhd_7.m3u8",
+    "timestamp": 1772748395636
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_8/url_591/193039199_mp4_h264_aac_fhd_7.ts",
+    "timestamp": 1772748395659
+  }
+]

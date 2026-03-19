@@ -1,0 +1,14 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://www.w3schools.com/html/html5_video.asp",
+    "domain": "www.w3schools.com",
+    "path": "/html/html5_video.asp",
+    "finalScore": 10,
+    "certaintyTier": "Low",
+    "scoreBreakdown": [
+      "+10: Host/CDN matches standard media pattern"
+    ]
+  }
+]

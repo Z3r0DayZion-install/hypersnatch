@@ -1,0 +1,17 @@
+{
+  "manifests": [
+    {
+      "url": "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd",
+      "mime": ""
+    }
+  ],
+  "segments": [],
+  "keys": [],
+  "telemetry": [],
+  "other": [],
+  "flags": {
+    "drmDetected": false,
+    "accessTokenRejected": false,
+    "mseStreamDetected": false
+  }
+}

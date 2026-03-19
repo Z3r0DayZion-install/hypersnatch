@@ -1,0 +1,13 @@
+{
+  "id": "HS-2026-X1",
+  "status": "open",
+  "createdAt": "2026-03-06T20:33:00.717Z",
+  "bundles": [
+    {
+      "path": "/mnt/evidence/capture_001.hyper",
+      "addedAt": "2026-03-06T20:33:00.726Z"
+    }
+  ],
+  "observations": [],
+  "priority": "high"
+}

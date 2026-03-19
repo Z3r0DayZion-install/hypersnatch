@@ -1,0 +1,17 @@
+{
+  "manifests": [
+    {
+      "url": "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+      "mime": ""
+    }
+  ],
+  "segments": [],
+  "keys": [],
+  "telemetry": [],
+  "other": [],
+  "flags": {
+    "drmDetected": false,
+    "accessTokenRejected": false,
+    "mseStreamDetected": false
+  }
+}

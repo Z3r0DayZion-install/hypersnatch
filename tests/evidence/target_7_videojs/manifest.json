@@ -1,0 +1,15 @@
+{
+  "target": "https://vjs.zencdn.net/v/oceans.mp4",
+  "processedAt": "2026-03-06T05:41:21.729Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "2255244b0eda6eae321b364c44328e3c544fab8363d7a063a6f3a2efdaad0f89",
+    "dom_snapshot.html": "668021856b966a262931d5030bf33eacb9ffe83d4b050f00f02c6a6cbd35ae5e",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "har_classified.json": "415d880de6e1ebc0921915d0b1d5dc665f91033ed56b258ac8e097a8931698e3",
+    "player_profile.json": "c7a8967a502dedd736a46bcbcb5ec2a6fef2a9c8f9a07e519c8c1bd63968ab5e",
+    "stream_candidates.json": "652d9627a03e2795c1414df649b93b7f6b705a6f3548dbfbbd6c0edc041e9be4",
+    "report.md": "7c7f7746616f47e3fe4b2d8132635acb62fd76569d147bb943a193338ec3b1e9"
+  }
+}

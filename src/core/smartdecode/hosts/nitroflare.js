@@ -4,7 +4,8 @@
 
 const NitroflareExtractor = {
     PATTERNS: [
-        /https?:\/\/(?:www\.)?nitroflare\.com\/view\/([a-zA-Z0-9]+)\/([^\/\?\s"']+)/i
+        /https?:\/\/(?:www\.)?nitroflare\.com\/view\/([a-zA-Z0-9]+)\/([^\/\?\s"']+)/i,
+        /https?:\/\/(?:www\.)?nitroflare\.com\/folder\/([a-zA-Z0-9]+)/i // Phase 54: Folder Support
     ],
 
     extract(input) {
@@ -18,12 +19,14 @@ const NitroflareExtractor = {
                 const fileId = match[1];
                 const filename = match[2] || 'unknown';
                 if (!candidates.has(url)) {
+                    const isFolder = /\/folder\//i.test(url);
                     candidates.set(url, {
                         url, fileId, filename,
                         host: 'nitroflare.com',
-                        type: this._inferType(filename),
+                        type: isFolder ? 'folder' : this._inferType(filename),
                         sourceLayer: 'host_nitroflare',
-                        confidence: 0.95
+                        confidence: isFolder ? 0.90 : 0.95,
+                        requiresExpansion: isFolder
                     });
                 }
             }

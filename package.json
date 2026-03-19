@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.2.1",
+  "version": "1.3.1",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -22,12 +22,15 @@
     "hypersnatch-cli": "src/cli/hypersnatch-cli.js"
   },
   "dependencies": {
-    "ajv": "6.12.6",
+    "ajv": "6.14.0",
     "chrome-remote-interface": "^0.34.0"
   },
   "devDependencies": {
     "electron": "28.3.3",
-    "electron-builder": "24.13.3"
+    "electron-builder": "^24.13.3",
+    "electron-playwright-helpers": "^2.1.0",
+    "jsdom": "^27.0.1",
+    "playwright": "^1.58.2"
   },
   "scripts": {
     "start": "electron .",
@@ -48,11 +51,13 @@
     "verify:release": "node scripts/verify_release.js",
     "ui:bridge": "node ./src/bridge/ui-bridge.js",
     "ui:open": "start ui/hypersnatch-ui.html",
-    "build:wrapper": "node scripts/build_wrapper.js",
+    "build:wrapper": "node scripts/build_release_pack.js",
     "release:pack": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Compress-Archive -Path release\\* -DestinationPath dist\\HyperSnatch_release.zip -Force\"",
     "test": "node tests/smartdecode.test.js && node tests/dns_fallback.test.js",
     "test:ci": "node tests/smartdecode.test.js && node tests/dns_fallback.test.js",
-    "test:online": "node scripts/verify_smartdecode.js --online",
+    "test:online": "node tests/proof_all_decoders.js",
+    "verify:system": "node scripts/verify_system.js",
+    "audit:final": "node tests/final_sovereign_audit.js",
     "proof": "node tests/proof_all_decoders.js",
     "postinstall": "npx --yes electron-builder install-app-deps"
   },

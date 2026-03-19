@@ -7,8 +7,10 @@ const KsharedExtractor = {
     // Patterns derived from documentation and legacy logic
     PATTERNS: [
         /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
+        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/file\/([a-zA-Z0-9_-]+)\/([^\/\?\s"']+)/i,
         /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/file\/([a-zA-Z0-9_-]+)(?:[\/\?\s"']|$)/i,
-        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/f\/([a-zA-Z0-9_-]+)/i
+        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/f\/([a-zA-Z0-9_-]+)/i, // Phase 54: Folder Support
+        /https?:\/\/(?:www\.)?(?:kshared|khared)\.com\/folder\/([a-zA-Z0-9_-]+)/i // Optional longer format
     ],
 
     /**
@@ -30,17 +32,25 @@ const KsharedExtractor = {
                 const url = rawUrl.replace(/[\s"'\/]$/, '');
                 const fileId = match[1];
                 const filename = match[2] || 'unknown';
-                const host = url.includes('khared.com') ? 'khared.com' : 'kshared.com';
+                let host = 'kshared.com';
+                try {
+                    const parsedHost = new URL(url).hostname.toLowerCase();
+                    if (parsedHost === 'khared.com' || parsedHost.endsWith('.khared.com')) {
+                        host = 'khared.com';
+                    }
+                } catch (e) {}
 
                 if (!candidates.has(url)) {
+                    const isFolder = /\/[f|folder]\//i.test(url);
                     candidates.set(url, {
                         url,
                         fileId,
                         filename,
                         host,
-                        type: this._inferType(filename),
+                        type: isFolder ? 'folder' : this._inferType(filename),
                         sourceLayer: 'host_kshared',
-                        confidence: 0.95
+                        confidence: isFolder ? 0.90 : 0.95,
+                        requiresExpansion: isFolder
                     });
                 }
             }

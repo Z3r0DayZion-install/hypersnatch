@@ -1,0 +1,22 @@
+{
+    "player_name": "VideoJS",
+    "window_objects": [
+        "videojs"
+    ],
+    "dom_signatures": [
+        ".video-js"
+    ],
+    "script_signatures": [
+        "video.min.js",
+        "videojs"
+    ],
+    "known_api_calls": [
+        "videojs(",
+        "player.currentSource()"
+    ],
+    "extraction_paths": [
+        "videojs.players",
+        "player.tech().vhs.playlists"
+    ],
+    "confidence_weight": 0.95
+}

@@ -1,0 +1,22 @@
+{
+    "player_name": "JWPlayer",
+    "window_objects": [
+        "jwplayer"
+    ],
+    "dom_signatures": [
+        ".jwplayer"
+    ],
+    "script_signatures": [
+        "jwplayer.js",
+        "jwplayer"
+    ],
+    "known_api_calls": [
+        "jwplayer(",
+        "jwplayer().getPlaylist("
+    ],
+    "extraction_paths": [
+        "jwplayer().getConfig()",
+        "jwplayer().getPlaylist()"
+    ],
+    "confidence_weight": 0.95
+}

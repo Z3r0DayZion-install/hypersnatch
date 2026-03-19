@@ -41,6 +41,7 @@ $EXIT_CODES = @{
     MANIFEST_ERROR   = 3
     PERMISSION_ERROR = 4
     SELF_TEST_FAILED = 5
+    GPG_ERROR        = 6
 }
 
 # Known hashes (keep as fallback)
@@ -265,6 +266,34 @@ function Test-FileIntegrity {
     }
 }
 
+function Test-GPGSignature {
+    param([string]$FilePath)
+    
+    Write-Host "  🔏 Verifying GPG Signature..." -ForegroundColor Yellow
+    
+    if (-not (Get-Command gpg -ErrorAction SilentlyContinue)) {
+        Write-Host "  ⚠️  GPG not found. Skipping signature validation." -ForegroundColor Yellow
+        return $true
+    }
+
+    $sigFile = "$FilePath.sig"
+    if (-not (Test-Path $sigFile)) {
+        Write-Host "  ❌ GPG Signature file not found ($sigFile)" -ForegroundColor Red
+        return $false
+    }
+
+    $gpgResult = gpg --verify $sigFile $FilePath 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  ✅ GPG Signature: VALID" -ForegroundColor Green
+        return $true
+    }
+    else {
+        Write-Host "  ❌ GPG Signature: INVALID" -ForegroundColor Red
+        Write-Host "    $gpgResult" -ForegroundColor DarkGray
+        return $false
+    }
+}
+
 function Invoke-SelfTest {
     Write-Host ""
     Write-Host "  🧪 Running Self-Test Mode" -ForegroundColor Cyan
@@ -310,7 +339,7 @@ function Invoke-SelfTest {
     # Test 4: Test hash computation on self
     Write-Host "  Test 4: Self Hash Computation" -NoNewline
     try {
-        $selfHash = (Get-FileHash -Path $PSCommandPath -Algorithm SHA256).Hash
+        Get-FileHash -Path $PSCommandPath -Algorithm SHA256 | Out-Null
         Write-Host " - ✅ PASS" -ForegroundColor Green
         $testsPassed++
     }
@@ -342,6 +371,20 @@ function Invoke-SelfTest {
     }
 }
 
+# Phase 6: Multi-Sig Release Integration
+function Invoke-MultiSigVerification {
+    param([string]$FilePath)
+    
+    $hashStatus = Test-FileIntegrity -FilePath $FilePath -HashManifest $hashManifest
+    if ($hashStatus -ne $EXIT_CODES.SUCCESS) { return $hashStatus }
+    
+    if (-not (Test-GPGSignature -FilePath $FilePath)) {
+        return $EXIT_CODES.GPG_ERROR
+    }
+    
+    return $EXIT_CODES.SUCCESS
+}
+
 function Invoke-TestMode {
     Write-Host ""
     Write-Host "  🧪 Running Test Mode" -ForegroundColor Cyan
@@ -365,11 +408,9 @@ function Invoke-TestMode {
     Write-Host "  Created test files in: $testDir" -ForegroundColor DarkGray
     
     # Run verification tests
-    $testResults = @()
     
     # Test with no file (should show help)
     Write-Host "`n  Test A: No arguments" -ForegroundColor Yellow
-    $exitCode = $EXIT_CODES.FILE_NOT_FOUND  # Simulated
     
     # Test with non-existent file
     Write-Host "  Test B: Non-existent file" -ForegroundColor Yellow

@@ -1,0 +1,15 @@
+{
+  "target": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+  "processedAt": "2026-03-06T05:40:58.961Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "7acb0aa7a793706fe973ba5a7be039a4570cf6100810335ff720a7ba16d95c94",
+    "dom_snapshot.html": "959fa6e0ec0d03bcb07e63d6099595aa306168ad0f529fcc035b867f1809a951",
+    "player_config.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stream_trace.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "har_classified.json": "0a32bd8f17e557848ce8774a5db418b607548d4af9c332f8f2f3f6db3ab221a7",
+    "player_profile.json": "c7a8967a502dedd736a46bcbcb5ec2a6fef2a9c8f9a07e519c8c1bd63968ab5e",
+    "stream_candidates.json": "cb31a76179f2dc8d89a4cb25c007b0b90996e912440d0472f274f2b3576fbd4a",
+    "report.md": "17078d44ad4f3ea2ee1563d94096f1e8e4ed8e34f926f618933ad401218278c6"
+  }
+}

@@ -1,0 +1,61 @@
+[
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/app-data.json",
+    "timestamp": 1772748387158
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/index/page-data.json",
+    "timestamp": 1772748387158
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/sq/d/3649515864.json",
+    "timestamp": 1772748387203
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/sq/d/3662677747.json",
+    "timestamp": 1772748387203
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/sq/d/4010620043.json",
+    "timestamp": 1772748387203
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/sq/d/63159454.json",
+    "timestamp": 1772748387203
+  },
+  {
+    "type": "MSE",
+    "action": "construct",
+    "timestamp": 1772748387343
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://stream.mux.com/UZMwOY6MgmhFNXLbSFXAuPKlRPss5XNA.m3u8",
+    "timestamp": 1772748387349
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://manifest-gcp-us-east4-vop1.fastly.mux.com/elXhatnrMM00U9gIj01gGtgWM1fuxRSFUNa776WqS01lgSoBJUyI1ymwke4HnK101e4MdT6CynCuvWyT8ZK29kXQ1lrmBAc8x2ZRd6yWjhCxwCQ/rendition.m3u8?cdn=fastly&expires=1773352800&skid=default&signature=NjliMzM4ZTNfOTQ4MjZjYjc4YmI1OWZlYzNhZDQ1OTg4YjMwNjFjMmFjYzA1NjU5OWVkNDkwN2Y1ODQ3YWIwNDY2MzgwZDEzZg==&vsid=TlPuncprLr61k7KETFNBtI3T15JaPO7pYZ5Nu01IJcwf5dDvh22Nd8agzK5kexH2c25zsWaK02bIY",
+    "timestamp": 1772748387494
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://chunk-gcp-us-east4-vop1.fastly.mux.com/v1/chunk/J7FNu2n1ekPJ01sMXd8BJ8qHZhWsi302UpR8n01DVZdMJCUGM6NZFT2nju71d8LT7l8Jp02UMZFGzlXyvm2w8CaTiqJqfSQFGN2nctP01kaBea8g/0.ts?skid=default&signature=NjliMzM3NjBfMDk2YWY2NGM5M2IyODdiZWI4Mzg4NTZkNTgyOWRmMzNiZDA5ZWRhN2E2MjAyN2RhM2ZlYWFmMTY3ZWZiN2U4ZQ==&zone=0",
+    "timestamp": 1772748387604
+  }
+]

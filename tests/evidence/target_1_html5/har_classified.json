@@ -1,0 +1,23 @@
+{
+  "manifests": [],
+  "segments": [],
+  "keys": [],
+  "telemetry": [],
+  "other": [
+    {
+      "url": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "mime": "",
+      "category": "media"
+    },
+    {
+      "url": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "mime": "",
+      "category": "media"
+    }
+  ],
+  "flags": {
+    "drmDetected": false,
+    "accessTokenRejected": false,
+    "mseStreamDetected": false
+  }
+}

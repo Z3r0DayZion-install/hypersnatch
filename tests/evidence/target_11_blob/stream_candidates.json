@@ -1,0 +1,14 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://bitmovin.com/demos/stream-test",
+    "domain": "bitmovin.com",
+    "path": "/demos/stream-test",
+    "finalScore": 10,
+    "certaintyTier": "Low",
+    "scoreBreakdown": [
+      "+10: Host/CDN matches standard media pattern"
+    ]
+  }
+]

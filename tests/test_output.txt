@@ -1,0 +1,25 @@
+--- Running AI Analyzer Tests ---
+[AIAnalyzer] Starting autonomous pattern discovery on https://unknown-streaming-site.com/video/12345...
+[AIAnalyzer] Target stream identified: https://streams.example.com/live/hidden-stream.m3u8?token=xyz
+[AIAnalyzer] Correlated stream to global object path: window.SitePlayerConfig.media.sourceList.0.file
+node:assert:408
+    throw err;
+    ^
+
+AssertionError [ERR_ASSERTION]: Generated script should reference SitePlayerConfig
+    at runTests (C:\Users\KickA\HyperSnatch_Work\tests\ultra_core\test_ai_analyzer.js:38:12)
+    at Object.<anonymous> (C:\Users\KickA\HyperSnatch_Work\tests\ultra_core\test_ai_analyzer.js:62:1)
+    at Module._compile (node:internal/modules/cjs/loader:1469:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+    at Module.load (node:internal/modules/cjs/loader:1288:32)
+    at Module._load (node:internal/modules/cjs/loader:1104:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:174:12)
+    at node:internal/main/run_main_module:28:49 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+Node.js v20.17.0

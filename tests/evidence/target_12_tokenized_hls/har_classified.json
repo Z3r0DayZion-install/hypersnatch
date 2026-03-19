@@ -1,0 +1,46 @@
+{
+  "manifests": [
+    {
+      "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+      "mime": ""
+    },
+    {
+      "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+      "mime": ""
+    },
+    {
+      "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+      "mime": ""
+    },
+    {
+      "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/tears-of-steel-audio_eng=64008-video_eng=401000.m3u8",
+      "mime": ""
+    },
+    {
+      "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/tears-of-steel-audio_eng=128002-video_eng=2200000.m3u8",
+      "mime": ""
+    }
+  ],
+  "segments": [
+    {
+      "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/tears-of-steel-audio_eng=64008-video_eng=401000-1.ts",
+      "mime": ""
+    },
+    {
+      "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/tears-of-steel-audio_eng=128002-video_eng=2200000-2.ts",
+      "mime": ""
+    },
+    {
+      "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/tears-of-steel-audio_eng=128002-video_eng=2200000-3.ts",
+      "mime": ""
+    }
+  ],
+  "keys": [],
+  "telemetry": [],
+  "other": [],
+  "flags": {
+    "drmDetected": false,
+    "accessTokenRejected": false,
+    "mseStreamDetected": true
+  }
+}

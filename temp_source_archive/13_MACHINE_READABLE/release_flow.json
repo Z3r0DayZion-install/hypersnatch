@@ -1,0 +1,13 @@
+{
+  "steps": [
+    "stabilization",
+    "clean_room_build",
+    "verification_suite",
+    "benchmark_capture",
+    "dossier_generation",
+    "proof_bundle",
+    "demo_case_packaging",
+    "distribution_build",
+    "repo_freeze"
+  ]
+}

@@ -1,0 +1,17 @@
+
+# Core Engine Architecture
+
+Engines:
+
+graphEngine
+attributionEngine
+fingerprintEngine
+replayEngine
+counterfactualEngine
+challengeEngine
+commandLayer
+predictiveEngine
+behaviorModelEngine
+heatmapEngine
+provenanceEngine
+memoryEngine

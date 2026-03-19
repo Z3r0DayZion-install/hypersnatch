@@ -1,0 +1,56 @@
+{
+  "nodes": [
+    {
+      "id": "B1.hyper",
+      "type": "BUNDLE",
+      "label": "B1.hyper"
+    },
+    {
+      "id": "Akamai",
+      "type": "CDN",
+      "label": "Akamai"
+    },
+    {
+      "id": "HLS",
+      "type": "PROTOCOL",
+      "label": "HLS"
+    },
+    {
+      "id": "B2.hyper",
+      "type": "BUNDLE",
+      "label": "B2.hyper"
+    },
+    {
+      "id": "Akamai",
+      "type": "CDN",
+      "label": "Akamai"
+    },
+    {
+      "id": "DASH",
+      "type": "PROTOCOL",
+      "label": "DASH"
+    }
+  ],
+  "edges": [
+    {
+      "from": "B1.hyper",
+      "to": "Akamai",
+      "relation": "DELIVERED_BY"
+    },
+    {
+      "from": "B1.hyper",
+      "to": "HLS",
+      "relation": "PROTOCOL_USED"
+    },
+    {
+      "from": "B2.hyper",
+      "to": "Akamai",
+      "relation": "DELIVERED_BY"
+    },
+    {
+      "from": "B2.hyper",
+      "to": "DASH",
+      "relation": "PROTOCOL_USED"
+    }
+  ]
+}

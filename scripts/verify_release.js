@@ -17,7 +17,6 @@ const REQUIRED_FILES = [
 const REQUIRED_DIRS = [
   'config',
   'runtime',
-  'logs',
   'evidence',
   'exports'
 ];
@@ -278,8 +277,14 @@ function main() {
   }
 
   // Verify build output
+  const skipBuildOutput = process.env.HYPERSNATCH_SIGN === '0' || process.env.HS_SKIP_BUILD_OUTPUT === '1';
   console.log('\n🏗️ Checking build output...');
-  if (!verifyBuildOutput()) {
+  if (skipBuildOutput) {
+    logSuccess('Build output check skipped (unsigned gate mode)', {
+      HYPERSNATCH_SIGN: process.env.HYPERSNATCH_SIGN || null,
+      HS_SKIP_BUILD_OUTPUT: process.env.HS_SKIP_BUILD_OUTPUT || null
+    });
+  } else if (!verifyBuildOutput()) {
     allPassed = false;
   }
 

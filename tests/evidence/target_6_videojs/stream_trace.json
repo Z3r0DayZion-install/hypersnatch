@@ -1,0 +1,94 @@
+[
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/app-data.json",
+    "timestamp": 1772775677478
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/index/page-data.json",
+    "timestamp": 1772775677479
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/sq/d/3649515864.json",
+    "timestamp": 1772775677542
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/sq/d/3662677747.json",
+    "timestamp": 1772775677542
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/sq/d/4010620043.json",
+    "timestamp": 1772775677542
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "/page-data/sq/d/63159454.json",
+    "timestamp": 1772775677542
+  },
+  {
+    "type": "MSE",
+    "action": "construct",
+    "mseId": "mse_v1fa1mf6e",
+    "timestamp": 1772775677663
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://stream.mux.com/UZMwOY6MgmhFNXLbSFXAuPKlRPss5XNA.m3u8",
+    "timestamp": 1772775677667
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://manifest-gcp-us-east4-vop1.fastly.mux.com/elXhatnrMM00U9gIj01gGtgWM1fuxRSFUNa776WqS01lgSoBJUyI1ymwke4HnK101e4MdT6CynCuvWyT8ZK29kXQ1lrmBAc8x2ZRd6yWjhCxwCQ/rendition.m3u8?cdn=fastly&expires=1773381600&skid=default&signature=NjliM2EzN2VfZDU2OGI4NmQ0MTNkYTJhZTJlYWUxNzlkNjVhOTg2OGM4ZDMxYTc5ODljYThiOGVjNDUyYjdkNTk2MmQyMjBhYw==&vsid=7IfBpxegwIOJLKLEDr16EPT87WKvTUyJuqWVZE5wTi9jwk1m500ZCtVHutwc5p5PIDik2iOUS029Y",
+    "timestamp": 1772775677809
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://chunk-gcp-us-east4-vop1.fastly.mux.com/v1/chunk/J7FNu2n1ekPJ01sMXd8BJ8qHZhWsi302UpR8n01DVZdMJCUGM6NZFT2nju71d8LT7l8Jp02UMZFGzlXyvm2w8CaTiqJqfSQFGN2nctP01kaBea8g/0.ts?skid=default&signature=NjliM2E3ZTBfYjU4NDE2ZGVjYjFmNWNhZjlhNDg0ZmE1ODhlNmFlNDllZGE2NTc2MGM0OTU2YjUyNTlhYzhkOTU5MjkzMGU5ZQ==&zone=0",
+    "timestamp": 1772775677906
+  },
+  {
+    "type": "MSE",
+    "action": "addSourceBuffer",
+    "mseId": "mse_v1fa1mf6e",
+    "sbId": "sb_4zfacg78d",
+    "mime": "video/mp4;codecs=\"avc1.640020\"",
+    "timestamp": 1772775677912
+  },
+  {
+    "type": "MSE",
+    "action": "addSourceBuffer",
+    "mseId": "mse_v1fa1mf6e",
+    "sbId": "sb_5l0stbmd0",
+    "mime": "audio/mp4;codecs=\"mp4a.40.2\"",
+    "timestamp": 1772775677912
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_v1fa1mf6e",
+    "sbId": "sb_4zfacg78d",
+    "byteLength": 801157,
+    "timestamp": 1772775677948
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_v1fa1mf6e",
+    "sbId": "sb_5l0stbmd0",
+    "byteLength": 83205,
+    "timestamp": 1772775677949
+  }
+]

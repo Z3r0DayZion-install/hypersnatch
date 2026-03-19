@@ -1,0 +1,14 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://developer.jwplayer.com/tools/stream-tester/",
+    "domain": "developer.jwplayer.com",
+    "path": "/tools/stream-tester/",
+    "finalScore": 10,
+    "certaintyTier": "Low",
+    "scoreBreakdown": [
+      "+10: Host/CDN matches standard media pattern"
+    ]
+  }
+]

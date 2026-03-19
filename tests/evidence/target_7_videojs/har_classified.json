@@ -1,0 +1,23 @@
+{
+  "manifests": [],
+  "segments": [],
+  "keys": [],
+  "telemetry": [],
+  "other": [
+    {
+      "url": "https://vjs.zencdn.net/v/oceans.mp4",
+      "mime": "",
+      "category": "media"
+    },
+    {
+      "url": "https://vjs.zencdn.net/v/oceans.mp4",
+      "mime": "",
+      "category": "media"
+    }
+  ],
+  "flags": {
+    "drmDetected": false,
+    "accessTokenRejected": false,
+    "mseStreamDetected": false
+  }
+}

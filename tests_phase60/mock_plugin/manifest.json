@@ -1,0 +1,10 @@
+{
+    "id": "forensic-analyzer-01",
+    "name": "Legacy CID Analyzer",
+    "version": "1.0.0",
+    "main": "index.js",
+    "capabilities": [
+        "ANALYZE_METADATA",
+        "DECODE_HEADERS"
+    ]
+}

@@ -1,0 +1,99 @@
+{
+  "manifests": [],
+  "segments": [
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/media/segment_reference.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/media/segment_index.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/media/segment_prefetch.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/media/segment_utils.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/dash/segment_base.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/dash/segment_list.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/dash/segment_template.js",
+      "mime": ""
+    }
+  ],
+  "keys": [
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/drm/drm_utils.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/drm/drm_engine.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/drm/playready.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/drm/fairplay.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/demo/icons/custom_widevine.svg",
+      "mime": ""
+    }
+  ],
+  "telemetry": [
+    {
+      "url": "https://shaka-player-demo.appspot.com/node_modules/dialog-polyfill/dist/dialog-polyfill.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/demo/shaka_logo_trans.png",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/debug/log.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/util/stats.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/ads/ads_stats.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/lib/msf/msf_tracks_manager.js",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/node_modules/dialog-polyfill/dialog-polyfill.css",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/demo/app_logo_144.png",
+      "mime": ""
+    },
+    {
+      "url": "https://shaka-player-demo.appspot.com/demo/icons/baseline-audiotrack-24px.svg",
+      "mime": ""
+    }
+  ],
+  "other": [],
+  "flags": {
+    "drmDetected": true,
+    "accessTokenRejected": false,
+    "mseStreamDetected": true
+  }
+}

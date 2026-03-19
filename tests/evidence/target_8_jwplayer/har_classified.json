@@ -1,0 +1,12 @@
+{
+  "manifests": [],
+  "segments": [],
+  "keys": [],
+  "telemetry": [],
+  "other": [],
+  "flags": {
+    "drmDetected": false,
+    "accessTokenRejected": false,
+    "mseStreamDetected": false
+  }
+}

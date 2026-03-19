@@ -18,6 +18,30 @@ const M3U8Parser = require('../src/core/smartdecode/m3u8');
 const Ranker = require('../src/core/smartdecode/ranker');
 const AuthBoundary = require('../src/core/smartdecode/auth-boundary');
 
+function getHostname(rawUrl) {
+    try {
+        return new URL(String(rawUrl || '')).hostname.toLowerCase();
+    } catch {
+        return '';
+    }
+}
+
+function hasDisallowedScheme(rawUrl) {
+    try {
+        const protocol = new URL(String(rawUrl || '')).protocol.toLowerCase();
+        return protocol === 'javascript:' || protocol === 'data:' || protocol === 'vbscript:';
+    } catch {
+        return false;
+    }
+}
+
+function isHostOrSubdomain(rawUrl, domain) {
+    const hostname = getHostname(rawUrl);
+    const expected = String(domain || '').toLowerCase();
+    if (!hostname || !expected) return false;
+    return hostname === expected || hostname.endsWith(`.${expected}`);
+}
+
 let passed = 0;
 let failed = 0;
 
@@ -63,7 +87,7 @@ async function runTests() {
     await test('rejects javascript: pseudo-URLs', () => {
         // new URL('javascript:void(0)') would construct but result has wrong protocol
         const r = DirectExtractor.extract('javascript:void(0)');
-        assert.ok(!r.some(c => c.url.startsWith('javascript:')), 'javascript: URL must be rejected');
+        assert.ok(!r.some(c => hasDisallowedScheme(c.url)), 'javascript/data/vbscript URLs must be rejected');
     });
 
     await test('extracts clean bare URL with no surrounding punctuation', () => {
@@ -506,18 +530,22 @@ https://cdn.example.com/1080p/playlist.m3u8`;
         const f = EMLOAD_FIXTURES.find(x => x.id === 1);
         const r = await SmartDecode.run(f.html);
         assert.ok(r.candidates.length > 0, 'Should find candidates');
-        assert.ok(r.candidates.some(c => c.url.includes('cdn.emload.com')), 'Should find emload URL');
+        assert.ok(r.candidates.some(c => getHostname(c.url) === 'cdn.emload.com'), 'Should find emload URL');
     });
 
     await test('fixture #6 multi_source_3_qualities finds all 3 URLs', async () => {
         const f = EMLOAD_FIXTURES.find(x => x.id === 6);
         const r = await SmartDecode.run(f.html);
+        assert.strictEqual(r.batch, true, 'Multi-link response should expose batch mode');
+        assert.ok(Array.isArray(r.jobs) && r.jobs.length >= 3, 'Batch jobs should include each detected link');
         assert.ok(r.candidates.length >= 3, `Expected >= 3 candidates, got ${r.candidates.length}`);
     });
 
     await test('fixture #7 HLS master is ranked higher than MP4', async () => {
         const f = EMLOAD_FIXTURES.find(x => x.id === 7);
         const r = await SmartDecode.run(f.html);
+        assert.strictEqual(r.batch, true, 'Mixed multi-link fixture should be handled as batch');
+        assert.ok(Array.isArray(r.jobs) && r.jobs.length >= 2, 'Expected at least two batch jobs');
         assert.ok(r.best, 'Should have a best candidate');
         assert.ok(r.best.url.includes('.m3u8'), `Best should be m3u8, was: ${r.best.url}`);
     });
@@ -545,7 +573,7 @@ https://cdn.example.com/1080p/playlist.m3u8`;
             { url: 'https://generic.example.com/video.mp4', type: 'mp4', confidence: 0.5 },
         ];
         const r = Ranker.rank(candidates);
-        assert.ok(r.best.url.includes('emload.com'), `Best should be emload, was: ${r.best.url}`);
+        assert.ok(isHostOrSubdomain(r.best.url, 'emload.com'), `Best should be emload, was: ${r.best.url}`);
     });
 
     await test('multi-source context boosts scores', () => {
@@ -576,7 +604,7 @@ https://cdn.example.com/1080p/playlist.m3u8`;
             { url: 'https://generic.example.com/video.mp4', type: 'mp4', confidence: 0.5 },
         ];
         const r = Ranker.rank(candidates);
-        assert.ok(r.best.url.includes('rapidgator.net'), `Best should be rapidgator, was: ${r.best.url}`);
+        assert.strictEqual(getHostname(r.best.url), 'rapidgator.net', `Best should be rapidgator, was: ${r.best.url}`);
     });
 
     await test('Kshared /file/ URL gets host boost', () => {
@@ -585,7 +613,7 @@ https://cdn.example.com/1080p/playlist.m3u8`;
             { url: 'https://generic.example.com/video.mp4', type: 'mp4', confidence: 0.5 },
         ];
         const r = Ranker.rank(candidates);
-        assert.ok(r.best.url.includes('kshared.com'), `Best should be kshared, was: ${r.best.url}`);
+        assert.strictEqual(getHostname(r.best.url), 'kshared.com', `Best should be kshared, was: ${r.best.url}`);
     });
 
     await test('sourceTagCount boost is capped at 0.1', () => {
@@ -630,7 +658,7 @@ https://cdn.example.com/1080p/playlist.m3u8`;
     await test('handles khared.com as kshared alias with boost', async () => {
         const html = 'https://khared.com/file/a23b9bbf/evidence.pdf';
         const r = await SmartDecode.run(html);
-        const khared = r.candidates.find(c => c.url.includes('khared.com'));
+        const khared = r.candidates.find(c => isHostOrSubdomain(c.url, 'khared.com'));
         assert.ok(khared, 'Should find khared.com candidate');
         assert.strictEqual(khared.host, 'khared.com');
         assert.ok(khared.finalScore > 0.6, `Score should be boosted, was: ${khared.finalScore}`);

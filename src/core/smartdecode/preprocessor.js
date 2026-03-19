@@ -40,6 +40,29 @@ const Preprocessor = {
 
       .trim();
   },
+
+  /**
+   * detectLinks(text)
+   * Extracts all HTTP/HTTPS links from raw text and deduplicates them.
+   * @param {string} text 
+   * @returns {string[]} Unique URLs
+   */
+  detectLinks(text) {
+    const s = String(text || "");
+    const re = /https?:\/\/[^\s"'<>]+/gi;
+    const out = new Set();
+    let m;
+    while ((m = re.exec(s))) {
+      const cleaned = m[0].replace(/[),.;]+$/g, "");
+      try {
+        const u = new URL(cleaned);
+        out.add(u.href);
+      } catch (e) {
+        // Skip malformed URLs
+      }
+    }
+    return Array.from(out);
+  }
 };
 
 module.exports = Preprocessor;

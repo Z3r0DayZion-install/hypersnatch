@@ -8,12 +8,12 @@ const PolicyGuard = {
   name: 'policy_guard',
   version: '1.0.0',
   description: 'Policy enforcement and content filtering for Cash Policy Shield compliance',
-  
+
   // Policy state
   initialized: false,
   currentPolicy: 'strict',
   policyVersion: 'CASH-SHIELD-01',
-  
+
   // Policy rules
   rules: {
     strict: {
@@ -44,7 +44,7 @@ const PolicyGuard = {
       enableAirgapEnforcement: false
     }
   },
-  
+
   // Detection patterns
   patterns: {
     premium: [
@@ -83,17 +83,17 @@ const PolicyGuard = {
       /subscriber\s+access/i
     ]
   },
-  
+
   /**
    * Initialize policy guard
    */
   initialize(policy = 'strict') {
     if (this.initialized) return true;
-    
+
     try {
       this.currentPolicy = policy;
       this.initialized = true;
-      
+
       this.log(`[POLICY] Policy guard initialized with ${policy} policy`);
       return true;
     } catch (error) {
@@ -101,7 +101,7 @@ const PolicyGuard = {
       return false;
     }
   },
-  
+
   /**
    * Set current policy
    */
@@ -109,18 +109,18 @@ const PolicyGuard = {
     if (!this.rules[policy]) {
       throw new Error(`Unknown policy: ${policy}`);
     }
-    
+
     this.currentPolicy = policy;
     this.log(`[POLICY] Policy changed to: ${policy}`);
   },
-  
+
   /**
    * Validate content against current policy
    */
   validate(content, metadata = {}) {
     const policy = this.rules[this.currentPolicy];
     const violations = [];
-    
+
     // Check for premium content
     if (!policy.allowPremiumContent) {
       const premiumMatches = this.detectPatterns(content, this.patterns.premium);
@@ -133,7 +133,7 @@ const PolicyGuard = {
         });
       }
     }
-    
+
     // Check for login requirements
     if (!policy.allowLoginRequired) {
       const loginMatches = this.detectPatterns(content, this.patterns.login);
@@ -146,7 +146,7 @@ const PolicyGuard = {
         });
       }
     }
-    
+
     // Check for DRM protection
     if (!policy.allowDRMProtected) {
       const drmMatches = this.detectPatterns(content, this.patterns.drm);
@@ -159,7 +159,7 @@ const PolicyGuard = {
         });
       }
     }
-    
+
     // Check for subscription requirements
     if (!policy.allowSubscriptionOnly) {
       const subMatches = this.detectPatterns(content, this.patterns.subscription);
@@ -172,7 +172,7 @@ const PolicyGuard = {
         });
       }
     }
-    
+
     const result = {
       valid: violations.length === 0,
       policy: this.currentPolicy,
@@ -180,17 +180,17 @@ const PolicyGuard = {
       confidence: this.calculateConfidence(violations),
       canProceed: violations.length === 0 || this.hasLowSeverityViolations(violations)
     };
-    
+
     this.log(`[POLICY] Validation result: ${result.valid ? 'PASS' : 'FAIL'} (${violations.length} violations)`);
     return result;
   },
-  
+
   /**
    * Check if export is allowed for candidate
    */
   canExport(candidate, confidence = 0) {
     const policy = this.rules[this.currentPolicy];
-    
+
     // Check confidence threshold
     if (confidence < policy.minConfidenceThreshold) {
       return {
@@ -198,11 +198,11 @@ const PolicyGuard = {
         reason: `Confidence ${confidence} below threshold ${policy.minConfidenceThreshold}`
       };
     }
-    
+
     // Validate candidate content
     const content = this.extractContentFromCandidate(candidate);
     const validation = this.validate(content);
-    
+
     if (!validation.valid) {
       const highSeverityViolations = validation.violations.filter(v => v.severity === 'high');
       if (highSeverityViolations.length > 0) {
@@ -212,13 +212,13 @@ const PolicyGuard = {
         };
       }
     }
-    
+
     return {
       allowed: true,
       reason: 'Export approved'
     };
   },
-  
+
   /**
    * Filter candidates based on policy
    */
@@ -226,11 +226,11 @@ const PolicyGuard = {
     const policy = this.rules[this.currentPolicy];
     const filtered = [];
     const blocked = [];
-    
+
     candidates.forEach((candidate, index) => {
       const confidence = confidenceScores[index] || 0;
       const exportCheck = this.canExport(candidate, confidence);
-      
+
       if (exportCheck.allowed) {
         filtered.push({
           candidate,
@@ -245,22 +245,22 @@ const PolicyGuard = {
         });
       }
     });
-    
+
     this.log(`[POLICY] Filtered ${filtered.length} approved, ${blocked.length} blocked candidates`);
-    
+
     return {
       approved: filtered,
       blocked,
       totalProcessed: candidates.length
     };
   },
-  
+
   /**
    * Detect patterns in content
    */
   detectPatterns(content, patterns) {
     const matches = [];
-    
+
     patterns.forEach(pattern => {
       const found = content.match(pattern);
       if (found) {
@@ -271,16 +271,16 @@ const PolicyGuard = {
         });
       }
     });
-    
+
     return matches;
   },
-  
+
   /**
    * Calculate confidence based on violations
    */
   calculateConfidence(violations) {
     if (violations.length === 0) return 1.0;
-    
+
     let confidence = 1.0;
     violations.forEach(violation => {
       switch (violation.severity) {
@@ -295,17 +295,17 @@ const PolicyGuard = {
           break;
       }
     });
-    
+
     return Math.max(0, confidence);
   },
-  
+
   /**
    * Check if violations are low severity only
    */
   hasLowSeverityViolations(violations) {
     return violations.every(v => v.severity === 'low');
   },
-  
+
   /**
    * Extract content from candidate
    */
@@ -316,10 +316,10 @@ const PolicyGuard = {
       candidate.title || '',
       candidate.content || ''
     ];
-    
+
     return parts.join(' ').toLowerCase();
   },
-  
+
   /**
    * Get current policy settings
    */
@@ -330,38 +330,38 @@ const PolicyGuard = {
       version: this.policyVersion
     };
   },
-  
+
   /**
    * Check if airgap enforcement is enabled
    */
   isAirgapEnforced() {
     return this.rules[this.currentPolicy].enableAirgapEnforcement;
   },
-  
+
   /**
    * Check if unsigned imports are allowed
    */
   allowsUnsignedImports() {
     return this.rules[this.currentPolicy].allowUnsignedImports;
   },
-  
+
   /**
    * Get minimum confidence threshold
    */
   getMinConfidenceThreshold() {
     return this.rules[this.currentPolicy].minConfidenceThreshold;
   },
-  
+
   /**
    * Log policy actions
    */
   log(message) {
     console.log(`[POLICY_GUARD] ${message}`);
-    if (window.hyper && window.hyper.logEvidence) {
+    if (typeof window !== 'undefined' && window.hyper && window.hyper.logEvidence) {
       window.hyper.logEvidence(message);
     }
   },
-  
+
   /**
    * Generate policy report
    */

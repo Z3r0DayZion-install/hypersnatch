@@ -1,0 +1,14 @@
+[
+  {
+    "id": "url_0",
+    "type": "url",
+    "url": "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+    "domain": "bitdash-a.akamaihd.net",
+    "path": "/content/sintel/hls/playlist.m3u8",
+    "finalScore": 40,
+    "certaintyTier": "Partial",
+    "scoreBreakdown": [
+      "+40: Explicit manifest match in HAR"
+    ]
+  }
+]

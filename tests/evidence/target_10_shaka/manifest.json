@@ -1,0 +1,15 @@
+{
+  "target": "https://shaka-player-demo.appspot.com/demo/",
+  "processedAt": "2026-03-06T05:41:32.840Z",
+  "integrityEngine": "SHA-256",
+  "hashes": {
+    "network.har": "1bea1f25673be8883a8451b6102315d46a205edace815ee619ac7c815cc7b2cd",
+    "dom_snapshot.html": "ac55aa3dad63b5b8a92643aa58ce389d4ac16e4d2c7b2eae46b493724b9dbfe4",
+    "player_config.json": "ca7f68822dfb470bd2dc475dba0e3ffc0de72f2952c24ef145101e7ecfa969b5",
+    "stream_trace.json": "ac4b68e384f01341deae36a17f9ab25386737b0050c85051da8ead054a3f2532",
+    "har_classified.json": "b6d58ffb7851352e7fe7f29d957776e348cbbb458cbea634a963c5f15cf3bb56",
+    "player_profile.json": "2b1fc745a0f9674b9b5c59420c5a6e5394d3ed2de304d1374aa566cdcd234431",
+    "stream_candidates.json": "08c3d47682644b37259c1d9bdf510ea2d5dd4acf3f98f1965b9f86df6bbbb817",
+    "report.md": "190afd7f05f4c77c4280c354f9c358a62c2d3b3f3cb5523eedf66e6c1d8bab43"
+  }
+}

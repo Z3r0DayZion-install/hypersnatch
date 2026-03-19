@@ -1,0 +1,19 @@
+{
+    "player_name": "hls.js",
+    "window_objects": [
+        "Hls"
+    ],
+    "dom_signatures": [],
+    "script_signatures": [
+        "hls.js",
+        "hls.min.js"
+    ],
+    "known_api_calls": [
+        "new Hls()",
+        "hls.loadSource("
+    ],
+    "extraction_paths": [
+        "hls.url"
+    ],
+    "confidence_weight": 0.8
+}

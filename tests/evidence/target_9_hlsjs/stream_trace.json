@@ -1,0 +1,174 @@
+[
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+    "timestamp": 1772775687437
+  },
+  {
+    "type": "MSE",
+    "action": "construct",
+    "mseId": "mse_vqmnphy9v",
+    "timestamp": 1772775687437
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_0/193039199_mp4_h264_aac_hd_7.m3u8",
+    "timestamp": 1772775687463
+  },
+  {
+    "type": "xhr",
+    "method": "POST",
+    "url": "https://cloudflareinsights.com/cdn-cgi/rum",
+    "timestamp": 1772775687488
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_0/url_462/193039199_mp4_h264_aac_hd_7.ts",
+    "timestamp": 1772775687567
+  },
+  {
+    "type": "MSE",
+    "action": "addSourceBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_7mtjs3r29",
+    "mime": "audio/mp4;codecs=mp4a.40.2",
+    "timestamp": 1772775687625
+  },
+  {
+    "type": "MSE",
+    "action": "addSourceBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_rotgbn9ds",
+    "mime": "video/mp4;codecs=avc1.64001f",
+    "timestamp": 1772775687625
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_7mtjs3r29",
+    "byteLength": 628,
+    "timestamp": 1772775687626
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_rotgbn9ds",
+    "byteLength": 729,
+    "timestamp": 1772775687628
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_7mtjs3r29",
+    "byteLength": 167991,
+    "timestamp": 1772775687642
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_rotgbn9ds",
+    "byteLength": 1649451,
+    "timestamp": 1772775687699
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_8/193039199_mp4_h264_aac_fhd_7.m3u8",
+    "timestamp": 1772775687716
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_8/url_591/193039199_mp4_h264_aac_fhd_7.ts",
+    "timestamp": 1772775687722
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_7mtjs3r29",
+    "byteLength": 628,
+    "timestamp": 1772775687798
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_rotgbn9ds",
+    "byteLength": 731,
+    "timestamp": 1772775687800
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_7mtjs3r29",
+    "byteLength": 196951,
+    "timestamp": 1772775687814
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_rotgbn9ds",
+    "byteLength": 12649122,
+    "timestamp": 1772775688263
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_8/url_592/193039199_mp4_h264_aac_fhd_7.ts",
+    "timestamp": 1772775688300
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_rotgbn9ds",
+    "byteLength": 6115395,
+    "timestamp": 1772775688536
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_7mtjs3r29",
+    "byteLength": 196475,
+    "timestamp": 1772775688539
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_8/url_593/193039199_mp4_h264_aac_fhd_7.ts",
+    "timestamp": 1772775688561
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_rotgbn9ds",
+    "byteLength": 12989159,
+    "timestamp": 1772775689040
+  },
+  {
+    "type": "MSE",
+    "action": "appendBuffer",
+    "mseId": "mse_vqmnphy9v",
+    "sbId": "sb_7mtjs3r29",
+    "byteLength": 199316,
+    "timestamp": 1772775689047
+  },
+  {
+    "type": "xhr",
+    "method": "GET",
+    "url": "https://test-streams.mux.dev/x36xhzz/url_8/url_594/193039199_mp4_h264_aac_fhd_7.ts",
+    "timestamp": 1772775689080
+  }
+]
