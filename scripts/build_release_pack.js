@@ -1,5 +1,5 @@
 /**
- * HyperSnatch Vanguard Release Packager (v1.2)
+ * HyperSnatch Vanguard Release Packager (version-aware)
  * Assembles the final commercial zip archive for Gumroad distribution.
  */
 
@@ -9,7 +9,8 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const APP_VERSION = "1.2.0";
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
+const APP_VERSION = String(pkg.version || "1.3.1");
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 const OUTPUT_ZIP = path.join(DIST_DIR, `HyperSnatch_Vanguard_v${APP_VERSION}.zip`);
 const STAGING_DIR = path.join(DIST_DIR, 'staging_vanguard');
@@ -31,22 +32,26 @@ function buildPack() {
     fs.mkdirSync(STAGING_DIR, { recursive: true });
 
     const assets = [
-        { src: `dist/HyperSnatch-Setup-${APP_VERSION}.exe`, dest: `HyperSnatch-Setup-${APP_VERSION}.exe`, required: true },
-        { src: 'VANGUARD_RELEASE_HASHES.txt', dest: 'VANGUARD_RELEASE_HASHES.txt', required: false },
-        { src: 'OPERATORS_MANUAL.md', dest: 'OPERATORS_MANUAL.md', required: true },
-        { src: 'scripts/verify_audit_chain.js', dest: 'verify_audit_chain.js', required: true },
-        { src: 'scripts/vault_unlock.js', dest: 'vault_unlock.js', required: true }
+        { src: [`dist/HyperSnatch-Setup-${APP_VERSION}.exe`], dest: `HyperSnatch-Setup-${APP_VERSION}.exe`, required: true },
+        { src: ['VANGUARD_RELEASE_HASHES.txt'], dest: 'VANGUARD_RELEASE_HASHES.txt', required: false },
+        { src: ['OPERATORS_MANUAL.md', 'docs/archive/OPERATORS_MANUAL.md'], dest: 'OPERATORS_MANUAL.md', required: true },
+        { src: ['scripts/verify_audit_chain.js'], dest: 'verify_audit_chain.js', required: true },
+        { src: ['scripts/vault_unlock.js'], dest: 'vault_unlock.js', required: true }
     ];
 
     let missingCritical = false;
 
     assets.forEach(asset => {
-        const srcPath = path.join(__dirname, '..', asset.src);
-        if (fs.existsSync(srcPath)) {
+        const sources = Array.isArray(asset.src) ? asset.src : [asset.src];
+        const srcPath = sources
+            .map((s) => path.join(__dirname, '..', s))
+            .find((p) => fs.existsSync(p));
+
+        if (srcPath) {
             fs.copyFileSync(srcPath, path.join(STAGING_DIR, asset.dest));
             console.log(`✅ Included: ${asset.dest}`);
         } else {
-            console.log(`❌ Missing: ${asset.src}`);
+            console.log(`❌ Missing: ${sources.join(' | ')}`);
             if (asset.required) missingCritical = true;
         }
     });

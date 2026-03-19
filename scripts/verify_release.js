@@ -17,7 +17,6 @@ const REQUIRED_FILES = [
 const REQUIRED_DIRS = [
   'config',
   'runtime',
-  'logs',
   'evidence',
   'exports'
 ];
