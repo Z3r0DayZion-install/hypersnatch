@@ -1,4 +1,4 @@
-# HyperSnatch v1.2 Vanguard Institutional Release Checklist
+# HyperSnatch v1.3.1 Sovereign Release Checklist
 
 This checklist must be completed before any distribution marked as "Sovereign" or "v1.2+".
 
@@ -24,7 +24,7 @@ This checklist must be completed before any distribution marked as "Sovereign" o
 - [ ] **Defender Scan:** Upload final installer to VirusTotal and confirm 0/XX detections.
 
 ## 5. Metadata & Documentation
-- [ ] **Version Bump:** Confirm `package.json` and `VERSION.json` reflect `1.2.0`.
+- [ ] **Version Bump:** Confirm `package.json` and `VERSION.json` reflect `1.3.1`.
 - [ ] **Governance:** Ensure `GOVERNANCE.md` is updated with latest forensic standards.
 - [ ] **Hashes:** Publish final installer hash in `VANGUARD_RELEASE_HASHES.txt`.
 

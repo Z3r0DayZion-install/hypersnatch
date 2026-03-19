@@ -16,17 +16,17 @@ git rev-parse HEAD
 ## 2. Verify the Tag Is Signed
 Create the release tag locally using GPG, not in the GitHub UI.
 ```bash
-git tag -s v1.2.2 -m "HyperSnatch v1.2.2 – hardened release"
+git tag -s v1.3.1 -m "HyperSnatch v1.3.1 – hardened release"
 ```
 Confirm the signature:
 ```bash
-git tag -v v1.2.2
+git tag -v v1.3.1
 ```
 This ensures the tag itself is cryptographically verified against your key.
 
 ## 3. Push the Tag (Trigger CI)
 ```bash
-git push origin v1.2.2
+git push origin v1.3.1
 ```
 Watch the GitHub Actions pipeline carefully. It will now verify the tag, build the artifact, generate the manifest, sign the manifest via Sigstore, produce SLSA provenance, update the transparency log, and create `verify-kit.zip`.
 
@@ -41,7 +41,7 @@ Check the workflow output. If ANY of these fail, **DO NOT PUBLISH** the release:
 
 ## 5. Download the CI Artifact Yourself
 Download these directly from the draft GitHub release:
-- `HyperSnatch-Setup-1.2.2.exe`
+- `HyperSnatch-Setup-1.3.1.exe`
 - `manifest.json`
 - `manifest.sig`
 - `verify-kit.zip`
@@ -51,31 +51,31 @@ Now test exactly like a user would.
 ## 6. Run the Verifiers
 Run all verifiers locally against the downloaded artifact. All should report valid.
 ```bash
-./verify.sh HyperSnatch-Setup-1.2.2.exe
-node verify_node.js HyperSnatch-Setup-1.2.2.exe
+./scripts/verify.sh HyperSnatch-Setup-1.3.1.exe
+node scripts/verify_node.js HyperSnatch-Setup-1.3.1.exe
 ```
 ```powershell
-.\verify.ps1 -FilePath HyperSnatch-Setup-1.2.2.exe
+.\scripts\verify.ps1 -FilePath HyperSnatch-Setup-1.3.1.exe
 ```
 
 ## 7. Run the Reproducible Build
 This is your strongest proof. Run the docker repro script to prove the CI build wasn't poisoned.
 ```bash
-./scripts/verify_repro.sh v1.2.2
+./scripts/verify_repro.sh v1.3.1
 ```
 Confirm: `local build hash == release hash`. If they differ, abort the release.
 
 ## 8. Add Maintainer Signature (Two-Party Rule)
 Sign the downloaded artifact offline to provide the Air-Gapped developer signature.
 ```bash
-gpg --detach-sign HyperSnatch-Setup-1.2.2.exe
+gpg --detach-sign HyperSnatch-Setup-1.3.1.exe
 ```
-Upload the resulting `maintainer.sig` file (or `HyperSnatch-Setup-1.2.2.exe.sig` if GPG names it that) to the GitHub release draft. Users now verify two trust anchors: CI pipeline + Maintainer key.
+Upload the resulting `maintainer.sig` file (or `HyperSnatch-Setup-1.3.1.exe.sig` if GPG names it that) to the GitHub release draft. Users now verify two trust anchors: CI pipeline + Maintainer key.
 
 ## 9. Update Transparency Index
 Update `docs/TRANSPARENCY_INDEX.md` with the new release data.
 ```markdown
-| v1.2.2 | [SHA-256 Hash] | manifest.sig | provenance.json | Dockerfile.repro |
+| v1.3.1 | [SHA-256 Hash] | manifest.sig | provenance.json | Dockerfile.repro |
 ```
 Commit and push this change to `main`.
 
@@ -83,7 +83,7 @@ Commit and push this change to `main`.
 In the release description, paste your verification block prominently at the top:
 > 🔒 Verify this release in 60 seconds
 > ```bash
-> ./verify.sh HyperSnatch-Setup-1.2.2.exe
+> ./scripts/verify.sh HyperSnatch-Setup-1.3.1.exe
 > ```
 List the root fingerprint below it. Publish the release.
 
