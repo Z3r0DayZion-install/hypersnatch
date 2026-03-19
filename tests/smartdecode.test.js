@@ -512,12 +512,16 @@ https://cdn.example.com/1080p/playlist.m3u8`;
     await test('fixture #6 multi_source_3_qualities finds all 3 URLs', async () => {
         const f = EMLOAD_FIXTURES.find(x => x.id === 6);
         const r = await SmartDecode.run(f.html);
+        assert.strictEqual(r.batch, true, 'Multi-link response should expose batch mode');
+        assert.ok(Array.isArray(r.jobs) && r.jobs.length >= 3, 'Batch jobs should include each detected link');
         assert.ok(r.candidates.length >= 3, `Expected >= 3 candidates, got ${r.candidates.length}`);
     });
 
     await test('fixture #7 HLS master is ranked higher than MP4', async () => {
         const f = EMLOAD_FIXTURES.find(x => x.id === 7);
         const r = await SmartDecode.run(f.html);
+        assert.strictEqual(r.batch, true, 'Mixed multi-link fixture should be handled as batch');
+        assert.ok(Array.isArray(r.jobs) && r.jobs.length >= 2, 'Expected at least two batch jobs');
         assert.ok(r.best, 'Should have a best candidate');
         assert.ok(r.best.url.includes('.m3u8'), `Best should be m3u8, was: ${r.best.url}`);
     });

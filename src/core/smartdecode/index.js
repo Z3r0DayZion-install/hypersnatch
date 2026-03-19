@@ -58,8 +58,14 @@ const SmartDecode = {
 
     // Phase 53: Multi-Link detection
     const links = Preprocessor.detectLinks(normalized);
-    if (links.length > 1) {
-      return await this.runBatch(links, options);
+    if (links.length > 1 && !options._isBatchItem) {
+      const batchResult = await this.runBatch(links, options);
+      const legacy = this.collapseBatchJobs(batchResult.jobs, options);
+      return {
+        ...legacy,
+        batch: true,
+        jobs: batchResult.jobs,
+      };
     }
 
     let segments = [normalized];
@@ -80,20 +86,7 @@ const SmartDecode = {
     }
 
     // Deterministic Sort
-    const clean = (s) => String(s ?? "").replace(/\0/g, "");
-    const getSortKey = (obj, keys) => keys.map((k) => clean(obj?.[k])).join("\0");
-    const sortC = (a, b) => {
-      const kA = getSortKey(a, ["host", "type", "url"]);
-      const kB = getSortKey(b, ["host", "type", "url"]);
-      return kA < kB ? -1 : (kA > kB ? 1 : 0);
-    };
-    const sortR = (a, b) => {
-      const kA = getSortKey(a, ["host", "reason", "url"]);
-      const kB = getSortKey(b, ["host", "reason", "url"]);
-      return kA < kB ? -1 : (kA > kB ? 1 : 0);
-    };
-
-    const finalRanked = Ranker.rank(allAccepted.sort(sortC));
+    const finalRanked = Ranker.rank(this.sortCandidatesDeterministic(allAccepted));
 
     // Phase 57: Auto-Pick & Breakdown Attachment
     const best = AutoPicker.pick(finalRanked.candidates, {
@@ -105,7 +98,7 @@ const SmartDecode = {
       version: this.VERSION,
       candidates: finalRanked.candidates,
       best: best || finalRanked.best,
-      refusals: allRefused.sort(sortR),
+      refusals: this.sortRefusalsDeterministic(allRefused),
     };
   },
 
@@ -127,6 +120,64 @@ const SmartDecode = {
       batch: true,
       jobs: results
     };
+  },
+
+  collapseBatchJobs(jobs, options = {}) {
+    const byUrl = new Map();
+    const refusals = [];
+
+    const prefer = (prev, next) => {
+      const prevKey = this.makeSortKey(prev, ["host", "type", "url"]);
+      const nextKey = this.makeSortKey(next, ["host", "type", "url"]);
+      return nextKey < prevKey;
+    };
+
+    for (const job of (Array.isArray(jobs) ? jobs : [])) {
+      const candidates = Array.isArray(job?.candidates) ? job.candidates : [];
+      for (const c of candidates) {
+        const url = String(c?.url || "");
+        if (!url) continue;
+        const prev = byUrl.get(url);
+        if (!prev || prefer(prev, c)) byUrl.set(url, c);
+      }
+
+      const r = Array.isArray(job?.refusals) ? job.refusals : [];
+      refusals.push(...r);
+    }
+
+    const ranked = Ranker.rank(this.sortCandidatesDeterministic(Array.from(byUrl.values())));
+    const best = AutoPicker.pick(ranked.candidates, {
+      autoSelect: options.autoSelect !== false,
+      minConfidence: options.minConfidence || 0.4
+    });
+
+    return {
+      version: this.VERSION,
+      candidates: ranked.candidates,
+      best: best || ranked.best,
+      refusals: this.sortRefusalsDeterministic(refusals),
+    };
+  },
+
+  makeSortKey(obj, keys) {
+    const clean = (s) => String(s ?? "").replace(/\0/g, "");
+    return keys.map((k) => clean(obj?.[k])).join("\0");
+  },
+
+  sortCandidatesDeterministic(candidates) {
+    return [...candidates].sort((a, b) => {
+      const kA = this.makeSortKey(a, ["host", "type", "url"]);
+      const kB = this.makeSortKey(b, ["host", "type", "url"]);
+      return kA < kB ? -1 : (kA > kB ? 1 : 0);
+    });
+  },
+
+  sortRefusalsDeterministic(refusals) {
+    return [...refusals].sort((a, b) => {
+      const kA = this.makeSortKey(a, ["host", "reason", "url"]);
+      const kB = this.makeSortKey(b, ["host", "reason", "url"]);
+      return kA < kB ? -1 : (kA > kB ? 1 : 0);
+    });
   },
 
   async processSegment(html, depth = 0) {
