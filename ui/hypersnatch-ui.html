@@ -3763,11 +3763,24 @@
 
       async exportNotes() {
         if (!this.activeCase) return;
-        const res = await window.electronAPI.caseExportNotes(this.activeCase.case_id, `${this.activeCase.case_id}_notes.md`);
-        if (res.success) {
-          setStatus("Notes exported to " + res.filePath, "ok");
-        } else {
-          setStatus(`Notes export failed: ${res?.error || "Unknown error"}`, "bad");
+        if (!window.electronAPI || !window.electronAPI.caseExportNotes) {
+          setStatus("Notes export failed: Electron bridge is unavailable.", "bad");
+          return;
+        }
+        try {
+          const res = await window.electronAPI.caseExportNotes(this.activeCase.case_id, `${this.activeCase.case_id}_notes.md`);
+          if (res?.success) {
+            setStatus("Notes exported to " + res.filePath, "ok");
+            return;
+          }
+          if (res?.reason === "Export cancelled") {
+            setStatus("Notes export cancelled by operator.", "warn");
+            return;
+          }
+          setStatus(`Notes export failed: ${res?.error || res?.reason || "Unknown error"}`, "bad");
+        } catch (e) {
+          setStatus(`Notes export failed: ${e?.message || "Unknown error"}`, "bad");
+          logToConsole(`Notes export error: ${e?.message || "Unknown error"}`, "bad");
         }
       }
 
@@ -4130,18 +4143,31 @@
 
       async exportActiveCase() {
         if (!this.activeCase) return;
+        if (!window.electronAPI || !window.electronAPI.exportCaseData) {
+          setStatus("Export failed: Electron bridge is unavailable.", "bad");
+          return;
+        }
+        const caseId = this.activeCase.case_id || this.activeCase.id;
+        if (!caseId) {
+          setStatus("Export failed: active case is missing case_id.", "bad");
+          return;
+        }
         const format = el('exportFormatSelect').value;
-        const filename = `export_${this.activeCase.id}_${Date.now()}.${format === 'csv' ? 'csv' : 'json'}`;
+        const filename = `export_${caseId}_${Date.now()}.${format === 'csv' ? 'csv' : 'json'}`;
         const targetPath = `exports/${filename}`;
 
         setStatus(`Generating ${format.toUpperCase()} export...`, "decode");
         try {
-          await window.electronAPI.exportCaseData(this.activeCase, format, targetPath);
+          const res = await window.electronAPI.exportCaseData(this.activeCase, format, targetPath);
+          if (res && res.success === false) {
+            throw new Error(res.error || res.reason || "Exporter reported failure");
+          }
           setStatus(`Export saved to ${targetPath}`, "ok");
           logToConsole(`Case export generated: ${targetPath}`, "ok");
         } catch (e) {
-          setStatus(`Export failed: ${e?.message || "Unknown error"}`, "bad");
-          logToConsole(`Export Error: ${e.message}`, "bad");
+          const errMsg = e?.message || "Unknown error";
+          setStatus(`Export failed: ${errMsg}`, "bad");
+          logToConsole(`Export error: ${errMsg}`, "bad");
         }
       }
 
