@@ -97,4 +97,9 @@ if (!/button:focus-visible[\s\S]*input:focus-visible[\s\S]*textarea:focus-visibl
   process.exit(1);
 }
 
+if (!html.includes('const APP_VERSION_FALLBACK = "1.4.0";')) {
+  console.error("[ui-smoke] Stable version fallback is not aligned to 1.4.0.");
+  process.exit(1);
+}
+
 console.log("[ui-smoke] PASS: core operator UI shell and critical IDs are present.");
