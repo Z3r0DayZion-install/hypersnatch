@@ -2516,6 +2516,129 @@
       }
     }
 
+    function setRadarState(label, colorVar) {
+      el("radarStatus").textContent = label;
+      el("radarStatus").style.color = colorVar;
+    }
+
+    function setAuditSealState(label, visible = true) {
+      const seal = el("auditSeal");
+      const hashEl = el("sealHash");
+      seal.style.display = visible ? "flex" : "none";
+      hashEl.textContent = label;
+    }
+
+    function fallbackDigestHex(payload) {
+      let h1 = 0x811c9dc5;
+      let h2 = 0x1b873593;
+      for (let i = 0; i < payload.length; i++) {
+        const c = payload.charCodeAt(i);
+        h1 ^= c;
+        h1 = Math.imul(h1, 0x01000193) >>> 0;
+        h2 ^= (c + i) >>> 0;
+        h2 = Math.imul(h2, 0x85ebca6b) >>> 0;
+      }
+      const block = h1.toString(16).padStart(8, "0") + h2.toString(16).padStart(8, "0");
+      return (block.repeat(4)).slice(0, 64).toUpperCase();
+    }
+
+    async function computeDigestHex(payload) {
+      if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+        try {
+          const bytes = new TextEncoder().encode(payload);
+          const digest = await window.crypto.subtle.digest("SHA-256", bytes);
+          return Array.from(new Uint8Array(digest))
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join("")
+            .toUpperCase();
+        } catch (err) {
+          // Fall back to deterministic non-cryptographic digest below.
+        }
+      }
+      return fallbackDigestHex(payload);
+    }
+
+    function setAuditSealFromResult(result) {
+      if (!result) {
+        setAuditSealState("--", false);
+        return;
+      }
+      setAuditSealState("SHA256:COMPUTING...", true);
+      const activeResult = result;
+      const payload = JSON.stringify(result);
+      computeDigestHex(payload).then((hex) => {
+        // Guard against out-of-order async updates when a newer decode has already rendered.
+        if (state.lastJson !== activeResult) return;
+        const short = `SHA256:${hex.slice(0, 12)}...${hex.slice(-8)}`;
+        setAuditSealState(short, true);
+      });
+    }
+
+    function evaluateDecodeOutcome(result) {
+      if (!result) {
+        return {
+          kind: "bad",
+          status: "Decode failed: no result payload was produced.",
+          radar: "HUB: ERROR",
+          radarColor: "var(--color-bad)"
+        };
+      }
+
+      if (result.batch && Array.isArray(result.jobs)) {
+        const jobs = result.jobs;
+        const successful = jobs.filter((j) => Array.isArray(j.candidates) && j.candidates.length > 0).length;
+        if (successful > 0) {
+          return {
+            kind: "ok",
+            status: `Decode complete: ${successful}/${jobs.length} batch jobs returned viable candidates.`,
+            radar: "HUB: COMPLETE",
+            radarColor: "var(--color-ok)"
+          };
+        }
+        return {
+          kind: "warn",
+          status: "Decode complete, but no viable candidates were found across batch jobs.",
+          radar: "HUB: NO MATCH",
+          radarColor: "var(--color-warn)"
+        };
+      }
+
+      const candidates = Array.isArray(result.candidates) ? result.candidates : [];
+      const refusals = Array.isArray(result.refusals) ? result.refusals : [];
+      const best = result.best || null;
+
+      if (best && candidates.length > 0) {
+        return {
+          kind: "ok",
+          status: `Decode complete: ${candidates.length} candidate(s) identified and best target selected.`,
+          radar: "HUB: COMPLETE",
+          radarColor: "var(--color-ok)"
+        };
+      }
+      if (candidates.length > 0) {
+        return {
+          kind: "warn",
+          status: `Decode complete: ${candidates.length} candidate(s) found, but no best target selected.`,
+          radar: "HUB: REVIEW",
+          radarColor: "var(--color-warn)"
+        };
+      }
+      if (refusals.length > 0) {
+        return {
+          kind: "warn",
+          status: `Decode complete with no viable candidates. Review ${refusals.length} refusal signal(s).`,
+          radar: "HUB: NO MATCH",
+          radarColor: "var(--color-warn)"
+        };
+      }
+      return {
+        kind: "bad",
+        status: "Decode complete, but no extractable evidence candidates were found.",
+        radar: "HUB: ERROR",
+        radarColor: "var(--color-bad)"
+      };
+    }
+
     function logToConsole(msg, kind = "probe") {
       const console = el("forensicLog");
       if (!console) return;
@@ -2851,14 +2974,7 @@
       el("btnSaveCands").disabled = !hasRes || !candidates.length;
       el("btnSaveRefs").disabled = !hasRes || !refusals.length;
 
-      // Trigger Audit Seal
-      if (hasRes) {
-        el("auditSeal").style.display = "flex";
-        const hash = "SHA256:" + Math.random().toString(16).substring(2, 10).toUpperCase() + "..." + Math.random().toString(16).substring(2, 6).toUpperCase();
-        el("sealHash").textContent = hash;
-      } else {
-        el("auditSeal").style.display = "none";
-      }
+      setAuditSealFromResult(state.lastJson);
     }
 
     function renderBatch(result) {
@@ -3014,24 +3130,24 @@
       logToConsole(`Target: ${input.substring(0, 50)}...`, "probe");
 
       // Next-Level UX Trigger
-      el("radarStatus").textContent = "HUB: SCANNING";
-      el("radarStatus").style.color = "var(--text-accent)";
+      setRadarState("HUB: SCANNING", "var(--text-accent)");
       decodeBtn.disabled = true;
       decodeBtn.textContent = "Decoding...";
+      render(null);
+      setAuditSealState("SHA256:PENDING...", true);
 
       setStatus(`Executing SmartDecode sequence via native bridge...`, "muted");
       try {
         const out = await decodeViaBridge(input, null);
         render(out);
-        setStatus("Decode execution completed successfully.", "ok");
-
-        // Next-Level UX Finalize
-        el("radarStatus").textContent = "HUB: COMPLETE";
-        el("radarStatus").style.color = "var(--color-ok)";
+        const outcome = evaluateDecodeOutcome(out);
+        setStatus(outcome.status, outcome.kind);
+        setRadarState(outcome.radar, outcome.radarColor);
       } catch (e) {
+        render(null);
+        setAuditSealState("SHA256:UNAVAILABLE", true);
         setStatus(`Extraction engine encountered an unexpected layout. ${e.message || "Host may have updated."}`, "bad");
-        el("radarStatus").textContent = "HUB: ERROR";
-        el("radarStatus").style.color = "var(--color-bad)";
+        setRadarState("HUB: ERROR", "var(--color-bad)");
       } finally {
         decodeBtn.disabled = false;
         decodeBtn.textContent = originalDecodeLabel;
@@ -3647,11 +3763,24 @@
 
       async exportNotes() {
         if (!this.activeCase) return;
-        const res = await window.electronAPI.caseExportNotes(this.activeCase.case_id, `${this.activeCase.case_id}_notes.md`);
-        if (res.success) {
-          setStatus("Notes exported to " + res.filePath, "ok");
-        } else {
-          setStatus(`Notes export failed: ${res?.error || "Unknown error"}`, "bad");
+        if (!window.electronAPI || !window.electronAPI.caseExportNotes) {
+          setStatus("Notes export failed: Electron bridge is unavailable.", "bad");
+          return;
+        }
+        try {
+          const res = await window.electronAPI.caseExportNotes(this.activeCase.case_id, `${this.activeCase.case_id}_notes.md`);
+          if (res?.success) {
+            setStatus("Notes exported to " + res.filePath, "ok");
+            return;
+          }
+          if (res?.reason === "Export cancelled") {
+            setStatus("Notes export cancelled by operator.", "warn");
+            return;
+          }
+          setStatus(`Notes export failed: ${res?.error || res?.reason || "Unknown error"}`, "bad");
+        } catch (e) {
+          setStatus(`Notes export failed: ${e?.message || "Unknown error"}`, "bad");
+          logToConsole(`Notes export error: ${e?.message || "Unknown error"}`, "bad");
         }
       }
 
@@ -4014,18 +4143,31 @@
 
       async exportActiveCase() {
         if (!this.activeCase) return;
+        if (!window.electronAPI || !window.electronAPI.exportCaseData) {
+          setStatus("Export failed: Electron bridge is unavailable.", "bad");
+          return;
+        }
+        const caseId = this.activeCase.case_id || this.activeCase.id;
+        if (!caseId) {
+          setStatus("Export failed: active case is missing case_id.", "bad");
+          return;
+        }
         const format = el('exportFormatSelect').value;
-        const filename = `export_${this.activeCase.id}_${Date.now()}.${format === 'csv' ? 'csv' : 'json'}`;
+        const filename = `export_${caseId}_${Date.now()}.${format === 'csv' ? 'csv' : 'json'}`;
         const targetPath = `exports/${filename}`;
 
         setStatus(`Generating ${format.toUpperCase()} export...`, "decode");
         try {
-          await window.electronAPI.exportCaseData(this.activeCase, format, targetPath);
+          const res = await window.electronAPI.exportCaseData(this.activeCase, format, targetPath);
+          if (res && res.success === false) {
+            throw new Error(res.error || res.reason || "Exporter reported failure");
+          }
           setStatus(`Export saved to ${targetPath}`, "ok");
           logToConsole(`Case export generated: ${targetPath}`, "ok");
         } catch (e) {
-          setStatus(`Export failed: ${e?.message || "Unknown error"}`, "bad");
-          logToConsole(`Export Error: ${e.message}`, "bad");
+          const errMsg = e?.message || "Unknown error";
+          setStatus(`Export failed: ${errMsg}`, "bad");
+          logToConsole(`Export error: ${errMsg}`, "bad");
         }
       }
 
