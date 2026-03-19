@@ -1,33 +1,39 @@
-node_modules/
-dist/
-dist_test/
-out/
-build/
-RELEASE_EVIDENCE/
-PROOF_PACK/
-PROOF_PACK_FINAL/
-release_handoff/**/*.zip
+/node_modules/
+/dist/
+/dist_test/
+/out/
+/build/
+/release/
+/RELEASE_EVIDENCE/
+/PROOF_PACK/
+/PROOF_PACK_FINAL/
+/release_handoff/**/*.zip
 *.exe
 *.zip
 *.log
 *.tmp
 .DS_Store
 # audit outputs
-ops/reports/
-_TRASH/
+/ops/reports/
+/_TRASH/
 
 # signing keys — NEVER commit private keys
-release/keys/
+/release/keys/
 *.pem
-!release/verify/root_public_key.pem
+!/release/verify/root_public_key.pem
 
 # build outputs
-dist/
-release/
-build/
-out/
-coverage/
-logs/
+/dist/
+/release/
+/build/
+/out/
+/coverage/
+/logs/
+/rust/**/target/
+
+# release documentation must remain trackable
+!/docs/release/
+!/docs/release/**
 
 # temp + caches
 .vite/
@@ -44,4 +50,3 @@ temp/
 Thumbs.db
 .DS_Store
 *.bak-*
-
