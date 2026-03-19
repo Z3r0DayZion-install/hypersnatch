@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.4.0-beta.1",
+  "version": "1.4.0",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -29,7 +29,7 @@
     "electron": "28.3.3",
     "electron-builder": "^24.13.3",
     "electron-playwright-helpers": "^2.1.0",
-    "jsdom": "^27.0.1",
+    "jsdom": "26.1.0",
     "playwright": "^1.58.2"
   },
   "scripts": {
