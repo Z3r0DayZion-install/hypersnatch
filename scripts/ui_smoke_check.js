@@ -15,6 +15,8 @@ const requiredIds = [
   "mode",
   "btnDecode",
   "btnClear",
+  "btnExportCase",
+  "btnExportNotes",
   "status",
   "cmd",
   "candidatesTbody",
@@ -41,6 +43,30 @@ if (tabCount < 6) {
   process.exit(1);
 }
 
+const tabRoleCount = (html.match(/class="tab-btn[^"]*"[^>]*role="tab"/g) || []).length;
+if (tabRoleCount < 6) {
+  console.error(`[ui-smoke] Expected tab buttons with role=\"tab\", found ${tabRoleCount}`);
+  process.exit(1);
+}
+
+if (!html.includes('role="tablist"')) {
+  console.error("[ui-smoke] Missing tablist role on workspace tab bar.");
+  process.exit(1);
+}
+
+const tabPanels = Array.from(html.matchAll(/<div id="([^"]+)" class="tab-content[^"]*"[^>]*role="tabpanel"/g)).map((m) => m[1]);
+if (tabPanels.length < 6) {
+  console.error(`[ui-smoke] Expected at least 6 tab panels with role=\"tabpanel\", found ${tabPanels.length}`);
+  process.exit(1);
+}
+
+const tabToPanel = Array.from(html.matchAll(/class="tab-btn[^"]*"[^>]*data-tab="([^"]+)"/g)).map((m) => m[1]);
+const brokenTabs = tabToPanel.filter((panelId) => !tabPanels.includes(panelId));
+if (brokenTabs.length) {
+  console.error(`[ui-smoke] Tab buttons reference missing panels: ${brokenTabs.join(", ")}`);
+  process.exit(1);
+}
+
 if (!html.includes('class="input-dropzone"')) {
   console.error("[ui-smoke] Missing intake shell (.input-dropzone)");
   process.exit(1);
@@ -48,6 +74,26 @@ if (!html.includes('class="input-dropzone"')) {
 
 if (!html.includes('class="trust-panel"')) {
   console.error("[ui-smoke] Missing trust/proof panel (.trust-panel)");
+  process.exit(1);
+}
+
+if (!html.includes('class="workstation-layout"')) {
+  console.error("[ui-smoke] Missing workstation layout shell.");
+  process.exit(1);
+}
+
+if (!/\.workstation-layout\s*\{[\s\S]*?height:\s*100vh;/.test(html)) {
+  console.error("[ui-smoke] Missing viewport-fill hook on .workstation-layout.");
+  process.exit(1);
+}
+
+if (!html.includes('role="status"') || !html.includes('aria-live="polite"')) {
+  console.error("[ui-smoke] Missing live operator status semantics.");
+  process.exit(1);
+}
+
+if (!/button:focus-visible[\s\S]*input:focus-visible[\s\S]*textarea:focus-visible[\s\S]*select:focus-visible/.test(html)) {
+  console.error("[ui-smoke] Missing focus-visible styles for keyboard navigation.");
   process.exit(1);
 }
 
