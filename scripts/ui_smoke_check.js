@@ -102,4 +102,44 @@ if (!html.includes('const APP_VERSION_FALLBACK = "1.4.0";')) {
   process.exit(1);
 }
 
+if (html.includes("Math.random().toString(16)")) {
+  console.error("[ui-smoke] Audit seal hash must be deterministic and result-derived, not random.");
+  process.exit(1);
+}
+
+if (!html.includes("function evaluateDecodeOutcome(")) {
+  console.error("[ui-smoke] Missing decode outcome evaluator for truthful status messaging.");
+  process.exit(1);
+}
+
+if (!html.includes("const outcome = evaluateDecodeOutcome(out);")) {
+  console.error("[ui-smoke] Decode flow does not apply evaluated success/warn/error outcome.");
+  process.exit(1);
+}
+
+if (!html.includes("function setAuditSealFromResult(")) {
+  console.error("[ui-smoke] Missing deterministic audit seal update path.");
+  process.exit(1);
+}
+
+if (html.includes("export_${this.activeCase.id}_")) {
+  console.error("[ui-smoke] Case export filename is using activeCase.id instead of case_id.");
+  process.exit(1);
+}
+
+if (!html.includes("export_${caseId}_")) {
+  console.error("[ui-smoke] Case export filename is not anchored to case_id.");
+  process.exit(1);
+}
+
+if (!html.includes("Notes export failed:")) {
+  console.error("[ui-smoke] Notes export failure messaging is missing.");
+  process.exit(1);
+}
+
+if (!html.includes("Export failed:")) {
+  console.error("[ui-smoke] Case export failure messaging is missing.");
+  process.exit(1);
+}
+
 console.log("[ui-smoke] PASS: core operator UI shell and critical IDs are present.");
