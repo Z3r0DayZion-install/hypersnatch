@@ -32,7 +32,13 @@ const KsharedExtractor = {
                 const url = rawUrl.replace(/[\s"'\/]$/, '');
                 const fileId = match[1];
                 const filename = match[2] || 'unknown';
-                const host = url.includes('khared.com') ? 'khared.com' : 'kshared.com';
+                let host = 'kshared.com';
+                try {
+                    const parsedHost = new URL(url).hostname.toLowerCase();
+                    if (parsedHost === 'khared.com' || parsedHost.endsWith('.khared.com')) {
+                        host = 'khared.com';
+                    }
+                } catch (e) {}
 
                 if (!candidates.has(url)) {
                     const isFolder = /\/[f|folder]\//i.test(url);
