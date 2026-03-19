@@ -11,6 +11,14 @@ const PORT = 4179;
 const HOST = "127.0.0.1";
 const MAX_PAYLOAD_SIZE = 10 * 1024 * 1024; // 10MB limit
 
+function readRuntimeVersion() {
+    try {
+        return require("../../VERSION.json").version || "0.0.0-dev";
+    } catch (e) {
+        return "0.0.0-dev";
+    }
+}
+
 const server = http.createServer(async (req, res) => {
     // CORS Headers for local UI
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -23,10 +31,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.url === "/health" && req.method === "GET") {
-        let ver = "1.0.0";
-        try {
-            ver = require("../../VERSION.json").version;
-        } catch (e) { }
+        const ver = readRuntimeVersion();
         res.writeHead(200, { "Content-Type": "application/json" });
         return res.end(JSON.stringify({ status: "ok", version: ver }));
     }
@@ -147,8 +152,7 @@ server.listen(currentPort, HOST, () => {
         const fs = require('fs');
         const path = require('path');
         const crypto = require('crypto');
-        let ver = "1.0.0";
-        try { ver = require("../../VERSION.json").version; } catch (e) { }
+        const ver = readRuntimeVersion();
         const isPackaged = process.pkg || process.execPath.endsWith("ui-bridge.exe");
         const exeDir = isPackaged ? path.dirname(process.execPath) : process.cwd();
         const runtimePath = path.join(exeDir, "bridge.runtime.json");

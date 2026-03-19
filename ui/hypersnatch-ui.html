@@ -41,7 +41,7 @@
 
     body {
       margin: 0;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background-color: var(--bg-base);
       color: var(--text-base);
       -webkit-font-smoothing: antialiased;
@@ -221,7 +221,7 @@
       background: var(--bg-panel-alt);
       border-top: 1px solid var(--border-soft);
       padding: 0.75rem;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
       font-size: 0.75rem;
       color: var(--text-muted);
       overflow-y: auto;
@@ -441,7 +441,7 @@
       border-radius: 12px;
       padding: 18px;
       line-height: 1.6;
-      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
       font-size: 13px;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
@@ -464,7 +464,7 @@
     }
 
     .mono {
-      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
     }
 
     /* Badges/Pills */
@@ -503,7 +503,7 @@
       border: 1px solid var(--border-soft);
       border-radius: 10px;
       padding: 16px;
-      font-family: 'Fira Code', monospace;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
       font-size: 13px;
       color: #cbd5e1;
       white-space: pre-wrap;
@@ -517,7 +517,7 @@
       height: 220px;
       overflow-y: auto;
       padding: 16px;
-      font-family: 'Fira Code', monospace;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
       font-size: 12px;
       color: #a1a1aa;
       line-height: 1.5;
@@ -1239,18 +1239,26 @@
     </aside>
 
     <main class="center-workspace">
-      <div class="tab-bar">
-        <button class="tab-btn active" data-tab="tabSummary">Summary</button>
-        <button class="tab-btn" data-tab="tabTimeline">Timeline</button>
-        <button class="tab-btn" data-tab="tabLadder">Stream Ladder</button>
-        <button class="tab-btn" data-tab="tabCandidates">Candidates</button>
-        <button class="tab-btn" data-tab="tabHar">Network HAR</button>
-        <button class="tab-btn" data-tab="tabReport">Report</button>
-        <button class="tab-btn" data-tab="tabAutomation" style="color:var(--text-accent);">SmartSnatch Queue</button>
-        <button class="tab-btn" data-tab="tabCases" style="color:var(--color-ok);">Investigation Cases</button>
+      <div class="tab-bar" role="tablist" aria-label="Operator workspace tabs">
+        <button id="tabBtnSummary" class="tab-btn active" data-tab="tabSummary" role="tab" aria-controls="tabSummary"
+          aria-selected="true" tabindex="0">Summary</button>
+        <button id="tabBtnTimeline" class="tab-btn" data-tab="tabTimeline" role="tab" aria-controls="tabTimeline"
+          aria-selected="false" tabindex="-1">Timeline</button>
+        <button id="tabBtnLadder" class="tab-btn" data-tab="tabLadder" role="tab" aria-controls="tabLadder"
+          aria-selected="false" tabindex="-1">Stream Ladder</button>
+        <button id="tabBtnCandidates" class="tab-btn" data-tab="tabCandidates" role="tab" aria-controls="tabCandidates"
+          aria-selected="false" tabindex="-1">Candidates</button>
+        <button id="tabBtnHar" class="tab-btn" data-tab="tabHar" role="tab" aria-controls="tabHar" aria-selected="false"
+          tabindex="-1">Network HAR</button>
+        <button id="tabBtnReport" class="tab-btn" data-tab="tabReport" role="tab" aria-controls="tabReport"
+          aria-selected="false" tabindex="-1">Report</button>
+        <button id="tabBtnAutomation" class="tab-btn" data-tab="tabAutomation" role="tab" aria-controls="tabAutomation"
+          aria-selected="false" tabindex="-1" style="color:var(--text-accent);">SmartSnatch Queue</button>
+        <button id="tabBtnCases" class="tab-btn" data-tab="tabCases" role="tab" aria-controls="tabCases"
+          aria-selected="false" tabindex="-1" style="color:var(--color-ok);">Investigation Cases</button>
       </div>
 
-      <div id="tabSummary" class="tab-content active">
+      <div id="tabSummary" class="tab-content active" role="tabpanel" aria-labelledby="tabBtnSummary">
         <section class="input-dropzone" aria-label="Evidence intake and decode controls">
           <h3>Intake and Decode Pipeline</h3>
           <div class="dropzone-help">Drop/paste HTML, HAR, or direct URL inputs. HyperSnatch analyzes locally and produces deterministic candidate and proof output.</div>
@@ -1406,7 +1414,7 @@
           </div>
         </div>
       </div>
-      <div id="tabCases" class="tab-content" style="display:none;">
+      <div id="tabCases" class="tab-content" style="display:none;" role="tabpanel" aria-labelledby="tabBtnCases">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
           <h2 style="font-size:1.2rem; margin:0;">Case Management System</h2>
           <button id="btnCreateCase" class="pill" style="background:var(--color-ok); color:#000; border:none;">+ New
@@ -2217,7 +2225,8 @@
 
       </div>
 
-      <div id="tabTimeline" class="tab-content" style="display:none;">
+      <div id="tabTimeline" class="tab-content" style="display:none;" role="tabpanel"
+        aria-labelledby="tabBtnTimeline">
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1rem;">
           <h2 style="font-size:1.1rem; margin:0;">Network Event Timeline</h2>
           <span class="muted tiny">Chronological Forensics</span>
@@ -2239,7 +2248,7 @@
         </table>
       </div>
 
-      <div id="tabLadder" class="tab-content" style="display:none;">
+      <div id="tabLadder" class="tab-content" style="display:none;" role="tabpanel" aria-labelledby="tabBtnLadder">
         <h2 style="font-size:1.1rem; margin-top:0; margin-bottom:1rem;">M3U8 / MPD Stream Ladder</h2>
         <div style="display:flex; gap:1.5rem; margin-bottom:1rem;">
           <div class="panel" style="flex:1;">
@@ -2269,7 +2278,7 @@
         </table>
       </div>
 
-      <div id="tabCandidates" class="tab-content">
+      <div id="tabCandidates" class="tab-content" role="tabpanel" aria-labelledby="tabBtnCandidates">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
           <h2 style="font-size:1.1rem; margin:0;">Extracted Video Candidates</h2>
           <div style="display:flex; align-items:center; gap:12px;">
@@ -2306,7 +2315,7 @@
         </table>
       </div>
 
-      <div id="tabHar" class="tab-content">
+      <div id="tabHar" class="tab-content" role="tabpanel" aria-labelledby="tabBtnHar">
         <h2 style="font-size:1.1rem; margin-top:0; margin-bottom:1rem;">Classified Network Activity</h2>
         <table class="data-table">
           <thead>
@@ -2326,7 +2335,7 @@
         </table>
       </div>
 
-      <div id="tabReport" class="tab-content">
+      <div id="tabReport" class="tab-content" role="tabpanel" aria-labelledby="tabBtnReport">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
           <h2 style="font-size:1.1rem; margin:0;">Automated Markdown Report</h2>
           <button class="pill" style="font-size:0.75rem;">Export MD</button>
@@ -2335,7 +2344,7 @@
           style="height:calc(100% - 60px); font-size:0.8rem; background:var(--bg-panel); color:var(--text-muted); border-color:var(--border-hard);">No report loaded.</textarea>
       </div>
 
-      <div id="tabAutomation" class="tab-content">
+      <div id="tabAutomation" class="tab-content" role="tabpanel" aria-labelledby="tabBtnAutomation">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
           <h2 style="font-size:1.2rem; margin:0; color:var(--text-accent);">SmartSnatch Orchestration</h2>
           <div style="display:flex; gap:1rem;">
@@ -2461,6 +2470,7 @@
     "use strict";
 
     const el = (id) => document.getElementById(id);
+    const APP_VERSION_FALLBACK = "1.4.0-beta.1";
 
     const state = {
       lastJson: null,
@@ -2543,7 +2553,7 @@
             state.bridgePort = data.chosenPort;
             state.token = data.token;
             el("bridgeUrlTxt").textContent = `http://127.0.0.1:${data.chosenPort}/decode`;
-            el("uiVer").textContent = `v${data.version || "1.0.0"}`;
+            el("uiVer").textContent = `v${data.version || APP_VERSION_FALLBACK}`;
             return data.chosenPort;
           }
         }
@@ -2559,7 +2569,7 @@
           const res = await fetch(`http://127.0.0.1:${p}/health`, { method: "GET", cache: "no-store" });
           if (res && res.ok) {
             const data = await res.json();
-            return { port: p, version: data.version || "1.0.0" };
+            return { port: p, version: data.version || APP_VERSION_FALLBACK };
           }
         } catch (e) { }
         return null;
@@ -2675,7 +2685,7 @@
         setInterval(checkBridgeHealth, 3000);
         el("mode").addEventListener("change", checkBridgeHealth);
         el("nodeIdText").textContent = "N/A (Browser)";
-        if (el("uiVer").textContent === "v?") el("uiVer").textContent = "v1.2.0-web";
+        if (el("uiVer").textContent === "v?") el("uiVer").textContent = `v${APP_VERSION_FALLBACK}`;
 
         if (!localStorage.getItem("hs_legal_accepted")) {
           el("legalModal").style.display = "flex";
@@ -2987,6 +2997,8 @@
     async function onDecode() {
       const mode = el("mode").value;
       const input = el("input").value;
+      const decodeBtn = el("btnDecode");
+      const originalDecodeLabel = decodeBtn.textContent;
 
       if (!input.trim()) {
         setStatus("Awaiting payload. Please paste HTML or log data.", "warn");
@@ -3004,6 +3016,8 @@
       // Next-Level UX Trigger
       el("radarStatus").textContent = "HUB: SCANNING";
       el("radarStatus").style.color = "var(--text-accent)";
+      decodeBtn.disabled = true;
+      decodeBtn.textContent = "Decoding...";
 
       setStatus(`Executing SmartDecode sequence via native bridge...`, "muted");
       try {
@@ -3015,9 +3029,12 @@
         el("radarStatus").textContent = "HUB: COMPLETE";
         el("radarStatus").style.color = "var(--color-ok)";
       } catch (e) {
-        setStatus("Extraction engine encountered an unexpected layout. Host may have updated.", "bad");
+        setStatus(`Extraction engine encountered an unexpected layout. ${e.message || "Host may have updated."}`, "bad");
         el("radarStatus").textContent = "HUB: ERROR";
         el("radarStatus").style.color = "var(--color-bad)";
+      } finally {
+        decodeBtn.disabled = false;
+        decodeBtn.textContent = originalDecodeLabel;
       }
     }
 
@@ -3424,20 +3441,52 @@
     });
 
     // Tab Switching Logic
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        // Reset all tabs
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
+    const tabPanels = Array.from(document.querySelectorAll('.tab-content'));
 
-        // Activate target
-        btn.classList.add('active');
-        const tabId = btn.getAttribute('data-tab');
-        if (el(tabId)) {
-          el(tabId).style.display = 'block';
-        }
+    function activateTab(tabBtn, shouldFocus = false) {
+      if (!tabBtn) return;
+
+      tabButtons.forEach((btn) => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+        btn.setAttribute('tabindex', '-1');
+      });
+
+      tabPanels.forEach((panel) => {
+        panel.style.display = 'none';
+        panel.setAttribute('aria-hidden', 'true');
+      });
+
+      tabBtn.classList.add('active');
+      tabBtn.setAttribute('aria-selected', 'true');
+      tabBtn.setAttribute('tabindex', '0');
+
+      const tabId = tabBtn.getAttribute('data-tab');
+      const panel = el(tabId);
+      if (panel) {
+        panel.style.display = 'block';
+        panel.setAttribute('aria-hidden', 'false');
+      }
+
+      if (shouldFocus) tabBtn.focus();
+    }
+
+    tabButtons.forEach((btn, idx) => {
+      btn.addEventListener('click', () => activateTab(btn));
+      btn.addEventListener('keydown', (ev) => {
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft' && ev.key !== 'Home' && ev.key !== 'End') return;
+        ev.preventDefault();
+        let next = idx;
+        if (ev.key === 'ArrowRight') next = (idx + 1) % tabButtons.length;
+        if (ev.key === 'ArrowLeft') next = (idx - 1 + tabButtons.length) % tabButtons.length;
+        if (ev.key === 'Home') next = 0;
+        if (ev.key === 'End') next = tabButtons.length - 1;
+        activateTab(tabButtons[next], true);
       });
     });
+
+    activateTab(tabButtons.find((b) => b.classList.contains('active')) || tabButtons[0]);
 
     // ==================== PHASE 57: CASE MANAGEMENT LOGIC ====================
     class CaseManager {
@@ -3599,7 +3648,11 @@
       async exportNotes() {
         if (!this.activeCase) return;
         const res = await window.electronAPI.caseExportNotes(this.activeCase.case_id, `${this.activeCase.case_id}_notes.md`);
-        if (res.success) setStatus("Notes exported to " + res.filePath, "ok");
+        if (res.success) {
+          setStatus("Notes exported to " + res.filePath, "ok");
+        } else {
+          setStatus(`Notes export failed: ${res?.error || "Unknown error"}`, "bad");
+        }
       }
 
       renderFindings() {
@@ -3971,7 +4024,7 @@
           setStatus(`Export saved to ${targetPath}`, "ok");
           logToConsole(`Case export generated: ${targetPath}`, "ok");
         } catch (e) {
-          setStatus("Export failed.", "bad");
+          setStatus(`Export failed: ${e?.message || "Unknown error"}`, "bad");
           logToConsole(`Export Error: ${e.message}`, "bad");
         }
       }
