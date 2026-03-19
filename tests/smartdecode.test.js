@@ -35,6 +35,13 @@ function hasDisallowedScheme(rawUrl) {
     }
 }
 
+function isHostOrSubdomain(rawUrl, domain) {
+    const hostname = getHostname(rawUrl);
+    const expected = String(domain || '').toLowerCase();
+    if (!hostname || !expected) return false;
+    return hostname === expected || hostname.endsWith(`.${expected}`);
+}
+
 let passed = 0;
 let failed = 0;
 
@@ -566,7 +573,7 @@ https://cdn.example.com/1080p/playlist.m3u8`;
             { url: 'https://generic.example.com/video.mp4', type: 'mp4', confidence: 0.5 },
         ];
         const r = Ranker.rank(candidates);
-        assert.ok(getHostname(r.best.url).endsWith('emload.com'), `Best should be emload, was: ${r.best.url}`);
+        assert.ok(isHostOrSubdomain(r.best.url, 'emload.com'), `Best should be emload, was: ${r.best.url}`);
     });
 
     await test('multi-source context boosts scores', () => {
@@ -651,7 +658,7 @@ https://cdn.example.com/1080p/playlist.m3u8`;
     await test('handles khared.com as kshared alias with boost', async () => {
         const html = 'https://khared.com/file/a23b9bbf/evidence.pdf';
         const r = await SmartDecode.run(html);
-        const khared = r.candidates.find(c => getHostname(c.url).endsWith('khared.com'));
+        const khared = r.candidates.find(c => isHostOrSubdomain(c.url, 'khared.com'));
         assert.ok(khared, 'Should find khared.com candidate');
         assert.strictEqual(khared.host, 'khared.com');
         assert.ok(khared.finalScore > 0.6, `Score should be boosted, was: ${khared.finalScore}`);
