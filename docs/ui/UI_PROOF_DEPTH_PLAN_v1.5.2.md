@@ -26,3 +26,13 @@ Increase confidence that UI truth signals still hold under critical operator-sta
 1. `verify:ui` catches regressions in core state-truth semantics.
 2. Full stable-order gates remain green after assertion tightening.
 
+## Execution Status
+
+1. Completed in slice 2 with stronger assertions for:
+   - queue action availability semantics (`pause/resume/manual-review/cancel/requeue`)
+   - reopen flow reason-chain and `requeue` action path
+   - case workspace no-active/loading/error/empty state handling
+   - trust summary state classification (`bad`/`warn`/`ok`)
+   - case timeline severity and newest-first ordering
+   - dual risk-section conditional guards in batch and case reporting
+2. Verified with full stable-order gate pass.
