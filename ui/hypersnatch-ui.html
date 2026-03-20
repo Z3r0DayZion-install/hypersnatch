@@ -3152,6 +3152,51 @@
       return String(status || "unknown").replace(/-/g, " ").toUpperCase();
     }
 
+    function formatTimestamp(ts) {
+      if (!ts) return "--";
+      const d = new Date(ts);
+      if (Number.isNaN(d.getTime())) return "--";
+      return d.toLocaleTimeString();
+    }
+
+    function formatDuration(ms) {
+      if (typeof ms !== "number" || ms < 0) return "--";
+      if (ms < 1000) return `${ms}ms`;
+      if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+      const min = Math.floor(ms / 60000);
+      const sec = ((ms % 60000) / 1000).toFixed(1);
+      return `${min}m ${sec}s`;
+    }
+
+    function escapeForAttr(s) {
+      return escapeHtml(String(s || "")).replace(/\n/g, " | ");
+    }
+
+    function buildJobObservability(job) {
+      const retries = job.retryCount || job.attempts || 0;
+      const source = job.source || "unknown";
+      const reason = job.failureReason || job.manualReviewReason || job.error || "";
+      const actionText = job.lastAction
+        ? `${job.lastAction.action} @ ${formatTimestamp(job.lastAction.at)}`
+        : "--";
+
+      return {
+        summaryLine: `src:${source} | retries:${retries} | enq:${formatTimestamp(job.addedAt)} | start:${formatTimestamp(job.startedAt)} | end:${formatTimestamp(job.finishedAt)} | dur:${formatDuration(job.durationMs)}`,
+        reasonLine: reason ? `reason: ${reason}` : "",
+        actionLine: `last action: ${actionText}`,
+        tooltip: [
+          `source=${source}`,
+          `retries=${retries}`,
+          `added=${formatTimestamp(job.addedAt)}`,
+          `started=${formatTimestamp(job.startedAt)}`,
+          `finished=${formatTimestamp(job.finishedAt)}`,
+          `duration=${formatDuration(job.durationMs)}`,
+          `reason=${reason || "--"}`,
+          `lastAction=${actionText}`
+        ].join("\n")
+      };
+    }
+
     function updateTrustFromAutomation(snapshot) {
       if (!snapshot) return;
       const metrics = snapshot.metrics || {};
@@ -3210,7 +3255,8 @@
       const hash = el("intHash");
       if (hash) {
         if (latest && latest.id) {
-          hash.textContent = `${latest.id.slice(0, 12)}:${latest.status}`;
+          const reason = latest.failureReason || latest.manualReviewReason || latest.error || "--";
+          hash.textContent = `${latest.id.slice(0, 12)}:${latest.status}:dur=${formatDuration(latest.durationMs)}:retry=${latest.retryCount || latest.attempts || 0}:reason=${reason}`;
         } else {
           hash.textContent = "--";
         }
@@ -3243,7 +3289,11 @@
       ];
 
       queue.forEach((job) => {
+        const info = buildJobObservability(job);
         lines.push(`- [${statusLabel(job.status)}] ${job.host} :: ${job.url}`);
+        lines.push(`  - ${info.summaryLine}`);
+        if (info.reasonLine) lines.push(`  - ${info.reasonLine}`);
+        lines.push(`  - ${info.actionLine}`);
       });
 
       lines.push("", "## Recent History");
@@ -3251,9 +3301,13 @@
         lines.push("- empty");
       } else {
         history.forEach((job) => {
+          const info = buildJobObservability(job);
           const msg = job?.lastResultSummary?.message || "No summary";
           const caseTxt = job.caseId ? ` case=${job.caseId}` : "";
           lines.push(`- [${statusLabel(job.status)}] ${job.host} :: ${job.url}${caseTxt} :: ${msg}`);
+          lines.push(`  - ${info.summaryLine}`);
+          if (info.reasonLine) lines.push(`  - ${info.reasonLine}`);
+          lines.push(`  - ${info.actionLine}`);
         });
       }
 
@@ -3349,7 +3403,16 @@
 
     async function handleQueueAction(id, action) {
       if (!window.electronAPI || !window.electronAPI.automationQueueAction) return;
-      const res = await window.electronAPI.automationQueueAction(id, action);
+      let reason = null;
+      if (action === "manual-review") {
+        reason = prompt("Manual-review reason:", "Requires analyst review for ambiguous decode output.") || "Requires analyst review for ambiguous decode output.";
+      } else if (action === "cancel") {
+        reason = "Cancelled by operator from queue panel.";
+      } else if (action === "requeue") {
+        reason = "Requeued by operator for retry.";
+      }
+
+      const res = await window.electronAPI.automationQueueAction(id, action, reason);
       if (!res || res.success === false) {
         setStatus(`Queue action failed: ${action}.`, "bad");
         return;
@@ -3379,6 +3442,15 @@
         `Batch Job ID: ${job.id}`,
         `URL: ${job.url}`,
         `Status: ${job.status}`,
+        `Source: ${job.source || "unknown"}`,
+        `Retries: ${job.retryCount || job.attempts || 0}`,
+        `Enqueued: ${formatTimestamp(job.addedAt)}`,
+        `Started: ${formatTimestamp(job.startedAt)}`,
+        `Finished: ${formatTimestamp(job.finishedAt)}`,
+        `Duration: ${formatDuration(job.durationMs)}`,
+        `Failure Reason: ${job.failureReason || "--"}`,
+        `Manual Review Reason: ${job.manualReviewReason || "--"}`,
+        `Last Action: ${job.lastAction ? `${job.lastAction.action} @ ${formatTimestamp(job.lastAction.at)}` : "--"}`,
         `Summary: ${summary.message || "N/A"}`
       ].join("\n");
 
@@ -3449,16 +3521,24 @@
           const canPause = j.status === "queued" || j.status === "manual-review";
           const canResume = j.status === "paused" || j.status === "manual-review";
           const canCancel = j.status !== "running";
+          const canManualReview = j.status === "queued" || j.status === "paused";
           const caseCell = j.caseId ? `<button class="pill-btn tiny" data-open-case="${j.caseId}">${escapeHtml(j.caseId)}</button>` : '<span class="muted tiny">--</span>';
+          const obs = buildJobObservability(j);
           return `
             <tr>
               <td><span class="pill">${escapeHtml(j.host)}</span></td>
-              <td class="mono tiny">${escapeHtml(j.url)}</td>
+              <td class="mono tiny" title="${escapeForAttr(obs.tooltip)}">
+                <div>${escapeHtml(j.url)}</div>
+                <div class="muted tiny">${escapeHtml(obs.summaryLine)}</div>
+                ${obs.reasonLine ? `<div class="bad tiny">${escapeHtml(obs.reasonLine)}</div>` : ""}
+                <div class="tiny muted">${escapeHtml(obs.actionLine)}</div>
+              </td>
               <td><span class="status-badge ${statusBadgeClass(j.status)}">${statusLabel(j.status)}</span></td>
               <td>${caseCell}</td>
               <td style="display:flex; gap:4px;">
                 ${canPause ? `<button class="pill-btn tiny" data-queue-action="pause" data-queue-id="${j.id}">Pause</button>` : ""}
                 ${canResume ? `<button class="pill-btn tiny" data-queue-action="resume" data-queue-id="${j.id}">Queue</button>` : ""}
+                ${canManualReview ? `<button class="pill-btn tiny" data-queue-action="manual-review" data-queue-id="${j.id}">Review</button>` : ""}
                 ${canCancel ? `<button class="pill-btn tiny" data-queue-action="cancel" data-queue-id="${j.id}" style="color:var(--color-bad);">Cancel</button>` : ""}
               </td>
             </tr>
@@ -3474,10 +3554,16 @@
         hBody.innerHTML = snapshot.history.map((j) => {
           const summary = j.lastResultSummary && j.lastResultSummary.message ? j.lastResultSummary.message : "";
           const caseCell = j.caseId ? `<button class="pill-btn tiny" data-open-case="${j.caseId}">${escapeHtml(j.caseId)}</button>` : '<span class="muted tiny">--</span>';
+          const obs = buildJobObservability(j);
           return `
             <tr>
               <td><span class="pill">${escapeHtml(j.host)}</span></td>
-              <td class="mono tiny" title="${escapeHtml(summary)}">${escapeHtml(j.url)}</td>
+              <td class="mono tiny" title="${escapeForAttr(summary || obs.tooltip)}">
+                <div>${escapeHtml(j.url)}</div>
+                <div class="muted tiny">${escapeHtml(obs.summaryLine)}</div>
+                ${obs.reasonLine ? `<div class="bad tiny">${escapeHtml(obs.reasonLine)}</div>` : ""}
+                <div class="tiny muted">${escapeHtml(obs.actionLine)}</div>
+              </td>
               <td><span class="status-badge ${statusBadgeClass(j.status)}">${statusLabel(j.status)}</span></td>
               <td>${caseCell}</td>
               <td style="display:flex; gap:4px;">
