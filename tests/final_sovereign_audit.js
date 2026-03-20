@@ -71,6 +71,7 @@ function main() {
   console.log("=== HyperSnatch Final Sovereign Audit ===\n");
   console.log(`Audit profile: requireHash=${STRICT_HASH ? "yes" : "no"} requireCli=${STRICT_CLI ? "yes" : "no"}\n`);
   console.log("Audit policy: WARN mode allows optional CLI/hash checks unless strict flags are enabled.\n");
+  console.log(`Expected installer for package version ${PKG.version}: ${EXPECTED_INSTALLER_NAME}\n`);
 
   const artifactRoot = findArtifactsRoot();
   if (!artifactRoot) {
@@ -163,7 +164,11 @@ function main() {
   if (warns > 0) {
     console.log(`\nFINAL SOVEREIGN AUDIT: PASS (WITH WARNINGS: ${warns})`);
     console.log('Action: review WARN lines and decide strictness policy for this release gate.');
+    console.log("WARN scope:");
+    if (!cli && !STRICT_CLI) console.log("- CLI artifact is optional in current profile.");
+    if (!fs.existsSync(manifestPath) && !STRICT_HASH) console.log("- SHA256SUMS.txt verification is optional in current profile.");
     console.log('Policy hint: set HYPERSNATCH_AUDIT_REQUIRE_HASH=1 and/or HYPERSNATCH_AUDIT_REQUIRE_CLI=1 for stricter proof.');
+    console.log('Strict rerun example (PowerShell): $env:HYPERSNATCH_AUDIT_REQUIRE_HASH=\"1\"; $env:HYPERSNATCH_AUDIT_REQUIRE_CLI=\"1\"; npm run audit:final');
     return;
   }
   console.log("\nFINAL SOVEREIGN AUDIT: PASS");
@@ -173,6 +178,7 @@ try {
   main();
 } catch (err) {
   console.error("\n[CRITICAL FAILURE]:", err.message);
+  console.error(`Expected installer contract: ${EXPECTED_INSTALLER_NAME} in dist/ (no stale setup installers).`);
   console.error('Remediation order: npm install -> npm run build:wrapper -> npm run verify -> npm run audit:final');
   process.exit(1);
 }
