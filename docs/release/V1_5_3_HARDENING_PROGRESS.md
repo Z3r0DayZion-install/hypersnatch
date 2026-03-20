@@ -9,7 +9,7 @@ Branch: `release-readiness/v1.5.3-hardening`
 |---|---|---|---|---|
 | WARN-policy strictness and enforcement clarity | P1 | Completed (slice 1) | `audit:final` now has explicit profile/release-type contract and stable-mode strictness enforcement | PASS (`npm install`, `npm test`, `npm run verify:ui`, `npm run build:wrapper`, `npm run verify`, `npm run audit:final`) |
 | Artifact/version proof pinning edge cases | P1 | Completed (slice 2) | `verify` + `audit:final` now require exact `HyperSnatch_Vanguard_v<version>.zip` and reject stale/mixed/ambiguous bundles | PASS (`npm install`, `npm test`, `npm run verify:ui`, `npm run build:wrapper`, `npm run verify`, `npm run audit:final`) |
-| UI proof-depth runtime transition checks | P1 | Planned | Improves operator-state trust under real transitions | Pending |
+| UI proof-depth runtime transition checks | P1 | Completed (slice 3) | `verify:ui` now asserts queue transition control semantics, manual-review/cancel/requeue reason-chain handling, export readiness gating, case report blocked/export truth, and lineage timeline ordering/dedupe behavior | PASS (`npm install`, `npm test`, `npm run verify:ui`, `npm run build:wrapper`, `npm run verify`, `npm run audit:final`) |
 | Governance/status/setup truth alignment | P1 | Planned | Removes narrative contradictions after `v1.5.2` ship | Pending |
 
 ## Notes
@@ -19,3 +19,4 @@ Branch: `release-readiness/v1.5.3-hardening`
 3. Version identity alignment is deferred until hardening scope is complete.
 4. Slice 1 validation included an explicit strict-profile probe (`HYPERSNATCH_AUDIT_PROFILE=strict`, `HYPERSNATCH_AUDIT_RELEASE_TYPE=stable`) to confirm non-strict artifacts fail fast under stable strictness.
 5. Slice 2 enforces exact expected bundle matching (`HyperSnatch_Vanguard_v<package.version>.zip`) and explicit stale/mixed `dist` rejection in both release verify and final audit.
+6. Slice 3 deepens runtime-state proof expectations in `scripts/ui_smoke_check.js` so queue transitions, manual-review semantics, export blocked truth, and case/report lineage conditionals are validated as workflow contracts instead of shallow hook presence.
