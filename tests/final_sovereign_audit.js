@@ -19,6 +19,7 @@ const VALID_AUDIT_PROFILES = new Set(["warn", "strict"]);
 const VALID_RELEASE_TYPES = new Set(["internal", "prerelease", "stable"]);
 const STRICT_HASH = STRICT_HASH_FLAG || AUDIT_PROFILE === "strict";
 const STRICT_CLI = STRICT_CLI_FLAG || AUDIT_PROFILE === "strict";
+const IS_STRICT_STABLE_SIGNOFF = AUDIT_PROFILE === "strict" && AUDIT_RELEASE_TYPE === "stable";
 
 function sha256(filePath) {
   const hash = crypto.createHash("sha256");
@@ -74,6 +75,14 @@ function failWithHint(message, hint) {
   throw new Error(`${message}${suffix}`);
 }
 
+function printStrictStableGuidance() {
+  console.log("Strict stable signoff contract:");
+  console.log("- required profile: HYPERSNATCH_AUDIT_PROFILE=strict");
+  console.log("- required release type: HYPERSNATCH_AUDIT_RELEASE_TYPE=stable");
+  console.log("- required checks: CLI artifact + SHA256SUMS hash verification");
+  console.log('Strict rerun example (PowerShell): $env:HYPERSNATCH_AUDIT_PROFILE="strict"; $env:HYPERSNATCH_AUDIT_RELEASE_TYPE="stable"; npm run audit:final');
+}
+
 function main() {
   if (!VALID_AUDIT_PROFILES.has(AUDIT_PROFILE)) {
     failWithHint(
@@ -99,6 +108,11 @@ function main() {
   console.log("=== HyperSnatch Final Sovereign Audit ===\n");
   console.log(`Audit contract: profile=${AUDIT_PROFILE} releaseType=${AUDIT_RELEASE_TYPE}`);
   console.log(`Audit profile flags: requireHash=${STRICT_HASH ? "yes" : "no"} requireCli=${STRICT_CLI ? "yes" : "no"}\n`);
+  if (IS_STRICT_STABLE_SIGNOFF) {
+    console.log("Audit interpretation: STRICT STABLE SIGNOFF mode.\n");
+  } else {
+    console.log("Audit interpretation: NON-SIGNOFF mode for stable tag decisions.\n");
+  }
   if (AUDIT_PROFILE === "strict") {
     console.log("Audit policy: STRICT profile requires CLI artifact and SHA256SUMS validation.\n");
   } else {
@@ -236,15 +250,21 @@ function main() {
   if (warns > 0) {
     console.log(`\nFINAL SOVEREIGN AUDIT: PASS (WITH WARNINGS: ${warns})`);
     console.log(`Policy result: profile=${AUDIT_PROFILE}, releaseType=${AUDIT_RELEASE_TYPE}.`);
-    console.log('Action: review WARN lines and decide strictness policy for this release gate.');
+    console.log("Signoff interpretation: NOT VALID for strict stable release signoff.");
+    console.log("Action: review WARN lines and rerun in strict stable mode before stable tagging.");
     console.log("WARN scope:");
     if (!cli && !STRICT_CLI) console.log("- CLI artifact is optional in current profile.");
     if (!fs.existsSync(manifestPath) && !STRICT_HASH) console.log("- SHA256SUMS.txt verification is optional in current profile.");
-    console.log('Policy hint: use HYPERSNATCH_AUDIT_PROFILE=strict for stable-signoff strictness.');
-    console.log('Strict rerun example (PowerShell): $env:HYPERSNATCH_AUDIT_PROFILE=\"strict\"; $env:HYPERSNATCH_AUDIT_RELEASE_TYPE=\"stable\"; npm run audit:final');
+    printStrictStableGuidance();
     return;
   }
-  console.log("\nFINAL SOVEREIGN AUDIT: PASS");
+  if (IS_STRICT_STABLE_SIGNOFF) {
+    console.log("\nFINAL SOVEREIGN AUDIT: PASS (STRICT STABLE SIGNOFF)");
+    return;
+  }
+  console.log("\nFINAL SOVEREIGN AUDIT: PASS (NON-SIGNOFF PROFILE)");
+  console.log("Interpretation: suitable for maintenance evidence, not strict stable tag signoff.");
+  printStrictStableGuidance();
 }
 
 try {
