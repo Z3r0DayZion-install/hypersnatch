@@ -106,10 +106,19 @@ function verifySecurityHardening(mainJsContent) {
   return true;
 }
 
-function verifyBuildOutput() {
+function verifyBuildOutput(expectedVersion) {
   const fs = require("fs");
   const path = require("path");
   const distDir = 'dist';
+  const expectedInstallerName = expectedVersion ? `HyperSnatch-Setup-${expectedVersion}.exe` : null;
+  const expectedInstallerPath = expectedInstallerName ? path.join(distDir, expectedInstallerName) : null;
+
+  if (!expectedVersion) {
+    logError('Build output verification missing expected package version context.', {
+      remediation: 'Ensure package.json version is readable before build-output checks.'
+    });
+    return false;
+  }
 
   if (!fs.existsSync(distDir)) {
     logError('Build output missing: dist directory not found. Run "npm run build:wrapper" before "npm run verify".', {
@@ -157,6 +166,7 @@ function verifyBuildOutput() {
   }
 
   const exeArtifacts = findExeArtifacts(distDir);
+  const setupInstallers = exeArtifacts.exes.filter((f) => /^HyperSnatch-Setup-.*\.exe$/i.test(path.basename(f)));
 
   if (exeArtifacts.exes.length === 0) {
     logError('No built executable found in dist output.', {
@@ -168,10 +178,39 @@ function verifyBuildOutput() {
 
   logSuccess('Built executables found', { files: exeArtifacts.exes });
 
+  if (setupInstallers.length === 0) {
+    logError('No setup installer found in dist output.', {
+      expectedInstaller: expectedInstallerName,
+      remediation: 'Run "npm run build:wrapper" and confirm setup installer generation.'
+    });
+    return false;
+  }
+
+  if (!fs.existsSync(expectedInstallerPath)) {
+    logError('Expected installer version not found in dist output.', {
+      expectedInstaller: expectedInstallerName,
+      detectedInstallers: setupInstallers.map((f) => path.basename(f)),
+      remediation: 'Clean dist output and rebuild so installer version matches package.json.'
+    });
+    return false;
+  }
+
+  const staleInstallers = setupInstallers
+    .map((f) => path.basename(f))
+    .filter((name) => name !== expectedInstallerName);
+  if (staleInstallers.length > 0) {
+    logError('Stale installer versions detected in dist output.', {
+      expectedInstaller: expectedInstallerName,
+      staleInstallers,
+      remediation: 'Use a clean worktree or remove stale setup exes before verification.'
+    });
+    return false;
+  }
+
   if (exeArtifacts.installer) {
-    const hash = calculateHash(exeArtifacts.installer);
+    const hash = calculateHash(expectedInstallerPath);
     logSuccess('Installer found with valid hash', {
-      file: exeArtifacts.installer,
+      file: expectedInstallerPath,
       sha256: hash
     });
 
@@ -385,7 +424,7 @@ function main() {
       HYPERSNATCH_SIGN: process.env.HYPERSNATCH_SIGN || null,
       HS_SKIP_BUILD_OUTPUT: process.env.HS_SKIP_BUILD_OUTPUT || null
     });
-  } else if (!verifyBuildOutput()) {
+  } else if (!verifyBuildOutput(packageJson?.version || null)) {
     allPassed = false;
   }
 

@@ -1,9 +1,9 @@
 # HyperSnatch v1.5.1
 
-**STATUS**: Stable release-readiness  
-**CURRENT LINE**: v1.5.1  
+**STATUS**: Stable shipped (`v1.5.1`)  
+**CURRENT MAINTENANCE LINE**: `release-readiness/v1.5.2-hardening`  
 **STABLE BASELINE**: v1.4.1 (frozen)  
-**STATE**: Stable identity alignment with clean-worktree proof discipline
+**STATE**: Proof-and-trust hardening before any `v1.6.0` expansion work
 
 ## Stewardship & Onboarding
 - **ARCHIVE_RECORD.md**: Immediate verification summary

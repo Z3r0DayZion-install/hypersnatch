@@ -9,6 +9,7 @@ const DIST_DIR = path.join(ROOT, "dist");
 const PKG = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
 const RELEASE_DIR_NAME = `HyperSnatch_v${PKG.version}`;
 const LEGACY_RELEASE_DIR = path.join(ROOT, "release", RELEASE_DIR_NAME);
+const EXPECTED_INSTALLER_NAME = `HyperSnatch-Setup-${PKG.version}.exe`;
 const STRICT_HASH = process.env.HYPERSNATCH_AUDIT_REQUIRE_HASH === "1";
 const STRICT_CLI = process.env.HYPERSNATCH_AUDIT_REQUIRE_CLI === "1";
 
@@ -69,6 +70,8 @@ function failWithHint(message, hint) {
 function main() {
   console.log("=== HyperSnatch Final Sovereign Audit ===\n");
   console.log(`Audit profile: requireHash=${STRICT_HASH ? "yes" : "no"} requireCli=${STRICT_CLI ? "yes" : "no"}\n`);
+  console.log("Audit policy: WARN mode allows optional CLI/hash checks unless strict flags are enabled.\n");
+  console.log(`Expected installer for package version ${PKG.version}: ${EXPECTED_INSTALLER_NAME}\n`);
 
   const artifactRoot = findArtifactsRoot();
   if (!artifactRoot) {
@@ -79,13 +82,32 @@ function main() {
   }
   console.log(`Artifacts root: ${artifactRoot}`);
 
-  const installer = findFirst(artifactRoot, [/^HyperSnatch-Setup-.*\.exe$/i]);
-  if (!installer) {
+  const setupInstallers = fs.readdirSync(artifactRoot, { withFileTypes: true })
+    .filter((d) => d.isFile() && /^HyperSnatch-Setup-.*\.exe$/i.test(d.name))
+    .map((d) => d.name);
+  if (setupInstallers.length === 0) {
     failWithHint(
       "Installer .exe not found in artifact root.",
       `Expected HyperSnatch-Setup-<version>.exe after \"npm run build:wrapper\".`
     );
   }
+
+  if (!setupInstallers.includes(EXPECTED_INSTALLER_NAME)) {
+    failWithHint(
+      `Expected installer ${EXPECTED_INSTALLER_NAME} not found.`,
+      `Detected installers: ${setupInstallers.join(", ")}. Rebuild artifacts for package version ${PKG.version}.`
+    );
+  }
+
+  const staleInstallers = setupInstallers.filter((name) => name !== EXPECTED_INSTALLER_NAME);
+  if (staleInstallers.length > 0) {
+    failWithHint(
+      `Stale installer versions detected alongside ${EXPECTED_INSTALLER_NAME}.`,
+      `Remove stale installers (${staleInstallers.join(", ")}) or use a clean worktree before audit proof.`
+    );
+  }
+
+  const installer = path.join(artifactRoot, EXPECTED_INSTALLER_NAME);
   printCheck("Installer", "PASS", path.basename(installer));
 
   const cli = findFirst(artifactRoot, [/^hypersnatch-cli\.exe$/i]);
@@ -141,7 +163,12 @@ function main() {
   const warns = Number(!cli && !STRICT_CLI) + Number(!fs.existsSync(manifestPath) && !STRICT_HASH);
   if (warns > 0) {
     console.log(`\nFINAL SOVEREIGN AUDIT: PASS (WITH WARNINGS: ${warns})`);
-    console.log('Action: review WARN lines and decide whether to enforce strict mode for this release gate.');
+    console.log('Action: review WARN lines and decide strictness policy for this release gate.');
+    console.log("WARN scope:");
+    if (!cli && !STRICT_CLI) console.log("- CLI artifact is optional in current profile.");
+    if (!fs.existsSync(manifestPath) && !STRICT_HASH) console.log("- SHA256SUMS.txt verification is optional in current profile.");
+    console.log('Policy hint: set HYPERSNATCH_AUDIT_REQUIRE_HASH=1 and/or HYPERSNATCH_AUDIT_REQUIRE_CLI=1 for stricter proof.');
+    console.log('Strict rerun example (PowerShell): $env:HYPERSNATCH_AUDIT_REQUIRE_HASH=\"1\"; $env:HYPERSNATCH_AUDIT_REQUIRE_CLI=\"1\"; npm run audit:final');
     return;
   }
   console.log("\nFINAL SOVEREIGN AUDIT: PASS");
@@ -151,6 +178,7 @@ try {
   main();
 } catch (err) {
   console.error("\n[CRITICAL FAILURE]:", err.message);
+  console.error(`Expected installer contract: ${EXPECTED_INSTALLER_NAME} in dist/ (no stale setup installers).`);
   console.error('Remediation order: npm install -> npm run build:wrapper -> npm run verify -> npm run audit:final');
   process.exit(1);
 }
