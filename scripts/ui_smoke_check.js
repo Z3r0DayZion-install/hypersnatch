@@ -634,4 +634,124 @@ const noRiskReport = buildBatchReport({
 });
 assertRuntime(/## Warnings Failures and Manual Review[\s\S]*- none/.test(noRiskReport.markdown), "[ui-smoke] Runtime batch report failed: no-risk report should render '- none' in risk section.");
 
-console.log("[ui-smoke] PASS: core operator UI shell and critical IDs are present.");
+async function runRuntimeInteractionProofs() {
+  const queueStatus = [];
+  const queueLogs = [];
+  const queueCalls = [];
+  const pendingNode = { textContent: "0" };
+  const tabAutomationNode = { id: "tabBtnAutomation" };
+  let activatedTabId = null;
+  let queueSyncCalls = 0;
+
+  const queueTargetsFn = compileRuntimeFunction("queueTargets", {
+    window: {
+      electronAPI: {
+        automationQueueAdd: async (targets, options) => {
+          queueCalls.push({ targets, options });
+          return {
+            added: targets.map((url, idx) => ({ id: `added-${idx}`, url })),
+            skipped: [{ id: "skip-1", reason: "duplicate" }],
+            metrics: { pending: 7 }
+          };
+        }
+      },
+      caseMgr: {
+        activeCase: { case_id: "CASE-QUEUE", title: "Queue Proof Case" }
+      }
+    },
+    setStatus: (message, kind) => queueStatus.push({ message, kind }),
+    logToConsole: (message, kind) => queueLogs.push({ message, kind }),
+    el: (id) => (id === "metPending" ? pendingNode : id === "tabBtnAutomation" ? tabAutomationNode : null),
+    activateTab: (node) => { activatedTabId = node && node.id ? node.id : null; },
+    syncAutomationState: async () => { queueSyncCalls += 1; }
+  });
+
+  const queueResult = await queueTargetsFn(
+    ["https://alpha.queue.test", "https://beta.queue.test"],
+    { source: "intake-batch", bindToCase: true }
+  );
+
+  assertRuntime(queueCalls.length === 1, "[ui-smoke] Runtime queue flow failed: automationQueueAdd should be called once.");
+  assertRuntime(queueCalls[0].options.caseId === "CASE-QUEUE", "[ui-smoke] Runtime queue flow failed: case binding should forward active case_id.");
+  assertRuntime(queueCalls[0].options.caseTitle === "Queue Proof Case", "[ui-smoke] Runtime queue flow failed: case binding should forward active case title.");
+  assertRuntime(queueCalls[0].options.source === "intake-batch", "[ui-smoke] Runtime queue flow failed: source should be preserved.");
+  assertRuntime(queueCalls[0].options.manualReview === false, "[ui-smoke] Runtime queue flow failed: manualReview should be forced false for operator queue add.");
+  assertRuntime(queueResult && Array.isArray(queueResult.added) && queueResult.added.length === 2, "[ui-smoke] Runtime queue flow failed: queue result should include two added targets.");
+  assertRuntime(queueStatus.some((s) => s.kind === "ok" && /Queued 2 target\(s\) bound to case CASE-QUEUE, skipped 1\./.test(s.message)),
+    "[ui-smoke] Runtime queue flow failed: status message should reflect added/skipped counts and case binding.");
+  assertRuntime(queueLogs.some((s) => s.kind === "ok" && s.message.includes("added=2") && s.message.includes("skipped=1")),
+    "[ui-smoke] Runtime queue flow failed: console log should include added/skipped telemetry.");
+  assertRuntime(String(pendingNode.textContent) === "7", "[ui-smoke] Runtime queue flow failed: pending metric should be updated from queue metrics.");
+  assertRuntime(activatedTabId === "tabBtnAutomation", "[ui-smoke] Runtime queue flow failed: automation tab should be activated.");
+  assertRuntime(queueSyncCalls === 1, "[ui-smoke] Runtime queue flow failed: syncAutomationState should run after queueing.");
+
+  const unavailableStatus = [];
+  const queueTargetsNoBridge = compileRuntimeFunction("queueTargets", {
+    window: {},
+    setStatus: (message, kind) => unavailableStatus.push({ message, kind })
+  });
+  const noBridgeResult = await queueTargetsNoBridge(["https://no-bridge.queue.test"]);
+  assertRuntime(noBridgeResult === null, "[ui-smoke] Runtime queue flow failed: queueTargets should return null when bridge is unavailable.");
+  assertRuntime(unavailableStatus.length === 1 && unavailableStatus[0].kind === "bad" && unavailableStatus[0].message.includes("Electron bridge is unavailable"),
+    "[ui-smoke] Runtime queue flow failed: unavailable bridge should surface explicit failure status.");
+
+  const actionCalls = [];
+  const actionStatuses = [];
+  let actionSyncCalls = 0;
+  const handleQueueAction = compileRuntimeFunction("handleQueueAction", {
+    window: {
+      electronAPI: {
+        automationQueueAction: async (id, action, reason) => {
+          actionCalls.push({ id, action, reason });
+          return { success: true };
+        }
+      }
+    },
+    prompt: () => "Needs analyst escalation",
+    setStatus: (message, kind) => actionStatuses.push({ message, kind }),
+    syncAutomationState: async () => { actionSyncCalls += 1; }
+  });
+
+  await handleQueueAction("job-manual", "manual-review");
+  await handleQueueAction("job-cancel", "cancel");
+  await handleQueueAction("job-requeue", "requeue");
+
+  const manualAction = actionCalls.find((c) => c.action === "manual-review");
+  const cancelAction = actionCalls.find((c) => c.action === "cancel");
+  const requeueAction = actionCalls.find((c) => c.action === "requeue");
+  assertRuntime(manualAction && manualAction.reason === "Needs analyst escalation",
+    "[ui-smoke] Runtime queue action failed: manual-review reason should come from prompt input.");
+  assertRuntime(cancelAction && cancelAction.reason === "Cancelled by operator from queue panel.",
+    "[ui-smoke] Runtime queue action failed: cancel should apply deterministic default reason.");
+  assertRuntime(requeueAction && requeueAction.reason === "Requeued by operator for retry.",
+    "[ui-smoke] Runtime queue action failed: requeue should apply deterministic default reason.");
+  assertRuntime(actionSyncCalls === 3, "[ui-smoke] Runtime queue action failed: successful actions should sync automation state.");
+  assertRuntime(actionStatuses.filter((s) => s.kind === "ok" && s.message.includes("Queue action applied")).length === 3,
+    "[ui-smoke] Runtime queue action failed: successful actions should emit applied status messages.");
+
+  const failedStatuses = [];
+  let failedSyncCalls = 0;
+  const handleQueueActionFail = compileRuntimeFunction("handleQueueAction", {
+    window: {
+      electronAPI: {
+        automationQueueAction: async () => ({ success: false })
+      }
+    },
+    prompt: () => "Ignored reason",
+    setStatus: (message, kind) => failedStatuses.push({ message, kind }),
+    syncAutomationState: async () => { failedSyncCalls += 1; }
+  });
+
+  await handleQueueActionFail("job-fail", "cancel");
+  assertRuntime(failedStatuses.some((s) => s.kind === "bad" && s.message.includes("Queue action failed: cancel.")),
+    "[ui-smoke] Runtime queue action failed: failed actions should emit explicit failure status.");
+  assertRuntime(failedSyncCalls === 0, "[ui-smoke] Runtime queue action failed: failed actions must not sync automation state.");
+}
+
+runRuntimeInteractionProofs()
+  .then(() => {
+    console.log("[ui-smoke] PASS: core operator UI shell and critical IDs are present.");
+  })
+  .catch((error) => {
+    fail(`[ui-smoke] Runtime interaction proof failed: ${error.message}`);
+  });
