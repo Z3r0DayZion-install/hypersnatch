@@ -38,8 +38,11 @@ const requiredIds = [
   "caseWorkspacePanel",
   "caseWorkspaceState",
   "caseLinkedJobsList",
+  "caseLineageSummary",
+  "caseTimelineList",
   "btnCaseWorkspaceQueue",
   "btnCaseWorkspaceReport",
+  "btnCaseWorkspaceReportExport",
   "btnCaseWorkspaceExport",
 ];
 
@@ -206,6 +209,26 @@ if (!html.includes("data-case-job-open") || !html.includes("data-case-job-reopen
 
 if (!html.includes("openCaseReportFromContext(") || !html.includes("buildCaseWorkspaceReport(")) {
   console.error("[ui-smoke] Missing case-context report generation/navigation path.");
+  process.exit(1);
+}
+
+if (!html.includes("function buildJobTimelineEvents(") || !html.includes("function buildCaseTimelineEvents(")) {
+  console.error("[ui-smoke] Missing evidence timeline generation hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("function buildReasonChain(") || !html.includes("reason chain:")) {
+  console.error("[ui-smoke] Missing deterministic reason-chain rendering hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("## Queue Results Summary") || !html.includes("## Trust Summary") || !html.includes("## Warnings Failures and Manual Review") || !html.includes("## Evidence Timeline and Lineage")) {
+  console.error("[ui-smoke] Missing required structured reporting sections.");
+  process.exit(1);
+}
+
+if (!html.includes("Batch report exported (MD + JSON).") || !html.includes("Case report exported for")) {
+  console.error("[ui-smoke] Missing operator-usable report export variants (MD + JSON).");
   process.exit(1);
 }
 
