@@ -23,6 +23,23 @@ Push `verify:ui` further from source-structure validation toward interaction-lev
 3. Prefer deterministic state simulation checks over broad visual checks.
 4. Keep scope proof-focused; no UI redesign.
 
+## Execution Status
+
+1. Completed in slice 2:
+   - Added runtime execution checks for additional report/rollup helpers:
+     - `createEmptyStatusRollup`
+     - `accumulateStatusRollup`
+     - `buildStatusRollup`
+     - `buildCaseRollups`
+     - `buildBatchReport`
+   - Added deterministic interaction snapshots to assert:
+     - queue/manual-review/failed/warning rollup truth
+     - case summary aggregation
+     - risk summary conditional rendering
+     - report section integrity for risk and no-risk cases
+2. Gate result after slice 2:
+   - PASS (`npm install`, `npm test`, `npm run verify:ui`, `npm run build:wrapper`, `npm run verify`, `npm run audit:final`).
+
 ## Exit Criteria
 
 1. `verify:ui` fails on interaction-level transition drift in critical flows.
