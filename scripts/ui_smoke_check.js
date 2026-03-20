@@ -5,6 +5,8 @@ const path = require("path");
 
 const uiPath = path.join(__dirname, "..", "ui", "hypersnatch-ui.html");
 const html = fs.readFileSync(uiPath, "utf8");
+const pkgPath = path.join(__dirname, "..", "package.json");
+const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
 
 const idMatches = Array.from(html.matchAll(/id="([^"]+)"/g));
 const ids = new Set(idMatches.map((m) => m[1]));
@@ -112,8 +114,10 @@ if (!/button:focus-visible[\s\S]*input:focus-visible[\s\S]*textarea:focus-visibl
   process.exit(1);
 }
 
-if (!html.includes('const APP_VERSION_FALLBACK = "1.4.1";')) {
-  console.error("[ui-smoke] Stable version fallback is not aligned to 1.4.1.");
+const fallbackVersionMatch = html.match(/const APP_VERSION_FALLBACK = "([^"]+)";/);
+const fallbackVersion = fallbackVersionMatch ? fallbackVersionMatch[1] : null;
+if (!fallbackVersion || fallbackVersion !== pkg.version) {
+  console.error(`[ui-smoke] UI fallback version (${fallbackVersion || "missing"}) is not aligned to package.json version (${pkg.version}).`);
   process.exit(1);
 }
 

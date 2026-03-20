@@ -1,7 +1,7 @@
-# HyperSnatch v1.4.1
+# HyperSnatch v1.5.0-beta.1
 
-**STATUS**: Stable release-readiness  
-**CURRENT LINE**: v1.4.1  
+**STATUS**: Beta prerelease-readiness  
+**CURRENT LINE**: v1.5.0-beta.1  
 **STABLE BASELINE**: v1.3.1 (frozen)  
 **STATE**: Active development with clean-worktree proof discipline
 
