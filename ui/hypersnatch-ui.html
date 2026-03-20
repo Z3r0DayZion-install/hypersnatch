@@ -1453,6 +1453,47 @@
             <button id="btnCloseCase" class="pill-btn">Close Case</button>
           </div>
 
+          <div id="caseWorkspacePanel" class="panel">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Case Workspace</span>
+              <span class="tiny muted">Linked queue activity, trust rollup, and case actions.</span>
+            </div>
+            <div id="caseWorkspaceState" class="tiny muted" style="margin-bottom:10px;">Load a case to initialize workspace state.</div>
+            <div id="caseSummaryCounts" class="tiny mono muted" style="margin-bottom:10px;">bundles:0 notes:0 findings:0</div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:10px;">
+              <div class="panel" style="padding:8px; background:rgba(255,255,255,0.02); border-style:dashed;">
+                <div class="data-label">Linked Jobs</div>
+                <div id="caseLinkedJobsCount" class="data-value" style="font-size:1.1rem;">0</div>
+              </div>
+              <div class="panel" style="padding:8px; background:rgba(255,255,255,0.02); border-style:dashed;">
+                <div class="data-label">Manual Review</div>
+                <div id="caseManualReviewFlags" class="data-value" style="font-size:1.1rem;">0</div>
+              </div>
+              <div class="panel" style="padding:8px; background:rgba(255,255,255,0.02); border-style:dashed;">
+                <div class="data-label">Warnings/Failures</div>
+                <div id="caseRiskFlags" class="data-value" style="font-size:1.1rem;">0</div>
+              </div>
+              <div class="panel" style="padding:8px; background:rgba(255,255,255,0.02); border-style:dashed;">
+                <div class="data-label">Case Trust Summary</div>
+                <div id="caseTrustSummary" class="pill tiny idle" style="margin-top:6px;">No linked queue activity</div>
+              </div>
+            </div>
+
+            <div id="caseStatusRollup" class="tiny mono muted" style="margin-bottom:10px;">queued:0 running:0 paused:0 review:0 completed:0 warning:0 failed:0 canceled:0</div>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+              <button id="btnCaseWorkspaceQueue" class="pill-btn tiny">Open Queue View</button>
+              <button id="btnCaseWorkspaceReport" class="pill-btn tiny">Open Case Report</button>
+              <button id="btnCaseWorkspaceExport" class="pill-btn tiny">Export Active Case</button>
+            </div>
+
+            <div class="tiny muted" style="margin-bottom:6px;">Linked Queue Activity</div>
+            <div id="caseLinkedJobsList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+              <div class="muted tiny">No linked queue activity for this case.</div>
+            </div>
+          </div>
+
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
             <!-- Bundle Alignment Panel -->
             <div id="caseBundlePanel" class="panel">
@@ -2497,6 +2538,7 @@
       lastCmd: null,
       selectedIndex: null,
       lastAutomation: null,
+      lastAutomationError: null,
       lastBatchReport: null,
       automationCaseLinkedJobs: {},
       bridgePort: 4179,
@@ -3152,6 +3194,10 @@
       return String(status || "unknown").replace(/-/g, " ").toUpperCase();
     }
 
+    function isReopenableStatus(status) {
+      return status === "completed" || status === "warning" || status === "failed" || status === "canceled";
+    }
+
     function formatTimestamp(ts) {
       if (!ts) return "--";
       const d = new Date(ts);
@@ -3481,7 +3527,22 @@
 
     async function syncAutomationState() {
       if (!window.electronAPI || !window.electronAPI.automationGetState) return;
-      const snapshot = await window.electronAPI.automationGetState();
+      let snapshot = null;
+      try {
+        snapshot = await window.electronAPI.automationGetState();
+        state.lastAutomationError = null;
+      } catch (err) {
+        const errMsg = err?.message || "Automation bridge unavailable.";
+        if (state.lastAutomationError !== errMsg) {
+          setStatus(`Automation state refresh failed: ${errMsg}`, "warn");
+          logToConsole(`Automation state refresh failed: ${errMsg}`, "warn");
+        }
+        state.lastAutomationError = errMsg;
+        if (window.caseMgr && window.caseMgr.renderWorkspaceDepth) {
+          window.caseMgr.renderWorkspaceDepth(null, errMsg);
+        }
+        return;
+      }
       state.lastAutomation = snapshot;
       state.lastBatchReport = buildBatchReport(snapshot);
       el("reportTextarea").value = state.lastBatchReport.markdown;
@@ -3589,6 +3650,9 @@
       });
 
       updateTrustFromAutomation(snapshot);
+      if (window.caseMgr && window.caseMgr.renderWorkspaceDepth) {
+        window.caseMgr.renderWorkspaceDepth(snapshot, null);
+      }
     }
 
     // Wiring SmartSnatch Top Toggle & Mode Selector
@@ -4073,6 +4137,26 @@
         el('btnAutoInvestigate').addEventListener('click', () => this.launchAutoInvestigation());
         el('btnClassifyBundles').addEventListener('click', () => this.classifyBundles());
         el('btnGenerateResearch').addEventListener('click', () => this.generateResearchSuggestions());
+        el('btnCaseWorkspaceQueue').addEventListener('click', () => this.openQueueViewFromCase());
+        el('btnCaseWorkspaceReport').addEventListener('click', () => this.openCaseReportFromContext());
+        el('btnCaseWorkspaceExport').addEventListener('click', () => this.exportActiveCase());
+      }
+
+      async createCase() {
+        if (!window.electronAPI || !window.electronAPI.caseCreate) {
+          setStatus("Case creation failed: Electron bridge is unavailable.", "bad");
+          return;
+        }
+        const title = prompt("Case title:", "New Investigation");
+        if (title === null) return;
+        const created = await window.electronAPI.caseCreate(String(title || "").trim() || "New Investigation");
+        if (!created || !created.case_id) {
+          setStatus("Case creation failed: invalid response from backend.", "bad");
+          return;
+        }
+        setStatus(`Created case ${created.case_id}.`, "ok");
+        await this.refreshCaseList();
+        await this.loadCase(created.case_id);
       }
 
       async refreshCaseList() {
@@ -4119,15 +4203,273 @@
         this.refreshQueryStats();
         this.scanAllBundlesForAlerts();
         this.refreshResearchScripts();
+        this.renderWorkspaceDepth(state.lastAutomation, state.lastAutomationError);
 
         logToConsole(`Case Loaded: ${c.title}`, "ok");
         window.electronAPI.auditLog('CASE_OPEN', { caseId: caseId, title: c.title });
+      }
+
+      getLinkedCaseJobs(snapshot = state.lastAutomation) {
+        if (!this.activeCase || !this.activeCase.case_id) return [];
+        if (!snapshot) return [];
+
+        const caseId = this.activeCase.case_id;
+        const queue = Array.isArray(snapshot.queue) ? snapshot.queue : [];
+        const history = Array.isArray(snapshot.history) ? snapshot.history : [];
+
+        const linked = [...queue, ...history].filter((job) => job && job.caseId === caseId);
+        linked.sort((a, b) => {
+          const aTs = a.updatedAt || a.finishedAt || a.startedAt || a.addedAt || 0;
+          const bTs = b.updatedAt || b.finishedAt || b.startedAt || b.addedAt || 0;
+          return bTs - aTs;
+        });
+        return linked;
+      }
+
+      getCaseStatusRollup(linkedJobs) {
+        const rollup = {
+          queued: 0,
+          running: 0,
+          paused: 0,
+          manualReview: 0,
+          completed: 0,
+          warning: 0,
+          failed: 0,
+          canceled: 0
+        };
+
+        linkedJobs.forEach((job) => {
+          const status = String(job.status || "").toLowerCase();
+          if (status === "queued") rollup.queued += 1;
+          if (status === "running") rollup.running += 1;
+          if (status === "paused") rollup.paused += 1;
+          if (status === "manual-review") rollup.manualReview += 1;
+          if (status === "completed") rollup.completed += 1;
+          if (status === "warning") rollup.warning += 1;
+          if (status === "failed") rollup.failed += 1;
+          if (status === "canceled") rollup.canceled += 1;
+        });
+
+        return rollup;
+      }
+
+      getCaseTrustSummary(rollup, linkedCount) {
+        if (!linkedCount) {
+          return { label: "No linked queue activity", className: "idle" };
+        }
+        if (rollup.failed > 0) {
+          return { label: "Critical failures detected", className: "bad" };
+        }
+        if (rollup.manualReview > 0 || rollup.warning > 0 || rollup.canceled > 0) {
+          return { label: "Manual review required", className: "warn" };
+        }
+        if (rollup.completed > 0 && rollup.running === 0 && rollup.queued === 0) {
+          return { label: "Stable and completed", className: "ok" };
+        }
+        if (rollup.running > 0 || rollup.queued > 0) {
+          return { label: "In progress", className: "warn" };
+        }
+        return { label: "Needs analyst validation", className: "warn" };
+      }
+
+      renderWorkspaceDepth(snapshot = state.lastAutomation, automationError = state.lastAutomationError) {
+        const stateEl = el('caseWorkspaceState');
+        const countsEl = el('caseSummaryCounts');
+        const linkedCountEl = el('caseLinkedJobsCount');
+        const manualReviewEl = el('caseManualReviewFlags');
+        const riskEl = el('caseRiskFlags');
+        const trustEl = el('caseTrustSummary');
+        const rollupEl = el('caseStatusRollup');
+        const listEl = el('caseLinkedJobsList');
+        if (!stateEl || !countsEl || !linkedCountEl || !manualReviewEl || !riskEl || !trustEl || !rollupEl || !listEl) return;
+
+        if (!this.activeCase || !this.activeCase.case_id) {
+          stateEl.className = "tiny muted";
+          stateEl.textContent = "Load a case to initialize workspace state.";
+          countsEl.textContent = "bundles:0 notes:0 findings:0";
+          linkedCountEl.textContent = "0";
+          manualReviewEl.textContent = "0";
+          riskEl.textContent = "0";
+          trustEl.textContent = "No linked queue activity";
+          trustEl.className = "pill tiny idle";
+          rollupEl.textContent = "queued:0 running:0 paused:0 review:0 completed:0 warning:0 failed:0 canceled:0";
+          listEl.innerHTML = '<div class="muted tiny">No linked queue activity for this case.</div>';
+          return;
+        }
+
+        const bundlesCount = Array.isArray(this.activeCase.bundles) ? this.activeCase.bundles.length : 0;
+        const notesCount = Array.isArray(this.activeCase.notes) ? this.activeCase.notes.length : 0;
+        const findingsCount = Array.isArray(this.activeCase.findings) ? this.activeCase.findings.length : 0;
+        countsEl.textContent = `bundles:${bundlesCount} notes:${notesCount} findings:${findingsCount}`;
+
+        if (automationError) {
+          stateEl.className = "tiny bad";
+          stateEl.textContent = `Automation state unavailable: ${automationError}`;
+          linkedCountEl.textContent = "--";
+          manualReviewEl.textContent = "--";
+          riskEl.textContent = "--";
+          trustEl.textContent = "Automation state unavailable";
+          trustEl.className = "pill tiny bad";
+          rollupEl.textContent = "queued:-- running:-- paused:-- review:-- completed:-- warning:-- failed:-- canceled:--";
+          listEl.innerHTML = '<div class="bad tiny">Queue activity could not be loaded. Verify bridge and retry.</div>';
+          return;
+        }
+
+        if (!snapshot) {
+          stateEl.className = "tiny muted";
+          stateEl.textContent = "Loading linked queue activity for active case...";
+          linkedCountEl.textContent = "0";
+          manualReviewEl.textContent = "0";
+          riskEl.textContent = "0";
+          trustEl.textContent = "Loading";
+          trustEl.className = "pill tiny warn";
+          rollupEl.textContent = "queued:0 running:0 paused:0 review:0 completed:0 warning:0 failed:0 canceled:0";
+          listEl.innerHTML = '<div class="muted tiny">Loading queue activity...</div>';
+          return;
+        }
+
+        const linkedJobs = this.getLinkedCaseJobs(snapshot);
+        const rollup = this.getCaseStatusRollup(linkedJobs);
+        const trust = this.getCaseTrustSummary(rollup, linkedJobs.length);
+
+        linkedCountEl.textContent = String(linkedJobs.length);
+        manualReviewEl.textContent = String(rollup.manualReview);
+        riskEl.textContent = String(rollup.warning + rollup.failed + rollup.canceled);
+        trustEl.textContent = trust.label;
+        trustEl.className = `pill tiny ${trust.className}`;
+        rollupEl.textContent = `queued:${rollup.queued} running:${rollup.running} paused:${rollup.paused} review:${rollup.manualReview} completed:${rollup.completed} warning:${rollup.warning} failed:${rollup.failed} canceled:${rollup.canceled}`;
+        stateEl.className = "tiny muted";
+        stateEl.textContent = `Case workspace synced at ${new Date().toLocaleTimeString()} for ${this.activeCase.case_id}.`;
+
+        if (!linkedJobs.length) {
+          listEl.innerHTML = '<div class="muted tiny">No linked queue activity for this case. Queue with "Queue to Active Case" or bind from history.</div>';
+          return;
+        }
+
+        listEl.innerHTML = linkedJobs.slice(0, 14).map((job) => {
+          const obs = buildJobObservability(job);
+          const reason = job.failureReason || job.manualReviewReason || job.error || "";
+          const summary = job?.lastResultSummary?.message || "No summary";
+          const canReopen = isReopenableStatus(job.status);
+          return `
+            <div class="panel" style="padding:8px; border-style:dashed; background:rgba(255,255,255,0.02);">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <span class="pill tiny">${escapeHtml(job.host || "unknown")}</span>
+                <span class="status-badge ${statusBadgeClass(job.status)}">${statusLabel(job.status)}</span>
+              </div>
+              <div class="mono tiny" style="margin-top:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeForAttr(job.url || "")}">${escapeHtml(job.url || "--")}</div>
+              <div class="tiny muted" style="margin-top:4px;">${escapeHtml(obs.summaryLine)}</div>
+              <div class="tiny muted">summary: ${escapeHtml(summary)}</div>
+              ${reason ? `<div class="bad tiny">reason: ${escapeHtml(reason)}</div>` : ""}
+              <div class="tiny muted">${escapeHtml(obs.actionLine)}</div>
+              <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+                <button class="pill-btn tiny" data-case-job-open="${job.id}">Open Queue</button>
+                ${canReopen ? `<button class="pill-btn tiny" data-case-job-reopen="${job.id}">Reopen</button>` : ""}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        listEl.querySelectorAll('[data-case-job-open]').forEach((btn) => {
+          btn.addEventListener('click', () => this.openQueueViewFromCase(btn.getAttribute('data-case-job-open')));
+        });
+        listEl.querySelectorAll('[data-case-job-reopen]').forEach((btn) => {
+          btn.addEventListener('click', () => this.reopenCaseJob(btn.getAttribute('data-case-job-reopen')));
+        });
+      }
+
+      buildCaseWorkspaceReport(snapshot = state.lastAutomation) {
+        const linkedJobs = this.getLinkedCaseJobs(snapshot);
+        const rollup = this.getCaseStatusRollup(linkedJobs);
+        const trust = this.getCaseTrustSummary(rollup, linkedJobs.length);
+        const caseId = this.activeCase?.case_id || "unknown-case";
+        const title = this.activeCase?.title || "Untitled Case";
+
+        const lines = [
+          "# HyperSnatch Case Workspace Report",
+          `Generated: ${new Date().toISOString()}`,
+          `Case: ${caseId} :: ${title}`,
+          "",
+          "## Executive Summary",
+          `- linked jobs: ${linkedJobs.length}`,
+          `- bundles: ${(this.activeCase?.bundles || []).length}`,
+          `- findings: ${(this.activeCase?.findings || []).length}`,
+          `- notes: ${(this.activeCase?.notes || []).length}`,
+          `- trust summary: ${trust.label}`,
+          "",
+          "## Queue Status Rollup",
+          `- queued: ${rollup.queued}`,
+          `- running: ${rollup.running}`,
+          `- paused: ${rollup.paused}`,
+          `- manual-review: ${rollup.manualReview}`,
+          `- completed: ${rollup.completed}`,
+          `- warning: ${rollup.warning}`,
+          `- failed: ${rollup.failed}`,
+          `- canceled: ${rollup.canceled}`,
+          "",
+          "## Linked Queue Activity"
+        ];
+
+        if (!linkedJobs.length) {
+          lines.push("- no case-linked queue activity");
+        } else {
+          linkedJobs.forEach((job) => {
+            const info = buildJobObservability(job);
+            const reason = job.failureReason || job.manualReviewReason || job.error || "--";
+            const summary = job?.lastResultSummary?.message || "No summary";
+            lines.push(`- [${statusLabel(job.status)}] ${job.host} :: ${job.url}`);
+            lines.push(`  - ${info.summaryLine}`);
+            lines.push(`  - reason: ${reason}`);
+            lines.push(`  - ${info.actionLine}`);
+            lines.push(`  - summary: ${summary}`);
+          });
+        }
+
+        return lines.join("\n");
+      }
+
+      openQueueViewFromCase(jobId = null) {
+        activateTab(el("tabBtnAutomation"));
+        if (jobId) {
+          setStatus(`Opened queue view for case-linked job ${jobId.slice(0, 12)}.`, "ok");
+        } else {
+          setStatus("Opened queue view from case workspace.", "ok");
+        }
+      }
+
+      async reopenCaseJob(jobId) {
+        if (!jobId) return;
+        if (!window.electronAPI || !window.electronAPI.automationQueueAction) {
+          setStatus("Reopen failed: automation queue bridge unavailable.", "bad");
+          return;
+        }
+        const reason = `Reopened from case workspace ${this.activeCase?.case_id || "unknown-case"}.`;
+        const res = await window.electronAPI.automationQueueAction(jobId, "requeue", reason);
+        if (!res || res.success === false) {
+          setStatus(`Reopen failed for job ${jobId.slice(0, 12)}.`, "bad");
+          return;
+        }
+        setStatus(`Reopened case-linked job ${jobId.slice(0, 12)}.`, "ok");
+        await syncAutomationState();
+      }
+
+      async openCaseReportFromContext() {
+        if (!this.activeCase || !this.activeCase.case_id) {
+          setStatus("Case report launch blocked: no active case.", "warn");
+          return;
+        }
+        const markdown = this.buildCaseWorkspaceReport(state.lastAutomation);
+        const reportEl = el("reportTextarea");
+        if (reportEl) reportEl.value = markdown;
+        activateTab(el("tabBtnAutomation"));
+        setStatus(`Case report loaded for ${this.activeCase.case_id}.`, "ok");
       }
 
       closeCase() {
         this.activeCase = null;
         el('activeCaseDashboard').style.display = 'none';
         el('caseExplorer').style.display = 'block';
+        this.renderWorkspaceDepth(null, null);
         this.refreshCaseList();
       }
 
@@ -4169,6 +4511,7 @@
           this.activeCase = updated;
           this.renderBundles();
           this.updateCompareSelects();
+          this.renderWorkspaceDepth(state.lastAutomation, state.lastAutomationError);
           logToConsole(`Bundle attached: ${bundlePath}`, "ok");
         } catch (err) {
           alert("Error attaching bundle: " + err.message);
@@ -4197,6 +4540,7 @@
         this.activeCase = updated;
         el('caseNoteInput').value = "";
         this.renderNotes();
+        this.renderWorkspaceDepth(state.lastAutomation, state.lastAutomationError);
       }
 
       async exportNotes() {
@@ -4250,6 +4594,7 @@
         });
         this.activeCase = updated;
         this.renderFindings();
+        this.renderWorkspaceDepth(state.lastAutomation, state.lastAutomationError);
       }
 
       updateCompareSelects() {
