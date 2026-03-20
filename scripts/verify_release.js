@@ -273,16 +273,35 @@ function verifyRuntimeAndDependencies(packageJson) {
     });
     ok = false;
   } else if (/^\d+\.\d+\.\d+$/.test(expectedNode)) {
-    if (actualNode !== expectedNode) {
-      logError('Node runtime mismatch for reproducible maintenance proof.', {
-        expected: expectedNode,
+    const parse = (v) => v.split('.').map((n) => Number(n));
+    const [expMaj, expMin, expPatch] = parse(expectedNode);
+    const [actMaj, actMin, actPatch] = parse(actualNode);
+    const actualComparable = (actMaj * 1_000_000) + (actMin * 1_000) + actPatch;
+    const expectedComparable = (expMaj * 1_000_000) + (expMin * 1_000) + expPatch;
+
+    if (actMaj !== expMaj) {
+      logError('Node major runtime mismatch for maintenance proof.', {
+        expectedMajor: expMaj,
+        expectedMinimum: expectedNode,
         actual: actualNode,
-        remediation: `Use Node ${expectedNode} for release proof gates.`
+        remediation: `Use Node ${expMaj}.x with minimum baseline ${expectedNode}.`
       });
       ok = false;
+    } else if (actualComparable < expectedComparable) {
+      logError('Node runtime below required maintenance baseline.', {
+        expectedMinimum: expectedNode,
+        actual: actualNode,
+        remediation: `Upgrade Node to at least ${expectedNode}.`
+      });
+      ok = false;
+    } else if (actualNode === expectedNode) {
+      logSuccess('Node runtime matches maintenance baseline exactly', {
+        expectedMinimum: expectedNode,
+        actual: actualNode
+      });
     } else {
-      logSuccess('Node runtime matches locked maintenance baseline', {
-        expected: expectedNode,
+      logSuccess('Node runtime satisfies maintenance baseline', {
+        expectedMinimum: expectedNode,
         actual: actualNode
       });
     }
