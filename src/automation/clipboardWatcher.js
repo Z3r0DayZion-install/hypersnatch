@@ -62,18 +62,13 @@ class ClipboardWatcher {
             this._emitEvent('CLIPBOARD_MATCH', { host: match.host, url: text.substring(0, 100) });
 
             // Rule 1 & 10: Queue or Review, never decode directly from here
-            if (this.mode === 'MANUAL REVIEW') {
-                const job = decodeQueue.enqueue(match.url, match.host);
-                if (job) {
-                    decodeQueue.updateStatus(job.id, 'manual-review');
-                    this._emitEvent('QUEUE_ADDED_MANUAL', { id: job.id, host: match.host });
-                }
-            } else {
-                // QUEUE ONLY or AUTO DECODE mode (Scheduler decides if it runs)
-                const job = decodeQueue.enqueue(match.url, match.host);
-                if (job) {
-                    this._emitEvent('QUEUE_ADDED', { id: job.id, host: match.host });
-                }
+            const manualReview = this.mode === 'MANUAL REVIEW';
+            const job = decodeQueue.enqueue(match.url, match.host, {
+                source: 'clipboard',
+                manualReview
+            });
+            if (job) {
+                this._emitEvent(manualReview ? 'QUEUE_ADDED_MANUAL' : 'QUEUE_ADDED', { id: job.id, host: match.host });
             }
 
         } catch (err) {

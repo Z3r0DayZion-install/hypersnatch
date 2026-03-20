@@ -1,22 +1,21 @@
 /**
  * decodeScheduler.js
- * Pops items from the DecodeQueue exactly when the RateLimiter allows,
- * enforcing strict serial execution.
+ * Pops queued jobs only when the RateLimiter allows and executes serially.
  */
 
-const decodeQueue = require('./decodeQueue');
-const rateLimiter = require('./rateLimiter');
+const decodeQueue = require("./decodeQueue");
+const rateLimiter = require("./rateLimiter");
 
 class DecodeScheduler {
     constructor() {
         this.interval = null;
         this.isRunning = false;
-        this.activeJob = null; // Currently executing job
-        this.executeCallback = null; // Provided by the consumer (e.g. UI or main process)
+        this.activeJob = null;
+        this.executeCallback = null;
     }
 
     setExecutor(callback) {
-        // Callback should be an async function taking (job.url, job.host)
+        // Callback signature: async (job) => decodeResult
         this.executeCallback = callback;
     }
 
@@ -34,30 +33,27 @@ class DecodeScheduler {
         }
     }
 
-    async _tick() {
-        // If we're already waiting on a job, don't start a new one (strict serial)
-        if (this.activeJob) return;
+    getActiveJob() {
+        return this.activeJob ? { ...this.activeJob } : null;
+    }
 
-        // Check rate limit
+    async _tick() {
+        if (this.activeJob) return;
         if (!rateLimiter.canExecute()) return;
 
-        // Check queue
         const nextJob = decodeQueue.dequeue();
         if (!nextJob) return;
 
-        // We have a job and rate limit allows it
         rateLimiter.recordExecution();
         this.activeJob = nextJob;
 
         try {
-            if (this.executeCallback) {
-                await this.executeCallback(nextJob.url, nextJob.host);
-            }
-            decodeQueue.updateStatus(nextJob.id, 'completed');
+            const executionResult = this.executeCallback ? await this.executeCallback(nextJob) : null;
+            decodeQueue.complete(nextJob.id, executionResult);
         } catch (err) {
-            decodeQueue.updateStatus(nextJob.id, 'failed', err.message || String(err));
+            decodeQueue.fail(nextJob.id, err && err.message ? err.message : String(err));
         } finally {
-            this.activeJob = null; // Free up the scheduler
+            this.activeJob = null;
         }
     }
 }
