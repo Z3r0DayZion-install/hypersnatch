@@ -112,6 +112,8 @@ function verifyBuildOutput(expectedVersion) {
   const distDir = 'dist';
   const expectedInstallerName = expectedVersion ? `HyperSnatch-Setup-${expectedVersion}.exe` : null;
   const expectedInstallerPath = expectedInstallerName ? path.join(distDir, expectedInstallerName) : null;
+  const expectedBundleName = expectedVersion ? `HyperSnatch_Vanguard_v${expectedVersion}.zip` : null;
+  const expectedBundlePath = expectedBundleName ? path.join(distDir, expectedBundleName) : null;
 
   if (!expectedVersion) {
     logError('Build output verification missing expected package version context.', {
@@ -190,7 +192,9 @@ function verifyBuildOutput(expectedVersion) {
     logError('Expected installer version not found in dist output.', {
       expectedInstaller: expectedInstallerName,
       detectedInstallers: setupInstallers.map((f) => path.basename(f)),
-      remediation: 'Clean dist output and rebuild so installer version matches package.json.'
+      invalidRunReason: 'dist does not contain installer matching current package.json version.',
+      result: 'FAIL',
+      action: `Run "npm run build:wrapper" after aligning version identity to ${expectedVersion}.`
     });
     return false;
   }
@@ -202,7 +206,51 @@ function verifyBuildOutput(expectedVersion) {
     logError('Stale installer versions detected in dist output.', {
       expectedInstaller: expectedInstallerName,
       staleInstallers,
-      remediation: 'Use a clean worktree or remove stale setup exes before verification.'
+      invalidRunReason: 'mixed installer versions in dist make proof selection ambiguous.',
+      result: 'FAIL',
+      action: 'Use a clean worktree or remove stale setup exes before verification.'
+    });
+    return false;
+  }
+
+  const distTopLevelFiles = fs.readdirSync(distDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name);
+  const vanguardBundles = distTopLevelFiles.filter((name) => /^HyperSnatch_Vanguard.*\.zip$/i.test(name));
+  const versionedVanguardBundles = vanguardBundles.filter((name) => /^HyperSnatch_Vanguard_v[^\\/]+\.zip$/i.test(name));
+  const ambiguousVanguardBundles = vanguardBundles.filter((name) => !/^HyperSnatch_Vanguard_v[^\\/]+\.zip$/i.test(name));
+
+  if (!fs.existsSync(expectedBundlePath)) {
+    logError('Expected versioned release bundle not found in dist output.', {
+      expectedBundle: expectedBundleName,
+      foundBundles: vanguardBundles,
+      invalidRunReason: 'dist does not contain release bundle matching current package.json version.',
+      result: 'FAIL',
+      action: `Run "npm run build:wrapper" after aligning version identity to ${expectedVersion}.`
+    });
+    return false;
+  }
+
+  if (ambiguousVanguardBundles.length > 0) {
+    logError('Ambiguous non-versioned Vanguard bundles detected in dist output.', {
+      expectedBundle: expectedBundleName,
+      ambiguousBundles: ambiguousVanguardBundles,
+      invalidRunReason: 'bundle selection must be exact versioned match only.',
+      result: 'FAIL',
+      action: 'Remove ambiguous bundle names and keep only versioned HyperSnatch_Vanguard_v<version>.zip artifacts.'
+    });
+    return false;
+  }
+
+  const staleVanguardBundles = versionedVanguardBundles.filter((name) => name !== expectedBundleName);
+  if (staleVanguardBundles.length > 0) {
+    logError('Stale mixed-version Vanguard bundles detected in dist output.', {
+      expectedBundle: expectedBundleName,
+      staleBundles: staleVanguardBundles,
+      foundBundles: versionedVanguardBundles,
+      invalidRunReason: 'mixed bundle versions in dist make proof invalid.',
+      result: 'FAIL',
+      action: 'Use a clean worktree or remove stale versioned bundles before verification.'
     });
     return false;
   }
@@ -222,6 +270,11 @@ function verifyBuildOutput(expectedVersion) {
         sha256: calculateHash(unpackedExe)
       });
     }
+
+    logSuccess('Versioned release bundle found with valid hash', {
+      file: expectedBundlePath,
+      sha256: calculateHash(expectedBundlePath)
+    });
   } else {
     logError('No installer found in dist output.', {
       expectedPattern: 'HyperSnatch-Setup-<version>.exe',
