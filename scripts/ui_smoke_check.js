@@ -35,6 +35,12 @@ const requiredIds = [
   "btnExportBatchReport",
   "intBatchState",
   "intExportReady",
+  "caseWorkspacePanel",
+  "caseWorkspaceState",
+  "caseLinkedJobsList",
+  "btnCaseWorkspaceQueue",
+  "btnCaseWorkspaceReport",
+  "btnCaseWorkspaceExport",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));
@@ -185,6 +191,21 @@ if (!html.includes("data-queue-action=\"manual-review\"")) {
 
 if (!html.includes("function buildJobObservability(") || !html.includes("last action:")) {
   console.error("[ui-smoke] Missing job observability formatter hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("renderWorkspaceDepth(") || !html.includes("getLinkedCaseJobs(")) {
+  console.error("[ui-smoke] Missing case workspace depth rendering hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("data-case-job-open") || !html.includes("data-case-job-reopen")) {
+  console.error("[ui-smoke] Missing case-linked job open/reopen controls.");
+  process.exit(1);
+}
+
+if (!html.includes("openCaseReportFromContext(") || !html.includes("buildCaseWorkspaceReport(")) {
+  console.error("[ui-smoke] Missing case-context report generation/navigation path.");
   process.exit(1);
 }
 
