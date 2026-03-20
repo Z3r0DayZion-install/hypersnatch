@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const vm = require("vm");
 
 const uiPath = path.join(__dirname, "..", "ui", "hypersnatch-ui.html");
 const html = fs.readFileSync(uiPath, "utf8");
@@ -17,6 +18,56 @@ function assertPattern(pattern, message) {
 
 function countMatches(pattern) {
   return (html.match(pattern) || []).length;
+}
+
+function fail(message) {
+  console.error(message);
+  process.exit(1);
+}
+
+function assertRuntime(condition, message) {
+  if (!condition) {
+    fail(message);
+  }
+}
+
+function extractFunctionSource(name) {
+  const marker = `function ${name}(`;
+  const start = html.indexOf(marker);
+  if (start === -1) {
+    fail(`[ui-smoke] Missing function source for runtime proof: ${name}`);
+  }
+
+  const braceStart = html.indexOf("{", start);
+  if (braceStart === -1) {
+    fail(`[ui-smoke] Malformed function source for runtime proof: ${name}`);
+  }
+
+  let depth = 0;
+  for (let i = braceStart; i < html.length; i += 1) {
+    const ch = html[i];
+    if (ch === "{") depth += 1;
+    if (ch === "}") depth -= 1;
+    if (depth === 0) {
+      return html.slice(start, i + 1);
+    }
+  }
+
+  fail(`[ui-smoke] Unterminated function source for runtime proof: ${name}`);
+}
+
+function compileRuntimeFunction(name, sandbox = {}) {
+  const source = extractFunctionSource(name);
+  const context = vm.createContext({ ...sandbox });
+  try {
+    const fn = vm.runInContext(`(${source})`, context, { timeout: 1000 });
+    if (typeof fn !== "function") {
+      fail(`[ui-smoke] Runtime proof compile did not return a function: ${name}`);
+    }
+    return fn;
+  } catch (error) {
+    fail(`[ui-smoke] Runtime proof compile failed for ${name}: ${error.message}`);
+  }
 }
 
 const idMatches = Array.from(html.matchAll(/id="([^"]+)"/g));
@@ -379,5 +430,94 @@ if (!html.includes("Ready: Active Case") || !html.includes("Waiting For Results"
   console.error("[ui-smoke] Missing export-readiness tri-state truth labels.");
   process.exit(1);
 }
+
+const statusBadgeClass = compileRuntimeFunction("statusBadgeClass");
+assertRuntime(statusBadgeClass("running") === "ok", "[ui-smoke] Runtime statusBadgeClass failed: running should map to ok.");
+assertRuntime(statusBadgeClass("manual-review") === "warn", "[ui-smoke] Runtime statusBadgeClass failed: manual-review should map to warn.");
+assertRuntime(statusBadgeClass("failed") === "bad", "[ui-smoke] Runtime statusBadgeClass failed: failed should map to bad.");
+assertRuntime(statusBadgeClass("unknown") === "idle", "[ui-smoke] Runtime statusBadgeClass failed: unknown should map to idle.");
+
+const isReopenableStatus = compileRuntimeFunction("isReopenableStatus");
+assertRuntime(isReopenableStatus("completed") === true, "[ui-smoke] Runtime reopenability failed: completed should be reopenable.");
+assertRuntime(isReopenableStatus("warning") === true, "[ui-smoke] Runtime reopenability failed: warning should be reopenable.");
+assertRuntime(isReopenableStatus("failed") === true, "[ui-smoke] Runtime reopenability failed: failed should be reopenable.");
+assertRuntime(isReopenableStatus("canceled") === true, "[ui-smoke] Runtime reopenability failed: canceled should be reopenable.");
+assertRuntime(isReopenableStatus("queued") === false, "[ui-smoke] Runtime reopenability failed: queued should not be reopenable.");
+
+const buildReasonChain = compileRuntimeFunction("buildReasonChain");
+const reasonChain = buildReasonChain({
+  failureReason: "decoder failed",
+  actionLog: [
+    { at: 3, action: "cancel", detail: "canceled by operator" },
+    { at: 2, action: "manual-review", detail: "needs analyst" },
+    { at: 2, action: "manual-review", detail: "needs analyst" }
+  ]
+}, 4);
+assertRuntime(Array.isArray(reasonChain), "[ui-smoke] Runtime reason-chain failed: expected array.");
+assertRuntime(reasonChain[0] === "decoder failed", "[ui-smoke] Runtime reason-chain failed: headline reason should be preserved.");
+assertRuntime(reasonChain.includes("manual-review: needs analyst"), "[ui-smoke] Runtime reason-chain failed: manual-review reason should be present.");
+assertRuntime(reasonChain.filter((item) => item === "manual-review: needs analyst").length === 1, "[ui-smoke] Runtime reason-chain failed: duplicate reason entries should be deduplicated.");
+
+const buildJobTimelineEvents = compileRuntimeFunction("buildJobTimelineEvents", { buildReasonChain });
+const sampleJob = {
+  id: "job-A",
+  host: "example.test",
+  status: "failed",
+  source: "batch",
+  attempts: 2,
+  addedAt: 100,
+  startedAt: 200,
+  finishedAt: 500,
+  failureReason: "network timeout",
+  actionLog: [
+    { at: 300, action: "manual-review", detail: "needs analyst", by: "operator" },
+    { at: 300, action: "manual-review", detail: "needs analyst", by: "operator" },
+    { at: 450, action: "cancel", detail: "canceled by operator", by: "operator" }
+  ]
+};
+const jobTimeline = buildJobTimelineEvents(sampleJob, 20);
+assertRuntime(Array.isArray(jobTimeline), "[ui-smoke] Runtime timeline failed: expected job timeline array.");
+assertRuntime(jobTimeline.length >= 4, "[ui-smoke] Runtime timeline failed: expected queued/started/action/finished events.");
+assertRuntime(jobTimeline[0].event === "queued", "[ui-smoke] Runtime timeline failed: first event should be queued.");
+assertRuntime(jobTimeline[jobTimeline.length - 1].event === "failed", "[ui-smoke] Runtime timeline failed: last event should reflect finished status.");
+assertRuntime(jobTimeline.filter((ev) => ev.event === "manual-review").length === 1, "[ui-smoke] Runtime timeline failed: duplicate manual-review events should be deduplicated.");
+
+const buildCaseTimelineEvents = compileRuntimeFunction("buildCaseTimelineEvents", { buildJobTimelineEvents });
+const caseTimeline = buildCaseTimelineEvents([
+  sampleJob,
+  {
+    id: "job-B",
+    host: "example-two.test",
+    status: "completed",
+    source: "clipboard",
+    attempts: 1,
+    addedAt: 120,
+    startedAt: 220,
+    finishedAt: 620,
+    actionLog: [{ at: 600, action: "resume", detail: "resumed by operator", by: "operator" }]
+  }
+], 24);
+assertRuntime(Array.isArray(caseTimeline), "[ui-smoke] Runtime case timeline failed: expected array.");
+assertRuntime(caseTimeline.length > 0, "[ui-smoke] Runtime case timeline failed: expected merged timeline events.");
+assertRuntime(caseTimeline[0].at >= caseTimeline[Math.min(1, caseTimeline.length - 1)].at, "[ui-smoke] Runtime case timeline failed: timeline should be newest-first.");
+assertRuntime(caseTimeline.every((ev) => ev.jobId && ev.host && ev.status), "[ui-smoke] Runtime case timeline failed: merged events must include jobId/host/status.");
+
+const buildTrustSummaryFromJobs = compileRuntimeFunction("buildTrustSummaryFromJobs");
+const failedSummary = buildTrustSummaryFromJobs([{ id: "x" }], { failed: 1, manualReview: 0, warning: 0, canceled: 0, running: 0, queued: 0, completed: 0 });
+assertRuntime(failedSummary.className === "bad", "[ui-smoke] Runtime trust summary failed: failed rollup should be bad.");
+const reviewSummary = buildTrustSummaryFromJobs([{ id: "x" }], { failed: 0, manualReview: 1, warning: 0, canceled: 0, running: 0, queued: 0, completed: 0 });
+assertRuntime(reviewSummary.className === "warn", "[ui-smoke] Runtime trust summary failed: manual-review rollup should be warn.");
+const completeSummary = buildTrustSummaryFromJobs([{ id: "x" }], { failed: 0, manualReview: 0, warning: 0, canceled: 0, running: 0, queued: 0, completed: 2 });
+assertRuntime(completeSummary.className === "ok", "[ui-smoke] Runtime trust summary failed: completed rollup should be ok.");
+
+const evaluateDecodeOutcome = compileRuntimeFunction("evaluateDecodeOutcome");
+const batchOkOutcome = evaluateDecodeOutcome({ batch: true, jobs: [{ candidates: [{}] }, { candidates: [] }] });
+assertRuntime(batchOkOutcome.kind === "ok", "[ui-smoke] Runtime decode outcome failed: batch with candidates should be ok.");
+const batchWarnOutcome = evaluateDecodeOutcome({ batch: true, jobs: [{ candidates: [] }] });
+assertRuntime(batchWarnOutcome.kind === "warn", "[ui-smoke] Runtime decode outcome failed: empty batch candidates should be warn.");
+const refusalOutcome = evaluateDecodeOutcome({ candidates: [], refusals: [{ reason: "auth" }] });
+assertRuntime(refusalOutcome.kind === "warn", "[ui-smoke] Runtime decode outcome failed: refusal-only result should be warn.");
+const nullOutcome = evaluateDecodeOutcome(null);
+assertRuntime(nullOutcome.kind === "bad", "[ui-smoke] Runtime decode outcome failed: null result should be bad.");
 
 console.log("[ui-smoke] PASS: core operator UI shell and critical IDs are present.");

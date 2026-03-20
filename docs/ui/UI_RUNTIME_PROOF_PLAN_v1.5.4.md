@@ -23,6 +23,22 @@ Deepen `verify:ui` from mostly static semantic checks to stronger runtime-orient
 3. Validate sample state transitions via executable assertions, not only regex structure checks.
 4. Keep scope narrow to proof hardening; no UI redesign.
 
+## Execution Status
+
+1. Completed in slice 2:
+   - Added runtime function extraction/compilation path in `scripts/ui_smoke_check.js` via Node `vm`.
+   - Added executable state-semantic assertions for:
+     - `statusBadgeClass`
+     - `isReopenableStatus`
+     - `buildReasonChain`
+     - `buildJobTimelineEvents`
+     - `buildCaseTimelineEvents`
+     - `buildTrustSummaryFromJobs`
+     - `evaluateDecodeOutcome`
+   - Added sample job/case timeline scenarios to assert dedupe/order and state semantics.
+2. Gate result after slice 2:
+   - PASS (`npm install`, `npm test`, `npm run verify:ui`, `npm run build:wrapper`, `npm run verify`, `npm run audit:final`).
+
 ## Exit Criteria
 
 1. `verify:ui` fails if key runtime state semantics drift while hooks remain present.
