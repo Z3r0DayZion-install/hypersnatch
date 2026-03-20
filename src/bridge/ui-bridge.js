@@ -10,12 +10,19 @@ const DownloadPlan = require("../core/download-plan");
 const PORT = 4179;
 const HOST = "127.0.0.1";
 const MAX_PAYLOAD_SIZE = 10 * 1024 * 1024; // 10MB limit
+const PACKAGE_VERSION_FALLBACK = (() => {
+    try {
+        return require("../../package.json").version || "0.0.0-dev";
+    } catch (e) {
+        return "0.0.0-dev";
+    }
+})();
 
 function readRuntimeVersion() {
     try {
-        return require("../../VERSION.json").version || "0.0.0-dev";
+        return require("../../VERSION.json").version || PACKAGE_VERSION_FALLBACK;
     } catch (e) {
-        return "0.0.0-dev";
+        return PACKAGE_VERSION_FALLBACK;
     }
 }
 

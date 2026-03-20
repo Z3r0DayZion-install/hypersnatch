@@ -13,6 +13,7 @@ This matrix defines required version and artifact identity alignment before beta
 | `package-lock.json` root version | `1.4.1` | `1.5.0-beta.1` | Updated |
 | `VERSION.json` version | `1.4.1` | `1.5.0-beta.1` | Updated |
 | UI fallback version in `ui/hypersnatch-ui.html` | `1.4.1` fallback | `1.5.0-beta.1` fallback | Updated |
+| Bridge runtime version fallback in `src/bridge/ui-bridge.js` | `0.0.0-dev` fallback | package/version-aligned fallback chain | Updated |
 | User-facing status docs (`docs/PROJECT_STATUS.md`) | stable v1.4.1 context | beta line called out | Updated |
 
 ## Artifact Identity Surfaces
