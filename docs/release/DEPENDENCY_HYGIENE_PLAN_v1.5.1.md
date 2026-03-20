@@ -36,7 +36,7 @@ Improve dependency trust and reproducibility confidence in the maintenance line 
 
 - `scripts/verify_release.js` now includes runtime/dependency preflight checks:
   - lockfile presence
-  - node engine baseline match
+  - node engine minimum-baseline enforcement on Node 20 line
   - local `electron` and `electron-builder` presence with remediation hints
 - dependency warning inventory captured in:
   - `docs/dev/DEPENDENCY_WARNING_INVENTORY_v1.5.1.md`

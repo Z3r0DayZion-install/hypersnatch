@@ -21,7 +21,7 @@ This note documents the expected setup flow for clean throwaway worktrees used f
 - `npm run verify` requires build artifacts in `dist`; run `npm run build:wrapper` first in clean proof flows.
 - Missing `electron-builder/dist` or related packaging dependencies will cause build/verify failures.
 - If builder artifacts are stale, rerun `npm install` and rerun the full gate set.
-- Node runtime baseline is locked in `package.json` (`engines.node = 20.17.0`) for deterministic maintenance proofs.
+- Node runtime baseline is defined in `package.json` (`engines.node = 20.17.0`) as the minimum supported Node 20 proof runtime.
 - `scripts/verify_release.js` now fails with explicit remediation when runtime/dependency prerequisites are missing.
 
 ## Dependency Hygiene Baseline

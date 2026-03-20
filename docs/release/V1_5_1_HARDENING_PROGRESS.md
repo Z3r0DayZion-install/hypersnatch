@@ -17,3 +17,4 @@ Branch: `release-readiness/v1.5.1-hardening`
 - First slice focused on verification depth where UI trust signals are most visible to operators.
 - Initial `build:wrapper` run failed due missing local `electron-builder` in this worktree before `npm install`; rerun after install passed cleanly.
 - `verify` now reports deterministic preconditions for dependency/runtime hygiene instead of relying on implicit local setup state.
+- CI follow-up hardened Node policy to minimum baseline semantics (`20.17.0+` on Node 20) so proof gates remain truthful across patch/minor runner updates.

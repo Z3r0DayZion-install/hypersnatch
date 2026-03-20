@@ -11,7 +11,7 @@ Branch: `release-readiness/v1.5.1-hardening`
 
 ## Runtime Baseline
 
-- Expected Node runtime from `package.json`: `20.17.0`
+- Expected Node runtime baseline from `package.json`: `20.17.0` minimum on Node 20 line
 - Runtime used for this inventory: `20.17.0`
 - Lockfile present: `package-lock.json` (yes)
 
@@ -30,4 +30,3 @@ Branch: `release-readiness/v1.5.1-hardening`
   - warning text
   - classification (`informational`, `medium risk`, `action required`)
   - explicit disposition (`observation-only` or `maintenance action`)
-
