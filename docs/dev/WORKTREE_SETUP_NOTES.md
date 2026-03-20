@@ -18,6 +18,7 @@ This note documents the expected setup flow for clean throwaway worktrees used f
 ## Builder and Runtime Gotchas
 
 - `npm run verify` and `npm run build:wrapper` depend on local build/runtime dependencies.
+- `npm run verify` requires build artifacts in `dist`; run `npm run build:wrapper` first in clean proof flows.
 - Missing `electron-builder/dist` or related packaging dependencies will cause build/verify failures.
 - If builder artifacts are stale, rerun `npm install` and rerun the full gate set.
 
@@ -25,8 +26,8 @@ This note documents the expected setup flow for clean throwaway worktrees used f
 
 1. `npm test`
 2. `npm run verify:ui`
-3. `npm run verify`
-4. `npm run build:wrapper`
+3. `npm run build:wrapper`
+4. `npm run verify`
 5. `npm run audit:final` (required when release/proof surfaces are touched)
 
 ## Proof Discipline

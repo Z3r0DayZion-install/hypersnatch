@@ -35,10 +35,11 @@ git worktree add ../HyperSnatch_v1_5_0_stable_proof origin/main
 cd ../HyperSnatch_v1_5_0_stable_proof
 
 git status
+npm install
 npm test
 npm run verify:ui
-npm run verify
 npm run build:wrapper
+npm run verify
 npm run audit:final
 ```
 

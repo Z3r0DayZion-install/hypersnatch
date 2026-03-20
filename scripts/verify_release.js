@@ -126,6 +126,14 @@ function verifyBuildOutput() {
   const path = require("path");
   const distDir = 'dist';
 
+  if (!fs.existsSync(distDir)) {
+    logError('Build output missing: dist directory not found. Run "npm run build:wrapper" before "npm run verify".', {
+      path: distDir,
+      requiredCommand: 'npm run build:wrapper'
+    });
+    return false;
+  }
+
   if (!checkDirectoryExists(distDir, 'Build output directory')) {
     return false;
   }
