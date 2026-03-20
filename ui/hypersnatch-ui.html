@@ -2369,17 +2369,31 @@
         </div>
 
         <h3 style="font-size:1rem; margin-top:1rem; margin-bottom:0.5rem;">Active Queue</h3>
+        <div class="panel" style="margin-bottom:1rem;">
+          <div class="panel-header">Operator Batch Intake</div>
+          <textarea id="batchDecodeInput"
+            style="min-height:110px; font-size:0.75rem; margin-bottom:0.65rem;"
+            placeholder="Paste one target URL per line to queue batch decode jobs..."></textarea>
+          <div class="control-row">
+            <button id="btnQueueBatch" type="button">Queue Batch Jobs</button>
+            <button id="btnQueueBatchToCase" type="button">Queue to Active Case</button>
+            <button id="btnExportBatchReport" type="button">Export Batch Report</button>
+          </div>
+          <div id="batchQueueHelp" class="tiny muted" style="margin-top:0.5rem;">Batch intake uses queued/running/paused/warn/failed/canceled lifecycle labels.</div>
+        </div>
         <table class="data-table">
           <thead>
             <tr>
               <th style="width:120px;">Host</th>
               <th>Target URL</th>
               <th style="width:100px;">Status</th>
+              <th style="width:130px;">Case</th>
+              <th style="width:170px;">Actions</th>
             </tr>
           </thead>
           <tbody id="queueTbody">
             <tr>
-              <td colspan="3" class="muted" style="text-align:center; padding:1rem;">Queue is empty.</td>
+              <td colspan="5" class="muted" style="text-align:center; padding:1rem;">Queue is empty.</td>
             </tr>
           </tbody>
         </table>
@@ -2391,11 +2405,13 @@
               <th style="width:120px;">Host</th>
               <th>Target URL</th>
               <th style="width:100px;">Result</th>
+              <th style="width:130px;">Case</th>
+              <th style="width:170px;">Actions</th>
             </tr>
           </thead>
           <tbody id="historyTbody">
             <tr>
-              <td colspan="3" class="muted" style="text-align:center; padding:1rem;">No history.</td>
+              <td colspan="5" class="muted" style="text-align:center; padding:1rem;">No history.</td>
             </tr>
           </tbody>
         </table>
@@ -2432,6 +2448,10 @@
           <span id="intSw" class="pill tiny idle">idle</span>
         </div>
         <div class="trust-row">
+          <span class="muted">Batch Lifecycle</span>
+          <span id="intBatchState" class="pill tiny idle">idle</span>
+        </div>
+        <div class="trust-row">
           <span class="muted">Content Protection</span>
           <div id="intDrm" class="status-badge idle">--</div>
         </div>
@@ -2441,7 +2461,7 @@
         </div>
         <div class="trust-row">
           <span class="muted">Export Readiness</span>
-          <span class="pill tiny ok">Policy-Aware</span>
+          <span id="intExportReady" class="pill tiny ok">Policy-Aware</span>
         </div>
       </div>
 
@@ -2476,6 +2496,9 @@
       lastJson: null,
       lastCmd: null,
       selectedIndex: null,
+      lastAutomation: null,
+      lastBatchReport: null,
+      automationCaseLinkedJobs: {},
       bridgePort: 4179,
       token: null,
       safeMode: false,
@@ -3110,6 +3133,170 @@
       }
     }
 
+    function parseBatchTargets(rawInput) {
+      const urlLike = /^(https?:\/\/)/i;
+      return String(rawInput || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && urlLike.test(line));
+    }
+
+    function statusBadgeClass(status) {
+      if (status === "running" || status === "completed") return "ok";
+      if (status === "warning" || status === "queued" || status === "paused" || status === "manual-review") return "warn";
+      if (status === "failed") return "bad";
+      return "idle";
+    }
+
+    function statusLabel(status) {
+      return String(status || "unknown").replace(/-/g, " ").toUpperCase();
+    }
+
+    function updateTrustFromAutomation(snapshot) {
+      if (!snapshot) return;
+      const metrics = snapshot.metrics || {};
+      const activeJob = snapshot.activeJob || null;
+      const latest = Array.isArray(snapshot.history) && snapshot.history.length > 0 ? snapshot.history[0] : null;
+
+      let lifecycle = "IDLE";
+      let lifecycleClass = "idle";
+      if (activeJob) {
+        lifecycle = "RUNNING";
+        lifecycleClass = "ok";
+      } else if ((metrics.queued || 0) > 0) {
+        lifecycle = "QUEUED";
+        lifecycleClass = "warn";
+      } else if ((metrics.manualReview || 0) > 0) {
+        lifecycle = "REVIEW";
+        lifecycleClass = "warn";
+      } else if (latest) {
+        lifecycle = statusLabel(latest.status);
+        lifecycleClass = statusBadgeClass(latest.status);
+      }
+
+      const batchState = el("intBatchState");
+      if (batchState) {
+        batchState.textContent = lifecycle;
+        batchState.className = `pill tiny ${lifecycleClass}`;
+      }
+
+      const sw = el("intSw");
+      if (sw) {
+        sw.textContent = snapshot.mode || "OFF";
+        sw.className = `pill tiny ${snapshot.mode === "OFF" ? "idle" : "warn"}`;
+      }
+
+      const best = el("intBest");
+      if (best) {
+        best.textContent = latest?.lastResultSummary?.bestUrl || latest?.url || "--";
+      }
+
+      const exportReady = el("intExportReady");
+      if (exportReady) {
+        const hasActiveCase = Boolean(window.caseMgr && window.caseMgr.activeCase && window.caseMgr.activeCase.case_id);
+        const canExport = hasActiveCase && latest && (latest.status === "completed" || latest.status === "warning");
+        if (canExport) {
+          exportReady.textContent = "Ready: Active Case";
+          exportReady.className = "pill tiny ok";
+        } else if (hasActiveCase) {
+          exportReady.textContent = "Waiting For Results";
+          exportReady.className = "pill tiny warn";
+        } else {
+          exportReady.textContent = "Blocked: No Active Case";
+          exportReady.className = "pill tiny bad";
+        }
+      }
+
+      const hash = el("intHash");
+      if (hash) {
+        if (latest && latest.id) {
+          hash.textContent = `${latest.id.slice(0, 12)}:${latest.status}`;
+        } else {
+          hash.textContent = "--";
+        }
+      }
+    }
+
+    function buildBatchReport(snapshot) {
+      const metrics = snapshot?.metrics || {};
+      const queue = Array.isArray(snapshot?.queue) ? snapshot.queue : [];
+      const history = Array.isArray(snapshot?.history) ? snapshot.history : [];
+      const generatedAt = new Date().toISOString();
+
+      const lines = [
+        "# HyperSnatch Batch Workflow Report",
+        `Generated: ${generatedAt}`,
+        `Mode: ${snapshot?.mode || "OFF"}`,
+        "",
+        "## Metrics",
+        `- queued: ${metrics.queued || 0}`,
+        `- running: ${metrics.running || 0}`,
+        `- paused: ${metrics.paused || 0}`,
+        `- manual-review: ${metrics.manualReview || 0}`,
+        `- completed: ${metrics.completed || 0}`,
+        `- warning: ${metrics.warning || 0}`,
+        `- failed: ${metrics.failed || 0}`,
+        `- canceled: ${metrics.canceled || 0}`,
+        "",
+        "## Queue",
+        queue.length ? "" : "- empty"
+      ];
+
+      queue.forEach((job) => {
+        lines.push(`- [${statusLabel(job.status)}] ${job.host} :: ${job.url}`);
+      });
+
+      lines.push("", "## Recent History");
+      if (!history.length) {
+        lines.push("- empty");
+      } else {
+        history.forEach((job) => {
+          const msg = job?.lastResultSummary?.message || "No summary";
+          const caseTxt = job.caseId ? ` case=${job.caseId}` : "";
+          lines.push(`- [${statusLabel(job.status)}] ${job.host} :: ${job.url}${caseTxt} :: ${msg}`);
+        });
+      }
+
+      return {
+        generatedAt,
+        mode: snapshot?.mode || "OFF",
+        metrics,
+        queue,
+        history,
+        markdown: lines.join("\n")
+      };
+    }
+
+    async function queueTargets(targets, options = {}) {
+      if (!window.electronAPI || !window.electronAPI.automationQueueAdd) {
+        setStatus("Queue action failed: Electron bridge is unavailable.", "bad");
+        return null;
+      }
+
+      const activeCase = window.caseMgr && window.caseMgr.activeCase ? window.caseMgr.activeCase : null;
+      const bindToCase = Boolean(options.bindToCase && activeCase && activeCase.case_id);
+
+      const res = await window.electronAPI.automationQueueAdd(targets, {
+        source: options.source || "operator",
+        manualReview: false,
+        caseId: bindToCase ? activeCase.case_id : null,
+        caseTitle: bindToCase ? activeCase.title : null
+      });
+
+      const added = Array.isArray(res?.added) ? res.added.length : 0;
+      const skipped = Array.isArray(res?.skipped) ? res.skipped.length : 0;
+      const suffix = bindToCase ? ` bound to case ${activeCase.case_id}` : "";
+      setStatus(`Queued ${added} target(s)${suffix}${skipped ? `, skipped ${skipped}` : ""}.`, added > 0 ? "ok" : "warn");
+      logToConsole(`Batch queue update: added=${added}, skipped=${skipped}.`, added > 0 ? "ok" : "warn");
+
+      if (res && res.metrics) {
+        el('metPending').textContent = res.metrics.pending || 0;
+      }
+      activateTab(el("tabBtnAutomation"));
+      await syncAutomationState();
+      return res;
+    }
+
     async function onDecode() {
       const mode = el("mode").value;
       const input = el("input").value;
@@ -3123,6 +3310,12 @@
 
       if (mode === "offline") {
         setStatus("Offline Mode Active. Engine paused.", "warn");
+        return;
+      }
+
+      const batchTargets = parseBatchTargets(input);
+      if (batchTargets.length > 1 && window.electronAPI && window.electronAPI.automationQueueAdd) {
+        await queueTargets(batchTargets, { source: "intake-batch", bindToCase: false });
         return;
       }
 
@@ -3154,24 +3347,87 @@
       }
     }
 
+    async function handleQueueAction(id, action) {
+      if (!window.electronAPI || !window.electronAPI.automationQueueAction) return;
+      const res = await window.electronAPI.automationQueueAction(id, action);
+      if (!res || res.success === false) {
+        setStatus(`Queue action failed: ${action}.`, "bad");
+        return;
+      }
+      setStatus(`Queue action applied: ${action}.`, "ok");
+      await syncAutomationState();
+    }
+
+    async function openCaseById(caseId) {
+      if (!caseId) return;
+      if (window.caseMgr && window.caseMgr.loadCase) {
+        activateTab(el("tabBtnCases"));
+        await window.caseMgr.loadCase(caseId);
+      }
+    }
+
+    async function createCaseFromHistoryJob(jobId) {
+      const snapshot = state.lastAutomation;
+      const job = snapshot && Array.isArray(snapshot.history) ? snapshot.history.find((h) => h.id === jobId) : null;
+      if (!job || !window.electronAPI || !window.electronAPI.caseCreate) return;
+
+      const title = `Batch Decode: ${job.host} ${new Date(job.finishedAt || Date.now()).toLocaleDateString()}`;
+      const created = await window.electronAPI.caseCreate(title);
+      const summary = job.lastResultSummary || {};
+      const severity = job.status === "failed" ? "bad" : (job.status === "warning" ? "warn" : "info");
+      const note = [
+        `Batch Job ID: ${job.id}`,
+        `URL: ${job.url}`,
+        `Status: ${job.status}`,
+        `Summary: ${summary.message || "N/A"}`
+      ].join("\n");
+
+      await window.electronAPI.caseAddNote(created.case_id, note);
+      await window.electronAPI.caseAddFinding(created.case_id, {
+        bundle_id: job.id,
+        title: `Batch decode outcome: ${statusLabel(job.status)}`,
+        severity,
+        notes: summary.message || "No summary available."
+      });
+      if (window.electronAPI.automationQueueBindCase) {
+        await window.electronAPI.automationQueueBindCase(job.id, created.case_id, created.title);
+      }
+      setStatus(`Created case ${created.case_id} from batch job ${job.host}.`, "ok");
+      await openCaseById(created.case_id);
+      await syncAutomationState();
+    }
+
+    function exportBatchReport() {
+      if (!state.lastBatchReport) {
+        setStatus("Batch report export failed: no automation snapshot available.", "warn");
+        return;
+      }
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      downloadFile(JSON.stringify(state.lastBatchReport, null, 2), `batch_report_${stamp}.json`, "application/json");
+      setStatus("Batch report exported.", "ok");
+    }
+
     async function syncAutomationState() {
       if (!window.electronAPI || !window.electronAPI.automationGetState) return;
-      const state = await window.electronAPI.automationGetState();
+      const snapshot = await window.electronAPI.automationGetState();
+      state.lastAutomation = snapshot;
+      state.lastBatchReport = buildBatchReport(snapshot);
+      el("reportTextarea").value = state.lastBatchReport.markdown;
 
       // Update Metrics
-      el('metPending').textContent = state.metrics.pending;
-      el('metCompleted').textContent = state.metrics.completed;
-      el('metFailed').textContent = state.metrics.failed;
+      el('metPending').textContent = snapshot.metrics.pending;
+      el('metCompleted').textContent = (snapshot.metrics.completed || 0) + (snapshot.metrics.warning || 0);
+      el('metFailed').textContent = (snapshot.metrics.failed || 0) + (snapshot.metrics.canceled || 0);
 
       // Update Mode Selector without re-triggering event
       const sel = el('selAutoMode');
-      if (sel && sel.value !== state.mode) {
-        sel.value = state.mode;
+      if (sel && sel.value !== snapshot.mode) {
+        sel.value = snapshot.mode;
 
         // Sync the top header toggle visual based on mode
         const toggle = el('toggleSmartSnatch');
         if (toggle) {
-          const isActive = state.mode !== 'OFF';
+          const isActive = snapshot.mode !== 'OFF';
           toggle.checked = isActive;
           const slider = toggle.nextElementSibling;
           if (isActive) {
@@ -3186,31 +3442,67 @@
 
       // Render Queue
       const qBody = el('queueTbody');
-      if (state.queue.length === 0) {
-        qBody.innerHTML = `<tr><td colspan="3" class="muted" style="text-align:center; padding:1rem;">Queue is empty.</td></tr>`;
+      if (!Array.isArray(snapshot.queue) || snapshot.queue.length === 0) {
+        qBody.innerHTML = `<tr><td colspan="5" class="muted" style="text-align:center; padding:1rem;">Queue is empty.</td></tr>`;
       } else {
-        qBody.innerHTML = state.queue.map(j => `
+        qBody.innerHTML = snapshot.queue.map((j) => {
+          const canPause = j.status === "queued" || j.status === "manual-review";
+          const canResume = j.status === "paused" || j.status === "manual-review";
+          const canCancel = j.status !== "running";
+          const caseCell = j.caseId ? `<button class="pill-btn tiny" data-open-case="${j.caseId}">${escapeHtml(j.caseId)}</button>` : '<span class="muted tiny">--</span>';
+          return `
             <tr>
               <td><span class="pill">${escapeHtml(j.host)}</span></td>
               <td class="mono tiny">${escapeHtml(j.url)}</td>
-              <td><span class="status-badge ${j.status === 'active' ? 'ok' : 'warn'}">${j.status.toUpperCase()}</span></td>
+              <td><span class="status-badge ${statusBadgeClass(j.status)}">${statusLabel(j.status)}</span></td>
+              <td>${caseCell}</td>
+              <td style="display:flex; gap:4px;">
+                ${canPause ? `<button class="pill-btn tiny" data-queue-action="pause" data-queue-id="${j.id}">Pause</button>` : ""}
+                ${canResume ? `<button class="pill-btn tiny" data-queue-action="resume" data-queue-id="${j.id}">Queue</button>` : ""}
+                ${canCancel ? `<button class="pill-btn tiny" data-queue-action="cancel" data-queue-id="${j.id}" style="color:var(--color-bad);">Cancel</button>` : ""}
+              </td>
             </tr>
-         `).join('');
+          `;
+        }).join('');
       }
 
       // Render History
       const hBody = el('historyTbody');
-      if (state.history.length === 0) {
-        hBody.innerHTML = `<tr><td colspan="3" class="muted" style="text-align:center; padding:1rem;">No history.</td></tr>`;
+      if (!Array.isArray(snapshot.history) || snapshot.history.length === 0) {
+        hBody.innerHTML = `<tr><td colspan="5" class="muted" style="text-align:center; padding:1rem;">No history.</td></tr>`;
       } else {
-        hBody.innerHTML = state.history.map(j => `
+        hBody.innerHTML = snapshot.history.map((j) => {
+          const summary = j.lastResultSummary && j.lastResultSummary.message ? j.lastResultSummary.message : "";
+          const caseCell = j.caseId ? `<button class="pill-btn tiny" data-open-case="${j.caseId}">${escapeHtml(j.caseId)}</button>` : '<span class="muted tiny">--</span>';
+          return `
             <tr>
               <td><span class="pill">${escapeHtml(j.host)}</span></td>
-              <td class="mono tiny">${escapeHtml(j.url)}</td>
-              <td><span class="status-badge ${j.status === 'completed' ? 'ok' : 'bad'}">${j.status.toUpperCase()}</span></td>
+              <td class="mono tiny" title="${escapeHtml(summary)}">${escapeHtml(j.url)}</td>
+              <td><span class="status-badge ${statusBadgeClass(j.status)}">${statusLabel(j.status)}</span></td>
+              <td>${caseCell}</td>
+              <td style="display:flex; gap:4px;">
+                ${j.caseId ? "" : `<button class="pill-btn tiny" data-case-from-job="${j.id}">Create Case</button>`}
+                ${j.status === "failed" || j.status === "warning" || j.status === "canceled" ? `<button class="pill-btn tiny" data-queue-action="requeue" data-queue-id="${j.id}">Requeue</button>` : ""}
+              </td>
             </tr>
-         `).join('');
+          `;
+        }).join('');
       }
+
+      qBody.querySelectorAll("[data-queue-action]").forEach((btn) => {
+        btn.addEventListener("click", () => handleQueueAction(btn.getAttribute("data-queue-id"), btn.getAttribute("data-queue-action")));
+      });
+      hBody.querySelectorAll("[data-queue-action]").forEach((btn) => {
+        btn.addEventListener("click", () => handleQueueAction(btn.getAttribute("data-queue-id"), btn.getAttribute("data-queue-action")));
+      });
+      document.querySelectorAll("[data-open-case]").forEach((btn) => {
+        btn.addEventListener("click", () => openCaseById(btn.getAttribute("data-open-case")));
+      });
+      hBody.querySelectorAll("[data-case-from-job]").forEach((btn) => {
+        btn.addEventListener("click", () => createCaseFromHistoryJob(btn.getAttribute("data-case-from-job")));
+      });
+
+      updateTrustFromAutomation(snapshot);
     }
 
     // Wiring SmartSnatch Top Toggle & Mode Selector
@@ -3240,19 +3532,79 @@
       });
     }
 
+    const btnQueueBatch = el("btnQueueBatch");
+    if (btnQueueBatch) {
+      btnQueueBatch.addEventListener("click", async () => {
+        const raw = el("batchDecodeInput").value || el("input").value;
+        const targets = parseBatchTargets(raw);
+        if (!targets.length) {
+          setStatus("Batch queue skipped: provide at least one target URL.", "warn");
+          return;
+        }
+        await queueTargets(targets, { source: "operator-batch", bindToCase: false });
+      });
+    }
+
+    const btnQueueBatchToCase = el("btnQueueBatchToCase");
+    if (btnQueueBatchToCase) {
+      btnQueueBatchToCase.addEventListener("click", async () => {
+        const raw = el("batchDecodeInput").value || el("input").value;
+        const targets = parseBatchTargets(raw);
+        if (!targets.length) {
+          setStatus("Batch queue skipped: provide at least one target URL.", "warn");
+          return;
+        }
+        if (!(window.caseMgr && window.caseMgr.activeCase && window.caseMgr.activeCase.case_id)) {
+          setStatus("Batch queue to case blocked: load an active case first.", "warn");
+          return;
+        }
+        await queueTargets(targets, { source: "operator-batch", bindToCase: true });
+      });
+    }
+
+    const btnExportBatchReport = el("btnExportBatchReport");
+    if (btnExportBatchReport) {
+      btnExportBatchReport.addEventListener("click", () => exportBatchReport());
+    }
+
     // Listen to backend events
     if (window.electronAPI && window.electronAPI.onAutomationEvent) {
-      window.electronAPI.onAutomationEvent((payload) => {
+      window.electronAPI.onAutomationEvent(async (payload) => {
         if (payload.type === 'POLL_ERROR') return;
         syncAutomationState();
 
         if (payload.type === 'DECODE_START') {
           logToConsole(`SmartSnatch orchestration triggered for ${payload.data.host}`, 'probe');
-          setStatus(`SmartSnatch Engine processing queue...`, 'ok');
+          setStatus(`SmartSnatch engine processing ${payload.data.host}...`, 'ok');
+        }
+        if (payload.type === 'DECODE_FAILED') {
+          logToConsole(`SmartSnatch decode failed for ${payload.data.host}: ${payload.data.error}`, 'bad');
+          setStatus(`SmartSnatch decode failed for ${payload.data.host}.`, 'bad');
         }
         if (payload.type === 'DECODE_COMPLETE') {
-          // We can optionally render output here or rely on user navigating the tabs
-          logToConsole(`SmartSnatch extracted payload from ${payload.data.url.substring(0, 30)}...`, 'decode');
+          const shortUrl = (payload.data.url || "").substring(0, 40);
+          const summary = payload.data.summary && payload.data.summary.message ? payload.data.summary.message : "Decode complete.";
+          logToConsole(`SmartSnatch completed ${payload.data.host} :: ${summary}`, 'decode');
+          setStatus(`Batch decode complete for ${payload.data.host}. ${summary}`, payload.data.summary?.kind === "bad" ? "bad" : (payload.data.summary?.kind === "warn" ? "warn" : "ok"));
+
+          if (payload.data.caseId && window.caseMgr && window.caseMgr.activeCase && window.caseMgr.activeCase.case_id === payload.data.caseId) {
+            const jobId = payload.data.id;
+            if (jobId && !state.automationCaseLinkedJobs[jobId]) {
+              state.automationCaseLinkedJobs[jobId] = true;
+              try {
+                const sev = payload.data.summary?.kind === "bad" ? "bad" : (payload.data.summary?.kind === "warn" ? "warn" : "info");
+                await window.electronAPI.caseAddFinding(payload.data.caseId, {
+                  bundle_id: jobId,
+                  title: `Batch job ${payload.data.host} :: ${statusLabel(payload.data.summary?.kind || "completed")}`,
+                  severity: sev,
+                  notes: payload.data.summary?.message || `Automated decode completed for ${shortUrl}`
+                });
+                await window.caseMgr.loadCase(payload.data.caseId);
+              } catch (err) {
+                logToConsole(`Case linkage update failed for ${payload.data.host}: ${err.message}`, 'warn');
+              }
+            }
+          }
         }
       });
 
