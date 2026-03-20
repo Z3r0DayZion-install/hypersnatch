@@ -29,6 +29,12 @@ const requiredIds = [
   "bridgeText",
   "uiVer",
   "nodeIdText",
+  "batchDecodeInput",
+  "btnQueueBatch",
+  "btnQueueBatchToCase",
+  "btnExportBatchReport",
+  "intBatchState",
+  "intExportReady",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));
@@ -139,6 +145,31 @@ if (!html.includes("Notes export failed:")) {
 
 if (!html.includes("Export failed:")) {
   console.error("[ui-smoke] Case export failure messaging is missing.");
+  process.exit(1);
+}
+
+if (!html.includes("automationQueueAdd(") || !html.includes("automationQueueAction(")) {
+  console.error("[ui-smoke] Missing automation queue operator flow hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("queued/running/paused/warn/failed/canceled lifecycle labels")) {
+  console.error("[ui-smoke] Missing explicit batch lifecycle guidance text.");
+  process.exit(1);
+}
+
+if (!html.includes("function buildBatchReport(")) {
+  console.error("[ui-smoke] Missing batch report workflow summary generator.");
+  process.exit(1);
+}
+
+if (!html.includes("data-case-from-job")) {
+  console.error("[ui-smoke] Missing case/workspace bridge action for batch history.");
+  process.exit(1);
+}
+
+if (!html.includes("caseAddFinding(payload.data.caseId")) {
+  console.error("[ui-smoke] Missing batch decode to case finding linkage path.");
   process.exit(1);
 }
 
