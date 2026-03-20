@@ -1,0 +1,36 @@
+# Worktree Setup Notes
+
+This note documents the expected setup flow for clean throwaway worktrees used for gate proof.
+
+## Required Steps
+
+1. Create or switch to a clean worktree at the target branch/commit.
+2. Run `npm install` in that worktree before any gate commands.
+3. Confirm `git status --short` is clean before running proof gates.
+4. Run gates in the standard order listed below.
+
+## Common Pitfalls
+
+- Running gates before `npm install` can fail because local runtime/build modules are missing.
+- Using a dirty primary worktree can contaminate proof with unrelated changes.
+- Running release packaging from a non-merged branch can break artifact-to-history trust.
+
+## Builder and Runtime Gotchas
+
+- `npm run verify` and `npm run build:wrapper` depend on local build/runtime dependencies.
+- Missing `electron-builder/dist` or related packaging dependencies will cause build/verify failures.
+- If builder artifacts are stale, rerun `npm install` and rerun the full gate set.
+
+## Expected Gate Order
+
+1. `npm test`
+2. `npm run verify:ui`
+3. `npm run verify`
+4. `npm run build:wrapper`
+5. `npm run audit:final` (required when release/proof surfaces are touched)
+
+## Proof Discipline
+
+- Record gate outputs on the exact commit being reviewed.
+- Keep proof commands and release/tag actions in the same clean worktree context.
+- Do not claim readiness if any gate is skipped or red.
