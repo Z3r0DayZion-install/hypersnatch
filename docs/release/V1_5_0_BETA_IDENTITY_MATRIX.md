@@ -9,19 +9,19 @@ This matrix defines required version and artifact identity alignment before beta
 
 | Surface | Current Baseline | Required Beta Value | Status |
 |---|---|---|---|
-| `package.json` version | `1.4.1` | `1.5.0-beta.1` | To Align |
-| `package-lock.json` root version | `1.4.1` | `1.5.0-beta.1` | To Align |
-| `VERSION.json` version | `1.4.1` | `1.5.0-beta.1` | To Align |
-| UI fallback version in `ui/hypersnatch-ui.html` | `1.4.1` fallback | `1.5.0-beta.1` fallback | To Align |
-| User-facing status docs (`docs/PROJECT_STATUS.md`) | stable v1.4.1 context | beta line called out | To Align |
+| `package.json` version | `1.4.1` | `1.5.0-beta.1` | Updated |
+| `package-lock.json` root version | `1.4.1` | `1.5.0-beta.1` | Updated |
+| `VERSION.json` version | `1.4.1` | `1.5.0-beta.1` | Updated |
+| UI fallback version in `ui/hypersnatch-ui.html` | `1.4.1` fallback | `1.5.0-beta.1` fallback | Updated |
+| User-facing status docs (`docs/PROJECT_STATUS.md`) | stable v1.4.1 context | beta line called out | Updated |
 
 ## Artifact Identity Surfaces
 
 | Surface | Current Baseline | Required Beta Value | Status |
 |---|---|---|---|
-| Wrapper artifact name | `HyperSnatch_Vanguard_v1.4.1.zip` | `HyperSnatch_Vanguard_v1.5.0-beta.1.zip` | To Align |
-| Installer filename | `HyperSnatch-Setup-1.4.1.exe` | `HyperSnatch-Setup-1.5.0-beta.1.exe` | To Align |
-| Release notes title/version | v1.4.1 line | v1.5.0-beta.1 prerelease | To Align |
+| Wrapper artifact name | `HyperSnatch_Vanguard_v1.4.1.zip` | `HyperSnatch_Vanguard_v1.5.0-beta.1.zip` | Updated (via package version) |
+| Installer filename | `HyperSnatch-Setup-1.4.1.exe` | `HyperSnatch-Setup-1.5.0-beta.1.exe` | Updated (via package version) |
+| Release notes title/version | v1.4.1 line | v1.5.0-beta.1 prerelease | Pending release publication |
 
 ## Required Identity Checks
 
