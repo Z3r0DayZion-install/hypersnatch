@@ -8,6 +8,17 @@ const html = fs.readFileSync(uiPath, "utf8");
 const pkgPath = path.join(__dirname, "..", "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
 
+function assertPattern(pattern, message) {
+  if (!pattern.test(html)) {
+    console.error(message);
+    process.exit(1);
+  }
+}
+
+function countMatches(pattern) {
+  return (html.match(pattern) || []).length;
+}
+
 const idMatches = Array.from(html.matchAll(/id="([^"]+)"/g));
 const ids = new Set(idMatches.map((m) => m[1]));
 
@@ -178,8 +189,19 @@ if (missingQueueActions.length) {
   process.exit(1);
 }
 
-if (!/function statusBadgeClass\(status\)[\s\S]*status === "running"[\s\S]*status === "completed"[\s\S]*status === "warning"[\s\S]*status === "manual-review"[\s\S]*status === "failed"/.test(html)) {
-  console.error("[ui-smoke] Queue status badge mapping is missing required running/warning/manual-review/failed semantics.");
+assertPattern(/function statusBadgeClass\(status\)[\s\S]*status === "running"[\s\S]*status === "completed"[\s\S]*status === "warning"[\s\S]*status === "manual-review"[\s\S]*status === "failed"/,
+  "[ui-smoke] Queue status badge mapping is missing required running/warning/manual-review/failed semantics.");
+
+if (!html.includes('status === "queued"') || !html.includes('status === "paused"')) {
+  console.error("[ui-smoke] Queue status badge mapping is missing queued/paused warning treatment.");
+  process.exit(1);
+}
+
+assertPattern(/const canPause = j\.status === "queued" \|\| j\.status === "manual-review";[\s\S]*const canResume = j\.status === "paused" \|\| j\.status === "manual-review";[\s\S]*const canCancel = j\.status !== "running";[\s\S]*const canManualReview = j\.status === "queued" \|\| j\.status === "paused";/,
+  "[ui-smoke] Queue action availability semantics are missing (pause/resume/cancel/manual-review).");
+
+if (!html.includes('j.status === "failed" || j.status === "warning" || j.status === "canceled"')) {
+  console.error("[ui-smoke] Requeue availability semantics are missing for failed/warning/canceled states.");
   process.exit(1);
 }
 
@@ -187,6 +209,48 @@ if (!/function isReopenableStatus\(status\)[\s\S]*status === "completed"[\s\S]*s
   console.error("[ui-smoke] Reopenability contract for completed/warning/failed/canceled statuses is missing.");
   process.exit(1);
 }
+
+if (!html.includes("const canReopen = isReopenableStatus(job.status);")) {
+  console.error("[ui-smoke] Case workspace reopenability gating is missing.");
+  process.exit(1);
+}
+
+if (!html.includes('automationQueueAction(jobId, "requeue", reason)')) {
+  console.error("[ui-smoke] Reopen flow is not pinned to queue requeue action.");
+  process.exit(1);
+}
+
+if (!html.includes('const reason = `Reopened from case workspace ${this.activeCase?.case_id || "unknown-case"}.`;')) {
+  console.error("[ui-smoke] Reopen flow is missing deterministic case-context reason text.");
+  process.exit(1);
+}
+
+if (!html.includes('reason = prompt("Manual-review reason:"') ||
+  !html.includes('reason = "Cancelled by operator from queue panel."') ||
+  !html.includes('reason = "Requeued by operator for retry."')) {
+  console.error("[ui-smoke] Queue action reason-chain defaults are incomplete for manual-review/cancel/requeue.");
+  process.exit(1);
+}
+
+if (!html.includes("Queue action failed:") || !html.includes("Queue action applied:")) {
+  console.error("[ui-smoke] Queue action success/failure truth messaging is incomplete.");
+  process.exit(1);
+}
+
+assertPattern(/if \(!this\.activeCase \|\| !this\.activeCase\.case_id\)[\s\S]*Load a case to initialize workspace state\./,
+  "[ui-smoke] Case workspace missing no-active-case state handling.");
+
+assertPattern(/if \(automationError\)[\s\S]*Automation state unavailable:/,
+  "[ui-smoke] Case workspace missing automation-error state handling.");
+
+assertPattern(/if \(!snapshot\)[\s\S]*Loading linked queue activity for active case\.\.\./,
+  "[ui-smoke] Case workspace missing loading state handling.");
+
+assertPattern(/if \(!linkedJobs\.length\)[\s\S]*No linked queue activity for this case\./,
+  "[ui-smoke] Case workspace missing empty-linked-jobs state handling.");
+
+assertPattern(/function buildTrustSummaryFromJobs\(jobs, rollup\)[\s\S]*Critical failures detected[\s\S]*Manual review required[\s\S]*Stable and completed[\s\S]*In progress/,
+  "[ui-smoke] Trust summary state classification is incomplete.");
 
 if (!html.includes("function buildBatchReport(")) {
   console.error("[ui-smoke] Missing batch report workflow summary generator.");
@@ -255,6 +319,11 @@ if (!html.includes('if (ev.includes("fail") || ev.includes("canceled")) cls = "b
   process.exit(1);
 }
 
+if (!html.includes(".sort((a, b) => (b.at || 0) - (a.at || 0))")) {
+  console.error("[ui-smoke] Case timeline ordering is not explicitly newest-first.");
+  process.exit(1);
+}
+
 if (!html.includes("## Queue Results Summary") || !html.includes("## Trust Summary") || !html.includes("## Warnings Failures and Manual Review") || !html.includes("## Evidence Timeline and Lineage")) {
   console.error("[ui-smoke] Missing required structured reporting sections.");
   process.exit(1);
@@ -265,7 +334,7 @@ if (!html.includes("## Case Timeline") || !html.includes("## Export Metadata")) 
   process.exit(1);
 }
 
-if (!html.includes("if (!failedJobs.length && !warningJobs.length && !manualReviewJobs.length)")) {
+if (countMatches(/if \(!failedJobs\.length && !warningJobs\.length && !manualReviewJobs\.length\)/g) < 2) {
   console.error("[ui-smoke] Missing risk-section conditional rendering guard for warnings/failures/manual-review.");
   process.exit(1);
 }
