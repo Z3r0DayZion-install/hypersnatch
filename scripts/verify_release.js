@@ -4,7 +4,6 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { execSync } = require('child_process');
 
 // ==================== CONFIGURATION ====================
 const REQUIRED_FILES = [
@@ -20,20 +19,6 @@ const REQUIRED_DIRS = [
   'evidence',
   'exports'
 ];
-
-const SECURITY_REQUIREMENTS = {
-  contextIsolation: true,
-  nodeIntegration: false,
-  enableRemoteModule: false,
-  sandbox: true,
-  webSecurity: true
-};
-
-const BUILD_PATTERNS = {
-  exe: /HyperSnatch.*\.exe$/,
-  portable: /HyperSnatch.*Portable\.exe$/,
-  installer: /HyperSnatch.*Setup\.exe$/
-};
 
 // ==================== VERIFICATION FUNCTIONS ====================
 function logError(message, details = {}) {
@@ -174,7 +159,10 @@ function verifyBuildOutput() {
   const exeArtifacts = findExeArtifacts(distDir);
 
   if (exeArtifacts.exes.length === 0) {
-    logError('No built executable found');
+    logError('No built executable found in dist output.', {
+      path: distDir,
+      remediation: 'Run "npm run build:wrapper" and rerun "npm run verify".'
+    });
     return false;
   }
 
@@ -196,7 +184,10 @@ function verifyBuildOutput() {
       });
     }
   } else {
-    logError('No installer found');
+    logError('No installer found in dist output.', {
+      expectedPattern: 'HyperSnatch-Setup-<version>.exe',
+      remediation: 'Run "npm run build:wrapper" and confirm installer generation completed.'
+    });
     return false;
   }
 
@@ -204,48 +195,122 @@ function verifyBuildOutput() {
   return true;
 }
 
+function readPackageJson() {
+  const packagePath = 'package.json';
+  try {
+    return JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+  } catch (error) {
+    logError('Failed to parse package.json', { error: error.message, path: packagePath });
+    return null;
+  }
+}
+
 function verifyPackageJson() {
   const packagePath = 'package.json';
 
   if (!checkFileExists(packagePath, 'Package.json')) {
-    return false;
+    return null;
   }
 
-  try {
-    const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+  const packageJson = readPackageJson();
+  if (!packageJson) {
+    return null;
+  }
 
-    // Verify required fields
-    const requiredFields = ['name', 'version', 'main', 'description'];
-    const missingFields = requiredFields.filter(field => !packageJson[field]);
+  // Verify required fields
+  const requiredFields = ['name', 'version', 'main', 'description'];
+  const missingFields = requiredFields.filter(field => !packageJson[field]);
 
-    if (missingFields.length > 0) {
-      logError('Missing required package.json fields', { missingFields });
-      return false;
-    }
+  if (missingFields.length > 0) {
+    logError('Missing required package.json fields', { missingFields });
+    return null;
+  }
 
-    // Verify build configuration
-    if (!packageJson.build) {
-      logError('Missing build configuration');
-      return false;
-    }
+  // Verify build configuration
+  if (!packageJson.build) {
+    logError('Missing build configuration');
+    return null;
+  }
 
-    // Verify security settings
-    if (!packageJson.devDependencies || !packageJson.devDependencies.electron) {
-      logError('Missing Electron dependency');
-      return false;
-    }
+  // Verify security settings
+  if (!packageJson.devDependencies || !packageJson.devDependencies.electron) {
+    logError('Missing Electron dependency');
+    return null;
+  }
 
-    logSuccess('Package.json verified', {
-      name: packageJson.name,
-      version: packageJson.version,
-      appId: packageJson.build?.appId
+  logSuccess('Package.json verified', {
+    name: packageJson.name,
+    version: packageJson.version,
+    appId: packageJson.build?.appId
+  });
+
+  return packageJson;
+}
+
+function verifyRuntimeAndDependencies(packageJson) {
+  let ok = true;
+
+  const lockfilePath = 'package-lock.json';
+  if (fs.existsSync(lockfilePath)) {
+    const lockStats = fs.statSync(lockfilePath);
+    logSuccess('Lockfile present for deterministic installs', {
+      path: lockfilePath,
+      modified: lockStats.mtime
     });
-
-    return true;
-  } catch (error) {
-    logError('Failed to parse package.json', { error: error.message });
-    return false;
+  } else {
+    logError('Lockfile missing; deterministic dependency proof is weakened.', {
+      path: lockfilePath,
+      remediation: 'Run "npm install" and commit package-lock.json.'
+    });
+    ok = false;
   }
+
+  const expectedNode = packageJson?.engines?.node || null;
+  const actualNode = process.versions.node;
+  if (!expectedNode) {
+    logError('Node engine policy missing from package.json.', {
+      remediation: 'Define engines.node for maintenance-proof reproducibility.'
+    });
+    ok = false;
+  } else if (/^\d+\.\d+\.\d+$/.test(expectedNode)) {
+    if (actualNode !== expectedNode) {
+      logError('Node runtime mismatch for reproducible maintenance proof.', {
+        expected: expectedNode,
+        actual: actualNode,
+        remediation: `Use Node ${expectedNode} for release proof gates.`
+      });
+      ok = false;
+    } else {
+      logSuccess('Node runtime matches locked maintenance baseline', {
+        expected: expectedNode,
+        actual: actualNode
+      });
+    }
+  } else {
+    logSuccess('Node engine policy detected', {
+      expected: expectedNode,
+      actual: actualNode
+    });
+  }
+
+  const requiredPackages = ['electron', 'electron-builder'];
+  for (const dep of requiredPackages) {
+    try {
+      const depPkgPath = require.resolve(`${dep}/package.json`);
+      const depPkg = JSON.parse(fs.readFileSync(depPkgPath, 'utf8'));
+      logSuccess(`Dependency present: ${dep}`, {
+        version: depPkg.version,
+        path: path.relative(process.cwd(), depPkgPath)
+      });
+    } catch (_error) {
+      logError(`Missing dependency: ${dep}`, {
+        remediation: 'Run "npm install" before "npm run build:wrapper" and "npm run verify".'
+      });
+      ok = false;
+    }
+  }
+
+  return ok;
 }
 
 // ==================== MAIN VERIFICATION ====================
@@ -273,7 +338,16 @@ function main() {
 
   // Verify package.json
   console.log('\n📋 Checking package.json...');
-  if (!verifyPackageJson()) {
+  const packageJson = verifyPackageJson();
+  if (!packageJson) {
+    allPassed = false;
+  }
+
+  // Verify runtime and dependency hygiene
+  console.log('\n📦 Checking runtime/dependency hygiene...');
+  if (packageJson && !verifyRuntimeAndDependencies(packageJson)) {
+    allPassed = false;
+  } else if (!packageJson) {
     allPassed = false;
   }
 
