@@ -10,8 +10,15 @@ const PKG = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"))
 const RELEASE_DIR_NAME = `HyperSnatch_v${PKG.version}`;
 const LEGACY_RELEASE_DIR = path.join(ROOT, "release", RELEASE_DIR_NAME);
 const EXPECTED_INSTALLER_NAME = `HyperSnatch-Setup-${PKG.version}.exe`;
-const STRICT_HASH = process.env.HYPERSNATCH_AUDIT_REQUIRE_HASH === "1";
-const STRICT_CLI = process.env.HYPERSNATCH_AUDIT_REQUIRE_CLI === "1";
+const EXPECTED_RELEASE_BUNDLE_NAME = `HyperSnatch_Vanguard_v${PKG.version}.zip`;
+const STRICT_HASH_FLAG = process.env.HYPERSNATCH_AUDIT_REQUIRE_HASH === "1";
+const STRICT_CLI_FLAG = process.env.HYPERSNATCH_AUDIT_REQUIRE_CLI === "1";
+const AUDIT_PROFILE = String(process.env.HYPERSNATCH_AUDIT_PROFILE || "warn").trim().toLowerCase();
+const AUDIT_RELEASE_TYPE = String(process.env.HYPERSNATCH_AUDIT_RELEASE_TYPE || "internal").trim().toLowerCase();
+const VALID_AUDIT_PROFILES = new Set(["warn", "strict"]);
+const VALID_RELEASE_TYPES = new Set(["internal", "prerelease", "stable"]);
+const STRICT_HASH = STRICT_HASH_FLAG || AUDIT_PROFILE === "strict";
+const STRICT_CLI = STRICT_CLI_FLAG || AUDIT_PROFILE === "strict";
 
 function sha256(filePath) {
   const hash = crypto.createHash("sha256");
@@ -68,9 +75,35 @@ function failWithHint(message, hint) {
 }
 
 function main() {
+  if (!VALID_AUDIT_PROFILES.has(AUDIT_PROFILE)) {
+    failWithHint(
+      `Unsupported HYPERSNATCH_AUDIT_PROFILE value: ${AUDIT_PROFILE}.`,
+      `Use one of: ${Array.from(VALID_AUDIT_PROFILES).join(", ")}.`
+    );
+  }
+
+  if (!VALID_RELEASE_TYPES.has(AUDIT_RELEASE_TYPE)) {
+    failWithHint(
+      `Unsupported HYPERSNATCH_AUDIT_RELEASE_TYPE value: ${AUDIT_RELEASE_TYPE}.`,
+      `Use one of: ${Array.from(VALID_RELEASE_TYPES).join(", ")}.`
+    );
+  }
+
+  if (AUDIT_RELEASE_TYPE === "stable" && (!STRICT_HASH || !STRICT_CLI)) {
+    failWithHint(
+      "Stable release audit requires strict CLI/hash checks.",
+      "Set HYPERSNATCH_AUDIT_PROFILE=strict before running npm run audit:final."
+    );
+  }
+
   console.log("=== HyperSnatch Final Sovereign Audit ===\n");
-  console.log(`Audit profile: requireHash=${STRICT_HASH ? "yes" : "no"} requireCli=${STRICT_CLI ? "yes" : "no"}\n`);
-  console.log("Audit policy: WARN mode allows optional CLI/hash checks unless strict flags are enabled.\n");
+  console.log(`Audit contract: profile=${AUDIT_PROFILE} releaseType=${AUDIT_RELEASE_TYPE}`);
+  console.log(`Audit profile flags: requireHash=${STRICT_HASH ? "yes" : "no"} requireCli=${STRICT_CLI ? "yes" : "no"}\n`);
+  if (AUDIT_PROFILE === "strict") {
+    console.log("Audit policy: STRICT profile requires CLI artifact and SHA256SUMS validation.\n");
+  } else {
+    console.log("Audit policy: WARN profile allows optional CLI/hash checks unless strict flags are enabled.\n");
+  }
   console.log(`Expected installer for package version ${PKG.version}: ${EXPECTED_INSTALLER_NAME}\n`);
 
   const artifactRoot = findArtifactsRoot();
@@ -109,6 +142,45 @@ function main() {
 
   const installer = path.join(artifactRoot, EXPECTED_INSTALLER_NAME);
   printCheck("Installer", "PASS", path.basename(installer));
+
+  const topLevelFiles = fs.readdirSync(artifactRoot, { withFileTypes: true })
+    .filter((d) => d.isFile())
+    .map((d) => d.name);
+  const vanguardBundles = topLevelFiles.filter((name) => /^HyperSnatch_Vanguard.*\.zip$/i.test(name));
+  const versionedVanguardBundles = vanguardBundles.filter((name) => /^HyperSnatch_Vanguard_v[^\\/]+\.zip$/i.test(name));
+  const ambiguousVanguardBundles = vanguardBundles.filter((name) => !/^HyperSnatch_Vanguard_v[^\\/]+\.zip$/i.test(name));
+
+  if (vanguardBundles.length === 0) {
+    failWithHint(
+      `Expected ${EXPECTED_RELEASE_BUNDLE_NAME} but found no HyperSnatch_Vanguard*.zip artifacts. Result: FAIL.`,
+      `Run \"npm run build:wrapper\" after aligning version identity to ${PKG.version}.`
+    );
+  }
+
+  if (!versionedVanguardBundles.includes(EXPECTED_RELEASE_BUNDLE_NAME)) {
+    failWithHint(
+      `Expected ${EXPECTED_RELEASE_BUNDLE_NAME}; found ${vanguardBundles.join(", ")}. Result: FAIL.`,
+      `Run \"npm run build:wrapper\" after aligning version identity to ${PKG.version}.`
+    );
+  }
+
+  if (ambiguousVanguardBundles.length > 0) {
+    failWithHint(
+      `Ambiguous non-versioned release bundles found: ${ambiguousVanguardBundles.join(", ")}. Result: FAIL.`,
+      "Remove ambiguous bundles and keep only versioned HyperSnatch_Vanguard_v<version>.zip artifacts."
+    );
+  }
+
+  const staleVanguardBundles = versionedVanguardBundles.filter((name) => name !== EXPECTED_RELEASE_BUNDLE_NAME);
+  if (staleVanguardBundles.length > 0) {
+    failWithHint(
+      `Expected ${EXPECTED_RELEASE_BUNDLE_NAME}; found stale versioned bundles ${staleVanguardBundles.join(", ")}. Result: FAIL.`,
+      "Use a clean worktree or remove stale versioned bundles before audit proof."
+    );
+  }
+
+  const releaseBundle = path.join(artifactRoot, EXPECTED_RELEASE_BUNDLE_NAME);
+  printCheck("Release bundle", "PASS", path.basename(releaseBundle));
 
   const cli = findFirst(artifactRoot, [/^hypersnatch-cli\.exe$/i]);
   if (cli) {
@@ -163,12 +235,13 @@ function main() {
   const warns = Number(!cli && !STRICT_CLI) + Number(!fs.existsSync(manifestPath) && !STRICT_HASH);
   if (warns > 0) {
     console.log(`\nFINAL SOVEREIGN AUDIT: PASS (WITH WARNINGS: ${warns})`);
+    console.log(`Policy result: profile=${AUDIT_PROFILE}, releaseType=${AUDIT_RELEASE_TYPE}.`);
     console.log('Action: review WARN lines and decide strictness policy for this release gate.');
     console.log("WARN scope:");
     if (!cli && !STRICT_CLI) console.log("- CLI artifact is optional in current profile.");
     if (!fs.existsSync(manifestPath) && !STRICT_HASH) console.log("- SHA256SUMS.txt verification is optional in current profile.");
-    console.log('Policy hint: set HYPERSNATCH_AUDIT_REQUIRE_HASH=1 and/or HYPERSNATCH_AUDIT_REQUIRE_CLI=1 for stricter proof.');
-    console.log('Strict rerun example (PowerShell): $env:HYPERSNATCH_AUDIT_REQUIRE_HASH=\"1\"; $env:HYPERSNATCH_AUDIT_REQUIRE_CLI=\"1\"; npm run audit:final');
+    console.log('Policy hint: use HYPERSNATCH_AUDIT_PROFILE=strict for stable-signoff strictness.');
+    console.log('Strict rerun example (PowerShell): $env:HYPERSNATCH_AUDIT_PROFILE=\"strict\"; $env:HYPERSNATCH_AUDIT_RELEASE_TYPE=\"stable\"; npm run audit:final');
     return;
   }
   console.log("\nFINAL SOVEREIGN AUDIT: PASS");
@@ -178,7 +251,7 @@ try {
   main();
 } catch (err) {
   console.error("\n[CRITICAL FAILURE]:", err.message);
-  console.error(`Expected installer contract: ${EXPECTED_INSTALLER_NAME} in dist/ (no stale setup installers).`);
+  console.error(`Expected artifact contract: ${EXPECTED_INSTALLER_NAME} and ${EXPECTED_RELEASE_BUNDLE_NAME} in dist/ (no stale/mixed versions).`);
   console.error('Remediation order: npm install -> npm run build:wrapper -> npm run verify -> npm run audit:final');
   process.exit(1);
 }

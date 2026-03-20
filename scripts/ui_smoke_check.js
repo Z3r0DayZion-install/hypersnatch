@@ -200,6 +200,9 @@ if (!html.includes('status === "queued"') || !html.includes('status === "paused"
 assertPattern(/const canPause = j\.status === "queued" \|\| j\.status === "manual-review";[\s\S]*const canResume = j\.status === "paused" \|\| j\.status === "manual-review";[\s\S]*const canCancel = j\.status !== "running";[\s\S]*const canManualReview = j\.status === "queued" \|\| j\.status === "paused";/,
   "[ui-smoke] Queue action availability semantics are missing (pause/resume/cancel/manual-review).");
 
+assertPattern(/qBody\.innerHTML = snapshot\.queue\.map\(\(j\) => \{[\s\S]*data-queue-action="pause"[\s\S]*data-queue-action="resume"[\s\S]*data-queue-action="manual-review"[\s\S]*data-queue-action="cancel"/,
+  "[ui-smoke] Queue transition controls are not wired for runtime pause/resume/manual-review/cancel semantics.");
+
 if (!html.includes('j.status === "failed" || j.status === "warning" || j.status === "canceled"')) {
   console.error("[ui-smoke] Requeue availability semantics are missing for failed/warning/canceled states.");
   process.exit(1);
@@ -231,6 +234,9 @@ if (!html.includes('reason = prompt("Manual-review reason:"') ||
   console.error("[ui-smoke] Queue action reason-chain defaults are incomplete for manual-review/cancel/requeue.");
   process.exit(1);
 }
+
+assertPattern(/async function handleQueueAction\(id, action\)[\s\S]*if \(action === "manual-review"\)[\s\S]*prompt\("Manual-review reason:"[\s\S]*else if \(action === "cancel"\)[\s\S]*Cancelled by operator from queue panel\.[\s\S]*else if \(action === "requeue"\)[\s\S]*Requeued by operator for retry\.[\s\S]*automationQueueAction\(id, action, reason\)[\s\S]*Queue action failed: \$\{action\}\.[\s\S]*Queue action applied: \$\{action\}\.[\s\S]*await syncAutomationState\(\);/,
+  "[ui-smoke] Queue action handler is missing runtime transition truth for reason/default/failure/success semantics.");
 
 if (!html.includes("Queue action failed:") || !html.includes("Queue action applied:")) {
   console.error("[ui-smoke] Queue action success/failure truth messaging is incomplete.");
@@ -324,6 +330,12 @@ if (!html.includes(".sort((a, b) => (b.at || 0) - (a.at || 0))")) {
   process.exit(1);
 }
 
+assertPattern(/function buildJobTimelineEvents\(job, limit = 12\)[\s\S]*if \(job\.addedAt\)[\s\S]*event: "queued"[\s\S]*if \(job\.startedAt\)[\s\S]*event: "started"[\s\S]*if \(job\.finishedAt\)[\s\S]*event: String\(job\.status \|\| "completed"\)[\s\S]*const actionLog = Array\.isArray\(job\.actionLog\) \? job\.actionLog : \[];[\s\S]*\.sort\(\(a, b\) => \(a\.at \|\| 0\) - \(b\.at \|\| 0\)\)[\s\S]*return dedup\.slice\(-limit\);/,
+  "[ui-smoke] Job timeline runtime lineage does not enforce queued/started/finished/action-log ordering and dedupe semantics.");
+
+assertPattern(/function buildCaseTimelineEvents\(jobs, limit = 24\)[\s\S]*buildJobTimelineEvents\(job, 14\)[\s\S]*\.sort\(\(a, b\) => \(b\.at \|\| 0\) - \(a\.at \|\| 0\)\)[\s\S]*\.slice\(0, limit\);/,
+  "[ui-smoke] Case timeline lineage is missing merged newest-first runtime ordering semantics.");
+
 if (!html.includes("## Queue Results Summary") || !html.includes("## Trust Summary") || !html.includes("## Warnings Failures and Manual Review") || !html.includes("## Evidence Timeline and Lineage")) {
   console.error("[ui-smoke] Missing required structured reporting sections.");
   process.exit(1);
@@ -353,6 +365,15 @@ if (!html.includes("Case report launch blocked: no active case.") || !html.inclu
   console.error("[ui-smoke] Missing explicit case report launch/export blocked-state truth messaging.");
   process.exit(1);
 }
+
+assertPattern(/const hasActiveCase = Boolean\(window\.caseMgr && window\.caseMgr\.activeCase && window\.caseMgr\.activeCase\.case_id\);[\s\S]*const canExport = hasActiveCase && latest && \(latest\.status === "completed" \|\| latest\.status === "warning"\);[\s\S]*if \(canExport\)[\s\S]*Ready: Active Case[\s\S]*else if \(hasActiveCase\)[\s\S]*Waiting For Results[\s\S]*else \{[\s\S]*Blocked: No Active Case/,
+  "[ui-smoke] Export readiness gate must enforce active-case and completed/warning runtime truth.");
+
+assertPattern(/async openCaseReportFromContext\(\)[\s\S]*if \(!this\.activeCase \|\| !this\.activeCase\.case_id\)[\s\S]*Case report launch blocked: no active case\.[\s\S]*const report = this\.buildCaseWorkspaceReport\(state\.lastAutomation\);[\s\S]*state\.lastCaseWorkspaceReport = report;[\s\S]*if \(reportEl\) reportEl\.value = report\.markdown;[\s\S]*activateTab\(el\("tabBtnAutomation"\)\);[\s\S]*Case report loaded for \$\{this\.activeCase\.case_id\}\./,
+  "[ui-smoke] Case report launch flow is missing blocked-state gating and context-loaded runtime semantics.");
+
+assertPattern(/async exportCaseReportFromContext\(\)[\s\S]*if \(!this\.activeCase \|\| !this\.activeCase\.case_id\)[\s\S]*Case report export blocked: no active case\.[\s\S]*const report = this\.buildCaseWorkspaceReport\(state\.lastAutomation\);[\s\S]*state\.lastCaseWorkspaceReport = report;[\s\S]*downloadFile\(report\.markdown \|\| "", `\$\{base\}\.md`, "text\/markdown"\);[\s\S]*downloadFile\(JSON\.stringify\(report, null, 2\), `\$\{base\}\.json`, "application\/json"\);[\s\S]*Case report exported for \$\{this\.activeCase\.case_id\} \(MD \+ JSON\)\./,
+  "[ui-smoke] Case report export flow is missing blocked-state gating or deterministic MD/JSON export semantics.");
 
 if (!html.includes("Ready: Active Case") || !html.includes("Waiting For Results") || !html.includes("Blocked: No Active Case")) {
   console.error("[ui-smoke] Missing export-readiness tri-state truth labels.");

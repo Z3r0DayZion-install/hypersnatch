@@ -2,6 +2,9 @@
 
 This note documents the expected setup flow for clean throwaway worktrees used for gate proof.
 
+Current stable shipped line: `v1.5.2`  
+Current hardening line: `release-readiness/v1.5.3-hardening`
+
 ## Required Steps
 
 1. Create or switch to a clean worktree at the target branch/commit.
@@ -35,7 +38,7 @@ This note documents the expected setup flow for clean throwaway worktrees used f
   - Node runtime matches `package.json` engine policy
 - Warning inventory process:
   1. Run `npm install` in a clean worktree.
-  2. Capture any warnings in `docs/dev/DEPENDENCY_WARNING_INVENTORY_v1.5.1.md`.
+  2. Capture any warnings in `docs/dev/DEPENDENCY_WARNING_INVENTORY_v1.5.2.md`.
   3. Classify each warning as `informational`, `medium risk`, or `action required`.
   4. Record whether it is observation-only or requires a maintenance action.
 

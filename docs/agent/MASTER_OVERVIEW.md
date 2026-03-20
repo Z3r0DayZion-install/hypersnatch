@@ -1,8 +1,8 @@
 
 # HyperSnatch Stewardship & Dev Agent Pack
 
-Project: HyperSnatch v1.4.1 (identity alignment) with v1.4.0 stable baseline preserved
-Status: Active patch-line release readiness with release-proof discipline
+Project: HyperSnatch v1.5.2 (stable) with active hardening lane `release-readiness/v1.5.3-hardening`
+Status: Active patch-line hardening with release-proof discipline (`v1.6.0` expansion remains blocked until hardening closes)
 
 Purpose:
 This pack allows human developers or AI coding agents to immediately understand the HyperSnatch system.
