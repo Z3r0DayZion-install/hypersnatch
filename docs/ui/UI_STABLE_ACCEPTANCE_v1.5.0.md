@@ -34,12 +34,18 @@ Stable acceptance requires beta behavior to remain intact plus stable-level conf
 ## Stable Verification Commands
 
 ```bash
+npm install
 npm test
 npm run verify:ui
-npm run verify
 npm run build:wrapper
+npm run verify
 npm run audit:final
 ```
+
+Verification contract:
+
+- `npm run verify` requires build artifacts in `dist`.
+- if `dist` is missing, `verify` must fail immediately with an explicit message to run `npm run build:wrapper` first.
 
 ## Stable Rejection Conditions
 
