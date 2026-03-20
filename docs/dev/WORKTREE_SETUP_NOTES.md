@@ -21,6 +21,23 @@ This note documents the expected setup flow for clean throwaway worktrees used f
 - `npm run verify` requires build artifacts in `dist`; run `npm run build:wrapper` first in clean proof flows.
 - Missing `electron-builder/dist` or related packaging dependencies will cause build/verify failures.
 - If builder artifacts are stale, rerun `npm install` and rerun the full gate set.
+- Node runtime baseline is locked in `package.json` (`engines.node = 20.17.0`) for deterministic maintenance proofs.
+- `scripts/verify_release.js` now fails with explicit remediation when runtime/dependency prerequisites are missing.
+
+## Dependency Hygiene Baseline
+
+- Install command for clean worktrees: `npm install`
+- Required local tooling for release proof:
+  - `electron`
+  - `electron-builder`
+- Determinism surfaces:
+  - `package-lock.json` present and committed
+  - Node runtime matches `package.json` engine policy
+- Warning inventory process:
+  1. Run `npm install` in a clean worktree.
+  2. Capture any warnings in `docs/dev/DEPENDENCY_WARNING_INVENTORY_v1.5.1.md`.
+  3. Classify each warning as `informational`, `medium risk`, or `action required`.
+  4. Record whether it is observation-only or requires a maintenance action.
 
 ## Expected Gate Order
 
