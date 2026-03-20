@@ -21,6 +21,17 @@ Make WARN-profile audit behavior explicit, enforceable, and difficult to misuse 
 3. Document policy in release proof-plan surfaces so operators know when strict flags are mandatory.
 4. Add/update gate docs to avoid tribal interpretation.
 
+## Execution Status
+
+1. Completed in slice 1:
+   - Added explicit audit profile contract via `HYPERSNATCH_AUDIT_PROFILE` (`warn`/`strict`).
+   - Added release-type contract via `HYPERSNATCH_AUDIT_RELEASE_TYPE` (`internal`/`prerelease`/`stable`).
+   - Stable release mode now fails fast unless strict CLI/hash checks are enabled.
+   - WARN output now prints explicit policy-result context (`profile` + `releaseType`) and strict rerun command.
+   - Verified strict-path enforcement by running `audit:final` with `HYPERSNATCH_AUDIT_PROFILE=strict` and `HYPERSNATCH_AUDIT_RELEASE_TYPE=stable` (expected fail without CLI/hash artifacts).
+2. Remaining:
+   - Align release/gate docs so stable-proof examples consistently use strict profile contract.
+
 ## Exit Criteria
 
 1. WARN output clearly states what is optional, what is mandatory, and when strict rerun is required.
