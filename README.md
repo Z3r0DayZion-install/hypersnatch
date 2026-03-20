@@ -1,8 +1,8 @@
-# HyperSnatch v1.5.3
+# HyperSnatch v1.5.4
 
-**STATUS**: Stable shipped (`v1.5.3`)  
-**CURRENT HARDENING LINE**: `release-readiness/v1.5.4-hardening`  
-**LATEST PROOF RECORD**: `docs/release/RELEASE_PROOF_v1.5.3.md`  
+**STATUS**: Stable shipped (`v1.5.4`)  
+**CURRENT HARDENING LINE**: `release-readiness/v1.5.5-hardening`  
+**LATEST PROOF RECORD**: `docs/release/RELEASE_PROOF_v1.5.4.md`  
 **STATE**: Trust-layer hardening continues before any `v1.6.0` expansion work
 
 ## Stewardship & Onboarding
