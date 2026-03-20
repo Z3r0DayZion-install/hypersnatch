@@ -59,6 +59,7 @@
     "verify:system": "node scripts/verify_system.js",
     "verify:ui": "node scripts/ui_smoke_check.js",
     "audit:final": "node tests/final_sovereign_audit.js",
+    "audit:stable": "node scripts/audit_stable_signoff.js",
     "proof": "node tests/proof_all_decoders.js",
     "postinstall": "npx --yes electron-builder install-app-deps"
   },

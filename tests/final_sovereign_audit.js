@@ -80,6 +80,7 @@ function printStrictStableGuidance() {
   console.log("- required profile: HYPERSNATCH_AUDIT_PROFILE=strict");
   console.log("- required release type: HYPERSNATCH_AUDIT_RELEASE_TYPE=stable");
   console.log("- required checks: CLI artifact + SHA256SUMS hash verification");
+  console.log("- recommended command: npm run audit:stable");
   console.log('Strict rerun example (PowerShell): $env:HYPERSNATCH_AUDIT_PROFILE="strict"; $env:HYPERSNATCH_AUDIT_RELEASE_TYPE="stable"; npm run audit:final');
 }
 
@@ -112,6 +113,7 @@ function main() {
     console.log("Audit interpretation: STRICT STABLE SIGNOFF mode.\n");
   } else {
     console.log("Audit interpretation: NON-SIGNOFF mode for stable tag decisions.\n");
+    console.log("Policy reminder: `npm run audit:final` is maintenance evidence only; do not use it as strict stable signoff.\n");
   }
   if (AUDIT_PROFILE === "strict") {
     console.log("Audit policy: STRICT profile requires CLI artifact and SHA256SUMS validation.\n");
@@ -251,7 +253,7 @@ function main() {
     console.log(`\nFINAL SOVEREIGN AUDIT: PASS (WITH WARNINGS: ${warns})`);
     console.log(`Policy result: profile=${AUDIT_PROFILE}, releaseType=${AUDIT_RELEASE_TYPE}.`);
     console.log("Signoff interpretation: NOT VALID for strict stable release signoff.");
-    console.log("Action: review WARN lines and rerun in strict stable mode before stable tagging.");
+    console.log("Action: review WARN lines and rerun strict stable signoff (`npm run audit:stable`) before stable tagging.");
     console.log("WARN scope:");
     if (!cli && !STRICT_CLI) console.log("- CLI artifact is optional in current profile.");
     if (!fs.existsSync(manifestPath) && !STRICT_HASH) console.log("- SHA256SUMS.txt verification is optional in current profile.");
@@ -263,7 +265,8 @@ function main() {
     return;
   }
   console.log("\nFINAL SOVEREIGN AUDIT: PASS (NON-SIGNOFF PROFILE)");
-  console.log("Interpretation: suitable for maintenance evidence, not strict stable tag signoff.");
+  console.log("Interpretation: suitable for maintenance evidence only, not strict stable tag signoff.");
+  console.log("Action: run `npm run audit:stable` for strict stable-signoff evidence.");
   printStrictStableGuidance();
 }
 

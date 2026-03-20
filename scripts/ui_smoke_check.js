@@ -520,4 +520,118 @@ assertRuntime(refusalOutcome.kind === "warn", "[ui-smoke] Runtime decode outcome
 const nullOutcome = evaluateDecodeOutcome(null);
 assertRuntime(nullOutcome.kind === "bad", "[ui-smoke] Runtime decode outcome failed: null result should be bad.");
 
+const createEmptyStatusRollup = compileRuntimeFunction("createEmptyStatusRollup");
+const accumulateStatusRollup = compileRuntimeFunction("accumulateStatusRollup");
+const buildStatusRollup = compileRuntimeFunction("buildStatusRollup", {
+  createEmptyStatusRollup,
+  accumulateStatusRollup
+});
+const buildCaseRollups = compileRuntimeFunction("buildCaseRollups", {
+  createEmptyStatusRollup,
+  accumulateStatusRollup
+});
+const statusLabel = compileRuntimeFunction("statusLabel");
+const formatTimestamp = compileRuntimeFunction("formatTimestamp");
+const buildBatchReport = compileRuntimeFunction("buildBatchReport", {
+  buildStatusRollup,
+  buildCaseRollups,
+  buildTrustSummaryFromJobs,
+  buildReasonChain,
+  buildJobTimelineEvents,
+  buildCaseTimelineEvents,
+  statusLabel,
+  formatTimestamp
+});
+
+const interactionSnapshot = {
+  mode: "ON",
+  metrics: { queueLength: 2 },
+  queue: [
+    {
+      id: "queue-1",
+      status: "running",
+      host: "alpha.example",
+      url: "https://alpha.example/video",
+      source: "batch",
+      caseId: "CASE-ALPHA",
+      addedAt: 100,
+      startedAt: 150,
+      attempts: 1,
+      actionLog: [{ at: 151, action: "resume", detail: "resumed by scheduler", by: "scheduler" }]
+    },
+    {
+      id: "queue-2",
+      status: "manual-review",
+      host: "beta.example",
+      url: "https://beta.example/video",
+      source: "batch",
+      caseId: "CASE-ALPHA",
+      addedAt: 200,
+      manualReviewReason: "captcha challenge",
+      actionLog: [{ at: 220, action: "manual-review", detail: "captcha challenge", by: "operator" }]
+    }
+  ],
+  history: [
+    {
+      id: "history-1",
+      status: "failed",
+      host: "gamma.example",
+      url: "https://gamma.example/video",
+      source: "clipboard",
+      caseId: "CASE-BETA",
+      addedAt: 50,
+      startedAt: 60,
+      finishedAt: 400,
+      failureReason: "network timeout",
+      actionLog: [{ at: 360, action: "cancel", detail: "canceled after timeout", by: "scheduler" }]
+    },
+    {
+      id: "history-2",
+      status: "warning",
+      host: "delta.example",
+      url: "https://delta.example/video",
+      source: "clipboard",
+      caseId: "CASE-BETA",
+      addedAt: 40,
+      startedAt: 45,
+      finishedAt: 300,
+      lastResultSummary: { message: "partial extraction result" },
+      actionLog: [{ at: 280, action: "manual-review", detail: "partial extraction result", by: "operator" }]
+    }
+  ]
+};
+const interactionReport = buildBatchReport(interactionSnapshot);
+assertRuntime(interactionReport.queueResultsSummary.running === 1, "[ui-smoke] Runtime batch report failed: running rollup should be 1.");
+assertRuntime(interactionReport.queueResultsSummary.manualReview === 1, "[ui-smoke] Runtime batch report failed: manual-review rollup should be 1.");
+assertRuntime(interactionReport.queueResultsSummary.failed === 1, "[ui-smoke] Runtime batch report failed: failed rollup should be 1.");
+assertRuntime(interactionReport.queueResultsSummary.warning === 1, "[ui-smoke] Runtime batch report failed: warning rollup should be 1.");
+assertRuntime(Array.isArray(interactionReport.caseSummary) && interactionReport.caseSummary.length === 2, "[ui-smoke] Runtime batch report failed: case summary should include both linked cases.");
+assertRuntime(interactionReport.riskSummary.failed.length === 1, "[ui-smoke] Runtime batch report failed: failed risk summary length mismatch.");
+assertRuntime(interactionReport.riskSummary.warning.length === 1, "[ui-smoke] Runtime batch report failed: warning risk summary length mismatch.");
+assertRuntime(interactionReport.riskSummary.manualReview.length === 1, "[ui-smoke] Runtime batch report failed: manual-review risk summary length mismatch.");
+assertRuntime(interactionReport.exportMetadata.deterministicHeadings === true, "[ui-smoke] Runtime batch report failed: deterministic headings flag should be true.");
+assertRuntime(interactionReport.markdown.includes("## Warnings Failures and Manual Review"), "[ui-smoke] Runtime batch report failed: risk section heading missing.");
+assertRuntime(interactionReport.markdown.includes("manual-review:"), "[ui-smoke] Runtime batch report failed: manual-review lines should render in report.");
+
+const noRiskReport = buildBatchReport({
+  mode: "ON",
+  metrics: {},
+  queue: [],
+  history: [
+    {
+      id: "completed-1",
+      status: "completed",
+      host: "omega.example",
+      url: "https://omega.example/video",
+      source: "batch",
+      caseId: "CASE-OMEGA",
+      addedAt: 1,
+      startedAt: 2,
+      finishedAt: 3,
+      actionLog: []
+    }
+  ]
+});
+assertRuntime(/## Warnings Failures and Manual Review[\s\S]*- none/.test(noRiskReport.markdown), "[ui-smoke] Runtime batch report failed: no-risk report should render '- none' in risk section.");
+
 console.log("[ui-smoke] PASS: core operator UI shell and critical IDs are present.");
