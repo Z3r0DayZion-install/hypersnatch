@@ -173,4 +173,19 @@ if (!html.includes("caseAddFinding(payload.data.caseId")) {
   process.exit(1);
 }
 
+if (!html.includes("manualReviewReason") || !html.includes("failureReason") || !html.includes("durationMs")) {
+  console.error("[ui-smoke] Missing queue observability reason/timing hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("data-queue-action=\"manual-review\"")) {
+  console.error("[ui-smoke] Missing manual-review queue action control.");
+  process.exit(1);
+}
+
+if (!html.includes("function buildJobObservability(") || !html.includes("last action:")) {
+  console.error("[ui-smoke] Missing job observability formatter hooks.");
+  process.exit(1);
+}
+
 console.log("[ui-smoke] PASS: core operator UI shell and critical IDs are present.");
