@@ -32,8 +32,12 @@ function assertRuntime(condition, message) {
 }
 
 function extractFunctionSource(name) {
-  const marker = `function ${name}(`;
-  const start = html.indexOf(marker);
+  const asyncMarker = `async function ${name}(`;
+  const plainMarker = `function ${name}(`;
+  let start = html.indexOf(asyncMarker);
+  if (start === -1) {
+    start = html.indexOf(plainMarker);
+  }
   if (start === -1) {
     fail(`[ui-smoke] Missing function source for runtime proof: ${name}`);
   }

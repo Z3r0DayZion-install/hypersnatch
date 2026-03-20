@@ -18,3 +18,4 @@ Branch: `release-readiness/v1.5.6-hardening`
 3. Version identity alignment is deferred until hardening scope is complete.
 4. Slice 1 tightened audit output language to reduce warn-profile signoff ambiguity while keeping maintenance-mode behavior intact.
 5. Slice 2 deepened runtime interaction checks in `scripts/ui_smoke_check.js` for `handleQueueAction` behavior (reason propagation, deterministic defaults, success/failure semantics).
+6. Slice 2 also hardened runtime function extraction for `async function` signatures so interaction-level checks execute correctly.
