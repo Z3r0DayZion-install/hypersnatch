@@ -1,7 +1,7 @@
-# HyperSnatch v1.5.0
+# HyperSnatch v1.5.1
 
 **STATUS**: Stable release-readiness  
-**CURRENT LINE**: v1.5.0  
+**CURRENT LINE**: v1.5.1  
 **STABLE BASELINE**: v1.4.1 (frozen)  
 **STATE**: Stable identity alignment with clean-worktree proof discipline
 
