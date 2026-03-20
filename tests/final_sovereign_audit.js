@@ -9,6 +9,8 @@ const DIST_DIR = path.join(ROOT, "dist");
 const PKG = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
 const RELEASE_DIR_NAME = `HyperSnatch_v${PKG.version}`;
 const LEGACY_RELEASE_DIR = path.join(ROOT, "release", RELEASE_DIR_NAME);
+const STRICT_HASH = process.env.HYPERSNATCH_AUDIT_REQUIRE_HASH === "1";
+const STRICT_CLI = process.env.HYPERSNATCH_AUDIT_REQUIRE_CLI === "1";
 
 function sha256(filePath) {
   const hash = crypto.createHash("sha256");
@@ -55,24 +57,47 @@ function assertExists(relPath) {
   }
 }
 
+function printCheck(name, status, detail) {
+  console.log(`${name}: ${status}${detail ? ` (${detail})` : ""}`);
+}
+
+function failWithHint(message, hint) {
+  const suffix = hint ? ` Hint: ${hint}` : "";
+  throw new Error(`${message}${suffix}`);
+}
+
 function main() {
   console.log("=== HyperSnatch Final Sovereign Audit ===\n");
+  console.log(`Audit profile: requireHash=${STRICT_HASH ? "yes" : "no"} requireCli=${STRICT_CLI ? "yes" : "no"}\n`);
 
   const artifactRoot = findArtifactsRoot();
   if (!artifactRoot) {
-    throw new Error(`No artifact root found. Expected dist/ or release/${RELEASE_DIR_NAME}.`);
+    failWithHint(
+      `No artifact root found. Expected dist/ or release/${RELEASE_DIR_NAME}.`,
+      `Run \"npm run build:wrapper\" first, then rerun \"npm run audit:final\".`
+    );
   }
   console.log(`Artifacts root: ${artifactRoot}`);
 
   const installer = findFirst(artifactRoot, [/^HyperSnatch-Setup-.*\.exe$/i]);
-  if (!installer) throw new Error("Installer .exe not found.");
-  console.log(`Installer: ${path.basename(installer)}`);
+  if (!installer) {
+    failWithHint(
+      "Installer .exe not found in artifact root.",
+      `Expected HyperSnatch-Setup-<version>.exe after \"npm run build:wrapper\".`
+    );
+  }
+  printCheck("Installer", "PASS", path.basename(installer));
 
   const cli = findFirst(artifactRoot, [/^hypersnatch-cli\.exe$/i]);
   if (cli) {
-    console.log(`CLI: ${path.basename(cli)}`);
+    printCheck("CLI", "PASS", path.basename(cli));
+  } else if (STRICT_CLI) {
+    failWithHint(
+      "CLI artifact required but not found.",
+      `Disable strict CLI mode or include hypersnatch-cli.exe in the build profile.`
+    );
   } else {
-    console.log("CLI: SKIPPED (artifact not present in current build profile)");
+    printCheck("CLI", "WARN", "not present in current build profile; set HYPERSNATCH_AUDIT_REQUIRE_CLI=1 to enforce");
   }
 
   const manifestPath = path.join(artifactRoot, "SHA256SUMS.txt");
@@ -98,16 +123,27 @@ function main() {
         throw new Error("CLI hash mismatch against SHA256SUMS.txt.");
       }
     }
-    console.log("Hash verification: PASS (SHA256SUMS.txt)");
+    printCheck("Hash verification", "PASS", "SHA256SUMS.txt");
+  } else if (STRICT_HASH) {
+    failWithHint(
+      "SHA256SUMS.txt required but missing.",
+      `Generate checksum manifest in artifact root or unset HYPERSNATCH_AUDIT_REQUIRE_HASH.`
+    );
   } else {
-    console.log("Hash verification: SKIPPED (SHA256SUMS.txt missing)");
+    printCheck("Hash verification", "WARN", "SHA256SUMS.txt missing; set HYPERSNATCH_AUDIT_REQUIRE_HASH=1 to enforce");
   }
 
   assertExists("README.md");
   assertExists("VERSION.json");
   assertExists(path.join("docs", "PROJECT_STATUS.md"));
-  console.log("Documentation presence: PASS");
+  printCheck("Documentation presence", "PASS", "README.md, VERSION.json, docs/PROJECT_STATUS.md");
 
+  const warns = Number(!cli && !STRICT_CLI) + Number(!fs.existsSync(manifestPath) && !STRICT_HASH);
+  if (warns > 0) {
+    console.log(`\nFINAL SOVEREIGN AUDIT: PASS (WITH WARNINGS: ${warns})`);
+    console.log('Action: review WARN lines and decide whether to enforce strict mode for this release gate.');
+    return;
+  }
   console.log("\nFINAL SOVEREIGN AUDIT: PASS");
 }
 
@@ -115,5 +151,6 @@ try {
   main();
 } catch (err) {
   console.error("\n[CRITICAL FAILURE]:", err.message);
+  console.error('Remediation order: npm install -> npm run build:wrapper -> npm run verify -> npm run audit:final');
   process.exit(1);
 }

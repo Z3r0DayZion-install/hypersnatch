@@ -171,6 +171,23 @@ if (!html.includes("queued/running/paused/warn/failed/canceled lifecycle labels"
   process.exit(1);
 }
 
+const requiredQueueActions = ["pause", "resume", "manual-review", "cancel", "requeue"];
+const missingQueueActions = requiredQueueActions.filter((action) => !html.includes(`data-queue-action="${action}"`));
+if (missingQueueActions.length) {
+  console.error(`[ui-smoke] Missing queue action controls: ${missingQueueActions.join(", ")}`);
+  process.exit(1);
+}
+
+if (!/function statusBadgeClass\(status\)[\s\S]*status === "running"[\s\S]*status === "completed"[\s\S]*status === "warning"[\s\S]*status === "manual-review"[\s\S]*status === "failed"/.test(html)) {
+  console.error("[ui-smoke] Queue status badge mapping is missing required running/warning/manual-review/failed semantics.");
+  process.exit(1);
+}
+
+if (!/function isReopenableStatus\(status\)[\s\S]*status === "completed"[\s\S]*status === "warning"[\s\S]*status === "failed"[\s\S]*status === "canceled"/.test(html)) {
+  console.error("[ui-smoke] Reopenability contract for completed/warning/failed/canceled statuses is missing.");
+  process.exit(1);
+}
+
 if (!html.includes("function buildBatchReport(")) {
   console.error("[ui-smoke] Missing batch report workflow summary generator.");
   process.exit(1);
@@ -226,13 +243,50 @@ if (!html.includes("function buildReasonChain(") || !html.includes("reason chain
   process.exit(1);
 }
 
+if (!html.includes("lineage=") || !html.includes("sources=")) {
+  console.error("[ui-smoke] Missing deterministic lineage summary fields (lineage/sources).");
+  process.exit(1);
+}
+
+if (!html.includes('if (ev.includes("fail") || ev.includes("canceled")) cls = "bad";') ||
+  !html.includes('else if (ev.includes("manual") || ev.includes("warn")) cls = "warn";') ||
+  !html.includes('else if (ev.includes("complete")) cls = "ok";')) {
+  console.error("[ui-smoke] Timeline severity rendering is missing distinct bad/warn/ok treatment.");
+  process.exit(1);
+}
+
 if (!html.includes("## Queue Results Summary") || !html.includes("## Trust Summary") || !html.includes("## Warnings Failures and Manual Review") || !html.includes("## Evidence Timeline and Lineage")) {
   console.error("[ui-smoke] Missing required structured reporting sections.");
   process.exit(1);
 }
 
+if (!html.includes("## Case Timeline") || !html.includes("## Export Metadata")) {
+  console.error("[ui-smoke] Missing required case-report timeline/export sections.");
+  process.exit(1);
+}
+
+if (!html.includes("if (!failedJobs.length && !warningJobs.length && !manualReviewJobs.length)")) {
+  console.error("[ui-smoke] Missing risk-section conditional rendering guard for warnings/failures/manual-review.");
+  process.exit(1);
+}
+
 if (!html.includes("Batch report exported (MD + JSON).") || !html.includes("Case report exported for")) {
   console.error("[ui-smoke] Missing operator-usable report export variants (MD + JSON).");
+  process.exit(1);
+}
+
+if (!html.includes("Batch report export failed: no automation snapshot available.")) {
+  console.error("[ui-smoke] Missing explicit batch report export failure messaging.");
+  process.exit(1);
+}
+
+if (!html.includes("Case report launch blocked: no active case.") || !html.includes("Case report export blocked: no active case.")) {
+  console.error("[ui-smoke] Missing explicit case report launch/export blocked-state truth messaging.");
+  process.exit(1);
+}
+
+if (!html.includes("Ready: Active Case") || !html.includes("Waiting For Results") || !html.includes("Blocked: No Active Case")) {
+  console.error("[ui-smoke] Missing export-readiness tri-state truth labels.");
   process.exit(1);
 }
 
