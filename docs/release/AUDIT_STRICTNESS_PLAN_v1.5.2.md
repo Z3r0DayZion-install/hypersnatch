@@ -26,3 +26,10 @@ Make `audit:final` and release verification outputs strict enough to prevent fal
 2. Artifact mismatch/stale-dist states fail with actionable guidance.
 3. Full stable-order gates remain green.
 
+## Execution Status
+
+1. Completed in slice 1:
+   - `audit:final` enforces version-pinned installer expectations
+   - stale installer versions now fail with explicit remediation
+   - WARN-mode scope and strict-flag policy hints are explicit in final output
+2. Validated by full stable-order gate pass.
