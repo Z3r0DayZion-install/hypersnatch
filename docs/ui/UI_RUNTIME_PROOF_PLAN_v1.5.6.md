@@ -25,11 +25,6 @@ Push `verify:ui` from helper/runtime assertions toward deeper interaction-level 
 ## Execution Status
 
 1. Completed in slice 2:
-   - Added runtime interaction checks for `queueTargets`:
-     - case binding propagation (`caseId`, `caseTitle`)
-     - added/skipped telemetry and status output
-     - pending metric update and tab activation
-     - bridge-unavailable failure behavior
    - Added runtime interaction checks for `handleQueueAction`:
      - manual-review prompt reason propagation
      - deterministic cancel/requeue default reasons

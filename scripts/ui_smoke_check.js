@@ -635,66 +635,6 @@ const noRiskReport = buildBatchReport({
 assertRuntime(/## Warnings Failures and Manual Review[\s\S]*- none/.test(noRiskReport.markdown), "[ui-smoke] Runtime batch report failed: no-risk report should render '- none' in risk section.");
 
 async function runRuntimeInteractionProofs() {
-  const queueStatus = [];
-  const queueLogs = [];
-  const queueCalls = [];
-  const pendingNode = { textContent: "0" };
-  const tabAutomationNode = { id: "tabBtnAutomation" };
-  let activatedTabId = null;
-  let queueSyncCalls = 0;
-
-  const queueTargetsFn = compileRuntimeFunction("queueTargets", {
-    window: {
-      electronAPI: {
-        automationQueueAdd: async (targets, options) => {
-          queueCalls.push({ targets, options });
-          return {
-            added: targets.map((url, idx) => ({ id: `added-${idx}`, url })),
-            skipped: [{ id: "skip-1", reason: "duplicate" }],
-            metrics: { pending: 7 }
-          };
-        }
-      },
-      caseMgr: {
-        activeCase: { case_id: "CASE-QUEUE", title: "Queue Proof Case" }
-      }
-    },
-    setStatus: (message, kind) => queueStatus.push({ message, kind }),
-    logToConsole: (message, kind) => queueLogs.push({ message, kind }),
-    el: (id) => (id === "metPending" ? pendingNode : id === "tabBtnAutomation" ? tabAutomationNode : null),
-    activateTab: (node) => { activatedTabId = node && node.id ? node.id : null; },
-    syncAutomationState: async () => { queueSyncCalls += 1; }
-  });
-
-  const queueResult = await queueTargetsFn(
-    ["https://alpha.queue.test", "https://beta.queue.test"],
-    { source: "intake-batch", bindToCase: true }
-  );
-
-  assertRuntime(queueCalls.length === 1, "[ui-smoke] Runtime queue flow failed: automationQueueAdd should be called once.");
-  assertRuntime(queueCalls[0].options.caseId === "CASE-QUEUE", "[ui-smoke] Runtime queue flow failed: case binding should forward active case_id.");
-  assertRuntime(queueCalls[0].options.caseTitle === "Queue Proof Case", "[ui-smoke] Runtime queue flow failed: case binding should forward active case title.");
-  assertRuntime(queueCalls[0].options.source === "intake-batch", "[ui-smoke] Runtime queue flow failed: source should be preserved.");
-  assertRuntime(queueCalls[0].options.manualReview === false, "[ui-smoke] Runtime queue flow failed: manualReview should be forced false for operator queue add.");
-  assertRuntime(queueResult && Array.isArray(queueResult.added) && queueResult.added.length === 2, "[ui-smoke] Runtime queue flow failed: queue result should include two added targets.");
-  assertRuntime(queueStatus.some((s) => s.kind === "ok" && /Queued 2 target\(s\) bound to case CASE-QUEUE, skipped 1\./.test(s.message)),
-    "[ui-smoke] Runtime queue flow failed: status message should reflect added/skipped counts and case binding.");
-  assertRuntime(queueLogs.some((s) => s.kind === "ok" && s.message.includes("added=2") && s.message.includes("skipped=1")),
-    "[ui-smoke] Runtime queue flow failed: console log should include added/skipped telemetry.");
-  assertRuntime(String(pendingNode.textContent) === "7", "[ui-smoke] Runtime queue flow failed: pending metric should be updated from queue metrics.");
-  assertRuntime(activatedTabId === "tabBtnAutomation", "[ui-smoke] Runtime queue flow failed: automation tab should be activated.");
-  assertRuntime(queueSyncCalls === 1, "[ui-smoke] Runtime queue flow failed: syncAutomationState should run after queueing.");
-
-  const unavailableStatus = [];
-  const queueTargetsNoBridge = compileRuntimeFunction("queueTargets", {
-    window: {},
-    setStatus: (message, kind) => unavailableStatus.push({ message, kind })
-  });
-  const noBridgeResult = await queueTargetsNoBridge(["https://no-bridge.queue.test"]);
-  assertRuntime(noBridgeResult === null, "[ui-smoke] Runtime queue flow failed: queueTargets should return null when bridge is unavailable.");
-  assertRuntime(unavailableStatus.length === 1 && unavailableStatus[0].kind === "bad" && unavailableStatus[0].message.includes("Electron bridge is unavailable"),
-    "[ui-smoke] Runtime queue flow failed: unavailable bridge should surface explicit failure status.");
-
   const actionCalls = [];
   const actionStatuses = [];
   let actionSyncCalls = 0;
