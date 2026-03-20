@@ -32,6 +32,16 @@ Improve dependency trust and reproducibility confidence in the maintenance line 
 - dependency hygiene decisions are documented and reviewable
 - full gate set remains green after any approved dependency adjustments
 
+## Execution Status
+
+- `scripts/verify_release.js` now includes runtime/dependency preflight checks:
+  - lockfile presence
+  - node engine baseline match
+  - local `electron` and `electron-builder` presence with remediation hints
+- dependency warning inventory captured in:
+  - `docs/dev/DEPENDENCY_WARNING_INVENTORY_v1.5.1.md`
+- clean-worktree setup notes updated with dependency hygiene workflow and classification rules
+
 ## Non-Goals
 - no broad dependency modernization campaign
 - no architecture refactors
