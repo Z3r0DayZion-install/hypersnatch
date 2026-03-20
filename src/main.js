@@ -198,18 +198,52 @@ clipboardWatcher.setProvider(async () => {
 });
 
 // Configure Scheduler
-decodeScheduler.setExecutor(async (url, host) => {
-  log.info('AUTOMATION_DECODE_START', { url, host });
-  BrowserWindow.getAllWindows().forEach(w => w.webContents.send('automation-event', { type: 'DECODE_START', data: { url, host } }));
+decodeScheduler.setExecutor(async (job) => {
+  log.info('AUTOMATION_DECODE_START', { id: job.id, url: job.url, host: job.host, caseId: job.caseId || null });
+  BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('automation-event', {
+    type: 'DECODE_START',
+    data: {
+      id: job.id,
+      url: job.url,
+      host: job.host,
+      caseId: job.caseId || null
+    }
+  }));
 
   const intelPath = app.isPackaged
     ? path.join(process.resourcesPath, 'config', 'forensic_intelligence.json')
     : path.join(__dirname, '..', 'config', 'forensic_intelligence.json');
 
-  const out = await SmartDecode.run(url, { intelligencePath: intelPath });
+  try {
+    const out = await SmartDecode.run(job.url, { intelligencePath: intelPath });
+    const summary = decodeQueue.constructor.summarizeResult(out);
 
-  BrowserWindow.getAllWindows().forEach(w => w.webContents.send('automation-event', { type: 'DECODE_COMPLETE', data: { url, out } }));
-  return out;
+    BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('automation-event', {
+      type: 'DECODE_COMPLETE',
+      data: {
+        id: job.id,
+        url: job.url,
+        host: job.host,
+        caseId: job.caseId || null,
+        out,
+        summary
+      }
+    }));
+
+    return out;
+  } catch (err) {
+    BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('automation-event', {
+      type: 'DECODE_FAILED',
+      data: {
+        id: job.id,
+        url: job.url,
+        host: job.host,
+        caseId: job.caseId || null,
+        error: err && err.message ? err.message : String(err)
+      }
+    }));
+    throw err;
+  }
 });
 
 // Start loopers
@@ -1042,12 +1076,86 @@ ipcMain.handle('automation-set-mode', (event, mode) => {
   return true;
 });
 
+function parseAutomationTarget(raw) {
+  const text = String(raw || '').trim();
+  if (!text) return null;
+  let host = 'raw-input';
+  try {
+    host = new URL(text).hostname || 'raw-input';
+  } catch (e) {
+    host = 'raw-input';
+  }
+  return { url: text, host };
+}
+
+ipcMain.handle('automation-queue-add', (event, payload) => {
+  const targets = Array.isArray(payload?.targets) ? payload.targets : [];
+  const source = payload?.source || 'operator';
+  const manualReview = Boolean(payload?.manualReview);
+  const caseId = payload?.caseId || null;
+  const caseTitle = payload?.caseTitle || null;
+
+  const prepared = targets
+    .map((t) => parseAutomationTarget(t))
+    .filter(Boolean)
+    .map((t) => ({ ...t, source, manualReview, caseId, caseTitle }));
+
+  const { added, skipped } = decodeQueue.enqueueMany(prepared, { source, manualReview, caseId, caseTitle });
+  return {
+    success: true,
+    added,
+    skipped,
+    queue: decodeQueue.getQueue(),
+    metrics: decodeQueue.getMetrics()
+  };
+});
+
+ipcMain.handle('automation-queue-action', (event, payload) => {
+  const id = payload?.id;
+  const action = String(payload?.action || '').toLowerCase();
+  const reason = payload?.reason ? String(payload.reason) : null;
+  if (!id || !action) return { success: false, reason: 'Missing queue action payload' };
+
+  let success = false;
+  if (action === 'pause') success = decodeQueue.pause(id, 'operator');
+  if (action === 'resume') success = decodeQueue.resume(id, 'operator');
+  if (action === 'cancel') success = decodeQueue.cancel(id, reason || 'Cancelled by operator.', 'operator');
+  if (action === 'requeue') success = decodeQueue.requeue(id, 'operator', reason || 'Requeued by operator.');
+  if (action === 'manual-review') success = decodeQueue.markManualReview(id, reason || 'Moved to manual review by operator.', 'operator');
+
+  return {
+    success,
+    queue: decodeQueue.getQueue(),
+    history: decodeQueue.getHistory(20),
+    metrics: decodeQueue.getMetrics(),
+    activeJob: decodeScheduler.getActiveJob()
+  };
+});
+
+ipcMain.handle('automation-queue-bind-case', (event, payload) => {
+  const id = payload?.id;
+  const caseId = payload?.caseId || null;
+  const caseTitle = payload?.caseTitle || null;
+  if (!id || !caseId) return { success: false, reason: 'Missing id or caseId' };
+  return {
+    success: decodeQueue.attachCase(id, caseId, caseTitle, 'operator'),
+    queue: decodeQueue.getQueue(),
+    history: decodeQueue.getHistory(20)
+  };
+});
+
+ipcMain.handle('automation-queue-clear-history', () => {
+  decodeQueue.clearHistory();
+  return { success: true };
+});
+
 ipcMain.handle('automation-get-state', () => {
   return {
     mode: clipboardWatcher.mode,
     queue: decodeQueue.getQueue(),
     history: decodeQueue.getHistory(20),
-    metrics: decodeQueue.getMetrics()
+    metrics: decodeQueue.getMetrics(),
+    activeJob: decodeScheduler.getActiveJob()
   };
 });
 

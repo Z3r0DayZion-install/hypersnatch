@@ -33,6 +33,10 @@ const ALLOWED_IPC_CHANNELS = new Set([
   'get-forensic-snapshot',
   'automation-set-mode',
   'automation-get-state',
+  'automation-queue-add',
+  'automation-queue-action',
+  'automation-queue-bind-case',
+  'automation-queue-clear-history',
   'case-list',
   'case-create',
   'case-load',
@@ -275,6 +279,26 @@ const electronAPI = {
   automationGetState: () => {
     validateIPCChannel('automation-get-state');
     return ipcRenderer.invoke('automation-get-state');
+  },
+
+  automationQueueAdd: (targets, options = {}) => {
+    validateIPCChannel('automation-queue-add');
+    return ipcRenderer.invoke('automation-queue-add', { targets, ...options });
+  },
+
+  automationQueueAction: (id, action, reason = null) => {
+    validateIPCChannel('automation-queue-action');
+    return ipcRenderer.invoke('automation-queue-action', { id, action, reason });
+  },
+
+  automationQueueBindCase: (id, caseId, caseTitle) => {
+    validateIPCChannel('automation-queue-bind-case');
+    return ipcRenderer.invoke('automation-queue-bind-case', { id, caseId, caseTitle });
+  },
+
+  automationQueueClearHistory: () => {
+    validateIPCChannel('automation-queue-clear-history');
+    return ipcRenderer.invoke('automation-queue-clear-history');
   },
 
   onAutomationEvent: (callback) => {

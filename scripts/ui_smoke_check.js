@@ -29,6 +29,21 @@ const requiredIds = [
   "bridgeText",
   "uiVer",
   "nodeIdText",
+  "batchDecodeInput",
+  "btnQueueBatch",
+  "btnQueueBatchToCase",
+  "btnExportBatchReport",
+  "intBatchState",
+  "intExportReady",
+  "caseWorkspacePanel",
+  "caseWorkspaceState",
+  "caseLinkedJobsList",
+  "caseLineageSummary",
+  "caseTimelineList",
+  "btnCaseWorkspaceQueue",
+  "btnCaseWorkspaceReport",
+  "btnCaseWorkspaceReportExport",
+  "btnCaseWorkspaceExport",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));
@@ -139,6 +154,81 @@ if (!html.includes("Notes export failed:")) {
 
 if (!html.includes("Export failed:")) {
   console.error("[ui-smoke] Case export failure messaging is missing.");
+  process.exit(1);
+}
+
+if (!html.includes("automationQueueAdd(") || !html.includes("automationQueueAction(")) {
+  console.error("[ui-smoke] Missing automation queue operator flow hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("queued/running/paused/warn/failed/canceled lifecycle labels")) {
+  console.error("[ui-smoke] Missing explicit batch lifecycle guidance text.");
+  process.exit(1);
+}
+
+if (!html.includes("function buildBatchReport(")) {
+  console.error("[ui-smoke] Missing batch report workflow summary generator.");
+  process.exit(1);
+}
+
+if (!html.includes("data-case-from-job")) {
+  console.error("[ui-smoke] Missing case/workspace bridge action for batch history.");
+  process.exit(1);
+}
+
+if (!html.includes("caseAddFinding(payload.data.caseId")) {
+  console.error("[ui-smoke] Missing batch decode to case finding linkage path.");
+  process.exit(1);
+}
+
+if (!html.includes("manualReviewReason") || !html.includes("failureReason") || !html.includes("durationMs")) {
+  console.error("[ui-smoke] Missing queue observability reason/timing hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("data-queue-action=\"manual-review\"")) {
+  console.error("[ui-smoke] Missing manual-review queue action control.");
+  process.exit(1);
+}
+
+if (!html.includes("function buildJobObservability(") || !html.includes("last action:")) {
+  console.error("[ui-smoke] Missing job observability formatter hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("renderWorkspaceDepth(") || !html.includes("getLinkedCaseJobs(")) {
+  console.error("[ui-smoke] Missing case workspace depth rendering hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("data-case-job-open") || !html.includes("data-case-job-reopen")) {
+  console.error("[ui-smoke] Missing case-linked job open/reopen controls.");
+  process.exit(1);
+}
+
+if (!html.includes("openCaseReportFromContext(") || !html.includes("buildCaseWorkspaceReport(")) {
+  console.error("[ui-smoke] Missing case-context report generation/navigation path.");
+  process.exit(1);
+}
+
+if (!html.includes("function buildJobTimelineEvents(") || !html.includes("function buildCaseTimelineEvents(")) {
+  console.error("[ui-smoke] Missing evidence timeline generation hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("function buildReasonChain(") || !html.includes("reason chain:")) {
+  console.error("[ui-smoke] Missing deterministic reason-chain rendering hooks.");
+  process.exit(1);
+}
+
+if (!html.includes("## Queue Results Summary") || !html.includes("## Trust Summary") || !html.includes("## Warnings Failures and Manual Review") || !html.includes("## Evidence Timeline and Lineage")) {
+  console.error("[ui-smoke] Missing required structured reporting sections.");
+  process.exit(1);
+}
+
+if (!html.includes("Batch report exported (MD + JSON).") || !html.includes("Case report exported for")) {
+  console.error("[ui-smoke] Missing operator-usable report export variants (MD + JSON).");
   process.exit(1);
 }
 

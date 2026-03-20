@@ -1453,6 +1453,54 @@
             <button id="btnCloseCase" class="pill-btn">Close Case</button>
           </div>
 
+          <div id="caseWorkspacePanel" class="panel">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Case Workspace</span>
+              <span class="tiny muted">Linked queue activity, trust rollup, and case actions.</span>
+            </div>
+            <div id="caseWorkspaceState" class="tiny muted" style="margin-bottom:10px;">Load a case to initialize workspace state.</div>
+            <div id="caseSummaryCounts" class="tiny mono muted" style="margin-bottom:10px;">bundles:0 notes:0 findings:0</div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:10px;">
+              <div class="panel" style="padding:8px; background:rgba(255,255,255,0.02); border-style:dashed;">
+                <div class="data-label">Linked Jobs</div>
+                <div id="caseLinkedJobsCount" class="data-value" style="font-size:1.1rem;">0</div>
+              </div>
+              <div class="panel" style="padding:8px; background:rgba(255,255,255,0.02); border-style:dashed;">
+                <div class="data-label">Manual Review</div>
+                <div id="caseManualReviewFlags" class="data-value" style="font-size:1.1rem;">0</div>
+              </div>
+              <div class="panel" style="padding:8px; background:rgba(255,255,255,0.02); border-style:dashed;">
+                <div class="data-label">Warnings/Failures</div>
+                <div id="caseRiskFlags" class="data-value" style="font-size:1.1rem;">0</div>
+              </div>
+              <div class="panel" style="padding:8px; background:rgba(255,255,255,0.02); border-style:dashed;">
+                <div class="data-label">Case Trust Summary</div>
+                <div id="caseTrustSummary" class="pill tiny idle" style="margin-top:6px;">No linked queue activity</div>
+              </div>
+            </div>
+
+            <div id="caseStatusRollup" class="tiny mono muted" style="margin-bottom:10px;">queued:0 running:0 paused:0 review:0 completed:0 warning:0 failed:0 canceled:0</div>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+              <button id="btnCaseWorkspaceQueue" class="pill-btn tiny">Open Queue View</button>
+              <button id="btnCaseWorkspaceReport" class="pill-btn tiny">Open Case Report</button>
+              <button id="btnCaseWorkspaceReportExport" class="pill-btn tiny">Export Case Report</button>
+              <button id="btnCaseWorkspaceExport" class="pill-btn tiny">Export Active Case</button>
+            </div>
+
+            <div class="tiny muted" style="margin-bottom:6px;">Linked Queue Activity</div>
+            <div id="caseLinkedJobsList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+              <div class="muted tiny">No linked queue activity for this case.</div>
+            </div>
+
+            <div class="tiny muted" style="margin:10px 0 6px;">Evidence Timeline and Lineage</div>
+            <div id="caseLineageSummary" class="tiny mono muted" style="margin-bottom:6px;">lineage: unavailable</div>
+            <div id="caseTimelineList" style="max-height:170px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+              <div class="muted tiny">No case timeline events recorded.</div>
+            </div>
+          </div>
+
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
             <!-- Bundle Alignment Panel -->
             <div id="caseBundlePanel" class="panel">
@@ -2369,17 +2417,31 @@
         </div>
 
         <h3 style="font-size:1rem; margin-top:1rem; margin-bottom:0.5rem;">Active Queue</h3>
+        <div class="panel" style="margin-bottom:1rem;">
+          <div class="panel-header">Operator Batch Intake</div>
+          <textarea id="batchDecodeInput"
+            style="min-height:110px; font-size:0.75rem; margin-bottom:0.65rem;"
+            placeholder="Paste one target URL per line to queue batch decode jobs..."></textarea>
+          <div class="control-row">
+            <button id="btnQueueBatch" type="button">Queue Batch Jobs</button>
+            <button id="btnQueueBatchToCase" type="button">Queue to Active Case</button>
+            <button id="btnExportBatchReport" type="button">Export Batch Report</button>
+          </div>
+          <div id="batchQueueHelp" class="tiny muted" style="margin-top:0.5rem;">Batch intake uses queued/running/paused/warn/failed/canceled lifecycle labels.</div>
+        </div>
         <table class="data-table">
           <thead>
             <tr>
               <th style="width:120px;">Host</th>
               <th>Target URL</th>
               <th style="width:100px;">Status</th>
+              <th style="width:130px;">Case</th>
+              <th style="width:170px;">Actions</th>
             </tr>
           </thead>
           <tbody id="queueTbody">
             <tr>
-              <td colspan="3" class="muted" style="text-align:center; padding:1rem;">Queue is empty.</td>
+              <td colspan="5" class="muted" style="text-align:center; padding:1rem;">Queue is empty.</td>
             </tr>
           </tbody>
         </table>
@@ -2391,11 +2453,13 @@
               <th style="width:120px;">Host</th>
               <th>Target URL</th>
               <th style="width:100px;">Result</th>
+              <th style="width:130px;">Case</th>
+              <th style="width:170px;">Actions</th>
             </tr>
           </thead>
           <tbody id="historyTbody">
             <tr>
-              <td colspan="3" class="muted" style="text-align:center; padding:1rem;">No history.</td>
+              <td colspan="5" class="muted" style="text-align:center; padding:1rem;">No history.</td>
             </tr>
           </tbody>
         </table>
@@ -2432,6 +2496,10 @@
           <span id="intSw" class="pill tiny idle">idle</span>
         </div>
         <div class="trust-row">
+          <span class="muted">Batch Lifecycle</span>
+          <span id="intBatchState" class="pill tiny idle">idle</span>
+        </div>
+        <div class="trust-row">
           <span class="muted">Content Protection</span>
           <div id="intDrm" class="status-badge idle">--</div>
         </div>
@@ -2441,7 +2509,7 @@
         </div>
         <div class="trust-row">
           <span class="muted">Export Readiness</span>
-          <span class="pill tiny ok">Policy-Aware</span>
+          <span id="intExportReady" class="pill tiny ok">Policy-Aware</span>
         </div>
       </div>
 
@@ -2476,6 +2544,11 @@
       lastJson: null,
       lastCmd: null,
       selectedIndex: null,
+      lastAutomation: null,
+      lastAutomationError: null,
+      lastBatchReport: null,
+      lastCaseWorkspaceReport: null,
+      automationCaseLinkedJobs: {},
       bridgePort: 4179,
       token: null,
       safeMode: false,
@@ -3110,6 +3183,510 @@
       }
     }
 
+    function parseBatchTargets(rawInput) {
+      const urlLike = /^(https?:\/\/)/i;
+      return String(rawInput || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && urlLike.test(line));
+    }
+
+    function statusBadgeClass(status) {
+      if (status === "running" || status === "completed") return "ok";
+      if (status === "warning" || status === "queued" || status === "paused" || status === "manual-review") return "warn";
+      if (status === "failed") return "bad";
+      return "idle";
+    }
+
+    function statusLabel(status) {
+      return String(status || "unknown").replace(/-/g, " ").toUpperCase();
+    }
+
+    function isReopenableStatus(status) {
+      return status === "completed" || status === "warning" || status === "failed" || status === "canceled";
+    }
+
+    function createEmptyStatusRollup() {
+      return {
+        queued: 0,
+        running: 0,
+        paused: 0,
+        manualReview: 0,
+        completed: 0,
+        warning: 0,
+        failed: 0,
+        canceled: 0
+      };
+    }
+
+    function accumulateStatusRollup(rollup, status) {
+      const normalized = String(status || "").toLowerCase();
+      if (normalized === "queued") rollup.queued += 1;
+      if (normalized === "running") rollup.running += 1;
+      if (normalized === "paused") rollup.paused += 1;
+      if (normalized === "manual-review") rollup.manualReview += 1;
+      if (normalized === "completed") rollup.completed += 1;
+      if (normalized === "warning") rollup.warning += 1;
+      if (normalized === "failed") rollup.failed += 1;
+      if (normalized === "canceled") rollup.canceled += 1;
+      return rollup;
+    }
+
+    function buildStatusRollup(jobs) {
+      const rollup = createEmptyStatusRollup();
+      (Array.isArray(jobs) ? jobs : []).forEach((job) => accumulateStatusRollup(rollup, job?.status));
+      return rollup;
+    }
+
+    function buildCaseRollups(jobs) {
+      const rollups = {};
+      (Array.isArray(jobs) ? jobs : []).forEach((job) => {
+        const caseId = job?.caseId || null;
+        if (!caseId) return;
+        if (!rollups[caseId]) rollups[caseId] = createEmptyStatusRollup();
+        accumulateStatusRollup(rollups[caseId], job?.status);
+      });
+      return rollups;
+    }
+
+    function buildReasonChain(job, limit = 4) {
+      const chain = [];
+      const headline = job?.failureReason || job?.manualReviewReason || job?.error || null;
+      if (headline) chain.push(headline);
+      const entries = Array.isArray(job?.actionLog) ? [...job.actionLog].sort((a, b) => (a.at || 0) - (b.at || 0)) : [];
+      entries.forEach((entry) => {
+        if (!entry || !entry.detail) return;
+        chain.push(`${entry.action}: ${entry.detail}`);
+      });
+      const unique = [];
+      chain.forEach((item) => {
+        if (!item) return;
+        if (!unique.includes(item)) unique.push(item);
+      });
+      return unique.slice(-limit);
+    }
+
+    function buildJobTimelineEvents(job, limit = 12) {
+      const events = [];
+      if (!job) return events;
+      if (job.addedAt) {
+        events.push({ at: job.addedAt, event: "queued", detail: `source=${job.source || "unknown"}`, by: "system" });
+      }
+      if (job.startedAt) {
+        events.push({ at: job.startedAt, event: "started", detail: `attempt=${job.attempts || 1}`, by: "scheduler" });
+      }
+      if (job.finishedAt) {
+        events.push({ at: job.finishedAt, event: String(job.status || "completed"), detail: job.failureReason || job.manualReviewReason || job.error || "finished", by: "scheduler" });
+      }
+      const actionLog = Array.isArray(job.actionLog) ? job.actionLog : [];
+      actionLog.forEach((entry) => {
+        if (!entry) return;
+        events.push({
+          at: entry.at || 0,
+          event: entry.action || "event",
+          detail: entry.detail || null,
+          by: entry.by || "system"
+        });
+      });
+
+      const dedup = [];
+      const seen = new Set();
+      events
+        .sort((a, b) => (a.at || 0) - (b.at || 0))
+        .forEach((event) => {
+          const key = `${event.at || 0}|${event.event}|${event.detail || ""}|${event.by || ""}`;
+          if (seen.has(key)) return;
+          seen.add(key);
+          dedup.push(event);
+        });
+      return dedup.slice(-limit);
+    }
+
+    function buildCaseTimelineEvents(jobs, limit = 24) {
+      const merged = [];
+      (Array.isArray(jobs) ? jobs : []).forEach((job) => {
+        buildJobTimelineEvents(job, 14).forEach((event) => {
+          merged.push({
+            ...event,
+            jobId: job.id || "unknown-job",
+            host: job.host || "unknown-host",
+            status: job.status || "unknown"
+          });
+        });
+      });
+      return merged
+        .sort((a, b) => (b.at || 0) - (a.at || 0))
+        .slice(0, limit);
+    }
+
+    function buildTrustSummaryFromJobs(jobs, rollup) {
+      const reasons = [];
+      const linked = Array.isArray(jobs) ? jobs : [];
+      if (!linked.length) {
+        return { label: "No linked queue activity", className: "idle", reasons: ["No case-linked queue jobs found."] };
+      }
+      if ((rollup.failed || 0) > 0) reasons.push(`${rollup.failed} failed job(s) require analyst attention.`);
+      if ((rollup.manualReview || 0) > 0) reasons.push(`${rollup.manualReview} job(s) marked manual-review.`);
+      if ((rollup.warning || 0) > 0) reasons.push(`${rollup.warning} warning outcome(s) require validation.`);
+      if ((rollup.canceled || 0) > 0) reasons.push(`${rollup.canceled} canceled job(s) may need reopen.`);
+      if ((rollup.running || 0) > 0 || (rollup.queued || 0) > 0) reasons.push("Queue activity is still in progress.");
+
+      if ((rollup.failed || 0) > 0) {
+        return { label: "Critical failures detected", className: "bad", reasons };
+      }
+      if ((rollup.manualReview || 0) > 0 || (rollup.warning || 0) > 0 || (rollup.canceled || 0) > 0) {
+        return { label: "Manual review required", className: "warn", reasons };
+      }
+      if ((rollup.completed || 0) > 0 && (rollup.running || 0) === 0 && (rollup.queued || 0) === 0) {
+        return { label: "Stable and completed", className: "ok", reasons: reasons.length ? reasons : ["All linked jobs completed without risk flags."] };
+      }
+      return { label: "In progress", className: "warn", reasons: reasons.length ? reasons : ["Awaiting additional queue results."] };
+    }
+
+    function buildCaseLineageSummary(caseId, linkedJobs, caseTimeline) {
+      const jobs = Array.isArray(linkedJobs) ? linkedJobs : [];
+      const events = Array.isArray(caseTimeline) ? caseTimeline : [];
+      if (!jobs.length) {
+        return `case=${caseId || "unknown"} lineage=none`;
+      }
+      const sources = Array.from(new Set(jobs.map((job) => job.source || "unknown")));
+      const firstAt = jobs.reduce((min, job) => Math.min(min, job.addedAt || Number.MAX_SAFE_INTEGER), Number.MAX_SAFE_INTEGER);
+      const lastAt = events.length ? (events[0].at || 0) : jobs.reduce((max, job) => Math.max(max, job.finishedAt || job.startedAt || job.addedAt || 0), 0);
+      return `case=${caseId} jobs=${jobs.length} events=${events.length} sources=${sources.join("|")} first=${formatTimestamp(firstAt === Number.MAX_SAFE_INTEGER ? null : firstAt)} last=${formatTimestamp(lastAt)}`;
+    }
+
+    function formatTimestamp(ts) {
+      if (!ts) return "--";
+      const d = new Date(ts);
+      if (Number.isNaN(d.getTime())) return "--";
+      return d.toLocaleTimeString();
+    }
+
+    function formatDuration(ms) {
+      if (typeof ms !== "number" || ms < 0) return "--";
+      if (ms < 1000) return `${ms}ms`;
+      if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+      const min = Math.floor(ms / 60000);
+      const sec = ((ms % 60000) / 1000).toFixed(1);
+      return `${min}m ${sec}s`;
+    }
+
+    function escapeForAttr(s) {
+      return escapeHtml(String(s || "")).replace(/\n/g, " | ");
+    }
+
+    function buildJobObservability(job) {
+      const retries = job.retryCount || job.attempts || 0;
+      const source = job.source || "unknown";
+      const reason = job.failureReason || job.manualReviewReason || job.error || "";
+      const actionText = job.lastAction
+        ? `${job.lastAction.action} @ ${formatTimestamp(job.lastAction.at)}`
+        : "--";
+
+      return {
+        summaryLine: `src:${source} | retries:${retries} | enq:${formatTimestamp(job.addedAt)} | start:${formatTimestamp(job.startedAt)} | end:${formatTimestamp(job.finishedAt)} | dur:${formatDuration(job.durationMs)}`,
+        reasonLine: reason ? `reason: ${reason}` : "",
+        actionLine: `last action: ${actionText}`,
+        tooltip: [
+          `source=${source}`,
+          `retries=${retries}`,
+          `added=${formatTimestamp(job.addedAt)}`,
+          `started=${formatTimestamp(job.startedAt)}`,
+          `finished=${formatTimestamp(job.finishedAt)}`,
+          `duration=${formatDuration(job.durationMs)}`,
+          `reason=${reason || "--"}`,
+          `lastAction=${actionText}`
+        ].join("\n")
+      };
+    }
+
+    function updateTrustFromAutomation(snapshot) {
+      if (!snapshot) return;
+      const metrics = snapshot.metrics || {};
+      const activeJob = snapshot.activeJob || null;
+      const latest = Array.isArray(snapshot.history) && snapshot.history.length > 0 ? snapshot.history[0] : null;
+
+      let lifecycle = "IDLE";
+      let lifecycleClass = "idle";
+      if (activeJob) {
+        lifecycle = "RUNNING";
+        lifecycleClass = "ok";
+      } else if ((metrics.queued || 0) > 0) {
+        lifecycle = "QUEUED";
+        lifecycleClass = "warn";
+      } else if ((metrics.manualReview || 0) > 0) {
+        lifecycle = "REVIEW";
+        lifecycleClass = "warn";
+      } else if (latest) {
+        lifecycle = statusLabel(latest.status);
+        lifecycleClass = statusBadgeClass(latest.status);
+      }
+
+      const batchState = el("intBatchState");
+      if (batchState) {
+        batchState.textContent = lifecycle;
+        batchState.className = `pill tiny ${lifecycleClass}`;
+      }
+
+      const sw = el("intSw");
+      if (sw) {
+        sw.textContent = snapshot.mode || "OFF";
+        sw.className = `pill tiny ${snapshot.mode === "OFF" ? "idle" : "warn"}`;
+      }
+
+      const best = el("intBest");
+      if (best) {
+        best.textContent = latest?.lastResultSummary?.bestUrl || latest?.url || "--";
+      }
+
+      const exportReady = el("intExportReady");
+      if (exportReady) {
+        const hasActiveCase = Boolean(window.caseMgr && window.caseMgr.activeCase && window.caseMgr.activeCase.case_id);
+        const canExport = hasActiveCase && latest && (latest.status === "completed" || latest.status === "warning");
+        if (canExport) {
+          exportReady.textContent = "Ready: Active Case";
+          exportReady.className = "pill tiny ok";
+        } else if (hasActiveCase) {
+          exportReady.textContent = "Waiting For Results";
+          exportReady.className = "pill tiny warn";
+        } else {
+          exportReady.textContent = "Blocked: No Active Case";
+          exportReady.className = "pill tiny bad";
+        }
+      }
+
+      const hash = el("intHash");
+      if (hash) {
+        if (latest && latest.id) {
+          const reason = latest.failureReason || latest.manualReviewReason || latest.error || "--";
+          hash.textContent = `${latest.id.slice(0, 12)}:${latest.status}:dur=${formatDuration(latest.durationMs)}:retry=${latest.retryCount || latest.attempts || 0}:reason=${reason}`;
+        } else {
+          hash.textContent = "--";
+        }
+      }
+    }
+
+    function buildBatchReport(snapshot) {
+      const metrics = snapshot?.metrics || {};
+      const queue = Array.isArray(snapshot?.queue) ? snapshot.queue : [];
+      const history = Array.isArray(snapshot?.history) ? snapshot.history : [];
+      const allJobs = [...queue, ...history];
+      const generatedAt = new Date().toISOString();
+      const rollup = buildStatusRollup(allJobs);
+      const caseRollups = buildCaseRollups(allJobs);
+      const caseSummary = Object.keys(caseRollups)
+        .sort()
+        .map((caseId) => ({ caseId, ...caseRollups[caseId] }));
+
+      const failedJobs = allJobs.filter((job) => job.status === "failed");
+      const warningJobs = allJobs.filter((job) => job.status === "warning");
+      const manualReviewJobs = allJobs.filter((job) => job.status === "manual-review");
+      const trust = buildTrustSummaryFromJobs(allJobs, rollup);
+
+      const jobTimelines = allJobs.slice(0, 40).map((job) => ({
+        jobId: job.id || "unknown-job",
+        caseId: job.caseId || null,
+        host: job.host || "unknown-host",
+        status: job.status || "unknown",
+        source: job.source || "unknown",
+        reasonChain: buildReasonChain(job, 6),
+        events: buildJobTimelineEvents(job, 12)
+      }));
+      const caseTimeline = buildCaseTimelineEvents(allJobs.filter((job) => job.caseId), 40);
+
+      const executiveSummary = {
+        linkedJobs: allJobs.length,
+        queueDepth: queue.length,
+        recentHistory: history.length,
+        trustStatus: trust.label,
+        riskFlags: failedJobs.length + warningJobs.length + manualReviewJobs.length
+      };
+      const queueResultsSummary = {
+        queued: rollup.queued,
+        running: rollup.running,
+        paused: rollup.paused,
+        manualReview: rollup.manualReview,
+        completed: rollup.completed,
+        warning: rollup.warning,
+        failed: rollup.failed,
+        canceled: rollup.canceled
+      };
+      const exportMetadata = {
+        reportType: "operator-workflow",
+        schema: "v1.5.0-reporting",
+        generatedAt,
+        source: "automation-get-state",
+        mode: snapshot?.mode || "OFF",
+        deterministicHeadings: true,
+        terminology: ["manual-review", "warning", "failed", "canceled"]
+      };
+
+      const lines = [
+        "# HyperSnatch Operator Workflow Report",
+        `Generated: ${generatedAt}`,
+        `Mode: ${snapshot?.mode || "OFF"}`,
+        "",
+        "## Executive Summary",
+        `- linked jobs: ${executiveSummary.linkedJobs}`,
+        `- queue depth: ${executiveSummary.queueDepth}`,
+        `- recent history: ${executiveSummary.recentHistory}`,
+        `- trust status: ${executiveSummary.trustStatus}`,
+        `- risk flags: ${executiveSummary.riskFlags}`,
+        "",
+        "## Queue Results Summary",
+        `- queued: ${queueResultsSummary.queued}`,
+        `- running: ${queueResultsSummary.running}`,
+        `- paused: ${queueResultsSummary.paused}`,
+        `- manual-review: ${queueResultsSummary.manualReview}`,
+        `- completed: ${queueResultsSummary.completed}`,
+        `- warning: ${queueResultsSummary.warning}`,
+        `- failed: ${queueResultsSummary.failed}`,
+        `- canceled: ${queueResultsSummary.canceled}`,
+        "",
+        "## Case Summary"
+      ];
+
+      if (!caseSummary.length) {
+        lines.push("- no case-linked jobs in current snapshot");
+      } else {
+        caseSummary.forEach((row) => {
+          lines.push(`- ${row.caseId}: queued=${row.queued} running=${row.running} paused=${row.paused} review=${row.manualReview} completed=${row.completed} warning=${row.warning} failed=${row.failed} canceled=${row.canceled}`);
+        });
+      }
+
+      lines.push("", "## Trust Summary");
+      lines.push(`- status: ${trust.label}`);
+      if (trust.reasons && trust.reasons.length) {
+        trust.reasons.forEach((reason) => lines.push(`- ${reason}`));
+      } else {
+        lines.push("- no trust signals available");
+      }
+
+      lines.push("", "## Warnings Failures and Manual Review");
+      if (!failedJobs.length && !warningJobs.length && !manualReviewJobs.length) {
+        lines.push("- none");
+      } else {
+        failedJobs.slice(0, 10).forEach((job) => {
+          lines.push(`- failed: ${job.host} :: ${job.url} :: ${job.failureReason || job.error || "Unknown failure"}`);
+        });
+        warningJobs.slice(0, 10).forEach((job) => {
+          lines.push(`- warning: ${job.host} :: ${job.url} :: ${job.lastResultSummary?.message || "Warning without summary"}`);
+        });
+        manualReviewJobs.slice(0, 10).forEach((job) => {
+          lines.push(`- manual-review: ${job.host} :: ${job.url} :: ${job.manualReviewReason || "No reason provided"}`);
+        });
+      }
+
+      lines.push("", "## Evidence Timeline and Lineage");
+      if (!jobTimelines.length) {
+        lines.push("- no job timeline events");
+      } else {
+        jobTimelines.slice(0, 12).forEach((job) => {
+          lines.push(`- job ${job.jobId} [${statusLabel(job.status)}] host=${job.host} case=${job.caseId || "--"} source=${job.source}`);
+          const reasonChainText = job.reasonChain && job.reasonChain.length ? job.reasonChain.join(" | ") : "--";
+          lines.push(`  - reason chain: ${reasonChainText}`);
+          if (!job.events.length) {
+            lines.push("  - timeline: none");
+          } else {
+            job.events.slice(-5).forEach((event) => {
+              const detail = event.detail ? ` :: ${event.detail}` : "";
+              lines.push(`  - ${formatTimestamp(event.at)} :: ${event.event}${detail}`);
+            });
+          }
+        });
+      }
+
+      lines.push("", "## Case Timeline");
+      if (!caseTimeline.length) {
+        lines.push("- no case-level timeline events");
+      } else {
+        caseTimeline.slice(0, 20).forEach((event) => {
+          const detail = event.detail ? ` :: ${event.detail}` : "";
+          lines.push(`- ${formatTimestamp(event.at)} :: ${event.host} :: ${event.event}${detail}`);
+        });
+      }
+
+      lines.push("", "## Export Metadata");
+      lines.push(`- report type: ${exportMetadata.reportType}`);
+      lines.push(`- schema: ${exportMetadata.schema}`);
+      lines.push(`- source: ${exportMetadata.source}`);
+      lines.push(`- mode: ${exportMetadata.mode}`);
+      lines.push(`- deterministic headings: ${exportMetadata.deterministicHeadings ? "true" : "false"}`);
+
+      return {
+        generatedAt,
+        reportType: exportMetadata.reportType,
+        reportSchema: exportMetadata.schema,
+        mode: snapshot?.mode || "OFF",
+        metrics,
+        queue,
+        history,
+        executiveSummary,
+        queueResultsSummary,
+        caseSummary,
+        trustSummary: trust,
+        riskSummary: {
+          failed: failedJobs.map((job) => ({
+            id: job.id,
+            caseId: job.caseId || null,
+            host: job.host,
+            url: job.url,
+            reason: job.failureReason || job.error || "Unknown failure"
+          })),
+          warning: warningJobs.map((job) => ({
+            id: job.id,
+            caseId: job.caseId || null,
+            host: job.host,
+            url: job.url,
+            reason: job.lastResultSummary?.message || "Warning without summary"
+          })),
+          manualReview: manualReviewJobs.map((job) => ({
+            id: job.id,
+            caseId: job.caseId || null,
+            host: job.host,
+            url: job.url,
+            reason: job.manualReviewReason || "No reason provided"
+          }))
+        },
+        lineage: {
+          jobTimelines,
+          caseTimeline
+        },
+        exportMetadata,
+        markdown: lines.join("\n")
+      };
+    }
+
+    async function queueTargets(targets, options = {}) {
+      if (!window.electronAPI || !window.electronAPI.automationQueueAdd) {
+        setStatus("Queue action failed: Electron bridge is unavailable.", "bad");
+        return null;
+      }
+
+      const activeCase = window.caseMgr && window.caseMgr.activeCase ? window.caseMgr.activeCase : null;
+      const bindToCase = Boolean(options.bindToCase && activeCase && activeCase.case_id);
+
+      const res = await window.electronAPI.automationQueueAdd(targets, {
+        source: options.source || "operator",
+        manualReview: false,
+        caseId: bindToCase ? activeCase.case_id : null,
+        caseTitle: bindToCase ? activeCase.title : null
+      });
+
+      const added = Array.isArray(res?.added) ? res.added.length : 0;
+      const skipped = Array.isArray(res?.skipped) ? res.skipped.length : 0;
+      const suffix = bindToCase ? ` bound to case ${activeCase.case_id}` : "";
+      setStatus(`Queued ${added} target(s)${suffix}${skipped ? `, skipped ${skipped}` : ""}.`, added > 0 ? "ok" : "warn");
+      logToConsole(`Batch queue update: added=${added}, skipped=${skipped}.`, added > 0 ? "ok" : "warn");
+
+      if (res && res.metrics) {
+        el('metPending').textContent = res.metrics.pending || 0;
+      }
+      activateTab(el("tabBtnAutomation"));
+      await syncAutomationState();
+      return res;
+    }
+
     async function onDecode() {
       const mode = el("mode").value;
       const input = el("input").value;
@@ -3123,6 +3700,12 @@
 
       if (mode === "offline") {
         setStatus("Offline Mode Active. Engine paused.", "warn");
+        return;
+      }
+
+      const batchTargets = parseBatchTargets(input);
+      if (batchTargets.length > 1 && window.electronAPI && window.electronAPI.automationQueueAdd) {
+        await queueTargets(batchTargets, { source: "intake-batch", bindToCase: false });
         return;
       }
 
@@ -3154,24 +3737,121 @@
       }
     }
 
+    async function handleQueueAction(id, action) {
+      if (!window.electronAPI || !window.electronAPI.automationQueueAction) return;
+      let reason = null;
+      if (action === "manual-review") {
+        reason = prompt("Manual-review reason:", "Requires analyst review for ambiguous decode output.") || "Requires analyst review for ambiguous decode output.";
+      } else if (action === "cancel") {
+        reason = "Cancelled by operator from queue panel.";
+      } else if (action === "requeue") {
+        reason = "Requeued by operator for retry.";
+      }
+
+      const res = await window.electronAPI.automationQueueAction(id, action, reason);
+      if (!res || res.success === false) {
+        setStatus(`Queue action failed: ${action}.`, "bad");
+        return;
+      }
+      setStatus(`Queue action applied: ${action}.`, "ok");
+      await syncAutomationState();
+    }
+
+    async function openCaseById(caseId) {
+      if (!caseId) return;
+      if (window.caseMgr && window.caseMgr.loadCase) {
+        activateTab(el("tabBtnCases"));
+        await window.caseMgr.loadCase(caseId);
+      }
+    }
+
+    async function createCaseFromHistoryJob(jobId) {
+      const snapshot = state.lastAutomation;
+      const job = snapshot && Array.isArray(snapshot.history) ? snapshot.history.find((h) => h.id === jobId) : null;
+      if (!job || !window.electronAPI || !window.electronAPI.caseCreate) return;
+
+      const title = `Batch Decode: ${job.host} ${new Date(job.finishedAt || Date.now()).toLocaleDateString()}`;
+      const created = await window.electronAPI.caseCreate(title);
+      const summary = job.lastResultSummary || {};
+      const severity = job.status === "failed" ? "bad" : (job.status === "warning" ? "warn" : "info");
+      const note = [
+        `Batch Job ID: ${job.id}`,
+        `URL: ${job.url}`,
+        `Status: ${job.status}`,
+        `Source: ${job.source || "unknown"}`,
+        `Retries: ${job.retryCount || job.attempts || 0}`,
+        `Enqueued: ${formatTimestamp(job.addedAt)}`,
+        `Started: ${formatTimestamp(job.startedAt)}`,
+        `Finished: ${formatTimestamp(job.finishedAt)}`,
+        `Duration: ${formatDuration(job.durationMs)}`,
+        `Failure Reason: ${job.failureReason || "--"}`,
+        `Manual Review Reason: ${job.manualReviewReason || "--"}`,
+        `Last Action: ${job.lastAction ? `${job.lastAction.action} @ ${formatTimestamp(job.lastAction.at)}` : "--"}`,
+        `Summary: ${summary.message || "N/A"}`
+      ].join("\n");
+
+      await window.electronAPI.caseAddNote(created.case_id, note);
+      await window.electronAPI.caseAddFinding(created.case_id, {
+        bundle_id: job.id,
+        title: `Batch decode outcome: ${statusLabel(job.status)}`,
+        severity,
+        notes: summary.message || "No summary available."
+      });
+      if (window.electronAPI.automationQueueBindCase) {
+        await window.electronAPI.automationQueueBindCase(job.id, created.case_id, created.title);
+      }
+      setStatus(`Created case ${created.case_id} from batch job ${job.host}.`, "ok");
+      await openCaseById(created.case_id);
+      await syncAutomationState();
+    }
+
+    function exportBatchReport() {
+      if (!state.lastBatchReport) {
+        setStatus("Batch report export failed: no automation snapshot available.", "warn");
+        return;
+      }
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      downloadFile(state.lastBatchReport.markdown || "", `batch_report_${stamp}.md`, "text/markdown");
+      downloadFile(JSON.stringify(state.lastBatchReport, null, 2), `batch_report_${stamp}.json`, "application/json");
+      setStatus("Batch report exported (MD + JSON).", "ok");
+    }
+
     async function syncAutomationState() {
       if (!window.electronAPI || !window.electronAPI.automationGetState) return;
-      const state = await window.electronAPI.automationGetState();
+      let snapshot = null;
+      try {
+        snapshot = await window.electronAPI.automationGetState();
+        state.lastAutomationError = null;
+      } catch (err) {
+        const errMsg = err?.message || "Automation bridge unavailable.";
+        if (state.lastAutomationError !== errMsg) {
+          setStatus(`Automation state refresh failed: ${errMsg}`, "warn");
+          logToConsole(`Automation state refresh failed: ${errMsg}`, "warn");
+        }
+        state.lastAutomationError = errMsg;
+        if (window.caseMgr && window.caseMgr.renderWorkspaceDepth) {
+          window.caseMgr.renderWorkspaceDepth(null, errMsg);
+        }
+        return;
+      }
+      state.lastAutomation = snapshot;
+      state.lastBatchReport = buildBatchReport(snapshot);
+      el("reportTextarea").value = state.lastBatchReport.markdown;
 
       // Update Metrics
-      el('metPending').textContent = state.metrics.pending;
-      el('metCompleted').textContent = state.metrics.completed;
-      el('metFailed').textContent = state.metrics.failed;
+      el('metPending').textContent = snapshot.metrics.pending;
+      el('metCompleted').textContent = (snapshot.metrics.completed || 0) + (snapshot.metrics.warning || 0);
+      el('metFailed').textContent = (snapshot.metrics.failed || 0) + (snapshot.metrics.canceled || 0);
 
       // Update Mode Selector without re-triggering event
       const sel = el('selAutoMode');
-      if (sel && sel.value !== state.mode) {
-        sel.value = state.mode;
+      if (sel && sel.value !== snapshot.mode) {
+        sel.value = snapshot.mode;
 
         // Sync the top header toggle visual based on mode
         const toggle = el('toggleSmartSnatch');
         if (toggle) {
-          const isActive = state.mode !== 'OFF';
+          const isActive = snapshot.mode !== 'OFF';
           toggle.checked = isActive;
           const slider = toggle.nextElementSibling;
           if (isActive) {
@@ -3186,30 +3866,83 @@
 
       // Render Queue
       const qBody = el('queueTbody');
-      if (state.queue.length === 0) {
-        qBody.innerHTML = `<tr><td colspan="3" class="muted" style="text-align:center; padding:1rem;">Queue is empty.</td></tr>`;
+      if (!Array.isArray(snapshot.queue) || snapshot.queue.length === 0) {
+        qBody.innerHTML = `<tr><td colspan="5" class="muted" style="text-align:center; padding:1rem;">Queue is empty.</td></tr>`;
       } else {
-        qBody.innerHTML = state.queue.map(j => `
+        qBody.innerHTML = snapshot.queue.map((j) => {
+          const canPause = j.status === "queued" || j.status === "manual-review";
+          const canResume = j.status === "paused" || j.status === "manual-review";
+          const canCancel = j.status !== "running";
+          const canManualReview = j.status === "queued" || j.status === "paused";
+          const caseCell = j.caseId ? `<button class="pill-btn tiny" data-open-case="${j.caseId}">${escapeHtml(j.caseId)}</button>` : '<span class="muted tiny">--</span>';
+          const obs = buildJobObservability(j);
+          return `
             <tr>
               <td><span class="pill">${escapeHtml(j.host)}</span></td>
-              <td class="mono tiny">${escapeHtml(j.url)}</td>
-              <td><span class="status-badge ${j.status === 'active' ? 'ok' : 'warn'}">${j.status.toUpperCase()}</span></td>
+              <td class="mono tiny" title="${escapeForAttr(obs.tooltip)}">
+                <div>${escapeHtml(j.url)}</div>
+                <div class="muted tiny">${escapeHtml(obs.summaryLine)}</div>
+                ${obs.reasonLine ? `<div class="bad tiny">${escapeHtml(obs.reasonLine)}</div>` : ""}
+                <div class="tiny muted">${escapeHtml(obs.actionLine)}</div>
+              </td>
+              <td><span class="status-badge ${statusBadgeClass(j.status)}">${statusLabel(j.status)}</span></td>
+              <td>${caseCell}</td>
+              <td style="display:flex; gap:4px;">
+                ${canPause ? `<button class="pill-btn tiny" data-queue-action="pause" data-queue-id="${j.id}">Pause</button>` : ""}
+                ${canResume ? `<button class="pill-btn tiny" data-queue-action="resume" data-queue-id="${j.id}">Queue</button>` : ""}
+                ${canManualReview ? `<button class="pill-btn tiny" data-queue-action="manual-review" data-queue-id="${j.id}">Review</button>` : ""}
+                ${canCancel ? `<button class="pill-btn tiny" data-queue-action="cancel" data-queue-id="${j.id}" style="color:var(--color-bad);">Cancel</button>` : ""}
+              </td>
             </tr>
-         `).join('');
+          `;
+        }).join('');
       }
 
       // Render History
       const hBody = el('historyTbody');
-      if (state.history.length === 0) {
-        hBody.innerHTML = `<tr><td colspan="3" class="muted" style="text-align:center; padding:1rem;">No history.</td></tr>`;
+      if (!Array.isArray(snapshot.history) || snapshot.history.length === 0) {
+        hBody.innerHTML = `<tr><td colspan="5" class="muted" style="text-align:center; padding:1rem;">No history.</td></tr>`;
       } else {
-        hBody.innerHTML = state.history.map(j => `
+        hBody.innerHTML = snapshot.history.map((j) => {
+          const summary = j.lastResultSummary && j.lastResultSummary.message ? j.lastResultSummary.message : "";
+          const caseCell = j.caseId ? `<button class="pill-btn tiny" data-open-case="${j.caseId}">${escapeHtml(j.caseId)}</button>` : '<span class="muted tiny">--</span>';
+          const obs = buildJobObservability(j);
+          return `
             <tr>
               <td><span class="pill">${escapeHtml(j.host)}</span></td>
-              <td class="mono tiny">${escapeHtml(j.url)}</td>
-              <td><span class="status-badge ${j.status === 'completed' ? 'ok' : 'bad'}">${j.status.toUpperCase()}</span></td>
+              <td class="mono tiny" title="${escapeForAttr(summary || obs.tooltip)}">
+                <div>${escapeHtml(j.url)}</div>
+                <div class="muted tiny">${escapeHtml(obs.summaryLine)}</div>
+                ${obs.reasonLine ? `<div class="bad tiny">${escapeHtml(obs.reasonLine)}</div>` : ""}
+                <div class="tiny muted">${escapeHtml(obs.actionLine)}</div>
+              </td>
+              <td><span class="status-badge ${statusBadgeClass(j.status)}">${statusLabel(j.status)}</span></td>
+              <td>${caseCell}</td>
+              <td style="display:flex; gap:4px;">
+                ${j.caseId ? "" : `<button class="pill-btn tiny" data-case-from-job="${j.id}">Create Case</button>`}
+                ${j.status === "failed" || j.status === "warning" || j.status === "canceled" ? `<button class="pill-btn tiny" data-queue-action="requeue" data-queue-id="${j.id}">Requeue</button>` : ""}
+              </td>
             </tr>
-         `).join('');
+          `;
+        }).join('');
+      }
+
+      qBody.querySelectorAll("[data-queue-action]").forEach((btn) => {
+        btn.addEventListener("click", () => handleQueueAction(btn.getAttribute("data-queue-id"), btn.getAttribute("data-queue-action")));
+      });
+      hBody.querySelectorAll("[data-queue-action]").forEach((btn) => {
+        btn.addEventListener("click", () => handleQueueAction(btn.getAttribute("data-queue-id"), btn.getAttribute("data-queue-action")));
+      });
+      document.querySelectorAll("[data-open-case]").forEach((btn) => {
+        btn.addEventListener("click", () => openCaseById(btn.getAttribute("data-open-case")));
+      });
+      hBody.querySelectorAll("[data-case-from-job]").forEach((btn) => {
+        btn.addEventListener("click", () => createCaseFromHistoryJob(btn.getAttribute("data-case-from-job")));
+      });
+
+      updateTrustFromAutomation(snapshot);
+      if (window.caseMgr && window.caseMgr.renderWorkspaceDepth) {
+        window.caseMgr.renderWorkspaceDepth(snapshot, null);
       }
     }
 
@@ -3240,19 +3973,79 @@
       });
     }
 
+    const btnQueueBatch = el("btnQueueBatch");
+    if (btnQueueBatch) {
+      btnQueueBatch.addEventListener("click", async () => {
+        const raw = el("batchDecodeInput").value || el("input").value;
+        const targets = parseBatchTargets(raw);
+        if (!targets.length) {
+          setStatus("Batch queue skipped: provide at least one target URL.", "warn");
+          return;
+        }
+        await queueTargets(targets, { source: "operator-batch", bindToCase: false });
+      });
+    }
+
+    const btnQueueBatchToCase = el("btnQueueBatchToCase");
+    if (btnQueueBatchToCase) {
+      btnQueueBatchToCase.addEventListener("click", async () => {
+        const raw = el("batchDecodeInput").value || el("input").value;
+        const targets = parseBatchTargets(raw);
+        if (!targets.length) {
+          setStatus("Batch queue skipped: provide at least one target URL.", "warn");
+          return;
+        }
+        if (!(window.caseMgr && window.caseMgr.activeCase && window.caseMgr.activeCase.case_id)) {
+          setStatus("Batch queue to case blocked: load an active case first.", "warn");
+          return;
+        }
+        await queueTargets(targets, { source: "operator-batch", bindToCase: true });
+      });
+    }
+
+    const btnExportBatchReport = el("btnExportBatchReport");
+    if (btnExportBatchReport) {
+      btnExportBatchReport.addEventListener("click", () => exportBatchReport());
+    }
+
     // Listen to backend events
     if (window.electronAPI && window.electronAPI.onAutomationEvent) {
-      window.electronAPI.onAutomationEvent((payload) => {
+      window.electronAPI.onAutomationEvent(async (payload) => {
         if (payload.type === 'POLL_ERROR') return;
         syncAutomationState();
 
         if (payload.type === 'DECODE_START') {
           logToConsole(`SmartSnatch orchestration triggered for ${payload.data.host}`, 'probe');
-          setStatus(`SmartSnatch Engine processing queue...`, 'ok');
+          setStatus(`SmartSnatch engine processing ${payload.data.host}...`, 'ok');
+        }
+        if (payload.type === 'DECODE_FAILED') {
+          logToConsole(`SmartSnatch decode failed for ${payload.data.host}: ${payload.data.error}`, 'bad');
+          setStatus(`SmartSnatch decode failed for ${payload.data.host}.`, 'bad');
         }
         if (payload.type === 'DECODE_COMPLETE') {
-          // We can optionally render output here or rely on user navigating the tabs
-          logToConsole(`SmartSnatch extracted payload from ${payload.data.url.substring(0, 30)}...`, 'decode');
+          const shortUrl = (payload.data.url || "").substring(0, 40);
+          const summary = payload.data.summary && payload.data.summary.message ? payload.data.summary.message : "Decode complete.";
+          logToConsole(`SmartSnatch completed ${payload.data.host} :: ${summary}`, 'decode');
+          setStatus(`Batch decode complete for ${payload.data.host}. ${summary}`, payload.data.summary?.kind === "bad" ? "bad" : (payload.data.summary?.kind === "warn" ? "warn" : "ok"));
+
+          if (payload.data.caseId && window.caseMgr && window.caseMgr.activeCase && window.caseMgr.activeCase.case_id === payload.data.caseId) {
+            const jobId = payload.data.id;
+            if (jobId && !state.automationCaseLinkedJobs[jobId]) {
+              state.automationCaseLinkedJobs[jobId] = true;
+              try {
+                const sev = payload.data.summary?.kind === "bad" ? "bad" : (payload.data.summary?.kind === "warn" ? "warn" : "info");
+                await window.electronAPI.caseAddFinding(payload.data.caseId, {
+                  bundle_id: jobId,
+                  title: `Batch job ${payload.data.host} :: ${statusLabel(payload.data.summary?.kind || "completed")}`,
+                  severity: sev,
+                  notes: payload.data.summary?.message || `Automated decode completed for ${shortUrl}`
+                });
+                await window.caseMgr.loadCase(payload.data.caseId);
+              } catch (err) {
+                logToConsole(`Case linkage update failed for ${payload.data.host}: ${err.message}`, 'warn');
+              }
+            }
+          }
         }
       });
 
@@ -3635,6 +4428,27 @@
         el('btnAutoInvestigate').addEventListener('click', () => this.launchAutoInvestigation());
         el('btnClassifyBundles').addEventListener('click', () => this.classifyBundles());
         el('btnGenerateResearch').addEventListener('click', () => this.generateResearchSuggestions());
+        el('btnCaseWorkspaceQueue').addEventListener('click', () => this.openQueueViewFromCase());
+        el('btnCaseWorkspaceReport').addEventListener('click', () => this.openCaseReportFromContext());
+        el('btnCaseWorkspaceReportExport').addEventListener('click', () => this.exportCaseReportFromContext());
+        el('btnCaseWorkspaceExport').addEventListener('click', () => this.exportActiveCase());
+      }
+
+      async createCase() {
+        if (!window.electronAPI || !window.electronAPI.caseCreate) {
+          setStatus("Case creation failed: Electron bridge is unavailable.", "bad");
+          return;
+        }
+        const title = prompt("Case title:", "New Investigation");
+        if (title === null) return;
+        const created = await window.electronAPI.caseCreate(String(title || "").trim() || "New Investigation");
+        if (!created || !created.case_id) {
+          setStatus("Case creation failed: invalid response from backend.", "bad");
+          return;
+        }
+        setStatus(`Created case ${created.case_id}.`, "ok");
+        await this.refreshCaseList();
+        await this.loadCase(created.case_id);
       }
 
       async refreshCaseList() {
@@ -3681,15 +4495,379 @@
         this.refreshQueryStats();
         this.scanAllBundlesForAlerts();
         this.refreshResearchScripts();
+        this.renderWorkspaceDepth(state.lastAutomation, state.lastAutomationError);
 
         logToConsole(`Case Loaded: ${c.title}`, "ok");
         window.electronAPI.auditLog('CASE_OPEN', { caseId: caseId, title: c.title });
       }
 
+      getLinkedCaseJobs(snapshot = state.lastAutomation) {
+        if (!this.activeCase || !this.activeCase.case_id) return [];
+        if (!snapshot) return [];
+
+        const caseId = this.activeCase.case_id;
+        const queue = Array.isArray(snapshot.queue) ? snapshot.queue : [];
+        const history = Array.isArray(snapshot.history) ? snapshot.history : [];
+
+        const linked = [...queue, ...history].filter((job) => job && job.caseId === caseId);
+        linked.sort((a, b) => {
+          const aTs = a.updatedAt || a.finishedAt || a.startedAt || a.addedAt || 0;
+          const bTs = b.updatedAt || b.finishedAt || b.startedAt || b.addedAt || 0;
+          return bTs - aTs;
+        });
+        return linked;
+      }
+
+      getCaseStatusRollup(linkedJobs) {
+        return buildStatusRollup(linkedJobs);
+      }
+
+      getCaseTrustSummary(linkedJobs, rollup) {
+        return buildTrustSummaryFromJobs(linkedJobs, rollup);
+      }
+
+      renderWorkspaceDepth(snapshot = state.lastAutomation, automationError = state.lastAutomationError) {
+        const stateEl = el('caseWorkspaceState');
+        const countsEl = el('caseSummaryCounts');
+        const linkedCountEl = el('caseLinkedJobsCount');
+        const manualReviewEl = el('caseManualReviewFlags');
+        const riskEl = el('caseRiskFlags');
+        const trustEl = el('caseTrustSummary');
+        const rollupEl = el('caseStatusRollup');
+        const listEl = el('caseLinkedJobsList');
+        const lineageEl = el('caseLineageSummary');
+        const timelineEl = el('caseTimelineList');
+        if (!stateEl || !countsEl || !linkedCountEl || !manualReviewEl || !riskEl || !trustEl || !rollupEl || !listEl || !lineageEl || !timelineEl) return;
+
+        if (!this.activeCase || !this.activeCase.case_id) {
+          stateEl.className = "tiny muted";
+          stateEl.textContent = "Load a case to initialize workspace state.";
+          countsEl.textContent = "bundles:0 notes:0 findings:0";
+          linkedCountEl.textContent = "0";
+          manualReviewEl.textContent = "0";
+          riskEl.textContent = "0";
+          trustEl.textContent = "No linked queue activity";
+          trustEl.className = "pill tiny idle";
+          rollupEl.textContent = "queued:0 running:0 paused:0 review:0 completed:0 warning:0 failed:0 canceled:0";
+          listEl.innerHTML = '<div class="muted tiny">No linked queue activity for this case.</div>';
+          lineageEl.textContent = "lineage: unavailable";
+          timelineEl.innerHTML = '<div class="muted tiny">No case timeline events recorded.</div>';
+          return;
+        }
+
+        const bundlesCount = Array.isArray(this.activeCase.bundles) ? this.activeCase.bundles.length : 0;
+        const notesCount = Array.isArray(this.activeCase.notes) ? this.activeCase.notes.length : 0;
+        const findingsCount = Array.isArray(this.activeCase.findings) ? this.activeCase.findings.length : 0;
+        countsEl.textContent = `bundles:${bundlesCount} notes:${notesCount} findings:${findingsCount}`;
+
+        if (automationError) {
+          stateEl.className = "tiny bad";
+          stateEl.textContent = `Automation state unavailable: ${automationError}`;
+          linkedCountEl.textContent = "--";
+          manualReviewEl.textContent = "--";
+          riskEl.textContent = "--";
+          trustEl.textContent = "Automation state unavailable";
+          trustEl.className = "pill tiny bad";
+          rollupEl.textContent = "queued:-- running:-- paused:-- review:-- completed:-- warning:-- failed:-- canceled:--";
+          listEl.innerHTML = '<div class="bad tiny">Queue activity could not be loaded. Verify bridge and retry.</div>';
+          lineageEl.textContent = "lineage: automation-state-unavailable";
+          timelineEl.innerHTML = '<div class="bad tiny">Timeline unavailable while automation state is disconnected.</div>';
+          return;
+        }
+
+        if (!snapshot) {
+          stateEl.className = "tiny muted";
+          stateEl.textContent = "Loading linked queue activity for active case...";
+          linkedCountEl.textContent = "0";
+          manualReviewEl.textContent = "0";
+          riskEl.textContent = "0";
+          trustEl.textContent = "Loading";
+          trustEl.className = "pill tiny warn";
+          rollupEl.textContent = "queued:0 running:0 paused:0 review:0 completed:0 warning:0 failed:0 canceled:0";
+          listEl.innerHTML = '<div class="muted tiny">Loading queue activity...</div>';
+          lineageEl.textContent = "lineage: loading";
+          timelineEl.innerHTML = '<div class="muted tiny">Loading timeline events...</div>';
+          return;
+        }
+
+        const linkedJobs = this.getLinkedCaseJobs(snapshot);
+        const rollup = this.getCaseStatusRollup(linkedJobs);
+        const trust = this.getCaseTrustSummary(linkedJobs, rollup);
+        const caseTimeline = buildCaseTimelineEvents(linkedJobs, 30);
+
+        linkedCountEl.textContent = String(linkedJobs.length);
+        manualReviewEl.textContent = String(rollup.manualReview);
+        riskEl.textContent = String(rollup.warning + rollup.failed + rollup.canceled);
+        trustEl.textContent = trust.label;
+        trustEl.className = `pill tiny ${trust.className}`;
+        rollupEl.textContent = `queued:${rollup.queued} running:${rollup.running} paused:${rollup.paused} review:${rollup.manualReview} completed:${rollup.completed} warning:${rollup.warning} failed:${rollup.failed} canceled:${rollup.canceled}`;
+        lineageEl.textContent = buildCaseLineageSummary(this.activeCase.case_id, linkedJobs, caseTimeline);
+        stateEl.className = "tiny muted";
+        stateEl.textContent = `Case workspace synced at ${new Date().toLocaleTimeString()} for ${this.activeCase.case_id}.`;
+
+        if (!linkedJobs.length) {
+          listEl.innerHTML = '<div class="muted tiny">No linked queue activity for this case. Queue with "Queue to Active Case" or bind from history.</div>';
+          timelineEl.innerHTML = '<div class="muted tiny">No case timeline events recorded.</div>';
+          return;
+        }
+
+        listEl.innerHTML = linkedJobs.slice(0, 14).map((job) => {
+          const obs = buildJobObservability(job);
+          const reason = job.failureReason || job.manualReviewReason || job.error || "";
+          const reasonChain = buildReasonChain(job, 4);
+          const timeline = buildJobTimelineEvents(job, 6);
+          const summary = job?.lastResultSummary?.message || "No summary";
+          const canReopen = isReopenableStatus(job.status);
+          return `
+            <div class="panel" style="padding:8px; border-style:dashed; background:rgba(255,255,255,0.02);">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <span class="pill tiny">${escapeHtml(job.host || "unknown")}</span>
+                <span class="status-badge ${statusBadgeClass(job.status)}">${statusLabel(job.status)}</span>
+              </div>
+              <div class="mono tiny" style="margin-top:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeForAttr(job.url || "")}">${escapeHtml(job.url || "--")}</div>
+              <div class="tiny muted" style="margin-top:4px;">${escapeHtml(obs.summaryLine)}</div>
+              <div class="tiny muted">summary: ${escapeHtml(summary)}</div>
+              ${reason ? `<div class="bad tiny">reason: ${escapeHtml(reason)}</div>` : ""}
+              <div class="tiny muted">reason chain: ${escapeHtml(reasonChain.length ? reasonChain.join(" | ") : "--")}</div>
+              <div class="tiny muted">${escapeHtml(obs.actionLine)}</div>
+              <div class="tiny muted">timeline: ${escapeHtml(timeline.length ? timeline.slice(-3).map((event) => `${formatTimestamp(event.at)} ${event.event}`).join(" | ") : "--")}</div>
+              <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+                <button class="pill-btn tiny" data-case-job-open="${job.id}">Open Queue</button>
+                ${canReopen ? `<button class="pill-btn tiny" data-case-job-reopen="${job.id}">Reopen</button>` : ""}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        listEl.querySelectorAll('[data-case-job-open]').forEach((btn) => {
+          btn.addEventListener('click', () => this.openQueueViewFromCase(btn.getAttribute('data-case-job-open')));
+        });
+        listEl.querySelectorAll('[data-case-job-reopen]').forEach((btn) => {
+          btn.addEventListener('click', () => this.reopenCaseJob(btn.getAttribute('data-case-job-reopen')));
+        });
+
+        timelineEl.innerHTML = caseTimeline.length
+          ? caseTimeline.map((event) => {
+            const ev = String(event.event || "event").toLowerCase();
+            let cls = "muted";
+            if (ev.includes("fail") || ev.includes("canceled")) cls = "bad";
+            else if (ev.includes("manual") || ev.includes("warn")) cls = "warn";
+            else if (ev.includes("complete")) cls = "ok";
+            const detail = event.detail ? ` :: ${event.detail}` : "";
+            return `<div class="tiny ${cls}" style="border-left:2px solid rgba(255,255,255,0.18); padding-left:6px;">${formatTimestamp(event.at)} :: ${escapeHtml(event.host || "unknown")} :: ${escapeHtml(event.event || "event")}${escapeHtml(detail)}</div>`;
+          }).join('')
+          : '<div class="muted tiny">No case timeline events recorded.</div>';
+      }
+
+      buildCaseWorkspaceReport(snapshot = state.lastAutomation) {
+        const linkedJobs = this.getLinkedCaseJobs(snapshot);
+        const rollup = this.getCaseStatusRollup(linkedJobs);
+        const trust = this.getCaseTrustSummary(linkedJobs, rollup);
+        const caseTimeline = buildCaseTimelineEvents(linkedJobs, 36);
+        const failedJobs = linkedJobs.filter((job) => job.status === "failed");
+        const warningJobs = linkedJobs.filter((job) => job.status === "warning");
+        const manualReviewJobs = linkedJobs.filter((job) => job.status === "manual-review");
+        const caseId = this.activeCase?.case_id || "unknown-case";
+        const title = this.activeCase?.title || "Untitled Case";
+        const bundlesCount = (this.activeCase?.bundles || []).length;
+        const findingsCount = (this.activeCase?.findings || []).length;
+        const notesCount = (this.activeCase?.notes || []).length;
+        const lineageSummary = buildCaseLineageSummary(caseId, linkedJobs, caseTimeline);
+
+        const executiveSummary = {
+          caseId,
+          title,
+          linkedJobs: linkedJobs.length,
+          trustStatus: trust.label,
+          riskFlags: failedJobs.length + warningJobs.length + manualReviewJobs.length
+        };
+        const queueResultsSummary = {
+          queued: rollup.queued,
+          running: rollup.running,
+          paused: rollup.paused,
+          manualReview: rollup.manualReview,
+          completed: rollup.completed,
+          warning: rollup.warning,
+          failed: rollup.failed,
+          canceled: rollup.canceled
+        };
+        const caseSummary = {
+          bundles: bundlesCount,
+          findings: findingsCount,
+          notes: notesCount
+        };
+        const exportMetadata = {
+          reportType: "case-workspace",
+          schema: "v1.5.0-reporting",
+          generatedAt: new Date().toISOString(),
+          source: "case-workspace-context",
+          deterministicHeadings: true,
+          caseId
+        };
+        const jobTimelines = linkedJobs.map((job) => ({
+          jobId: job.id,
+          host: job.host,
+          status: job.status,
+          source: job.source || "unknown",
+          reasonChain: buildReasonChain(job, 6),
+          events: buildJobTimelineEvents(job, 12)
+        }));
+
+        const lines = [
+          "# HyperSnatch Case Workspace Report",
+          `Generated: ${exportMetadata.generatedAt}`,
+          `Case: ${caseId} :: ${title}`,
+          "",
+          "## Executive Summary",
+          `- linked jobs: ${executiveSummary.linkedJobs}`,
+          `- trust status: ${executiveSummary.trustStatus}`,
+          `- risk flags: ${executiveSummary.riskFlags}`,
+          "",
+          "## Queue Results Summary",
+          `- queued: ${queueResultsSummary.queued}`,
+          `- running: ${queueResultsSummary.running}`,
+          `- paused: ${queueResultsSummary.paused}`,
+          `- manual-review: ${queueResultsSummary.manualReview}`,
+          `- completed: ${queueResultsSummary.completed}`,
+          `- warning: ${queueResultsSummary.warning}`,
+          `- failed: ${queueResultsSummary.failed}`,
+          `- canceled: ${queueResultsSummary.canceled}`,
+          "",
+          "## Case Summary",
+          `- case id: ${caseId}`,
+          `- title: ${title}`,
+          `- bundles: ${caseSummary.bundles}`,
+          `- findings: ${caseSummary.findings}`,
+          `- notes: ${caseSummary.notes}`,
+          "",
+          "## Trust Summary",
+          `- status: ${trust.label}`,
+          `- lineage: ${lineageSummary}`,
+          "",
+          "## Warnings Failures and Manual Review"
+        ];
+
+        if (!failedJobs.length && !warningJobs.length && !manualReviewJobs.length) {
+          lines.push("- none");
+        } else {
+          failedJobs.slice(0, 12).forEach((job) => lines.push(`- failed: ${job.host} :: ${job.url} :: ${job.failureReason || job.error || "Unknown failure"}`));
+          warningJobs.slice(0, 12).forEach((job) => lines.push(`- warning: ${job.host} :: ${job.url} :: ${job.lastResultSummary?.message || "Warning without summary"}`));
+          manualReviewJobs.slice(0, 12).forEach((job) => lines.push(`- manual-review: ${job.host} :: ${job.url} :: ${job.manualReviewReason || "No reason provided"}`));
+        }
+
+        lines.push("", "## Evidence Timeline and Lineage");
+        if (!jobTimelines.length) {
+          lines.push("- no case-linked timeline events");
+        } else {
+          jobTimelines.slice(0, 16).forEach((job) => {
+            lines.push(`- job ${job.jobId} [${statusLabel(job.status)}] host=${job.host} source=${job.source}`);
+            lines.push(`  - reason chain: ${job.reasonChain.length ? job.reasonChain.join(" | ") : "--"}`);
+            if (!job.events.length) {
+              lines.push("  - timeline: none");
+            } else {
+              job.events.slice(-6).forEach((event) => {
+                const detail = event.detail ? ` :: ${event.detail}` : "";
+                lines.push(`  - ${formatTimestamp(event.at)} :: ${event.event}${detail}`);
+              });
+            }
+          });
+        }
+
+        lines.push("", "## Case Timeline");
+        if (!caseTimeline.length) {
+          lines.push("- no case-level timeline events");
+        } else {
+          caseTimeline.slice(0, 24).forEach((event) => {
+            const detail = event.detail ? ` :: ${event.detail}` : "";
+            lines.push(`- ${formatTimestamp(event.at)} :: ${event.host} :: ${event.event}${detail}`);
+          });
+        }
+
+        lines.push("", "## Export Metadata");
+        lines.push(`- report type: ${exportMetadata.reportType}`);
+        lines.push(`- schema: ${exportMetadata.schema}`);
+        lines.push(`- source: ${exportMetadata.source}`);
+        lines.push(`- case id: ${exportMetadata.caseId}`);
+        lines.push(`- deterministic headings: ${exportMetadata.deterministicHeadings ? "true" : "false"}`);
+
+        return {
+          ...exportMetadata,
+          executiveSummary,
+          queueResultsSummary,
+          caseSummary,
+          trustSummary: trust,
+          riskSummary: {
+            failed: failedJobs.map((job) => ({ id: job.id, host: job.host, url: job.url, reason: job.failureReason || job.error || "Unknown failure" })),
+            warning: warningJobs.map((job) => ({ id: job.id, host: job.host, url: job.url, reason: job.lastResultSummary?.message || "Warning without summary" })),
+            manualReview: manualReviewJobs.map((job) => ({ id: job.id, host: job.host, url: job.url, reason: job.manualReviewReason || "No reason provided" }))
+          },
+          lineage: {
+            summary: lineageSummary,
+            jobTimelines,
+            caseTimeline
+          },
+          markdown: lines.join("\n")
+        };
+      }
+
+      openQueueViewFromCase(jobId = null) {
+        activateTab(el("tabBtnAutomation"));
+        if (jobId) {
+          setStatus(`Opened queue view for case-linked job ${jobId.slice(0, 12)}.`, "ok");
+        } else {
+          setStatus("Opened queue view from case workspace.", "ok");
+        }
+      }
+
+      async reopenCaseJob(jobId) {
+        if (!jobId) return;
+        if (!window.electronAPI || !window.electronAPI.automationQueueAction) {
+          setStatus("Reopen failed: automation queue bridge unavailable.", "bad");
+          return;
+        }
+        const reason = `Reopened from case workspace ${this.activeCase?.case_id || "unknown-case"}.`;
+        const res = await window.electronAPI.automationQueueAction(jobId, "requeue", reason);
+        if (!res || res.success === false) {
+          setStatus(`Reopen failed for job ${jobId.slice(0, 12)}.`, "bad");
+          return;
+        }
+        setStatus(`Reopened case-linked job ${jobId.slice(0, 12)}.`, "ok");
+        await syncAutomationState();
+      }
+
+      async openCaseReportFromContext() {
+        if (!this.activeCase || !this.activeCase.case_id) {
+          setStatus("Case report launch blocked: no active case.", "warn");
+          return;
+        }
+        const report = this.buildCaseWorkspaceReport(state.lastAutomation);
+        state.lastCaseWorkspaceReport = report;
+        const reportEl = el("reportTextarea");
+        if (reportEl) reportEl.value = report.markdown;
+        activateTab(el("tabBtnAutomation"));
+        setStatus(`Case report loaded for ${this.activeCase.case_id}.`, "ok");
+      }
+
+      async exportCaseReportFromContext() {
+        if (!this.activeCase || !this.activeCase.case_id) {
+          setStatus("Case report export blocked: no active case.", "warn");
+          return;
+        }
+        const report = this.buildCaseWorkspaceReport(state.lastAutomation);
+        state.lastCaseWorkspaceReport = report;
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const base = `${this.activeCase.case_id}_workspace_report_${stamp}`;
+        downloadFile(report.markdown || "", `${base}.md`, "text/markdown");
+        downloadFile(JSON.stringify(report, null, 2), `${base}.json`, "application/json");
+        setStatus(`Case report exported for ${this.activeCase.case_id} (MD + JSON).`, "ok");
+      }
+
       closeCase() {
         this.activeCase = null;
+        state.lastCaseWorkspaceReport = null;
         el('activeCaseDashboard').style.display = 'none';
         el('caseExplorer').style.display = 'block';
+        this.renderWorkspaceDepth(null, null);
         this.refreshCaseList();
       }
 
@@ -3731,6 +4909,7 @@
           this.activeCase = updated;
           this.renderBundles();
           this.updateCompareSelects();
+          this.renderWorkspaceDepth(state.lastAutomation, state.lastAutomationError);
           logToConsole(`Bundle attached: ${bundlePath}`, "ok");
         } catch (err) {
           alert("Error attaching bundle: " + err.message);
@@ -3759,6 +4938,7 @@
         this.activeCase = updated;
         el('caseNoteInput').value = "";
         this.renderNotes();
+        this.renderWorkspaceDepth(state.lastAutomation, state.lastAutomationError);
       }
 
       async exportNotes() {
@@ -3812,6 +4992,7 @@
         });
         this.activeCase = updated;
         this.renderFindings();
+        this.renderWorkspaceDepth(state.lastAutomation, state.lastAutomationError);
       }
 
       updateCompareSelects() {
