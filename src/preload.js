@@ -286,9 +286,9 @@ const electronAPI = {
     return ipcRenderer.invoke('automation-queue-add', { targets, ...options });
   },
 
-  automationQueueAction: (id, action) => {
+  automationQueueAction: (id, action, reason = null) => {
     validateIPCChannel('automation-queue-action');
-    return ipcRenderer.invoke('automation-queue-action', { id, action });
+    return ipcRenderer.invoke('automation-queue-action', { id, action, reason });
   },
 
   automationQueueBindCase: (id, caseId, caseTitle) => {

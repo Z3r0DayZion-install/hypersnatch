@@ -1113,14 +1113,15 @@ ipcMain.handle('automation-queue-add', (event, payload) => {
 ipcMain.handle('automation-queue-action', (event, payload) => {
   const id = payload?.id;
   const action = String(payload?.action || '').toLowerCase();
+  const reason = payload?.reason ? String(payload.reason) : null;
   if (!id || !action) return { success: false, reason: 'Missing queue action payload' };
 
   let success = false;
-  if (action === 'pause') success = decodeQueue.pause(id);
-  if (action === 'resume') success = decodeQueue.resume(id);
-  if (action === 'cancel') success = decodeQueue.cancel(id, 'Cancelled by operator.');
-  if (action === 'requeue') success = decodeQueue.requeue(id);
-  if (action === 'manual-review') success = decodeQueue.markManualReview(id, 'Moved to manual review by operator.');
+  if (action === 'pause') success = decodeQueue.pause(id, 'operator');
+  if (action === 'resume') success = decodeQueue.resume(id, 'operator');
+  if (action === 'cancel') success = decodeQueue.cancel(id, reason || 'Cancelled by operator.', 'operator');
+  if (action === 'requeue') success = decodeQueue.requeue(id, 'operator', reason || 'Requeued by operator.');
+  if (action === 'manual-review') success = decodeQueue.markManualReview(id, reason || 'Moved to manual review by operator.', 'operator');
 
   return {
     success,
@@ -1137,7 +1138,7 @@ ipcMain.handle('automation-queue-bind-case', (event, payload) => {
   const caseTitle = payload?.caseTitle || null;
   if (!id || !caseId) return { success: false, reason: 'Missing id or caseId' };
   return {
-    success: decodeQueue.attachCase(id, caseId, caseTitle),
+    success: decodeQueue.attachCase(id, caseId, caseTitle, 'operator'),
     queue: decodeQueue.getQueue(),
     history: decodeQueue.getHistory(20)
   };
