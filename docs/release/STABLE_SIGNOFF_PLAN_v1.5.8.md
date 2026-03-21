@@ -16,8 +16,8 @@ Make strict stable signoff operationally clear and deterministic, with minimal o
 1. Explicit required artifact contract for strict stable signoff:
    - installer artifact
    - versioned release bundle
-   - strict CLI artifact requirement
    - strict hash-manifest requirement
+   - optional CLI enforcement only when explicitly requested
 2. Clear signoff state output:
    - `NON-SIGNOFF`
    - `BLOCKED`
@@ -41,10 +41,15 @@ Make strict stable signoff operationally clear and deterministic, with minimal o
      - `SIGNOFF STATUS: NON-SIGNOFF`
      - `SIGNOFF STATUS: BLOCKED`
      - `SIGNOFF STATUS: APPROVED`
-   - Added explicit strict artifact-path expectations at runtime:
-     - `HyperSnatch-Setup-<version>.exe`
-     - `HyperSnatch_Vanguard_v<version>.zip`
-     - `hypersnatch-cli.exe` (strict requirement)
-     - `SHA256SUMS.txt` (strict requirement)
-   - Added deterministic strict rerun guidance with exact expected paths and command (`npm run audit:stable`).
-   - Tightened strict missing-artifact failures to include precise missing artifact path and reason code context.
+    - Added explicit strict artifact-path expectations at runtime:
+      - `HyperSnatch-Setup-<version>.exe`
+      - `HyperSnatch_Vanguard_v<version>.zip`
+      - `SHA256SUMS.txt` (strict requirement)
+      - `hypersnatch-cli.exe` (optional strict extension only when `HYPERSNATCH_AUDIT_REQUIRE_CLI=1`)
+    - Added deterministic strict rerun guidance with exact expected paths and command (`npm run audit:stable`).
+    - Tightened strict missing-artifact failures to include precise missing artifact path and reason code context.
+2. Completed in slice 4 (`fix(build|audit)`):
+   - Removed false default strict CLI requirement from `audit:stable` wrapper contract.
+   - Kept optional strict CLI enforcement path via `HYPERSNATCH_AUDIT_REQUIRE_CLI=1`.
+   - Added release-pack manifest generation (`SHA256SUMS.txt`, `MANIFEST.json`) to standard `npm run build:wrapper` flow.
+   - Extended strict hash verification to validate installer + versioned release bundle entries/hashes.

@@ -26,7 +26,8 @@ Current hardening line: `release-readiness/v1.5.8-hardening`
 - If builder artifacts are stale, rerun `npm install` and rerun the full gate set.
 - Node runtime baseline is defined in `package.json` (`engines.node = 20.17.0`) as the minimum supported Node 20 proof runtime.
 - `scripts/verify_release.js` now fails with explicit remediation when runtime/dependency prerequisites are missing.
-- Strict stable signoff expects explicit strict artifacts in `dist`: installer, versioned release bundle, `hypersnatch-cli.exe`, and `SHA256SUMS.txt`.
+- Strict stable signoff expects required strict artifacts in `dist`: installer, versioned release bundle, and `SHA256SUMS.txt`.
+- `hypersnatch-cli.exe` is optional by default and is only enforced when `HYPERSNATCH_AUDIT_REQUIRE_CLI=1` is explicitly set.
 
 ## Dependency Hygiene Baseline
 

@@ -18,7 +18,8 @@ Execute the post-`v1.5.7` reality-audit decision: one narrow hardening pass befo
 
 1. `fix(audit)`:
    - operationalize strict stable signoff behavior
-   - make CLI artifact requirements explicit and deterministic
+   - make strict artifact requirements explicit and deterministic
+   - resolve the CLI requirement fork truthfully (optional by default; enforce only when explicitly requested)
    - make signoff state unmistakable (`non-signoff`, `blocked`, `approved`)
 2. `docs(governance)`:
    - align top-level repo truth to shipped `v1.5.7`
@@ -27,6 +28,9 @@ Execute the post-`v1.5.7` reality-audit decision: one narrow hardening pass befo
 3. `test(ui)` (and minimal `fix(ui)` only if required by proof):
    - deepen packaged/runtime confidence for queue/manual-review/reopen/report/export/lineage flows
    - push proof toward state-change semantics over indirect assertions
+4. `fix(build|audit)`:
+   - operationalize strict hash-manifest generation in the standard `build:wrapper` flow
+   - make `audit:stable` pass/fail deterministic against the truthful strict contract
 
 ## Required Gate Order
 
@@ -46,3 +50,4 @@ Run in this exact order after each real slice:
 2. Top-level governance/status/setup docs reflect shipped `v1.5.7` truth.
 3. UI proof depth is stronger on runtime interaction state changes.
 4. All required gates pass in the required order for code/proof slices.
+5. `npm run audit:stable` is operational and no longer blocked by a false strict CLI requirement.

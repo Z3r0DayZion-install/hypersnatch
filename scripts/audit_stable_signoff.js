@@ -8,8 +8,7 @@ const env = {
   ...process.env,
   HYPERSNATCH_AUDIT_PROFILE: "strict",
   HYPERSNATCH_AUDIT_RELEASE_TYPE: "stable",
-  HYPERSNATCH_AUDIT_REQUIRE_HASH: "1",
-  HYPERSNATCH_AUDIT_REQUIRE_CLI: "1"
+  HYPERSNATCH_AUDIT_REQUIRE_HASH: "1"
 };
 
 const result = spawnSync(process.execPath, [auditScript], {

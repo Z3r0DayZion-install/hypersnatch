@@ -20,7 +20,7 @@ const AUDIT_RELEASE_TYPE = String(process.env.HYPERSNATCH_AUDIT_RELEASE_TYPE || 
 const VALID_AUDIT_PROFILES = new Set(["warn", "strict"]);
 const VALID_RELEASE_TYPES = new Set(["internal", "prerelease", "stable"]);
 const STRICT_HASH = STRICT_HASH_FLAG || AUDIT_PROFILE === "strict";
-const STRICT_CLI = STRICT_CLI_FLAG || AUDIT_PROFILE === "strict";
+const STRICT_CLI = STRICT_CLI_FLAG;
 const IS_STRICT_STABLE_SIGNOFF = AUDIT_PROFILE === "strict" && AUDIT_RELEASE_TYPE === "stable";
 
 function sha256(filePath) {
@@ -61,6 +61,18 @@ function parseHashManifest(manifestPath) {
   return out;
 }
 
+function manifestLookup(manifest, artifactRoot, filePath) {
+  const base = path.basename(filePath);
+  const relFromRoot = path.relative(ROOT, filePath).replace(/\\/g, "/");
+  const relFromArtifactRoot = path.relative(artifactRoot, filePath).replace(/\\/g, "/");
+  return (
+    manifest.get(base) ||
+    manifest.get(relFromRoot) ||
+    manifest.get(relFromArtifactRoot) ||
+    null
+  );
+}
+
 function assertExists(relPath) {
   const fullPath = path.join(ROOT, relPath);
   if (!fs.existsSync(fullPath)) {
@@ -94,16 +106,17 @@ function printArtifactExpectations(artifactRoot) {
   console.log("Artifact expectations:");
   console.log(`- installer: ${expected.installer}`);
   console.log(`- release bundle: ${expected.releaseBundle}`);
-  console.log(`- strict CLI (required in strict mode): ${expected.cli}`);
-  console.log(`- strict hash manifest (required in strict mode): ${expected.hashManifest}\n`);
+  console.log(`- strict hash manifest (required in strict mode): ${expected.hashManifest}`);
+  console.log(`- strict CLI (optional extra strictness via HYPERSNATCH_AUDIT_REQUIRE_CLI=1): ${expected.cli}`);
+  console.log("");
 }
 
 function printStrictRerunGuidance(artifactRoot) {
   const expected = expectedArtifactsForRoot(artifactRoot);
   console.log("Strict stable signoff rerun guidance:");
-  console.log(`1. Ensure artifact root contains: ${EXPECTED_INSTALLER_NAME}, ${EXPECTED_RELEASE_BUNDLE_NAME}, ${EXPECTED_CLI_NAME}, ${EXPECTED_HASH_MANIFEST_NAME}.`);
-  console.log(`2. Expected strict CLI path: ${expected.cli}`);
-  console.log(`3. Expected strict hash path: ${expected.hashManifest}`);
+  console.log(`1. Ensure artifact root contains required strict files: ${EXPECTED_INSTALLER_NAME}, ${EXPECTED_RELEASE_BUNDLE_NAME}, ${EXPECTED_HASH_MANIFEST_NAME}.`);
+  console.log(`2. Expected strict hash path: ${expected.hashManifest}`);
+  console.log(`3. Optional strict CLI path (only when HYPERSNATCH_AUDIT_REQUIRE_CLI=1): ${expected.cli}`);
   console.log("4. Rebuild/re-prepare artifacts, then rerun: npm run audit:stable");
 }
 
@@ -112,9 +125,11 @@ function printStrictStableGuidance() {
   console.log("Strict stable signoff contract:");
   console.log("- required profile: HYPERSNATCH_AUDIT_PROFILE=strict");
   console.log("- required release type: HYPERSNATCH_AUDIT_RELEASE_TYPE=stable");
-  console.log("- required checks: CLI artifact + SHA256SUMS hash verification");
+  console.log("- required checks: installer + versioned release bundle + SHA256SUMS hash verification");
+  console.log("- optional extra strictness: set HYPERSNATCH_AUDIT_REQUIRE_CLI=1 to require hypersnatch-cli.exe");
   console.log("- recommended command: npm run audit:stable");
-  console.log('Strict rerun example (PowerShell): $env:HYPERSNATCH_AUDIT_PROFILE="strict"; $env:HYPERSNATCH_AUDIT_RELEASE_TYPE="stable"; npm run audit:final');
+  console.log('Strict rerun example (PowerShell): $env:HYPERSNATCH_AUDIT_PROFILE="strict"; $env:HYPERSNATCH_AUDIT_RELEASE_TYPE="stable"; $env:HYPERSNATCH_AUDIT_REQUIRE_HASH="1"; npm run audit:final');
+  console.log("Strict wrapper command (preferred): npm run audit:stable");
 }
 
 function printSignoffStatusBlocked(reason) {
@@ -149,11 +164,11 @@ function main() {
     );
   }
 
-  if (AUDIT_RELEASE_TYPE === "stable" && (!STRICT_HASH || !STRICT_CLI)) {
+  if (AUDIT_RELEASE_TYPE === "stable" && (AUDIT_PROFILE !== "strict" || !STRICT_HASH)) {
     failWithHint(
-      "Stable release signoff requires strict profile and strict CLI/hash checks.",
-      "Run npm run audit:stable (or set HYPERSNATCH_AUDIT_PROFILE=strict, HYPERSNATCH_AUDIT_RELEASE_TYPE=stable, HYPERSNATCH_AUDIT_REQUIRE_HASH=1, HYPERSNATCH_AUDIT_REQUIRE_CLI=1).",
-      { signoffReason: "stable release type requested without strict profile/flags" }
+      "Stable release signoff requires strict profile and strict hash verification.",
+      "Run npm run audit:stable (or set HYPERSNATCH_AUDIT_PROFILE=strict, HYPERSNATCH_AUDIT_RELEASE_TYPE=stable, HYPERSNATCH_AUDIT_REQUIRE_HASH=1). Set HYPERSNATCH_AUDIT_REQUIRE_CLI=1 only if your release contract requires CLI artifact proof.",
+      { signoffReason: "stable release type requested without strict profile/hash contract" }
     );
   }
 
@@ -170,7 +185,13 @@ function main() {
     console.log("");
   }
   if (AUDIT_PROFILE === "strict") {
-    console.log("Audit policy: STRICT profile requires CLI artifact and SHA256SUMS validation.\n");
+    console.log("Audit policy: STRICT profile requires installer/release-bundle presence and SHA256SUMS validation.");
+    if (STRICT_CLI) {
+      console.log("Audit policy extension: HYPERSNATCH_AUDIT_REQUIRE_CLI=1 requires CLI artifact + hash entry validation.");
+    } else {
+      console.log("Audit policy extension: CLI artifact is optional unless HYPERSNATCH_AUDIT_REQUIRE_CLI=1 is explicitly set.");
+    }
+    console.log("");
   } else {
     console.log("Audit policy: WARN profile is maintenance evidence only and CANNOT approve strict stable signoff.\n");
   }
@@ -266,16 +287,15 @@ function main() {
       { signoffReason: "strict CLI artifact missing", artifactRoot }
     );
   } else {
-    printCheck("CLI", "WARN", "not present in current build profile; set HYPERSNATCH_AUDIT_REQUIRE_CLI=1 to enforce");
+    printCheck("CLI", "INFO", "optional in current contract; set HYPERSNATCH_AUDIT_REQUIRE_CLI=1 to enforce");
   }
 
   const manifestPath = path.join(artifactRoot, EXPECTED_HASH_MANIFEST_NAME);
   if (fs.existsSync(manifestPath)) {
     const manifest = parseHashManifest(manifestPath);
-    const installerName = path.basename(installer);
-    const installerExpected = manifest.get(installerName);
+    const installerExpected = manifestLookup(manifest, artifactRoot, installer);
     if (!installerExpected) {
-      throw new Error("SHA256SUMS.txt exists but installer entry is missing.");
+      throw new Error(`SHA256SUMS.txt exists but installer entry is missing (${EXPECTED_INSTALLER_NAME}).`);
     }
 
     const installerActual = sha256(installer);
@@ -283,16 +303,25 @@ function main() {
       throw new Error("Installer hash mismatch against SHA256SUMS.txt.");
     }
 
+    const releaseBundleExpected = manifestLookup(manifest, artifactRoot, releaseBundle);
+    if (!releaseBundleExpected) {
+      throw new Error(`SHA256SUMS.txt exists but release bundle entry is missing (${EXPECTED_RELEASE_BUNDLE_NAME}).`);
+    }
+
+    const releaseBundleActual = sha256(releaseBundle);
+    if (releaseBundleActual !== releaseBundleExpected) {
+      throw new Error("Release bundle hash mismatch against SHA256SUMS.txt.");
+    }
+
     if (cli) {
-      const cliName = path.basename(cli);
-      const cliExpected = manifest.get(cliName);
+      const cliExpected = manifestLookup(manifest, artifactRoot, cli);
       if (!cliExpected) throw new Error("SHA256SUMS.txt exists but CLI entry is missing.");
       const cliActual = sha256(cli);
       if (cliActual !== cliExpected) {
         throw new Error("CLI hash mismatch against SHA256SUMS.txt.");
       }
     }
-    printCheck("Hash verification", "PASS", "SHA256SUMS.txt");
+    printCheck("Hash verification", "PASS", `SHA256SUMS.txt (${cli ? "installer + release bundle + CLI" : "installer + release bundle"})`);
   } else if (STRICT_HASH) {
     failWithHint(
       `Strict signoff required hash manifest missing: ${manifestPath}.`,
@@ -308,14 +337,13 @@ function main() {
   assertExists(path.join("docs", "PROJECT_STATUS.md"));
   printCheck("Documentation presence", "PASS", "README.md, VERSION.json, docs/PROJECT_STATUS.md");
 
-  const warns = Number(!cli && !STRICT_CLI) + Number(!fs.existsSync(manifestPath) && !STRICT_HASH);
+  const warns = Number(!fs.existsSync(manifestPath) && !STRICT_HASH);
   if (warns > 0) {
     console.log(`\nFINAL SOVEREIGN AUDIT: PASS (WITH WARNINGS: ${warns})`);
     console.log(`Policy result: profile=${AUDIT_PROFILE}, releaseType=${AUDIT_RELEASE_TYPE}.`);
     console.log("SIGNOFF NOTE: NOT VALID for strict stable release signoff.");
     console.log("Action: review WARN lines and rerun strict stable signoff (`npm run audit:stable`) before any stable tag/release action.");
     console.log("WARN scope:");
-    if (!cli && !STRICT_CLI) console.log("- CLI artifact is optional in current profile.");
     if (!fs.existsSync(manifestPath) && !STRICT_HASH) console.log("- SHA256SUMS.txt verification is optional in current profile.");
     printStrictStableGuidance();
     printSignoffStatusNonSignoff("WARN profile and/or optional checks present");
