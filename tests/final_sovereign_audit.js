@@ -85,6 +85,17 @@ function printStrictStableGuidance() {
   console.log('Strict rerun example (PowerShell): $env:HYPERSNATCH_AUDIT_PROFILE="strict"; $env:HYPERSNATCH_AUDIT_RELEASE_TYPE="stable"; npm run audit:final');
 }
 
+function printSignoffStatusBlocked(reason) {
+  console.log("SIGNOFF STATUS: BLOCKED");
+  console.log(`SIGNOFF REASON: ${reason}`);
+  console.log("SIGNOFF ACTION: run `npm run audit:stable` before any stable tag/release action.");
+}
+
+function printSignoffStatusApproved() {
+  console.log("SIGNOFF STATUS: APPROVED");
+  console.log("SIGNOFF SCOPE: strict stable signoff evidence for stable tag/release actions.");
+}
+
 function main() {
   if (!VALID_AUDIT_PROFILES.has(AUDIT_PROFILE)) {
     failWithHint(
@@ -116,11 +127,13 @@ function main() {
     console.log("Audit interpretation: NON-SIGNOFF mode for stable tag decisions.\n");
     console.log("SIGNOFF BLOCK: this run cannot approve stable tagging or stable release signoff.");
     console.log("Policy reminder: `npm run audit:final` is maintenance evidence only; use `npm run audit:stable` for strict signoff.\n");
+    printSignoffStatusBlocked("profile/release-type contract is not strict stable signoff");
+    console.log("");
   }
   if (AUDIT_PROFILE === "strict") {
     console.log("Audit policy: STRICT profile requires CLI artifact and SHA256SUMS validation.\n");
   } else {
-    console.log("Audit policy: WARN profile allows optional CLI/hash checks unless strict flags are enabled.\n");
+    console.log("Audit policy: WARN profile is maintenance evidence only and CANNOT approve strict stable signoff.\n");
   }
   console.log(`Expected installer for package version ${PKG.version}: ${EXPECTED_INSTALLER_NAME}\n`);
 
@@ -260,16 +273,19 @@ function main() {
     if (!cli && !STRICT_CLI) console.log("- CLI artifact is optional in current profile.");
     if (!fs.existsSync(manifestPath) && !STRICT_HASH) console.log("- SHA256SUMS.txt verification is optional in current profile.");
     printStrictStableGuidance();
+    printSignoffStatusBlocked("WARN profile and/or optional checks present");
     return;
   }
   if (IS_STRICT_STABLE_SIGNOFF) {
     console.log("\nFINAL SOVEREIGN AUDIT: PASS (STRICT STABLE SIGNOFF)");
+    printSignoffStatusApproved();
     return;
   }
   console.log("\nFINAL SOVEREIGN AUDIT: PASS (NON-SIGNOFF PROFILE)");
   console.log("SIGNOFF BLOCK: suitable for maintenance evidence only, not strict stable tag/release signoff.");
   console.log("Action: run `npm run audit:stable` for strict stable-signoff evidence.");
   printStrictStableGuidance();
+  printSignoffStatusBlocked("non-signoff profile");
 }
 
 try {

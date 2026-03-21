@@ -437,8 +437,13 @@ if (!html.includes("Ready: Active Case") || !html.includes("Waiting For Results"
 
 const statusBadgeClass = compileRuntimeFunction("statusBadgeClass");
 assertRuntime(statusBadgeClass("running") === "ok", "[ui-smoke] Runtime statusBadgeClass failed: running should map to ok.");
+assertRuntime(statusBadgeClass("completed") === "ok", "[ui-smoke] Runtime statusBadgeClass failed: completed should map to ok.");
+assertRuntime(statusBadgeClass("queued") === "warn", "[ui-smoke] Runtime statusBadgeClass failed: queued should map to warn.");
+assertRuntime(statusBadgeClass("paused") === "warn", "[ui-smoke] Runtime statusBadgeClass failed: paused should map to warn.");
+assertRuntime(statusBadgeClass("warning") === "warn", "[ui-smoke] Runtime statusBadgeClass failed: warning should map to warn.");
 assertRuntime(statusBadgeClass("manual-review") === "warn", "[ui-smoke] Runtime statusBadgeClass failed: manual-review should map to warn.");
 assertRuntime(statusBadgeClass("failed") === "bad", "[ui-smoke] Runtime statusBadgeClass failed: failed should map to bad.");
+assertRuntime(statusBadgeClass("canceled") !== "ok", "[ui-smoke] Runtime statusBadgeClass failed: canceled must not be treated as success.");
 assertRuntime(statusBadgeClass("unknown") === "idle", "[ui-smoke] Runtime statusBadgeClass failed: unknown should map to idle.");
 
 const isReopenableStatus = compileRuntimeFunction("isReopenableStatus");
@@ -447,6 +452,9 @@ assertRuntime(isReopenableStatus("warning") === true, "[ui-smoke] Runtime reopen
 assertRuntime(isReopenableStatus("failed") === true, "[ui-smoke] Runtime reopenability failed: failed should be reopenable.");
 assertRuntime(isReopenableStatus("canceled") === true, "[ui-smoke] Runtime reopenability failed: canceled should be reopenable.");
 assertRuntime(isReopenableStatus("queued") === false, "[ui-smoke] Runtime reopenability failed: queued should not be reopenable.");
+assertRuntime(isReopenableStatus("running") === false, "[ui-smoke] Runtime reopenability failed: running should not be reopenable.");
+assertRuntime(isReopenableStatus("paused") === false, "[ui-smoke] Runtime reopenability failed: paused should not be reopenable.");
+assertRuntime(isReopenableStatus("manual-review") === false, "[ui-smoke] Runtime reopenability failed: manual-review should not be reopenable.");
 
 const buildReasonChain = compileRuntimeFunction("buildReasonChain");
 const reasonChain = buildReasonChain({
@@ -485,6 +493,44 @@ assertRuntime(jobTimeline.length >= 4, "[ui-smoke] Runtime timeline failed: expe
 assertRuntime(jobTimeline[0].event === "queued", "[ui-smoke] Runtime timeline failed: first event should be queued.");
 assertRuntime(jobTimeline[jobTimeline.length - 1].event === "failed", "[ui-smoke] Runtime timeline failed: last event should reflect finished status.");
 assertRuntime(jobTimeline.filter((ev) => ev.event === "manual-review").length === 1, "[ui-smoke] Runtime timeline failed: duplicate manual-review events should be deduplicated.");
+const transitionJob = {
+  id: "job-transition",
+  host: "transitions.example",
+  status: "canceled",
+  source: "batch",
+  attempts: 3,
+  addedAt: 1000,
+  startedAt: 1100,
+  finishedAt: 1600,
+  actionLog: [
+    { at: 1200, action: "pause", detail: "paused by operator", by: "operator" },
+    { at: 1300, action: "resume", detail: "resumed by operator", by: "operator" },
+    { at: 1400, action: "manual-review", detail: "state ambiguity", by: "operator" },
+    { at: 1500, action: "requeue", detail: "retry requested", by: "operator" }
+  ]
+};
+const transitionTimeline = buildJobTimelineEvents(transitionJob, 20);
+assertRuntime(transitionTimeline.some((ev) => ev.event === "pause"), "[ui-smoke] Runtime timeline failed: pause transition event should be recorded.");
+assertRuntime(transitionTimeline.some((ev) => ev.event === "resume"), "[ui-smoke] Runtime timeline failed: resume transition event should be recorded.");
+assertRuntime(transitionTimeline.some((ev) => ev.event === "manual-review"), "[ui-smoke] Runtime timeline failed: manual-review transition event should be recorded.");
+assertRuntime(transitionTimeline.some((ev) => ev.event === "requeue"), "[ui-smoke] Runtime timeline failed: requeue transition event should be recorded.");
+assertRuntime(transitionTimeline[transitionTimeline.length - 1].event === "canceled", "[ui-smoke] Runtime timeline failed: terminal canceled state should be recorded.");
+["completed", "warning", "failed", "canceled"].forEach((terminalStatus) => {
+  const terminalTimeline = buildJobTimelineEvents({
+    id: `job-${terminalStatus}`,
+    host: "terminal.example",
+    status: terminalStatus,
+    source: "batch",
+    addedAt: 1,
+    startedAt: 2,
+    finishedAt: 3,
+    actionLog: []
+  }, 10);
+  assertRuntime(
+    terminalTimeline[terminalTimeline.length - 1].event === terminalStatus,
+    `[ui-smoke] Runtime timeline failed: terminal status ${terminalStatus} must be reflected in finished event.`
+  );
+});
 
 const buildCaseTimelineEvents = compileRuntimeFunction("buildCaseTimelineEvents", { buildJobTimelineEvents });
 const caseTimeline = buildCaseTimelineEvents([
@@ -536,6 +582,13 @@ const buildCaseRollups = compileRuntimeFunction("buildCaseRollups", {
 });
 const statusLabel = compileRuntimeFunction("statusLabel");
 const formatTimestamp = compileRuntimeFunction("formatTimestamp");
+const formatDuration = compileRuntimeFunction("formatDuration");
+const buildCaseLineageSummary = compileRuntimeFunction("buildCaseLineageSummary", { formatTimestamp });
+const updateTrustFromAutomation = compileRuntimeFunction("updateTrustFromAutomation", {
+  statusLabel,
+  statusBadgeClass,
+  formatDuration
+});
 const buildBatchReport = compileRuntimeFunction("buildBatchReport", {
   buildStatusRollup,
   buildCaseRollups,
@@ -546,6 +599,35 @@ const buildBatchReport = compileRuntimeFunction("buildBatchReport", {
   statusLabel,
   formatTimestamp
 });
+
+const transitionRollup = buildStatusRollup([
+  { status: "queued" },
+  { status: "running" },
+  { status: "paused" },
+  { status: "manual-review" },
+  { status: "completed" },
+  { status: "warning" },
+  { status: "failed" },
+  { status: "canceled" }
+]);
+assertRuntime(transitionRollup.queued === 1 && transitionRollup.running === 1 && transitionRollup.paused === 1,
+  "[ui-smoke] Runtime rollup failed: queued/running/paused counts should each be 1.");
+assertRuntime(transitionRollup.manualReview === 1 && transitionRollup.completed === 1 && transitionRollup.warning === 1,
+  "[ui-smoke] Runtime rollup failed: manual-review/completed/warning counts should each be 1.");
+assertRuntime(transitionRollup.failed === 1 && transitionRollup.canceled === 1,
+  "[ui-smoke] Runtime rollup failed: failed/canceled counts should each be 1.");
+
+const transitionCaseRollups = buildCaseRollups([
+  { caseId: "CASE-A", status: "queued" },
+  { caseId: "CASE-A", status: "running" },
+  { caseId: "CASE-A", status: "warning" },
+  { caseId: "CASE-B", status: "manual-review" },
+  { caseId: "CASE-B", status: "failed" }
+]);
+assertRuntime(transitionCaseRollups["CASE-A"].queued === 1 && transitionCaseRollups["CASE-A"].running === 1 && transitionCaseRollups["CASE-A"].warning === 1,
+  "[ui-smoke] Runtime case rollup failed: CASE-A queue/running/warning counts should be preserved.");
+assertRuntime(transitionCaseRollups["CASE-B"].manualReview === 1 && transitionCaseRollups["CASE-B"].failed === 1,
+  "[ui-smoke] Runtime case rollup failed: CASE-B manual-review/failed counts should be preserved.");
 
 const interactionSnapshot = {
   mode: "ON",
@@ -616,6 +698,8 @@ assertRuntime(interactionReport.riskSummary.manualReview.length === 1, "[ui-smok
 assertRuntime(interactionReport.exportMetadata.deterministicHeadings === true, "[ui-smoke] Runtime batch report failed: deterministic headings flag should be true.");
 assertRuntime(interactionReport.markdown.includes("## Warnings Failures and Manual Review"), "[ui-smoke] Runtime batch report failed: risk section heading missing.");
 assertRuntime(interactionReport.markdown.includes("manual-review:"), "[ui-smoke] Runtime batch report failed: manual-review lines should render in report.");
+assertRuntime(!/## Warnings Failures and Manual Review[\s\S]*- none/.test(interactionReport.markdown),
+  "[ui-smoke] Runtime batch report failed: risk section must not render '- none' when risk jobs exist.");
 
 const noRiskReport = buildBatchReport({
   mode: "ON",
@@ -638,10 +722,152 @@ const noRiskReport = buildBatchReport({
 });
 assertRuntime(/## Warnings Failures and Manual Review[\s\S]*- none/.test(noRiskReport.markdown), "[ui-smoke] Runtime batch report failed: no-risk report should render '- none' in risk section.");
 
+const reviewFirstReport = buildBatchReport({
+  mode: "ON",
+  metrics: {},
+  queue: [
+    {
+      id: "review-1",
+      status: "manual-review",
+      host: "review.example",
+      url: "https://review.example/media",
+      source: "batch",
+      caseId: "CASE-REVIEW",
+      addedAt: 100,
+      manualReviewReason: "captcha challenge",
+      actionLog: [{ at: 120, action: "manual-review", detail: "captcha challenge", by: "operator" }]
+    }
+  ],
+  history: []
+});
+assertRuntime(reviewFirstReport.trustSummary.label === "Manual review required",
+  "[ui-smoke] Runtime batch report failed: manual-review rollup should not present as stable completion.");
+assertRuntime(reviewFirstReport.trustSummary.className === "warn",
+  "[ui-smoke] Runtime batch report failed: manual-review trust status should be warn.");
+assertRuntime(reviewFirstReport.riskSummary.manualReview.length === 1,
+  "[ui-smoke] Runtime batch report failed: manual-review risk entries should be captured.");
+
+const inProgressReport = buildBatchReport({
+  mode: "ON",
+  metrics: {},
+  queue: [
+    {
+      id: "in-progress-1",
+      status: "queued",
+      host: "progress.example",
+      url: "https://progress.example/media",
+      source: "batch",
+      caseId: "CASE-SHIFT",
+      addedAt: 100,
+      actionLog: []
+    }
+  ],
+  history: []
+});
+assertRuntime(inProgressReport.trustSummary.label === "In progress",
+  "[ui-smoke] Runtime batch report failed: queued case should remain in-progress.");
+assertRuntime(inProgressReport.caseSummary[0].queued === 1,
+  "[ui-smoke] Runtime batch report failed: queued case summary count should be 1 before risk transition.");
+
+const escalatedReport = buildBatchReport({
+  mode: "ON",
+  metrics: {},
+  queue: [],
+  history: [
+    {
+      id: "escalated-1",
+      status: "failed",
+      host: "progress.example",
+      url: "https://progress.example/media",
+      source: "batch",
+      caseId: "CASE-SHIFT",
+      addedAt: 100,
+      startedAt: 120,
+      finishedAt: 240,
+      failureReason: "decode timeout",
+      actionLog: [{ at: 220, action: "cancel", detail: "canceled after timeout", by: "scheduler" }]
+    }
+  ]
+});
+assertRuntime(escalatedReport.trustSummary.label === "Critical failures detected",
+  "[ui-smoke] Runtime batch report failed: failed transition should escalate trust status.");
+assertRuntime(escalatedReport.caseSummary[0].failed === 1,
+  "[ui-smoke] Runtime batch report failed: case summary should reflect failed transition.");
+
+const lineageSummary = buildCaseLineageSummary("CASE-LINEAGE", interactionSnapshot.queue, caseTimeline);
+assertRuntime(lineageSummary.includes("case=CASE-LINEAGE"), "[ui-smoke] Runtime lineage summary failed: case id should be preserved.");
+assertRuntime(lineageSummary.includes("sources=batch"), "[ui-smoke] Runtime lineage summary failed: source lineage should be explicit.");
+
+function runTrustPanelProof(snapshot, activeCase) {
+  const nodes = {
+    intBatchState: { textContent: "", className: "" },
+    intSw: { textContent: "", className: "" },
+    intBest: { textContent: "", className: "" },
+    intExportReady: { textContent: "", className: "" },
+    intHash: { textContent: "", className: "" }
+  };
+  const sandboxWindow = { caseMgr: { activeCase: activeCase || null } };
+  const fn = compileRuntimeFunction("updateTrustFromAutomation", {
+    statusLabel,
+    statusBadgeClass,
+    formatDuration,
+    window: sandboxWindow,
+    el: (id) => nodes[id] || null
+  });
+  fn(snapshot);
+  return nodes;
+}
+
+const runningTrustNodes = runTrustPanelProof({
+  mode: "ON",
+  metrics: { queued: 2 },
+  activeJob: { id: "active-1" },
+  history: []
+}, { case_id: "CASE-RUNNING" });
+assertRuntime(runningTrustNodes.intBatchState.textContent === "RUNNING",
+  "[ui-smoke] Runtime trust panel failed: active job should force RUNNING lifecycle.");
+assertRuntime(runningTrustNodes.intBatchState.className.includes("ok"),
+  "[ui-smoke] Runtime trust panel failed: RUNNING lifecycle should map to ok badge.");
+
+const readyTrustNodes = runTrustPanelProof({
+  mode: "ON",
+  metrics: {},
+  history: [{ id: "ready-job-1", status: "warning", durationMs: 900, retryCount: 1, manualReviewReason: "needs review" }]
+}, { case_id: "CASE-READY" });
+assertRuntime(readyTrustNodes.intExportReady.textContent === "Ready: Active Case",
+  "[ui-smoke] Runtime trust panel failed: warning/completed with active case should be export-ready.");
+assertRuntime(readyTrustNodes.intExportReady.className.includes("ok"),
+  "[ui-smoke] Runtime trust panel failed: export-ready state should map to ok badge.");
+assertRuntime(readyTrustNodes.intHash.textContent.includes(":warning:"),
+  "[ui-smoke] Runtime trust panel failed: lifecycle hash line should include warning status context.");
+
+const waitingTrustNodes = runTrustPanelProof({
+  mode: "ON",
+  metrics: {},
+  history: [{ id: "wait-job-1", status: "failed", durationMs: 3000, retryCount: 2, failureReason: "network timeout" }]
+}, { case_id: "CASE-WAITING" });
+assertRuntime(waitingTrustNodes.intExportReady.textContent === "Waiting For Results",
+  "[ui-smoke] Runtime trust panel failed: failed/incomplete result should remain waiting, not ready.");
+assertRuntime(waitingTrustNodes.intExportReady.className.includes("warn"),
+  "[ui-smoke] Runtime trust panel failed: waiting export state should map to warn badge.");
+assertRuntime(waitingTrustNodes.intHash.textContent.includes("reason=network timeout"),
+  "[ui-smoke] Runtime trust panel failed: hash line should preserve failure reason visibility.");
+
+const blockedTrustNodes = runTrustPanelProof({
+  mode: "ON",
+  metrics: {},
+  history: [{ id: "blocked-job-1", status: "completed", durationMs: 250, retryCount: 0 }]
+}, null);
+assertRuntime(blockedTrustNodes.intExportReady.textContent === "Blocked: No Active Case",
+  "[ui-smoke] Runtime trust panel failed: missing active case must block export.");
+assertRuntime(blockedTrustNodes.intExportReady.className.includes("bad"),
+  "[ui-smoke] Runtime trust panel failed: blocked export state should map to bad badge.");
+
 async function runRuntimeInteractionProofs() {
   const actionCalls = [];
   const actionStatuses = [];
   let actionSyncCalls = 0;
+  const promptQueue = ["Needs analyst escalation", ""];
   const handleQueueAction = compileRuntimeFunction("handleQueueAction", {
     window: {
       electronAPI: {
@@ -651,27 +877,44 @@ async function runRuntimeInteractionProofs() {
         }
       }
     },
-    prompt: () => "Needs analyst escalation",
+    prompt: () => (promptQueue.length ? promptQueue.shift() : ""),
     setStatus: (message, kind) => actionStatuses.push({ message, kind }),
     syncAutomationState: async () => { actionSyncCalls += 1; }
   });
 
   await handleQueueAction("job-manual", "manual-review");
+  await handleQueueAction("job-manual-default", "manual-review");
+  await handleQueueAction("job-pause", "pause");
+  await handleQueueAction("job-resume", "resume");
   await handleQueueAction("job-cancel", "cancel");
   await handleQueueAction("job-requeue", "requeue");
 
-  const manualAction = actionCalls.find((c) => c.action === "manual-review");
+  const manualActions = actionCalls.filter((c) => c.action === "manual-review");
+  const manualAction = manualActions.find((c) => c.id === "job-manual");
+  const manualFallbackAction = manualActions.find((c) => c.id === "job-manual-default");
+  const pauseAction = actionCalls.find((c) => c.action === "pause");
+  const resumeAction = actionCalls.find((c) => c.action === "resume");
   const cancelAction = actionCalls.find((c) => c.action === "cancel");
   const requeueAction = actionCalls.find((c) => c.action === "requeue");
   assertRuntime(manualAction && manualAction.reason === "Needs analyst escalation",
     "[ui-smoke] Runtime queue action failed: manual-review reason should come from prompt input.");
+  assertRuntime(manualFallbackAction && manualFallbackAction.reason === "Requires analyst review for ambiguous decode output.",
+    "[ui-smoke] Runtime queue action failed: blank manual-review input should fall back to deterministic default reason.");
+  assertRuntime(pauseAction && pauseAction.reason === null,
+    "[ui-smoke] Runtime queue action failed: pause should not invent a reason payload.");
+  assertRuntime(resumeAction && resumeAction.reason === null,
+    "[ui-smoke] Runtime queue action failed: resume should not invent a reason payload.");
   assertRuntime(cancelAction && cancelAction.reason === "Cancelled by operator from queue panel.",
     "[ui-smoke] Runtime queue action failed: cancel should apply deterministic default reason.");
   assertRuntime(requeueAction && requeueAction.reason === "Requeued by operator for retry.",
     "[ui-smoke] Runtime queue action failed: requeue should apply deterministic default reason.");
-  assertRuntime(actionSyncCalls === 3, "[ui-smoke] Runtime queue action failed: successful actions should sync automation state.");
-  assertRuntime(actionStatuses.filter((s) => s.kind === "ok" && s.message.includes("Queue action applied")).length === 3,
+  assertRuntime(actionSyncCalls === 6, "[ui-smoke] Runtime queue action failed: successful actions should sync automation state.");
+  assertRuntime(actionStatuses.filter((s) => s.kind === "ok" && s.message.includes("Queue action applied")).length === 6,
     "[ui-smoke] Runtime queue action failed: successful actions should emit applied status messages.");
+  ["manual-review", "pause", "resume", "cancel", "requeue"].forEach((actionName) => {
+    assertRuntime(actionStatuses.some((s) => s.kind === "ok" && s.message.includes(`Queue action applied: ${actionName}.`)),
+      `[ui-smoke] Runtime queue action failed: missing applied status for ${actionName}.`);
+  });
 
   const failedStatuses = [];
   let failedSyncCalls = 0;

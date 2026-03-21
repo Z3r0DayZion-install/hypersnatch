@@ -1,0 +1,39 @@
+# UI Runtime Proof Plan v1.5.7
+
+Date: 2026-03-20  
+Branch: `release-readiness/v1.5.7-hardening`
+
+## Goal
+
+Push `verify:ui` from helper/runtime assertions toward deeper interaction-level state proof on operator-critical flows.
+
+## Priority Runtime Surfaces
+
+1. Queue transitions and action semantics.
+2. Manual-review transitions and reason-chain persistence.
+3. Reopen flow behavior by status.
+4. Case/report integrity under state changes.
+5. Export blocked/failure truth.
+6. Lineage/timeline ordering and severity truth.
+
+## Approach
+
+1. Keep existing static and helper-runtime checks.
+2. Add deeper runtime behavior assertions on transition intent and state semantics.
+3. Keep scope proof-focused; no UI redesign.
+
+## Execution Status
+
+1. Completed in slice 2:
+   - Added deeper runtime assertions for queue transition semantics (`pause`, `resume`, `manual-review`, `cancel`, `requeue`) including prompt fallback/default-reason behavior.
+   - Added runtime rollup/report checks for state transitions (queued/in-progress to failed escalation), manual-review risk treatment, and risk-section conditional rendering truth.
+   - Added runtime trust/export tri-state checks for active-case ready/waiting/blocked behavior and status-hash reason visibility.
+   - Added runtime lineage/timeline checks for transition events and terminal-state preservation.
+2. Gate result after slice 2:
+   - PASS (`npm install`, `npm test`, `npm run verify:ui`, `npm run build:wrapper`, `npm run verify`, `npm run audit:final`).
+
+## Exit Criteria
+
+1. Critical state transitions are harder to fake-pass.
+2. Manual-review/warning/failure/export-blocked semantics are more directly asserted.
+3. Full hardening gate order remains green.
