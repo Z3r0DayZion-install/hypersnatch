@@ -24,17 +24,13 @@ Push `verify:ui` from helper/runtime assertions toward deeper interaction-level 
 
 ## Execution Status
 
-1. Planned for slice 2:
-   - Deepen runtime interaction checks beyond current static/hook confidence.
-   - Add stronger transition/state assertions on operator-critical flows.
-2. Gate policy for this slice:
-   - Rerun full hardening order after any real test/code change:
-     - `npm install`
-     - `npm test`
-     - `npm run verify:ui`
-     - `npm run build:wrapper`
-     - `npm run verify`
-     - `npm run audit:final`
+1. Completed in slice 2:
+   - Added deeper runtime assertions for queue transition semantics (`pause`, `resume`, `manual-review`, `cancel`, `requeue`) including prompt fallback/default-reason behavior.
+   - Added runtime rollup/report checks for state transitions (queued/in-progress to failed escalation), manual-review risk treatment, and risk-section conditional rendering truth.
+   - Added runtime trust/export tri-state checks for active-case ready/waiting/blocked behavior and status-hash reason visibility.
+   - Added runtime lineage/timeline checks for transition events and terminal-state preservation.
+2. Gate result after slice 2:
+   - PASS (`npm install`, `npm test`, `npm run verify:ui`, `npm run build:wrapper`, `npm run verify`, `npm run audit:final`).
 
 ## Exit Criteria
 
