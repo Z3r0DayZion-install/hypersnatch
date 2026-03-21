@@ -32,8 +32,12 @@ function assertRuntime(condition, message) {
 }
 
 function extractFunctionSource(name) {
-  const marker = `function ${name}(`;
-  const start = html.indexOf(marker);
+  const asyncMarker = `async function ${name}(`;
+  const plainMarker = `function ${name}(`;
+  let start = html.indexOf(asyncMarker);
+  if (start === -1) {
+    start = html.indexOf(plainMarker);
+  }
   if (start === -1) {
     fail(`[ui-smoke] Missing function source for runtime proof: ${name}`);
   }
@@ -634,4 +638,64 @@ const noRiskReport = buildBatchReport({
 });
 assertRuntime(/## Warnings Failures and Manual Review[\s\S]*- none/.test(noRiskReport.markdown), "[ui-smoke] Runtime batch report failed: no-risk report should render '- none' in risk section.");
 
-console.log("[ui-smoke] PASS: core operator UI shell and critical IDs are present.");
+async function runRuntimeInteractionProofs() {
+  const actionCalls = [];
+  const actionStatuses = [];
+  let actionSyncCalls = 0;
+  const handleQueueAction = compileRuntimeFunction("handleQueueAction", {
+    window: {
+      electronAPI: {
+        automationQueueAction: async (id, action, reason) => {
+          actionCalls.push({ id, action, reason });
+          return { success: true };
+        }
+      }
+    },
+    prompt: () => "Needs analyst escalation",
+    setStatus: (message, kind) => actionStatuses.push({ message, kind }),
+    syncAutomationState: async () => { actionSyncCalls += 1; }
+  });
+
+  await handleQueueAction("job-manual", "manual-review");
+  await handleQueueAction("job-cancel", "cancel");
+  await handleQueueAction("job-requeue", "requeue");
+
+  const manualAction = actionCalls.find((c) => c.action === "manual-review");
+  const cancelAction = actionCalls.find((c) => c.action === "cancel");
+  const requeueAction = actionCalls.find((c) => c.action === "requeue");
+  assertRuntime(manualAction && manualAction.reason === "Needs analyst escalation",
+    "[ui-smoke] Runtime queue action failed: manual-review reason should come from prompt input.");
+  assertRuntime(cancelAction && cancelAction.reason === "Cancelled by operator from queue panel.",
+    "[ui-smoke] Runtime queue action failed: cancel should apply deterministic default reason.");
+  assertRuntime(requeueAction && requeueAction.reason === "Requeued by operator for retry.",
+    "[ui-smoke] Runtime queue action failed: requeue should apply deterministic default reason.");
+  assertRuntime(actionSyncCalls === 3, "[ui-smoke] Runtime queue action failed: successful actions should sync automation state.");
+  assertRuntime(actionStatuses.filter((s) => s.kind === "ok" && s.message.includes("Queue action applied")).length === 3,
+    "[ui-smoke] Runtime queue action failed: successful actions should emit applied status messages.");
+
+  const failedStatuses = [];
+  let failedSyncCalls = 0;
+  const handleQueueActionFail = compileRuntimeFunction("handleQueueAction", {
+    window: {
+      electronAPI: {
+        automationQueueAction: async () => ({ success: false })
+      }
+    },
+    prompt: () => "Ignored reason",
+    setStatus: (message, kind) => failedStatuses.push({ message, kind }),
+    syncAutomationState: async () => { failedSyncCalls += 1; }
+  });
+
+  await handleQueueActionFail("job-fail", "cancel");
+  assertRuntime(failedStatuses.some((s) => s.kind === "bad" && s.message.includes("Queue action failed: cancel.")),
+    "[ui-smoke] Runtime queue action failed: failed actions should emit explicit failure status.");
+  assertRuntime(failedSyncCalls === 0, "[ui-smoke] Runtime queue action failed: failed actions must not sync automation state.");
+}
+
+runRuntimeInteractionProofs()
+  .then(() => {
+    console.log("[ui-smoke] PASS: core operator UI shell and critical IDs are present.");
+  })
+  .catch((error) => {
+    fail(`[ui-smoke] Runtime interaction proof failed: ${error.message}`);
+  });
