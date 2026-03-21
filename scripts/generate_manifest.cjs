@@ -39,6 +39,16 @@ function listSetupExes() {
     .filter((p) => safeStat(p)?.isFile());
 }
 
+function listDistFiles(pattern) {
+  const st = safeStat(distDir);
+  if (!st || !st.isDirectory()) return [];
+  return fs
+    .readdirSync(distDir)
+    .filter((n) => pattern.test(n))
+    .map((n) => path.join(distDir, n))
+    .filter((p) => safeStat(p)?.isFile());
+}
+
 async function main() {
   const versionPkg = (() => {
     try {
@@ -54,13 +64,16 @@ async function main() {
 
   // Electron artifacts
   candidates.push(...listSetupExes());
+  candidates.push(...listDistFiles(/^HyperSnatch_Vanguard_v.*\.zip$/i));
   candidates.push(path.join(distDir, "latest.yml"));
   candidates.push(path.join(distDir, "win-unpacked", "HyperSnatch.exe"));
   candidates.push(path.join(distDir, "win-unpacked", "resources", "app.asar"));
   candidates.push(path.join(distDir, "win-unpacked", "resources", "hs-core.exe"));
   candidates.push(path.join(distDir, "win-unpacked", "resources", "hs-core"));
+  candidates.push(path.join(distDir, `HyperSnatch_Vanguard_v${version}.zip`));
 
   // CLI / release pack artifacts (optional)
+  candidates.push(path.join(distDir, "hypersnatch-cli.exe"));
   candidates.push(path.join(distDir, "hypersnatch.exe"));
   candidates.push(path.join(root, "release", "bridge", "ui-bridge.exe"));
   candidates.push(path.join(distDir, "HyperSnatch_release.zip"));
@@ -102,4 +115,3 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-

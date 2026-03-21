@@ -2,8 +2,8 @@
 
 This note documents the expected setup flow for clean throwaway worktrees used for gate proof.
 
-Current stable shipped line: `v1.5.6`  
-Current hardening line: `release-readiness/v1.5.7-hardening`
+Current stable shipped line: `v1.5.7`  
+Current hardening line: `release-readiness/v1.5.8-hardening`
 
 ## Required Steps
 
@@ -26,6 +26,8 @@ Current hardening line: `release-readiness/v1.5.7-hardening`
 - If builder artifacts are stale, rerun `npm install` and rerun the full gate set.
 - Node runtime baseline is defined in `package.json` (`engines.node = 20.17.0`) as the minimum supported Node 20 proof runtime.
 - `scripts/verify_release.js` now fails with explicit remediation when runtime/dependency prerequisites are missing.
+- Strict stable signoff expects required strict artifacts in `dist`: installer, versioned release bundle, and `SHA256SUMS.txt`.
+- `hypersnatch-cli.exe` is optional by default and is only enforced when `HYPERSNATCH_AUDIT_REQUIRE_CLI=1` is explicitly set.
 
 ## Dependency Hygiene Baseline
 
@@ -38,17 +40,25 @@ Current hardening line: `release-readiness/v1.5.7-hardening`
   - Node runtime matches `package.json` engine policy
 - Warning inventory process:
   1. Run `npm install` in a clean worktree.
-  2. Capture any warnings in the latest versioned `docs/dev/DEPENDENCY_WARNING_INVENTORY_*.md`.
+  2. Capture any warnings in the latest versioned `docs/dev/DEPENDENCY_WARNING_INVENTORY_*.md` (current baseline: `docs/dev/DEPENDENCY_WARNING_INVENTORY_v1.5.7.md`).
   3. Classify each warning as `informational`, `medium risk`, or `action required`.
   4. Record whether it is observation-only or requires a maintenance action.
 
 ## Expected Gate Order
 
-1. `npm test`
-2. `npm run verify:ui`
-3. `npm run build:wrapper`
-4. `npm run verify`
-5. `npm run audit:final` (required when release/proof surfaces are touched)
+1. `npm install`
+2. `npm test`
+3. `npm run verify:ui`
+4. `npm run build:wrapper`
+5. `npm run verify`
+6. `npm run audit:final`
+7. `npm run audit:stable` (required for strict stable signoff)
+
+## Signoff Workflow
+
+1. `npm run audit:final` is maintenance evidence and must show non-signoff context for stable-tag decisions.
+2. `npm run audit:stable` is the strict stable signoff command.
+3. Stable tags/releases are blocked unless strict signoff reports `SIGNOFF STATUS: APPROVED`.
 
 ## Proof Discipline
 

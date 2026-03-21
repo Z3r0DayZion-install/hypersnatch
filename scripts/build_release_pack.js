@@ -14,6 +14,7 @@ const APP_VERSION = String(pkg.version || "0.0.0-dev");
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 const OUTPUT_ZIP = path.join(DIST_DIR, `HyperSnatch_Vanguard_v${APP_VERSION}.zip`);
 const STAGING_DIR = path.join(DIST_DIR, 'staging_vanguard');
+const MANIFEST_SCRIPT = path.join(__dirname, 'generate_manifest.cjs');
 
 function buildPack() {
     console.log(`\n==================================================`);
@@ -73,6 +74,13 @@ function buildPack() {
         
         // Cleanup staging
         fs.rmSync(STAGING_DIR, { recursive: true, force: true });
+
+        console.log(`\n🧾 Generating release hash manifest...`);
+        const manifestResult = spawnSync(process.execPath, [MANIFEST_SCRIPT], { stdio: 'inherit' });
+        if (manifestResult.status !== 0) {
+            console.error(`❌ ERROR: Failed to generate SHA256SUMS/MANIFEST artifacts.`);
+            process.exit(typeof manifestResult.status === 'number' ? manifestResult.status : 1);
+        }
     } else {
         console.error(`❌ ERROR: Zip compression failed.`);
         console.error(result.stderr.toString());

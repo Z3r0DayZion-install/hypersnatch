@@ -31,12 +31,31 @@ function assertRuntime(condition, message) {
   }
 }
 
+function escapeRegex(input) {
+  return String(input).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function extractFunctionSource(name) {
   const asyncMarker = `async function ${name}(`;
   const plainMarker = `function ${name}(`;
   let start = html.indexOf(asyncMarker);
   if (start === -1) {
     start = html.indexOf(plainMarker);
+  }
+  if (start === -1) {
+    const escaped = escapeRegex(name);
+    const methodPattern = new RegExp(`(?:^|\\n)\\s*(?:async\\s+)?${escaped}\\s*\\(`, "m");
+    const methodMatch = methodPattern.exec(html);
+    if (methodMatch) {
+      const methodSource = methodMatch[0];
+      const asyncOffset = methodSource.indexOf("async ");
+      if (asyncOffset >= 0) {
+        start = methodMatch.index + asyncOffset;
+      } else {
+        const nameOffset = methodSource.lastIndexOf(name);
+        start = methodMatch.index + Math.max(0, nameOffset);
+      }
+    }
   }
   if (start === -1) {
     fail(`[ui-smoke] Missing function source for runtime proof: ${name}`);
@@ -62,9 +81,16 @@ function extractFunctionSource(name) {
 
 function compileRuntimeFunction(name, sandbox = {}) {
   const source = extractFunctionSource(name);
+  const escaped = escapeRegex(name);
+  let normalizedSource = source;
+  if (!source.startsWith(`async function ${name}(`) && !source.startsWith(`function ${name}(`)) {
+    normalizedSource = source
+      .replace(new RegExp(`^async\\s+${escaped}\\s*\\(`), `async function ${name}(`)
+      .replace(new RegExp(`^${escaped}\\s*\\(`), `function ${name}(`);
+  }
   const context = vm.createContext({ ...sandbox });
   try {
-    const fn = vm.runInContext(`(${source})`, context, { timeout: 1000 });
+    const fn = vm.runInContext(`(${normalizedSource})`, context, { timeout: 1000 });
     if (typeof fn !== "function") {
       fail(`[ui-smoke] Runtime proof compile did not return a function: ${name}`);
     }
@@ -933,6 +959,151 @@ async function runRuntimeInteractionProofs() {
   assertRuntime(failedStatuses.some((s) => s.kind === "bad" && s.message.includes("Queue action failed: cancel.")),
     "[ui-smoke] Runtime queue action failed: failed actions should emit explicit failure status.");
   assertRuntime(failedSyncCalls === 0, "[ui-smoke] Runtime queue action failed: failed actions must not sync automation state.");
+
+  const reopenCalls = [];
+  const reopenStatuses = [];
+  let reopenSyncCalls = 0;
+  const reopenCaseJob = compileRuntimeFunction("reopenCaseJob", {
+    window: {
+      electronAPI: {
+        automationQueueAction: async (id, action, reason) => {
+          reopenCalls.push({ id, action, reason });
+          return { success: true };
+        }
+      }
+    },
+    setStatus: (message, kind) => reopenStatuses.push({ message, kind }),
+    syncAutomationState: async () => { reopenSyncCalls += 1; }
+  });
+
+  await reopenCaseJob.call({ activeCase: { case_id: "CASE-REOPEN" } }, "job-reopen-001122334455");
+  assertRuntime(reopenCalls.length === 1, "[ui-smoke] Runtime reopen flow failed: expected one reopen queue action call.");
+  assertRuntime(reopenCalls[0].action === "requeue", "[ui-smoke] Runtime reopen flow failed: reopen must use requeue action.");
+  assertRuntime(reopenCalls[0].reason === "Reopened from case workspace CASE-REOPEN.",
+    "[ui-smoke] Runtime reopen flow failed: reopen reason must include active case context.");
+  assertRuntime(reopenSyncCalls === 1, "[ui-smoke] Runtime reopen flow failed: successful reopen must sync automation state.");
+  assertRuntime(reopenStatuses.some((s) => s.kind === "ok" && s.message.includes("Reopened case-linked job")),
+    "[ui-smoke] Runtime reopen flow failed: successful reopen must emit operator success status.");
+
+  const reopenUnavailableStatuses = [];
+  let reopenUnavailableSyncCalls = 0;
+  const reopenCaseJobUnavailable = compileRuntimeFunction("reopenCaseJob", {
+    window: {},
+    setStatus: (message, kind) => reopenUnavailableStatuses.push({ message, kind }),
+    syncAutomationState: async () => { reopenUnavailableSyncCalls += 1; }
+  });
+  await reopenCaseJobUnavailable.call({ activeCase: { case_id: "CASE-REOPEN" } }, "job-reopen-unavailable");
+  assertRuntime(reopenUnavailableStatuses.some((s) => s.kind === "bad" && s.message.includes("Reopen failed: automation queue bridge unavailable.")),
+    "[ui-smoke] Runtime reopen flow failed: bridge-unavailable path must emit explicit failure status.");
+  assertRuntime(reopenUnavailableSyncCalls === 0,
+    "[ui-smoke] Runtime reopen flow failed: bridge-unavailable path must not sync automation state.");
+
+  const reopenFailedStatuses = [];
+  let reopenFailedSyncCalls = 0;
+  const reopenCaseJobFail = compileRuntimeFunction("reopenCaseJob", {
+    window: {
+      electronAPI: {
+        automationQueueAction: async () => ({ success: false })
+      }
+    },
+    setStatus: (message, kind) => reopenFailedStatuses.push({ message, kind }),
+    syncAutomationState: async () => { reopenFailedSyncCalls += 1; }
+  });
+  await reopenCaseJobFail.call({ activeCase: { case_id: "CASE-REOPEN" } }, "job-reopen-fail-001122");
+  assertRuntime(reopenFailedStatuses.some((s) => s.kind === "bad" && s.message.includes("Reopen failed for job")),
+    "[ui-smoke] Runtime reopen flow failed: failed reopen action must emit explicit failure status.");
+  assertRuntime(reopenFailedSyncCalls === 0,
+    "[ui-smoke] Runtime reopen flow failed: failed reopen action must not sync automation state.");
+
+  const openStatuses = [];
+  let openTabCalls = 0;
+  const openState = { lastAutomation: { queue: [] }, lastCaseWorkspaceReport: null };
+  const openEls = {
+    reportTextarea: { value: "" },
+    tabBtnAutomation: { id: "tabBtnAutomation" }
+  };
+  const openCaseReportFromContext = compileRuntimeFunction("openCaseReportFromContext", {
+    state: openState,
+    el: (id) => openEls[id] || null,
+    activateTab: (tab) => { if (tab === openEls.tabBtnAutomation) openTabCalls += 1; },
+    setStatus: (message, kind) => openStatuses.push({ message, kind })
+  });
+
+  const caseReportPayload = { markdown: "## Case Report Runtime", queueResultsSummary: {} };
+  await openCaseReportFromContext.call({
+    activeCase: { case_id: "CASE-REPORT-OPEN" },
+    buildCaseWorkspaceReport: () => caseReportPayload
+  });
+  assertRuntime(openState.lastCaseWorkspaceReport === caseReportPayload,
+    "[ui-smoke] Runtime case-report open failed: report payload must be cached on state.");
+  assertRuntime(openEls.reportTextarea.value === "## Case Report Runtime",
+    "[ui-smoke] Runtime case-report open failed: report textarea must receive markdown payload.");
+  assertRuntime(openTabCalls === 1,
+    "[ui-smoke] Runtime case-report open failed: automation tab should activate after report load.");
+  assertRuntime(openStatuses.some((s) => s.kind === "ok" && s.message.includes("Case report loaded for CASE-REPORT-OPEN.")),
+    "[ui-smoke] Runtime case-report open failed: success status should include active case id.");
+
+  const openBlockedStatuses = [];
+  const openCaseReportBlocked = compileRuntimeFunction("openCaseReportFromContext", {
+    state: { lastAutomation: {}, lastCaseWorkspaceReport: null },
+    el: () => null,
+    activateTab: () => null,
+    setStatus: (message, kind) => openBlockedStatuses.push({ message, kind })
+  });
+  await openCaseReportBlocked.call({
+    activeCase: null,
+    buildCaseWorkspaceReport: () => ({ markdown: "should-not-run" })
+  });
+  assertRuntime(openBlockedStatuses.some((s) => s.kind === "warn" && s.message.includes("Case report launch blocked: no active case.")),
+    "[ui-smoke] Runtime case-report open failed: blocked path must emit no-active-case warning.");
+
+  const exportDownloads = [];
+  const exportStatuses = [];
+  const exportState = { lastAutomation: { queue: [] }, lastCaseWorkspaceReport: null };
+  const exportCaseReportFromContext = compileRuntimeFunction("exportCaseReportFromContext", {
+    state: exportState,
+    downloadFile: (content, name, type) => exportDownloads.push({ content, name, type }),
+    setStatus: (message, kind) => exportStatuses.push({ message, kind })
+  });
+
+  const exportPayload = { markdown: "## Export Runtime Report", queueResultsSummary: { completed: 1 } };
+  await exportCaseReportFromContext.call({
+    activeCase: { case_id: "CASE-REPORT-EXPORT" },
+    buildCaseWorkspaceReport: () => exportPayload
+  });
+  assertRuntime(exportDownloads.length === 2,
+    "[ui-smoke] Runtime case-report export failed: expected deterministic MD + JSON downloads.");
+  const mdDownload = exportDownloads.find((d) => d.type === "text/markdown");
+  const jsonDownload = exportDownloads.find((d) => d.type === "application/json");
+  assertRuntime(Boolean(mdDownload), "[ui-smoke] Runtime case-report export failed: missing markdown download.");
+  assertRuntime(Boolean(jsonDownload), "[ui-smoke] Runtime case-report export failed: missing JSON download.");
+  assertRuntime(/^CASE-REPORT-EXPORT_workspace_report_/.test(mdDownload.name) && mdDownload.name.endsWith(".md"),
+    "[ui-smoke] Runtime case-report export failed: markdown filename must include case id and report suffix.");
+  assertRuntime(/^CASE-REPORT-EXPORT_workspace_report_/.test(jsonDownload.name) && jsonDownload.name.endsWith(".json"),
+    "[ui-smoke] Runtime case-report export failed: JSON filename must include case id and report suffix.");
+  const parsedJson = JSON.parse(jsonDownload.content);
+  assertRuntime(parsedJson.markdown === "## Export Runtime Report",
+    "[ui-smoke] Runtime case-report export failed: JSON payload should preserve report markdown content.");
+  assertRuntime(exportState.lastCaseWorkspaceReport === exportPayload,
+    "[ui-smoke] Runtime case-report export failed: exported report payload must be cached on state.");
+  assertRuntime(exportStatuses.some((s) => s.kind === "ok" && s.message.includes("Case report exported for CASE-REPORT-EXPORT (MD + JSON).")),
+    "[ui-smoke] Runtime case-report export failed: success status should include active case id.");
+
+  const exportBlockedDownloads = [];
+  const exportBlockedStatuses = [];
+  const exportCaseReportBlocked = compileRuntimeFunction("exportCaseReportFromContext", {
+    state: { lastAutomation: {}, lastCaseWorkspaceReport: null },
+    downloadFile: (content, name, type) => exportBlockedDownloads.push({ content, name, type }),
+    setStatus: (message, kind) => exportBlockedStatuses.push({ message, kind })
+  });
+  await exportCaseReportBlocked.call({
+    activeCase: null,
+    buildCaseWorkspaceReport: () => ({ markdown: "should-not-export" })
+  });
+  assertRuntime(exportBlockedDownloads.length === 0,
+    "[ui-smoke] Runtime case-report export failed: blocked no-active-case path must not emit downloads.");
+  assertRuntime(exportBlockedStatuses.some((s) => s.kind === "warn" && s.message.includes("Case report export blocked: no active case.")),
+    "[ui-smoke] Runtime case-report export failed: blocked path must emit explicit no-active-case warning.");
 }
 
 runRuntimeInteractionProofs()
