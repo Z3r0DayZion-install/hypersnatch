@@ -27,7 +27,7 @@ Reduce WARN-default signoff ambiguity and make strict stable-signoff requirement
 
 ## Execution Status
 
-1. Planned for slice 1:
-   - Tighten non-signoff wording and strict rerun guidance further.
-   - Reduce operator-discipline dependence for stable signoff interpretation.
-   - Validate messaging clarity under normal and warn-profile runs.
+1. Completed in slice 1:
+   - `tests/final_sovereign_audit.js` now prints explicit `SIGNOFF STATUS` markers (`BLOCKED`/`APPROVED`).
+   - WARN profile policy text now states it is maintenance evidence only and cannot approve strict stable signoff.
+   - Final WARN summary now repeats blocked signoff status and strict rerun action for stable tag/release paths.
