@@ -11,6 +11,8 @@ const RELEASE_DIR_NAME = `HyperSnatch_v${PKG.version}`;
 const LEGACY_RELEASE_DIR = path.join(ROOT, "release", RELEASE_DIR_NAME);
 const EXPECTED_INSTALLER_NAME = `HyperSnatch-Setup-${PKG.version}.exe`;
 const EXPECTED_RELEASE_BUNDLE_NAME = `HyperSnatch_Vanguard_v${PKG.version}.zip`;
+const EXPECTED_CLI_NAME = "hypersnatch-cli.exe";
+const EXPECTED_HASH_MANIFEST_NAME = "SHA256SUMS.txt";
 const STRICT_HASH_FLAG = process.env.HYPERSNATCH_AUDIT_REQUIRE_HASH === "1";
 const STRICT_CLI_FLAG = process.env.HYPERSNATCH_AUDIT_REQUIRE_CLI === "1";
 const AUDIT_PROFILE = String(process.env.HYPERSNATCH_AUDIT_PROFILE || "warn").trim().toLowerCase();
@@ -70,9 +72,39 @@ function printCheck(name, status, detail) {
   console.log(`${name}: ${status}${detail ? ` (${detail})` : ""}`);
 }
 
-function failWithHint(message, hint) {
+function failWithHint(message, hint, context = {}) {
   const suffix = hint ? ` Hint: ${hint}` : "";
-  throw new Error(`${message}${suffix}`);
+  const error = new Error(`${message}${suffix}`);
+  Object.assign(error, context);
+  throw error;
+}
+
+function expectedArtifactsForRoot(artifactRoot) {
+  const base = artifactRoot || DIST_DIR;
+  return {
+    installer: path.join(base, EXPECTED_INSTALLER_NAME),
+    releaseBundle: path.join(base, EXPECTED_RELEASE_BUNDLE_NAME),
+    cli: path.join(base, EXPECTED_CLI_NAME),
+    hashManifest: path.join(base, EXPECTED_HASH_MANIFEST_NAME)
+  };
+}
+
+function printArtifactExpectations(artifactRoot) {
+  const expected = expectedArtifactsForRoot(artifactRoot);
+  console.log("Artifact expectations:");
+  console.log(`- installer: ${expected.installer}`);
+  console.log(`- release bundle: ${expected.releaseBundle}`);
+  console.log(`- strict CLI (required in strict mode): ${expected.cli}`);
+  console.log(`- strict hash manifest (required in strict mode): ${expected.hashManifest}\n`);
+}
+
+function printStrictRerunGuidance(artifactRoot) {
+  const expected = expectedArtifactsForRoot(artifactRoot);
+  console.log("Strict stable signoff rerun guidance:");
+  console.log(`1. Ensure artifact root contains: ${EXPECTED_INSTALLER_NAME}, ${EXPECTED_RELEASE_BUNDLE_NAME}, ${EXPECTED_CLI_NAME}, ${EXPECTED_HASH_MANIFEST_NAME}.`);
+  console.log(`2. Expected strict CLI path: ${expected.cli}`);
+  console.log(`3. Expected strict hash path: ${expected.hashManifest}`);
+  console.log("4. Rebuild/re-prepare artifacts, then rerun: npm run audit:stable");
 }
 
 function printStrictStableGuidance() {
@@ -89,6 +121,12 @@ function printSignoffStatusBlocked(reason) {
   console.log("SIGNOFF STATUS: BLOCKED");
   console.log(`SIGNOFF REASON: ${reason}`);
   console.log("SIGNOFF ACTION: run `npm run audit:stable` before any stable tag/release action.");
+}
+
+function printSignoffStatusNonSignoff(reason) {
+  console.log("SIGNOFF STATUS: NON-SIGNOFF");
+  console.log(`SIGNOFF REASON: ${reason}`);
+  console.log("SIGNOFF ACTION: run `npm run audit:stable` for strict stable signoff evidence.");
 }
 
 function printSignoffStatusApproved() {
@@ -114,7 +152,8 @@ function main() {
   if (AUDIT_RELEASE_TYPE === "stable" && (!STRICT_HASH || !STRICT_CLI)) {
     failWithHint(
       "Stable release signoff requires strict profile and strict CLI/hash checks.",
-      "Run npm run audit:stable (or set HYPERSNATCH_AUDIT_PROFILE=strict, HYPERSNATCH_AUDIT_RELEASE_TYPE=stable, HYPERSNATCH_AUDIT_REQUIRE_HASH=1, HYPERSNATCH_AUDIT_REQUIRE_CLI=1)."
+      "Run npm run audit:stable (or set HYPERSNATCH_AUDIT_PROFILE=strict, HYPERSNATCH_AUDIT_RELEASE_TYPE=stable, HYPERSNATCH_AUDIT_REQUIRE_HASH=1, HYPERSNATCH_AUDIT_REQUIRE_CLI=1).",
+      { signoffReason: "stable release type requested without strict profile/flags" }
     );
   }
 
@@ -125,9 +164,9 @@ function main() {
     console.log("Audit interpretation: STRICT STABLE SIGNOFF mode.\n");
   } else {
     console.log("Audit interpretation: NON-SIGNOFF mode for stable tag decisions.\n");
-    console.log("SIGNOFF BLOCK: this run cannot approve stable tagging or stable release signoff.");
+    console.log("SIGNOFF NOTE: this run cannot approve stable tagging or stable release signoff.");
     console.log("Policy reminder: `npm run audit:final` is maintenance evidence only; use `npm run audit:stable` for strict signoff.\n");
-    printSignoffStatusBlocked("profile/release-type contract is not strict stable signoff");
+    printSignoffStatusNonSignoff("profile/release-type contract is not strict stable signoff");
     console.log("");
   }
   if (AUDIT_PROFILE === "strict") {
@@ -141,10 +180,12 @@ function main() {
   if (!artifactRoot) {
     failWithHint(
       `No artifact root found. Expected dist/ or release/${RELEASE_DIR_NAME}.`,
-      `Run \"npm run build:wrapper\" first, then rerun \"npm run audit:final\".`
+      `Run \"npm run build:wrapper\" first, then rerun \"npm run audit:final\".`,
+      { signoffReason: "artifact root missing", artifactRoot: DIST_DIR }
     );
   }
   console.log(`Artifacts root: ${artifactRoot}`);
+  printArtifactExpectations(artifactRoot);
 
   const setupInstallers = fs.readdirSync(artifactRoot, { withFileTypes: true })
     .filter((d) => d.isFile() && /^HyperSnatch-Setup-.*\.exe$/i.test(d.name))
@@ -152,7 +193,8 @@ function main() {
   if (setupInstallers.length === 0) {
     failWithHint(
       "Installer .exe not found in artifact root.",
-      `Expected HyperSnatch-Setup-<version>.exe after \"npm run build:wrapper\".`
+      `Expected ${EXPECTED_INSTALLER_NAME} in ${artifactRoot} after \"npm run build:wrapper\".`,
+      { signoffReason: "required installer artifact missing", artifactRoot }
     );
   }
 
@@ -184,7 +226,8 @@ function main() {
   if (vanguardBundles.length === 0) {
     failWithHint(
       `Expected ${EXPECTED_RELEASE_BUNDLE_NAME} but found no HyperSnatch_Vanguard*.zip artifacts. Result: FAIL.`,
-      `Run \"npm run build:wrapper\" after aligning version identity to ${PKG.version}.`
+      `Run \"npm run build:wrapper\" after aligning version identity to ${PKG.version}.`,
+      { signoffReason: "required release bundle missing", artifactRoot }
     );
   }
 
@@ -218,14 +261,15 @@ function main() {
     printCheck("CLI", "PASS", path.basename(cli));
   } else if (STRICT_CLI) {
     failWithHint(
-      "CLI artifact required but not found.",
-      `Disable strict CLI mode or include hypersnatch-cli.exe in the build profile.`
+      `Strict signoff required CLI artifact missing: ${path.join(artifactRoot, EXPECTED_CLI_NAME)}.`,
+      `Provide ${EXPECTED_CLI_NAME} in the artifact root and rerun \"npm run audit:stable\".`,
+      { signoffReason: "strict CLI artifact missing", artifactRoot }
     );
   } else {
     printCheck("CLI", "WARN", "not present in current build profile; set HYPERSNATCH_AUDIT_REQUIRE_CLI=1 to enforce");
   }
 
-  const manifestPath = path.join(artifactRoot, "SHA256SUMS.txt");
+  const manifestPath = path.join(artifactRoot, EXPECTED_HASH_MANIFEST_NAME);
   if (fs.existsSync(manifestPath)) {
     const manifest = parseHashManifest(manifestPath);
     const installerName = path.basename(installer);
@@ -251,11 +295,12 @@ function main() {
     printCheck("Hash verification", "PASS", "SHA256SUMS.txt");
   } else if (STRICT_HASH) {
     failWithHint(
-      "SHA256SUMS.txt required but missing.",
-      `Generate checksum manifest in artifact root or unset HYPERSNATCH_AUDIT_REQUIRE_HASH.`
+      `Strict signoff required hash manifest missing: ${manifestPath}.`,
+      `Generate ${EXPECTED_HASH_MANIFEST_NAME} in artifact root and rerun \"npm run audit:stable\".`,
+      { signoffReason: "strict hash manifest missing", artifactRoot }
     );
   } else {
-    printCheck("Hash verification", "WARN", "SHA256SUMS.txt missing; set HYPERSNATCH_AUDIT_REQUIRE_HASH=1 to enforce");
+    printCheck("Hash verification", "WARN", `${EXPECTED_HASH_MANIFEST_NAME} missing; set HYPERSNATCH_AUDIT_REQUIRE_HASH=1 to enforce`);
   }
 
   assertExists("README.md");
@@ -267,13 +312,13 @@ function main() {
   if (warns > 0) {
     console.log(`\nFINAL SOVEREIGN AUDIT: PASS (WITH WARNINGS: ${warns})`);
     console.log(`Policy result: profile=${AUDIT_PROFILE}, releaseType=${AUDIT_RELEASE_TYPE}.`);
-    console.log("SIGNOFF BLOCK: NOT VALID for strict stable release signoff.");
+    console.log("SIGNOFF NOTE: NOT VALID for strict stable release signoff.");
     console.log("Action: review WARN lines and rerun strict stable signoff (`npm run audit:stable`) before any stable tag/release action.");
     console.log("WARN scope:");
     if (!cli && !STRICT_CLI) console.log("- CLI artifact is optional in current profile.");
     if (!fs.existsSync(manifestPath) && !STRICT_HASH) console.log("- SHA256SUMS.txt verification is optional in current profile.");
     printStrictStableGuidance();
-    printSignoffStatusBlocked("WARN profile and/or optional checks present");
+    printSignoffStatusNonSignoff("WARN profile and/or optional checks present");
     return;
   }
   if (IS_STRICT_STABLE_SIGNOFF) {
@@ -282,17 +327,23 @@ function main() {
     return;
   }
   console.log("\nFINAL SOVEREIGN AUDIT: PASS (NON-SIGNOFF PROFILE)");
-  console.log("SIGNOFF BLOCK: suitable for maintenance evidence only, not strict stable tag/release signoff.");
+  console.log("SIGNOFF NOTE: suitable for maintenance evidence only, not strict stable tag/release signoff.");
   console.log("Action: run `npm run audit:stable` for strict stable-signoff evidence.");
   printStrictStableGuidance();
-  printSignoffStatusBlocked("non-signoff profile");
+  printSignoffStatusNonSignoff("non-signoff profile");
 }
 
 try {
   main();
 } catch (err) {
   console.error("\n[CRITICAL FAILURE]:", err.message);
-  console.error(`Expected artifact contract: ${EXPECTED_INSTALLER_NAME} and ${EXPECTED_RELEASE_BUNDLE_NAME} in dist/ (no stale/mixed versions).`);
-  console.error('Remediation order: npm install -> npm run build:wrapper -> npm run verify -> npm run audit:final');
+  const artifactRoot = err.artifactRoot || findArtifactsRoot() || DIST_DIR;
+  if (IS_STRICT_STABLE_SIGNOFF) {
+    printSignoffStatusBlocked(err.signoffReason || "strict stable signoff contract failed");
+    printArtifactExpectations(artifactRoot);
+    printStrictRerunGuidance(artifactRoot);
+  }
+  console.error(`Expected base artifact contract: ${EXPECTED_INSTALLER_NAME} and ${EXPECTED_RELEASE_BUNDLE_NAME} in ${artifactRoot} (no stale/mixed versions).`);
+  console.error("Remediation order: npm install -> npm run build:wrapper -> npm run verify -> npm run audit:final -> npm run audit:stable");
   process.exit(1);
 }
