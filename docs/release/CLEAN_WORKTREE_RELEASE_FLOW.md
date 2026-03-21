@@ -38,12 +38,13 @@ git status --short --branch
 4. Run release gates in clean worktree.
 
 ```powershell
+npm install
 npm test
-node tests/run_tests.js
-npm run verify
-npm run verify:system
-npm run audit:final
+npm run verify:ui
 npm run build:wrapper
+npm run verify
+npm run audit:final
+npm run audit:stable
 ```
 
 5. Verify release truth alignment.
