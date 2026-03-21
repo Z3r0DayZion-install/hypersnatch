@@ -36,3 +36,13 @@ Increase confidence that operator-critical workflow truth remains correct under 
 
 1. `npm run verify:ui` fails on meaningful interaction-state regressions in targeted flows.
 2. Full required gate order remains green after proof-depth changes.
+
+## Execution Status
+
+1. Completed in slice 3 (`test(ui)`):
+   - `scripts/ui_smoke_check.js` runtime compiler now supports class-method extraction for UI method proofs.
+   - Added runtime interaction assertions for:
+     - `reopenCaseJob` success, bridge-missing failure, and failed-action semantics
+     - `openCaseReportFromContext` success and blocked no-active-case semantics
+     - `exportCaseReportFromContext` deterministic MD/JSON export behavior and blocked no-active-case semantics
+   - Existing queue action and trust/report/lineage runtime checks remain intact.
