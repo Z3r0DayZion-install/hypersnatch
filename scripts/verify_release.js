@@ -287,6 +287,70 @@ function verifyBuildOutput(expectedVersion) {
   return true;
 }
 
+function verifyPackagedUiRuntimeTruth(expectedVersion) {
+  const asarPath = path.join('dist', 'win-unpacked', 'resources', 'app.asar');
+  if (!expectedVersion) {
+    logError('Packaged UI runtime proof missing expected version context.', {
+      remediation: 'Ensure package.json version is readable before packaged-proof checks.'
+    });
+    return false;
+  }
+
+  if (!fs.existsSync(asarPath)) {
+    logError('Packaged UI runtime proof missing app.asar artifact.', {
+      path: asarPath,
+      remediation: 'Run "npm run build:wrapper" before "npm run verify".'
+    });
+    return false;
+  }
+
+  let asarText = '';
+  try {
+    asarText = fs.readFileSync(asarPath).toString('utf8');
+  } catch (error) {
+    logError('Failed to read packaged app.asar for runtime proof checks.', {
+      path: asarPath,
+      error: error.message
+    });
+    return false;
+  }
+
+  const requiredMarkers = [
+    'openCaseReportFromContext',
+    'exportCaseReportFromContext',
+    'reopenCaseJob',
+    'buildCaseWorkspaceReport',
+    'buildCaseTimeline',
+    'data-queue-action="pause"',
+    'data-queue-action="resume"',
+    'data-queue-action="manual-review"',
+    'data-queue-action="cancel"'
+  ];
+  const versionMarker = `APP_VERSION_FALLBACK = "${expectedVersion}"`;
+  const missingMarkers = requiredMarkers.filter((marker) => !asarText.includes(marker));
+  if (!asarText.includes(versionMarker)) {
+    missingMarkers.push(versionMarker);
+  }
+
+  if (missingMarkers.length > 0) {
+    logError('Packaged UI runtime markers missing from app.asar.', {
+      path: asarPath,
+      missingMarkers,
+      expectedVersion,
+      result: 'FAIL',
+      action: 'Rebuild wrapper artifacts and confirm packaged UI/runtime surfaces include expected operator controls and methods.'
+    });
+    return false;
+  }
+
+  logSuccess('Packaged UI runtime markers verified from app.asar', {
+    path: asarPath,
+    expectedVersion,
+    markersChecked: requiredMarkers.length + 1
+  });
+  return true;
+}
+
 function readPackageJson() {
   const packagePath = 'package.json';
   try {
@@ -478,6 +542,17 @@ function main() {
       HS_SKIP_BUILD_OUTPUT: process.env.HS_SKIP_BUILD_OUTPUT || null
     });
   } else if (!verifyBuildOutput(packageJson?.version || null)) {
+    allPassed = false;
+  }
+
+  // Verify packaged UI/runtime proof depth
+  console.log('\n🧪 Checking packaged UI runtime proof depth...');
+  if (skipBuildOutput) {
+    logSuccess('Packaged UI runtime proof skipped (unsigned gate mode)', {
+      HYPERSNATCH_SIGN: process.env.HYPERSNATCH_SIGN || null,
+      HS_SKIP_BUILD_OUTPUT: process.env.HS_SKIP_BUILD_OUTPUT || null
+    });
+  } else if (!verifyPackagedUiRuntimeTruth(packageJson?.version || null)) {
     allPassed = false;
   }
 
