@@ -9,7 +9,7 @@ Branch: `release-readiness/v1.5.10-hardening`
 |---|---|---|---|---|
 | Governance/setup truth closure | P1 | Completed (slice 1) | removed stale version/lane claims, centralized setup boundary, and downgraded unsupported wording | full required gate order executed and passed |
 | Dependency baseline normalization | P1 | Completed (slice 2) | baseline is explicit (snapshot/delta/risk/install-proof) and dependency certainty claims are scoped to direct evidence | full required gate order executed and passed |
-| Direct-proof conversion | P1 | Pending | reduce inference-only release claims via direct evidence mapping | run full required gate order after real slices |
+| Direct-proof conversion | P1 | Completed (slice 3) | direct/indirect claim boundaries, packaged interaction scope, and signoff language are now explicitly normalized | full required gate order executed and passed |
 | Operator friction reduction | P1 | Pending | reduce ambiguous signoff/release steps and interpretation burden | run full required gate order after real slices |
 
 ## Slice 1 Log (Governance/Setup Truth Closure)
@@ -109,6 +109,55 @@ Dependency claim-tightening check:
 
 - dependency baseline is now represented as a governed snapshot with explicit risk register
 - release docs no longer imply dependency certainty beyond observed lockfile/environment evidence
+
+## Slice 3 Log (Direct-Proof Conversion / Packaged Interaction Depth)
+
+Start status:
+
+- scope: docs/proof/governance only
+- runtime/code surface changed: no (docs-only edits)
+
+Completed slice-3 outputs:
+
+- `docs/release/V1_5_10_DIRECT_PROOF_REGISTER.md`
+- `docs/release/V1_5_10_PACKAGED_INTERACTION_PROOF.md`
+- `docs/release/V1_5_10_PROOF_DEPTH_GAPS.md`
+- `docs/release/V1_5_10_SIGNOFF_LANGUAGE_NORMALIZATION.md`
+- `docs/release/V1_5_10_CLAIM_TO_PROOF_MAP.md` (direct/indirect + upgrade path column)
+- `docs/release/V1_5_10_HARDENING_PROGRESS.md` (slice-3 tracking)
+
+Slice-3 proof-language tightening summary:
+
+- release-critical claims now explicitly separated into direct vs indirect classes
+- packaged interaction proof now documents direct observations vs inferred boundaries
+- signoff wording now has approved phrases and banned overclaim phrases
+- remaining indirect zones are tracked with severity and closure type
+
+Open governance/proof gaps after slice-3 completion:
+
+- packaged click-path interaction proof in packaged runtime remains indirect (`PDG-01`)
+- external signing trust acceptance remains conditional (`PDG-02`)
+
+Required gate order status:
+
+- executed in order:
+  1. `npm install` - PASS
+  2. `npm test` - PASS
+  3. `npm run verify:ui` - PASS
+  4. `npm run build:wrapper` - PASS
+  5. `npm run verify` - PASS
+  6. `npm run audit:final` - PASS (`SIGNOFF STATUS: NON-SIGNOFF`)
+  7. `npm run audit:stable` - PASS (`SIGNOFF STATUS: APPROVED`)
+
+Unexpected output changes check:
+
+- none in tracked runtime/code surfaces
+- working tree diff remained docs-only during this slice
+
+Packaged interaction evidence strengthening check:
+
+- packaged interaction proof now has explicit operator reproduction steps and expected outcome tokens
+- direct packaged marker evidence and indirect packaged click-path boundaries are separated in release docs
 
 ## Notes
 
