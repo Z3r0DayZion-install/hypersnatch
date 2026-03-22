@@ -8,6 +8,7 @@ Release line: stable
 - Stable release: `v1.5.9`
 - Hardening merge commit: `9ca47f20ab7cfb656dc27e533232bfb1bbc7bb9a`
 - Identity merge commit: `09229028e779a1afa2130f32d2420567e02f04b6`
+- Proof-doc merge commit: `51d1982af9e43b090b821b37e23c7cd33304bba7`
 - Tag: `v1.5.9`
 - Tag object SHA: `184a0f9cabdffe19d209feca92cea61e16803f09`
 - Peeled commit SHA: `09229028e779a1afa2130f32d2420567e02f04b6`
