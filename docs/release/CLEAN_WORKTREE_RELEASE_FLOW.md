@@ -2,6 +2,9 @@
 
 Date: March 19, 2026
 
+Current stable release context: `v1.5.9`  
+Current hardening context: `release-readiness/v1.5.10-hardening`
+
 ## When To Use This
 
 Use this flow whenever local `main` is dirty, untrusted, or ahead/behind in a way that can contaminate release proof.
@@ -56,14 +59,22 @@ type docs\PROJECT_STATUS.md
 git status --short
 ```
 
-6. Tag only after all gates pass.
+6. Confirm setup/assumption truth packet is aligned before tagging.
+
+```powershell
+type docs\release\V1_5_10_SETUP_TRUTH_MATRIX.md
+type docs\release\V1_5_10_ENVIRONMENT_ASSUMPTIONS.md
+type docs\release\V1_5_10_CLAIM_TO_PROOF_MAP.md
+```
+
+7. Tag only after all gates pass.
 
 ```powershell
 git tag -a vX.Y.Z <release-commit-sha> -m "HyperSnatch vX.Y.Z release"
 git push origin vX.Y.Z
 ```
 
-7. Hash final release artifact.
+8. Hash final release artifact.
 
 ```powershell
 certutil -hashfile <artifact-path> SHA256
