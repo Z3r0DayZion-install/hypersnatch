@@ -18,7 +18,7 @@ This map defines which release-critical claims are directly proven vs inferred.
 | C-07 | Core queue/report/reopen semantics are checked in runtime harness | `npm run verify:ui` (`scripts/ui_smoke_check.js`) | Indirect for packaged runtime behavior | "source/runtime-harness semantics passed; packaged E2E still partial" |
 | C-08 | Core test suite passes for current commit | `npm test` | Direct for covered tests only | "covered tests passed in this environment" |
 | C-09 | Release-readiness gate sequence is reproducible in clean worktree | ordered run of required commands + clean `git status --short` | Direct for observed environment | "reproduced in clean worktree using documented order" |
-| C-10 | Dependency baseline evidence is current to shipped line | latest dependency inventory doc version vs shipped release | Currently indirect/incomplete (`v1.5.8` baseline lag) | "dependency baseline refresh pending; do not claim current-line closure yet" |
+| C-10 | Dependency baseline evidence is current to shipped line | `docs/dev/DEPENDENCY_WARNING_INVENTORY_v1.5.9.md` + slice-2 dependency packet (`V1_5_10_DEPENDENCY_*`) | Direct for current-line snapshot; indirect for future drift | "dependency baseline is current for this release line with explicit risks documented" |
 | C-11 | Binary trust is externally accepted/signed | signing evidence (`HYPERSNATCH_SIGN=1`, signtool/cert artifacts, release notes) | Conditional; not guaranteed by default | "signed trust claim only when signing evidence is explicitly recorded" |
 | C-12 | Governance docs reflect shipped truth and active lane | `README.md`, `docs/PROJECT_STATUS.md`, `docs/agent/MASTER_OVERVIEW.md`, `docs/dev/WORKTREE_SETUP_NOTES.md` | Direct | "top-level governance docs aligned to shipped `v1.5.9` and active `v1.5.10` lane" |
 
@@ -26,5 +26,5 @@ This map defines which release-critical claims are directly proven vs inferred.
 
 1. Do not say "fully verified runtime behavior" when proof is marker/harness based.
 2. Do not say "trusted binary" unless signing evidence is explicitly included for the release.
-3. Do not say "dependency baseline current" until the inventory is refreshed to the shipped line.
+3. Do not say "dependency baseline guaranteed stable" beyond the documented snapshot scope.
 4. Do not say "stable signoff approved" from `audit:final`; only `audit:stable` can approve strict signoff.

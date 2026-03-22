@@ -59,7 +59,12 @@ Optional/conditional:
 - Determinism surfaces:
   - `package-lock.json` present and committed
   - Node runtime matches `package.json` engine policy
-- Baseline inventory lag is currently tracked as an explicit governance gap in `docs/release/V1_5_10_GOVERNANCE_GAPS.md`.
+- Current warning baseline inventory: `docs/dev/DEPENDENCY_WARNING_INVENTORY_v1.5.9.md`
+- Slice-2 dependency baseline packet:
+  - `docs/release/V1_5_10_DEPENDENCY_BASELINE.md`
+  - `docs/release/V1_5_10_DEPENDENCY_DELTA.md`
+  - `docs/release/V1_5_10_DEPENDENCY_RISK_REGISTER.md`
+  - `docs/release/V1_5_10_CLEAN_ENV_INSTALL_PROOF.md`
 
 ## Expected Gate Order
 
