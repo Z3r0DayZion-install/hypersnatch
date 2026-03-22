@@ -1,7 +1,7 @@
 
 # HyperSnatch Stewardship & Dev Agent Pack
 
-Project: HyperSnatch v1.5.7 (stable) with active hardening lane `release-readiness/v1.5.8-hardening`
+Project: HyperSnatch v1.5.8 (stable) with active hardening lane `release-readiness/v1.5.9-hardening`
 Status: Active patch-line hardening with release-proof discipline (`v1.6.0` expansion remains blocked until hardening closes)
 
 Purpose:
