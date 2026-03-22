@@ -1,9 +1,26 @@
-# HyperSnatch v1.5.8
+# HyperSnatch v1.5.9
 
-**STATUS**: Stable shipped (`v1.5.8`)  
-**CURRENT HARDENING LINE**: `release-readiness/v1.5.9-hardening`  
-**LATEST PROOF RECORD**: `docs/release/RELEASE_PROOF_v1.5.8.md`  
-**STATE**: Post-release trust/proof/governance hardening continues before any `v1.6.0` expansion work
+**STATUS**: Stable shipped (`v1.5.9`)  
+**CURRENT HARDENING LINE**: `release-readiness/v1.5.10-hardening`  
+**LATEST PROOF RECORD**: `docs/release/RELEASE_PROOF_v1.5.9.md`  
+**LATEST REALITY AUDIT**: `docs/release/POST_V159_REALITY_AUDIT.md`  
+**STATE**: Post-release truth/proof/governance hardening continues before any `v1.6.0` expansion work
+
+## Release-Readiness Truth Boundary
+
+Use these docs as the current support/truth boundary for release-readiness claims:
+
+- `docs/release/V1_5_10_SETUP_TRUTH_MATRIX.md`
+- `docs/release/V1_5_10_ENVIRONMENT_ASSUMPTIONS.md`
+- `docs/release/V1_5_10_CLAIM_TO_PROOF_MAP.md`
+- `docs/release/V1_5_10_GOVERNANCE_GAPS.md`
+- `docs/dev/WORKTREE_SETUP_NOTES.md`
+- `docs/release/CLEAN_WORKTREE_RELEASE_FLOW.md`
+
+Signoff interpretation:
+
+- `npm run audit:final` is maintenance evidence only (`NON-SIGNOFF`).
+- `npm run audit:stable` is the strict stable signoff path (`APPROVED` required for stable tag/release).
 
 ## Stewardship & Onboarding
 - **ARCHIVE_RECORD.md**: Immediate verification summary

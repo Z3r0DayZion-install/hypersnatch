@@ -1,9 +1,16 @@
 # Worktree Setup Notes
 
-This note documents the expected setup flow for clean throwaway worktrees used for gate proof.
+This note defines the operational setup flow for clean throwaway worktrees used for release-readiness proof.
 
-Current stable shipped line: `v1.5.8`  
-Current hardening line: `release-readiness/v1.5.9-hardening`
+Current stable shipped line: `v1.5.9`  
+Current hardening line: `release-readiness/v1.5.10-hardening`
+
+Canonical setup truth docs:
+
+- `docs/release/V1_5_10_SETUP_TRUTH_MATRIX.md`
+- `docs/release/V1_5_10_ENVIRONMENT_ASSUMPTIONS.md`
+- `docs/release/V1_5_10_CLAIM_TO_PROOF_MAP.md`
+- `docs/release/V1_5_10_GOVERNANCE_GAPS.md`
 
 ## Required Steps
 
@@ -12,22 +19,36 @@ Current hardening line: `release-readiness/v1.5.9-hardening`
 3. Confirm `git status --short` is clean before running proof gates.
 4. Run gates in the standard order listed below.
 
+## Required vs Optional Setup
+
+Required for release-readiness proof:
+
+- Node runtime at or above `package.json` baseline (`engines.node = 20.17.0` on Node 20 line)
+- `npm install` completed in the same worktree used for proof
+- clean `dist` artifact state for version-exact proof
+- strict stable signoff artifacts in `dist`:
+  - `HyperSnatch-Setup-<version>.exe`
+  - `HyperSnatch_Vanguard_v<version>.zip`
+  - `SHA256SUMS.txt`
+
+Optional/conditional:
+
+- `hypersnatch-cli.exe` is optional by default; enforce only with `HYPERSNATCH_AUDIT_REQUIRE_CLI=1`
+- Windows code-signing (`HYPERSNATCH_SIGN=1`) is contract-dependent and requires cert/signtool setup
+
 ## Common Pitfalls
 
-- Running gates before `npm install` can fail because local runtime/build modules are missing.
+- Running gates before `npm install` can fail because runtime/build modules are missing.
 - Using a dirty primary worktree can contaminate proof with unrelated changes.
 - Running release packaging from a non-merged branch can break artifact-to-history trust.
+- Mixed-version artifacts in `dist` cause deterministic verification failures by design.
 
-## Builder and Runtime Gotchas
+## Native vs Simulated/Test-Context Caveats
 
-- `npm run verify` and `npm run build:wrapper` depend on local build/runtime dependencies.
-- `npm run verify` requires build artifacts in `dist`; run `npm run build:wrapper` first in clean proof flows.
-- Missing `electron-builder/dist` or related packaging dependencies will cause build/verify failures.
-- If builder artifacts are stale, rerun `npm install` and rerun the full gate set.
-- Node runtime baseline is defined in `package.json` (`engines.node = 20.17.0`) as the minimum supported Node 20 proof runtime.
-- `scripts/verify_release.js` now fails with explicit remediation when runtime/dependency prerequisites are missing.
-- Strict stable signoff expects required strict artifacts in `dist`: installer, versioned release bundle, and `SHA256SUMS.txt`.
-- `hypersnatch-cli.exe` is optional by default and is only enforced when `HYPERSNATCH_AUDIT_REQUIRE_CLI=1` is explicitly set.
+- `npm run verify:ui` is a source/harness runtime proof, not packaged interaction E2E.
+- `npm run verify` validates packaged `app.asar` runtime markers, but still at marker-level depth.
+- `npm run audit:final` is maintenance evidence only (`NON-SIGNOFF`), not stable tag approval.
+- `npm run audit:stable` is the strict stable signoff command and must show `SIGNOFF STATUS: APPROVED` for stable release/tag actions.
 
 ## Dependency Hygiene Baseline
 
@@ -38,11 +59,12 @@ Current hardening line: `release-readiness/v1.5.9-hardening`
 - Determinism surfaces:
   - `package-lock.json` present and committed
   - Node runtime matches `package.json` engine policy
-- Warning inventory process:
-  1. Run `npm install` in a clean worktree.
-  2. Capture any warnings in the latest versioned `docs/dev/DEPENDENCY_WARNING_INVENTORY_*.md` (current baseline: `docs/dev/DEPENDENCY_WARNING_INVENTORY_v1.5.8.md`).
-  3. Classify each warning as `informational`, `medium risk`, or `action required`.
-  4. Record whether it is observation-only or requires a maintenance action.
+- Current warning baseline inventory: `docs/dev/DEPENDENCY_WARNING_INVENTORY_v1.5.9.md`
+- Slice-2 dependency baseline packet:
+  - `docs/release/V1_5_10_DEPENDENCY_BASELINE.md`
+  - `docs/release/V1_5_10_DEPENDENCY_DELTA.md`
+  - `docs/release/V1_5_10_DEPENDENCY_RISK_REGISTER.md`
+  - `docs/release/V1_5_10_CLEAN_ENV_INSTALL_PROOF.md`
 
 ## Expected Gate Order
 

@@ -1,10 +1,11 @@
 # HyperSnatch Status Summary
 
-Current stable release: `1.5.8`
-Current hardening target: `1.5.9` (trust/proof/governance tightening before expansion)
+Current stable release: `1.5.9`  
+Current hardening target: `1.5.10` (truth/proof/governance/dependency closure before expansion)  
 Current prerelease checkpoints: `1.5.0-beta.1` and `1.4.0-beta.1` (published, closed)
 
 Core platform status:
+
 - Phase 6 Runtime Forensics: complete
 - Phase 7 Intelligence Layer: complete
 - Operator UI v1.5 expansion workflow: merged to main via PR #13
@@ -17,16 +18,21 @@ Core platform status:
 - `v1.5.6` trust/proof hardening + identity release shipped with clean proof
 - `v1.5.7` trust/proof hardening + identity release shipped with clean proof
 - `v1.5.8` trust/proof hardening + identity release shipped with clean proof
-- Post-`v1.5.8` reality audit decision: complete `v1.5.9` hardening before any `v1.6.0` expansion
-- Active branch: `release-readiness/v1.5.9-hardening`
+- `v1.5.9` trust/proof/governance hardening + identity release shipped with clean proof
+- Post-`v1.5.9` reality audit decision: complete `v1.5.10` hardening before any `v1.6.0` expansion
+- Active branch: `release-readiness/v1.5.10-hardening`
 
 Release discipline status:
+
 - `v1.3.1`, `v1.4.0`, and `v1.4.1` proof chains are immutable and preserved
 - `v1.4.0-alpha.1` and `v1.4.0-beta.1` remain frozen prerelease checkpoints
-- `v1.5.8` shipped from clean merged-main proof and tagged (`v1.5.8`)
+- `v1.5.9` shipped from clean merged-main proof and tagged (`v1.5.9`)
 - v1.5.x maintenance lines continue to require clean-worktree proof before tagging
+- stable tagging requires strict signoff (`npm run audit:stable` -> `SIGNOFF STATUS: APPROVED`)
 
-Current v1.5.9 hardening focus:
-- top-level governance/status/setup narrative consistency with shipped `v1.5.8` truth
-- dependency warning inventory and setup baseline accuracy for current line
+Current `v1.5.10` hardening focus:
+
+- governance/status/setup narrative consistency with shipped `v1.5.9` truth
+- dependency warning baseline refresh on the current shipped line
 - packaged/runtime proof-depth strengthening for operator-critical interaction flows
+- conservative claim language where proof remains indirect
