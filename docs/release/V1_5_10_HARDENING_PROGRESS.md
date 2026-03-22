@@ -10,6 +10,7 @@ Branch: `release-readiness/v1.5.10-hardening`
 | Governance/setup truth closure | P1 | Completed (slice 1) | removed stale version/lane claims, centralized setup boundary, and downgraded unsupported wording | full required gate order executed and passed |
 | Dependency baseline normalization | P1 | Completed (slice 2) | baseline is explicit (snapshot/delta/risk/install-proof) and dependency certainty claims are scoped to direct evidence | full required gate order executed and passed |
 | Direct-proof conversion | P1 | Completed (slice 3) | direct/indirect claim boundaries, packaged interaction scope, and signoff language are now explicitly normalized | full required gate order executed and passed |
+| PDG closure decision (runtime interaction + trust acceptance) | P1 | Completed (slice 4) | PDG-01/PDG-02 closure state is explicitly classified as bounded-deferred with evidence-backed non-closure rationale | full required gate order executed and passed |
 | Operator friction reduction | P1 | Pending | reduce ambiguous signoff/release steps and interpretation burden | run full required gate order after real slices |
 
 ## Slice 1 Log (Governance/Setup Truth Closure)
@@ -158,6 +159,54 @@ Packaged interaction evidence strengthening check:
 
 - packaged interaction proof now has explicit operator reproduction steps and expected outcome tokens
 - direct packaged marker evidence and indirect packaged click-path boundaries are separated in release docs
+
+## Slice 4 Log (PDG Closure Decision)
+
+Start status:
+
+- scope: docs/proof/governance only
+- runtime/code surface changed: no (docs-only edits)
+
+Completed slice-4 outputs:
+
+- `docs/release/V1_5_10_RUNTIME_INTERACTION_PROOF.md`
+- `docs/release/V1_5_10_PDG_CLOSURE.md`
+- `docs/release/V1_5_10_HARDENING_DECISION.md`
+- `docs/release/V1_5_10_PROOF_DEPTH_GAPS.md` (PDG status normalization)
+- `docs/release/V1_5_10_CLAIM_TO_PROOF_MAP.md` (slice-4 status column + PDG references)
+- `docs/release/V1_5_10_HARDENING_PROGRESS.md` (slice-4 tracking)
+
+PDG closure classification:
+
+- `PDG-01`: Bounded-Deferred
+  - direct evidence shows marker-level packaged proof but no packaged click-path interaction runner yet
+- `PDG-02`: Bounded-Deferred
+  - direct evidence shows current installer and unpacked app are `NotSigned`; strict signoff scope remains artifact/hash policy
+
+Branch-level hardening decision (slice 4):
+
+- `v1.5.10` is treated as a truthful stabilization checkpoint with explicit bounded deferred runtime-trust limits
+- `feat/v1.6.0-expansion` remains blocked pending PDG closure or explicit policy acceptance in a new decision gate
+
+Required gate order status:
+
+- executed in order:
+  1. `npm install` - PASS
+  2. `npm test` - PASS
+  3. `npm run verify:ui` - PASS
+  4. `npm run build:wrapper` - PASS
+  5. `npm run verify` - PASS
+  6. `npm run audit:final` - PASS (`SIGNOFF STATUS: NON-SIGNOFF`)
+  7. `npm run audit:stable` - PASS (`SIGNOFF STATUS: APPROVED`)
+
+Unexpected output changes check:
+
+- none in tracked runtime/code surfaces
+- working tree diff remained docs-only during this slice
+
+Slice 4 closure note:
+
+- PDG-01 and PDG-02 were not force-closed by narrative; they were bounded-deferred with direct evidence for why closure requires additional runtime/signing scope.
 
 ## Notes
 
