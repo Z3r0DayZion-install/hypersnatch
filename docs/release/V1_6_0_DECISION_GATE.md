@@ -1,12 +1,12 @@
 # v1.6.0 Decision Gate
 
-Date: 2026-03-21  
-Branch: `post-release/v1.5.8-reality-audit`
+Date: 2026-03-22  
+Branch: `post-release/v1.5.9-reality-audit`
 
 ## Inputs Reviewed
 
-- `docs/release/POST_V158_REALITY_AUDIT.md`
-- `docs/ui/POST_V158_OPERATOR_FRICTION.md`
+- `docs/release/POST_V159_REALITY_AUDIT.md`
+- `docs/ui/POST_V159_OPERATOR_FRICTION.md`
 
 ## Gate Check Against Decision Rule
 
@@ -14,16 +14,16 @@ Branch: `post-release/v1.5.8-reality-audit`
 
 Partially true:
 
-- stable-order gates are clean and repeatable
-- strict stable signoff is now operational (`audit:stable` reaches `SIGNOFF STATUS: APPROVED`)
-- release identity and artifact proof pinning are clean
-- proof-record discipline is intact
+- stable-order gates are consistently clean
+- strict stable signoff is operational and approved
+- release identity discipline is clean
+- artifact/tag/proof pinning is strong
 
 Not fully true:
 
-- governance/status/setup narrative still lags shipped `v1.5.8` truth in top-level docs
-- runtime UI proof remains stronger-but-indirect rather than full packaged interaction proof
-- dependency/setup warning baseline is not yet synchronized to current install reality
+- governance/status/setup narrative still lags shipped `v1.5.9` truth
+- dependency/setup warning baseline is still one line behind
+- packaged proof depth is stronger but still not full interaction-level E2E
 
 ### Remaining issue class
 
@@ -33,7 +33,7 @@ Remaining issues are trust/governance/proof P1 issues, not P2/P3 polish-only deb
 
 Open:
 
-- `release-readiness/v1.5.9-hardening`
+- `release-readiness/v1.5.10-hardening`
 
 Do not open:
 
@@ -41,18 +41,18 @@ Do not open:
 
 ## Why This Is the Truthful Choice
 
-1. `v1.5.8` fixed the operational signoff blocker, so release mechanics are now credible.
-2. Top-level repo truth is still stale post-ship, which directly affects operator/reviewer trust.
-3. UI proof confidence is materially better, but still not yet at full packaged interaction depth.
-4. Dependency/setup warning evidence is lagging current runtime/install output.
-5. Decision rule bias is to choose hardening when evidence is mixed; current evidence is improved but still mixed.
+1. `v1.5.9` confirms release-machine maturity and strict signoff integrity.
+2. Top-level governance truth is still stale on core docs immediately after ship.
+3. Dependency warning baseline evidence is not yet aligned to current shipped line.
+4. Packaged proof depth improved, but critical interaction truth is still partly indirect.
+5. Decision rule bias is hardening when evidence is mixed; evidence remains mixed.
 
-## Scope Constraint For v1.5.9
+## Scope Constraint For v1.5.10
 
-Keep `v1.5.9` hardening narrow:
+Keep `v1.5.10` hardening narrow:
 
-- governance/status/setup truth synchronization to shipped `v1.5.8`
-- dependency warning inventory refresh and setup narrative alignment
+- governance/status/setup truth synchronization to shipped `v1.5.9`
+- dependency warning baseline refresh on current shipped line
 - packaged interaction proof deepening for operator-critical flows
 
 No feature expansion and no UI redesign in this lane.
