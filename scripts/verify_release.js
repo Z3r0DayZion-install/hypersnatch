@@ -4,6 +4,8 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { verifyPackagedRuntimeInteractions } = require('./verify_packaged_runtime_interactions');
+const { verifyBinarySignatureBoundary } = require('./verify_binary_signature_boundary');
 
 // ==================== CONFIGURATION ====================
 const REQUIRED_FILES = [
@@ -351,6 +353,70 @@ function verifyPackagedUiRuntimeTruth(expectedVersion) {
   return true;
 }
 
+async function verifyPackagedRuntimeInteractionTruth(expectedVersion) {
+  try {
+    const result = await verifyPackagedRuntimeInteractions({ expectedVersion });
+    logSuccess('Packaged runtime interaction assertions verified from app.asar', {
+      asarPath: result.asarPath,
+      expectedVersion: result.expectedVersion,
+      assertions: result.assertions,
+      validatedFunctions: result.validatedFunctions
+    });
+    return true;
+  } catch (error) {
+    logError('Packaged runtime interaction proof failed.', {
+      expectedVersion,
+      error: error.message,
+      result: 'FAIL',
+      action: 'Rebuild wrapper artifacts and rerun verify; if still failing, inspect packaged runtime function extraction/assertion boundaries.'
+    });
+    return false;
+  }
+}
+
+function verifyBinaryTrustBoundary(expectedVersion) {
+  try {
+    const result = verifyBinarySignatureBoundary({ expectedVersion });
+    if (result.skipped) {
+      logSuccess('Binary trust boundary probe skipped on non-Windows host.', {
+        reason: result.reason || 'non-windows host',
+        installerPath: result.installerPath,
+        unpackedPath: result.unpackedPath
+      });
+      return true;
+    }
+
+    logSuccess('Binary trust boundary evidence captured via Authenticode status.', {
+      expectedVersion: result.expectedVersion,
+      boundaryClass: result.boundaryClass,
+      installer: {
+        path: result.installerPath,
+        status: result.installerSignature.status,
+        statusMessage: result.installerSignature.statusMessage || null,
+        signerSubject: result.installerSignature.signerSubject || null
+      },
+      unpackedApp: {
+        path: result.unpackedPath,
+        status: result.unpackedSignature.status,
+        statusMessage: result.unpackedSignature.statusMessage || null,
+        signerSubject: result.unpackedSignature.signerSubject || null
+      },
+      interpretation: result.boundaryClass === 'signed'
+        ? 'external trust acceptance evidence present for checked binaries'
+        : 'artifact/hash signoff proof remains primary; external trust acceptance not claimed without signed evidence'
+    });
+    return true;
+  } catch (error) {
+    logError('Binary trust boundary verification failed.', {
+      expectedVersion,
+      error: error.message,
+      result: 'FAIL',
+      action: 'Ensure built installer/unpacked app exist and Authenticode probe can run in this environment.'
+    });
+    return false;
+  }
+}
+
 function readPackageJson() {
   const packagePath = 'package.json';
   try {
@@ -489,7 +555,7 @@ function verifyRuntimeAndDependencies(packageJson) {
 }
 
 // ==================== MAIN VERIFICATION ====================
-function main() {
+async function main() {
   console.log('🔍 HyperSnatch - Release Verification');
   console.log('=====================================');
 
@@ -556,6 +622,28 @@ function main() {
     allPassed = false;
   }
 
+  // Verify packaged runtime interaction proof depth
+  console.log('\n🔬 Checking packaged runtime interaction proof depth...');
+  if (skipBuildOutput) {
+    logSuccess('Packaged runtime interaction proof skipped (unsigned gate mode)', {
+      HYPERSNATCH_SIGN: process.env.HYPERSNATCH_SIGN || null,
+      HS_SKIP_BUILD_OUTPUT: process.env.HS_SKIP_BUILD_OUTPUT || null
+    });
+  } else if (!(await verifyPackagedRuntimeInteractionTruth(packageJson?.version || null))) {
+    allPassed = false;
+  }
+
+  // Verify binary trust boundary evidence
+  console.log('\n🔐 Checking binary trust boundary evidence...');
+  if (skipBuildOutput) {
+    logSuccess('Binary trust boundary probe skipped (unsigned gate mode)', {
+      HYPERSNATCH_SIGN: process.env.HYPERSNATCH_SIGN || null,
+      HS_SKIP_BUILD_OUTPUT: process.env.HS_SKIP_BUILD_OUTPUT || null
+    });
+  } else if (!verifyBinaryTrustBoundary(packageJson?.version || null)) {
+    allPassed = false;
+  }
+
   // Final result
   console.log('\n=====================================');
 
@@ -574,7 +662,12 @@ function main() {
 
 // ==================== RUN ====================
 if (require.main === module) {
-  main();
+  main().catch((error) => {
+    logError('Release verification FAILED', {
+      message: error.message || 'Unexpected asynchronous verification failure.'
+    });
+    process.exit(1);
+  });
 }
 
 module.exports = { main };
