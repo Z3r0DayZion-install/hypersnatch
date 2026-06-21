@@ -12,6 +12,7 @@ Branch: `release-readiness/v1.5.10-hardening`
 | Direct-proof conversion | P1 | Completed (slice 3) | direct/indirect claim boundaries, packaged interaction scope, and signoff language are now explicitly normalized | full required gate order executed and passed |
 | PDG closure decision (runtime interaction + trust acceptance) | P1 | Completed (slice 4) | PDG-01/PDG-02 closure state is explicitly classified as bounded-deferred with evidence-backed non-closure rationale | full required gate order executed and passed |
 | Operator friction reduction | P1 | Pending | reduce ambiguous signoff/release steps and interpretation burden | run full required gate order after real slices |
+| UI/brand/CLI/dist hygiene + dependency audit refresh | P1 | Completed (slice 5) | CLI version drift closed; dist stale-artifact hygiene enforced; UI brand identity applied; dev dependency vuln surface reduced from 15 to 6 (electron-builder chain bounded-deferred); gate order re-passed on updated lockfile | full required gate order executed and passed |
 
 ## Slice 1 Log (Governance/Setup Truth Closure)
 
@@ -207,6 +208,60 @@ Unexpected output changes check:
 Slice 4 closure note:
 
 - PDG-01 and PDG-02 were not force-closed by narrative; they were bounded-deferred with direct evidence for why closure requires additional runtime/signing scope.
+
+## Slice 5 Log (UI/Brand/CLI/Dist Hygiene + Dependency Audit Refresh)
+
+Date: 2026-06-21  
+Branch: `main` (committed at `7829f192`)
+
+Start status:
+
+- scope: code + ui + docs
+- runtime/code surface changed: yes (CLI version source, manifest scope, dist clean script, UI HTML, lockfile)
+
+Completed slice-5 outputs:
+
+- `src/cli/hypersnatch-cli.js` (version reads from `package.json` at runtime; closed hardcoded `1.2.0` drift)
+- `scripts/clean_dist_stale.js` (new: removes stale versioned artifacts from `dist/`)
+- `scripts/generate_manifest.cjs` (narrowed: hashes current-release artifacts only, not all installer variants)
+- `package.json` (`clean:dist:stale` script wired)
+- `ui/hypersnatch-logo.svg` (new: factory-motif brand logo for The Proof Factory)
+- `ui/hypersnatch-ui.html` (brand kicker updated to `The Proof Factory`, inline mark replaced, report header updated)
+- `package-lock.json` (refreshed via `npm audit fix`: 15 vulns → 6; remaining 6 are `electron-builder` chain, bounded-deferred)
+
+Slice-5 evidence summary:
+
+- CLI version drift: closed (`hypersnatch-cli.js` now resolves version from `package.json`)
+- Dist stale artifacts: closed (`HyperSnatch-Setup-1.3.1.exe`, legacy `hashes.txt`, old `manifest.json` removed)
+- UI brand identity: applied (`The Proof Factory` kicker + factory logo; all functional IDs unchanged)
+- Dependency vuln baseline: refreshed (dev-dep surface reduced; `electron-builder` chain explicitly bounded-deferred, not force-fixed)
+- `npm audit` remaining count: 6 (all in `electron-builder` dependency tree; require breaking changes to address)
+
+Open governance/proof gaps after slice-5 completion:
+
+- `G-02`: packaged click-path interaction proof still bounded-deferred (`PDG-01`)
+- `G-03`: signing trust contract still bounded-deferred (`PDG-02`)
+- `G-06` (new): `electron-builder` chain dependency vulns (6 high) bounded-deferred; require semver-breaking upgrade outside current hardening scope
+
+Required gate order status:
+
+- executed in order on `main` at `7829f192`:
+  1. `npm install` - PASS
+  2. `npm test` - PASS (8 passed, 0 failed)
+  3. `npm run verify:ui` - PASS
+  4. `npm run build:wrapper` - PASS
+  5. `npm run verify` - PASS (all checks passed)
+  6. `npm run audit:stable` - PASS (`SIGNOFF STATUS: APPROVED`)
+
+Unexpected output changes check:
+
+- all changed files are within expected scope (CLI source, dist scripts, UI HTML, lockfile)
+- working tree is clean post-commit; `dist/` and `tmp_runtime_proof/` remain untracked as expected
+
+Dist hygiene check:
+
+- `dist/` now contains only `v1.5.9` artifacts: installer, unpacked app, release bundle, `SHA256SUMS.txt`
+- no legacy versioned files remain
 
 ## Notes
 
