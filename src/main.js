@@ -270,6 +270,9 @@ const SimilarityEngine = require('./intelligence/similarityEngine');
 const PluginLoader = require('./plugins/pluginLoader');
 const PluginSandbox = require('./plugins/pluginSandbox');
 
+// ==================== INTELLIGENCE GRAPH ====================
+const IntelligenceGraph = require('./intelligence/intelligenceGraph');
+
 // ==================== HYPERQUERY ENGINE (Phase 61) ====================
 const IndexManager = require('./query/indexManager');
 const HyperQueryEngine = require('./query/hyperQueryEngine');
@@ -1877,6 +1880,12 @@ async function runSelfCheck() {
 }
 
 // ==================== MAIN APP ====================
+// Security: Prevent multiple instances (must be before app.whenReady)
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
+
 app.whenReady().then(() => {
   logSecurityEvent('APP_READY', { version: APP_VERSION });
   log.info("SYSTEM_BOOTSTRAP_COMPLETE", { version: APP_VERSION });
@@ -1956,9 +1965,6 @@ app.whenReady().then(() => {
       process.env.HYPERSNATCH_SMARTDECODE_ENGINE = defEngine;
     }
   } catch { }
-  // Security: Prevent multiple instances
-  const gotTheLock = app.requestSingleInstanceLock();
-
   if (!gotTheLock) {
     logSecurityEvent('SINGLE_INSTANCE_ENFORCED');
     app.quit();
