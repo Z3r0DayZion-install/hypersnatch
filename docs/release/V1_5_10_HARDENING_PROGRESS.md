@@ -12,7 +12,7 @@ Branch: `release-readiness/v1.5.10-hardening`
 | Direct-proof conversion | P1 | Completed (slice 3) | direct/indirect claim boundaries, packaged interaction scope, and signoff language are now explicitly normalized | full required gate order executed and passed |
 | PDG closure decision (runtime interaction + trust acceptance) | P1 | Completed (slice 4) | PDG-01/PDG-02 closure state is explicitly classified as bounded-deferred with evidence-backed non-closure rationale | full required gate order executed and passed |
 | PDG-01 click-path E2E proof deepening | P1 | Completed (slice 6) | `e2e/operator_ui.spec.js`: 12-test Playwright spec against real operator HTML with stubbed IPC bridge, all 12 passing; G-02 materially narrowed; remaining gap is live Electron runtime IPC wiring (bounded-deferred) | full required gate order executed and passed |
-| Operator friction reduction | P1 | Pending | reduce ambiguous signoff/release steps and interpretation burden | run full required gate order after real slices |
+| Operator friction reduction | P1 | Completed (slice 9) | `scripts/release_gate.js`: single `npm run release:gate` collapses 6-step manual gate into one command with PASS/FAIL summary; `CLEAN_WORKTREE_RELEASE_FLOW.md` updated | release:gate PASS; audit:stable APPROVED |
 | G-04 doc sweep — overclaim downgrade | P2 | Completed (slice 7) | proof-boundary caveats added to `USER_GUIDE.md`, `VERIFY_RELEASE.md`, `SUPPLY_CHAIN_SECURITY.md`, `RELEASE_DAY_CHECKLIST.md`; stale version stamps updated; signing/SLSA/Sigstore items marked aspirational | audit:stable APPROVED |
 | G-05 preflight checker | P2 | Completed (slice 8) | `scripts/preflight_check.js`: machine-checks OS, Node version, npm, lockfile, dist/ installer, stale artifacts, SHA256SUMS.txt, working tree; wired as `npm run preflight` | audit:stable APPROVED |
 | UI/brand/CLI/dist hygiene + dependency audit refresh | P1 | Completed (slice 5) | CLI version drift closed; dist stale-artifact hygiene enforced; UI brand identity applied; dev dependency vuln surface reduced from 15 to 6 (electron-builder chain bounded-deferred); gate order re-passed on updated lockfile | full required gate order executed and passed |
@@ -387,8 +387,50 @@ Unexpected output changes check:
 
 - only `scripts/preflight_check.js` and `package.json` modified; no test, build, or release surface changes
 
+## Slice 9 Log (Operator Friction Reduction)
+
+Date: 2026-06-21  
+Branch: `main` (committed at `72a908f7`)
+
+Start status:
+
+- scope: new script + package.json entry + release flow doc update
+- runtime/code surface changed: no
+
+Completed slice-9 outputs:
+
+- `scripts/release_gate.js`: single-command gate runner
+  - runs: `preflight → test → verify:ui → build:wrapper → verify → audit:stable`
+  - stops on first failure with detail and skip list
+  - prints `RELEASE GATE: PASS` and tagging hint on success
+- `package.json`: `release:gate` script entry added
+- `docs/release/CLEAN_WORKTREE_RELEASE_FLOW.md`: step 4 updated with Option A (`npm run release:gate`) as recommended single-command path
+- `docs/release/V1_5_10_GOVERNANCE_GAPS.md`: slice 9 closed items added
+- `docs/release/V1_5_10_HARDENING_PROGRESS.md` (this file): progress grid + slice 9 log added
+
+Slice-9 evidence summary:
+
+- Operator release signoff now requires 2 commands: `npm install` + `npm run release:gate`
+- All 6 gate steps PASS on current environment
+- Exit criterion 4 of `V1_5_10_HARDENING_CHARTER.md` satisfied: operator signoff path is simpler and less error-prone than `v1.5.9`
+
+Required gate order status:
+
+- `npm run release:gate` — PASS (all 6 steps pass)
+
+Unexpected output changes check:
+
+- only `scripts/release_gate.js`, `package.json`, and `docs/release/` modified
+- no runtime, test, or product surface changes
+
 ## Notes
 
 1. This branch is hardening-only and excludes expansion scope.
 2. No feature capability widening is allowed in this lane.
-3. `feat/v1.6.0-expansion` remains blocked until exit criteria in `V1_5_10_HARDENING_CHARTER.md` are satisfied.
+3. `feat/v1.6.0-expansion` exit criteria from `V1_5_10_HARDENING_CHARTER.md`:
+   - [x] P1 governance/setup truth lag closed
+   - [x] Dependency baseline current for release-trust claims
+   - [x] Critical release claims have direct evidence artifacts
+   - [x] Operator signoff path simpler than v1.5.9 (release:gate)
+   - [x] Signoff language technically conservative and runtime-aligned
+   All 5 exit criteria satisfied as of slice 9. Expansion gate is now unblocked.

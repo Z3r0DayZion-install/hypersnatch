@@ -3,7 +3,7 @@
 Date: 2026-03-22  
 Branch: `release-readiness/v1.5.10-hardening`
 
-This file tracks open truth/proof/governance gaps after slices 1 through 8.
+This file tracks open truth/proof/governance gaps after slices 1 through 9.
 
 ## Open Gaps
 
@@ -46,6 +46,13 @@ This file tracks open truth/proof/governance gaps after slices 1 through 8.
    - `docs/release/V1_5_10_PDG_CLOSURE.md`
 2. Branch-level hardening decision is explicit via:
    - `docs/release/V1_5_10_HARDENING_DECISION.md`
+
+## Closed in Slice 9 (Operator Friction Reduction)
+
+1. `scripts/release_gate.js`: single-command gate runner — collapses 6 manual release commands into `npm run release:gate`; stops on first failure, prints PASS/FAIL summary with next-step hint.
+2. `package.json`: `release:gate` script wired.
+3. `docs/release/CLEAN_WORKTREE_RELEASE_FLOW.md`: step 4 updated with Option A (`npm run release:gate`) as recommended path.
+4. All 6 gate steps PASS on current environment.
 
 ## Closed in Slice 8 (G-05 Preflight Checker)
 
