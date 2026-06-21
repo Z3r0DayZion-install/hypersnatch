@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HyperSnatch — Offline Decode UI</title>
+  <title>HyperSnatch — The Proof Factory</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -42,6 +42,10 @@
     body {
       margin: 0;
       font-family: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(48, 212, 255, 0.16), transparent 26%),
+        radial-gradient(circle at 88% 6%, rgba(35, 209, 139, 0.12), transparent 22%),
+        linear-gradient(180deg, #08111B 0%, #071019 42%, #04090F 100%);
       background-color: var(--bg-base);
       color: var(--text-base);
       -webkit-font-smoothing: antialiased;
@@ -57,6 +61,19 @@
         "topbar topbar topbar"
         "leftrail main rightpanel"
         "leftrail bottomdock rightpanel";
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(122, 225, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(122, 225, 255, 0.05) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 92%);
+      opacity: 0.28;
     }
 
     /* Scrollbar Modernization */
@@ -123,21 +140,105 @@
     /* Top Header */
     .top-header {
       grid-area: header;
-      background: var(--bg-panel-alt);
-      border-bottom: 1px solid var(--border-soft);
+      background:
+        linear-gradient(180deg, rgba(10, 21, 33, 0.96), rgba(8, 17, 28, 0.96)),
+        radial-gradient(circle at 15% -40%, rgba(48, 212, 255, 0.16), transparent 42%);
+      border-bottom: 1px solid rgba(77, 110, 140, 0.42);
       display: flex;
       align-items: center;
-      padding: 0 1.5rem;
-      gap: 1rem;
+      padding: 0 1.2rem;
+      gap: 1.1rem;
+      box-shadow: 0 18px 50px -36px rgba(0, 0, 0, 0.9);
     }
 
     .top-header h1 {
       margin: 0;
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 1.08rem;
+      font-weight: 700;
       color: var(--text-base);
-      letter-spacing: 0.5px;
-      margin-right: 2rem;
+      letter-spacing: 0.08em;
+      margin-right: 0;
+      text-transform: uppercase;
+    }
+
+    .brand-shell {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(104, 172, 214, 0.38);
+      background:
+        linear-gradient(180deg, rgba(16, 36, 52, 0.98), rgba(8, 18, 28, 0.98)),
+        radial-gradient(circle at 50% 0%, rgba(48, 212, 255, 0.22), transparent 52%);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 18px 40px -26px rgba(48, 212, 255, 0.55);
+    }
+
+    .brand-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.12rem;
+      min-width: 0;
+    }
+
+    .brand-kicker {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #7ad0e8;
+      font-weight: 700;
+    }
+
+    .brand-subtitle {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .header-divider {
+      width: 1px;
+      align-self: stretch;
+      background: linear-gradient(180deg, transparent, rgba(89, 121, 150, 0.55), transparent);
+    }
+
+    .header-tools {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .header-mode {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(8, 18, 28, 0.88);
+      border: 1px solid rgba(65, 98, 128, 0.45);
+    }
+
+    .header-mode-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .top-header .control-row {
+      margin-left: 0;
     }
 
     /* Left Rail */
@@ -965,13 +1066,88 @@
         linear-gradient(180deg, rgba(11, 24, 37, 0.78), rgba(7, 16, 25, 0.86)),
         radial-gradient(circle at 20% 8%, rgba(42, 198, 255, 0.14), transparent 42%);
       padding: 1rem;
+      box-shadow: 0 24px 60px -42px rgba(48, 212, 255, 0.35);
     }
 
     .input-dropzone h3 {
       margin: 0 0 0.3rem;
-      font-size: 0.9rem;
-      letter-spacing: 0.03em;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
       color: #e8f7ff;
+      text-transform: uppercase;
+    }
+
+    .intake-hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+      margin-bottom: 0.85rem;
+    }
+
+    .intake-copy {
+      max-width: 700px;
+    }
+
+    .hero-badges {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.62rem;
+      border-radius: 999px;
+      border: 1px solid rgba(78, 114, 144, 0.55);
+      background: rgba(6, 15, 24, 0.78);
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #dff6ff;
+    }
+
+    .hero-badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--text-accent);
+      box-shadow: 0 0 12px rgba(48, 212, 255, 0.7);
+    }
+
+    .input-hint-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(140px, 1fr));
+      gap: 0.65rem;
+      margin: 0 0 0.85rem;
+    }
+
+    .input-hint-card {
+      border-radius: 12px;
+      border: 1px solid rgba(64, 95, 122, 0.5);
+      background: rgba(7, 16, 26, 0.82);
+      padding: 0.72rem 0.8rem;
+    }
+
+    .input-hint-card .hint-label {
+      display: block;
+      margin-bottom: 0.2rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #7ad0e8;
+      font-weight: 700;
+    }
+
+    .input-hint-card .hint-copy {
+      font-size: 0.73rem;
+      color: #cfe2f3;
+      line-height: 1.45;
     }
 
     .dropzone-help {
@@ -1151,6 +1327,18 @@
       .split-grid {
         grid-template-columns: 1fr;
       }
+
+      .intake-hero {
+        flex-direction: column;
+      }
+
+      .hero-badges {
+        justify-content: flex-start;
+      }
+
+      .input-hint-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 900px) {
@@ -1184,9 +1372,33 @@
   <!-- Workstation Shell -->
   <div class="workstation-layout">
     <header class="top-header">
-      <h1>HyperSnatch<span style="color:var(--text-muted); font-weight:500; font-size:0.72rem; margin-left:8px;">Operator
-          Console</span></h1>
-      <div class="control-row" style="margin-left:1rem;">
+      <div class="brand-shell">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="512" height="512" rx="112" fill="#06101A"/>
+            <rect x="124" y="216" width="264" height="172" rx="4" fill="#112233" stroke="#2E5472" stroke-width="8"/>
+            <path d="M100 216 L168 178 L344 178 L412 216Z" fill="#1A3D5C" stroke="#3A6280" stroke-width="8"/>
+            <rect x="156" y="128" width="32" height="52" rx="6" fill="#0D2235" stroke="#2E5472" stroke-width="6"/>
+            <rect x="326" y="120" width="32" height="60" rx="6" fill="#0D2235" stroke="#2E5472" stroke-width="6"/>
+            <rect x="152" y="118" width="40" height="12" rx="4" fill="#20C7FF" opacity="0.9"/>
+            <rect x="322" y="110" width="40" height="12" rx="4" fill="#20C7FF" opacity="0.9"/>
+            <rect x="148" y="236" width="36" height="28" rx="4" fill="#0A1F30" stroke="#20C7FF" stroke-width="5"/>
+            <rect x="328" y="236" width="36" height="28" rx="4" fill="#0A1F30" stroke="#20C7FF" stroke-width="5"/>
+            <rect x="226" y="310" width="60" height="78" rx="6" fill="#081420" stroke="#20C7FF" stroke-width="5.5"/>
+            <circle cx="406" cy="106" r="36" fill="#06101A" stroke="#20C7FF" stroke-width="6"/>
+            <path d="M393 106 L400 116 L421 94" stroke="#23D18B" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <div class="brand-kicker">The Proof Factory</div>
+          <h1>HyperSnatch</h1>
+          <div class="brand-subtitle">Forensic Intelligence Console</div>
+        </div>
+      </div>
+
+      <div class="header-divider" aria-hidden="true"></div>
+
+      <div class="control-row header-tools">
         <span id="bridgeDot" class="idle" aria-hidden="true">●</span>
         <span id="bridgeText" class="tiny muted">Bridge: Initializing</span>
         <span class="pill tiny mono" id="uiVer">v?</span>
@@ -1197,9 +1409,8 @@
       </div>
       <div style="flex-grow:1;"></div>
 
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-size:0.72rem; font-weight:600; color:var(--text-accent); letter-spacing:0.08em; text-transform:uppercase;">SmartSnatch
-          Auto-Detect</span>
+      <div class="header-mode">
+        <span class="header-mode-label">SmartSnatch Auto-Detect</span>
         <label class="switch" style="position:relative; display:inline-block; width:34px; height:20px;">
           <input type="checkbox" id="toggleSmartSnatch" style="opacity:0; width:0; height:0;" aria-label="Toggle SmartSnatch auto-detect">
           <span class="slider round"
@@ -1260,8 +1471,31 @@
 
       <div id="tabSummary" class="tab-content active" role="tabpanel" aria-labelledby="tabBtnSummary">
         <section class="input-dropzone" aria-label="Evidence intake and decode controls">
-          <h3>Intake and Decode Pipeline</h3>
-          <div class="dropzone-help">Drop/paste HTML, HAR, or direct URL inputs. HyperSnatch analyzes locally and produces deterministic candidate and proof output.</div>
+          <div class="intake-hero">
+            <div class="intake-copy">
+              <h3>Intake and Decode Pipeline</h3>
+              <div class="dropzone-help">Drop/paste HTML, HAR, or direct URL inputs. HyperSnatch analyzes locally and produces deterministic candidate and proof output.</div>
+            </div>
+            <div class="hero-badges" aria-label="Evidence handling guarantees">
+              <span class="hero-badge">Local Only</span>
+              <span class="hero-badge">Deterministic</span>
+              <span class="hero-badge">Sealed Output</span>
+            </div>
+          </div>
+          <div class="input-hint-grid" aria-label="Recommended intake patterns">
+            <div class="input-hint-card">
+              <span class="hint-label">Best Inputs</span>
+              <div class="hint-copy">Target URL, HAR, pasted page HTML, script blobs, or extracted network text.</div>
+            </div>
+            <div class="input-hint-card">
+              <span class="hint-label">Decode Modes</span>
+              <div class="hint-copy">Use Bridge Decode for live routing and Offline Hold for controlled local review.</div>
+            </div>
+            <div class="input-hint-card">
+              <span class="hint-label">Primary Goal</span>
+              <div class="hint-copy">Surface trustworthy candidates fast, preserve evidence posture, and keep refusal context visible.</div>
+            </div>
+          </div>
           <div class="control-row" style="margin-bottom:0.65rem;">
             <input id="file" type="file" accept=".txt,.html,.json,.har" aria-label="Import evidence file">
             <select id="mode" aria-label="Decode mode">
@@ -1391,7 +1625,7 @@
           <div style="font-size:0.9rem; line-height:1.5; color:var(--text-muted);">
             This workstation is designed for <strong>OFFLINE FORENSIC ANALYSIS</strong> of media artifact bundles.
             By proceeding, you acknowledge that you are authorized to deconstruct these objects and that
-            HyperSnatch is provided for legitimate digital preservation and research only.
+            HyperSnatch by The Proof Factory — provided for legitimate digital preservation and research only.
           </div>
           <div style="margin-top:1.5rem; display:flex; justify-content:flex-end;">
             <button id="btnAcceptLegal" class="pill" style="background:var(--color-bad); border:none; color:white;">I
@@ -3522,7 +3756,7 @@
       };
 
       const lines = [
-        "# HyperSnatch Operator Workflow Report",
+        "# HyperSnatch — The Proof Factory | Operator Workflow Report",
         `Generated: ${generatedAt}`,
         `Mode: ${snapshot?.mode || "OFF"}`,
         "",

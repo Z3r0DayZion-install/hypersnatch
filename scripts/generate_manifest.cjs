@@ -6,6 +6,7 @@ const path = require("path");
 
 const root = path.join(__dirname, "..");
 const distDir = path.join(root, "dist");
+const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 
 function sha256File(filePath) {
   const hash = crypto.createHash("sha256");
@@ -29,26 +30,6 @@ function toRel(filePath) {
   return path.relative(root, filePath).replace(/\\/g, "/");
 }
 
-function listSetupExes() {
-  const st = safeStat(distDir);
-  if (!st || !st.isDirectory()) return [];
-  return fs
-    .readdirSync(distDir)
-    .filter((n) => /^HyperSnatch-Setup-.*\.exe$/i.test(n))
-    .map((n) => path.join(distDir, n))
-    .filter((p) => safeStat(p)?.isFile());
-}
-
-function listDistFiles(pattern) {
-  const st = safeStat(distDir);
-  if (!st || !st.isDirectory()) return [];
-  return fs
-    .readdirSync(distDir)
-    .filter((n) => pattern.test(n))
-    .map((n) => path.join(distDir, n))
-    .filter((p) => safeStat(p)?.isFile());
-}
-
 async function main() {
   const versionPkg = (() => {
     try {
@@ -58,19 +39,19 @@ async function main() {
     }
   })();
 
-  const version = versionPkg?.version || "unknown";
+  const version = String(pkg.version || versionPkg?.version || "unknown");
 
   const candidates = [];
 
-  // Electron artifacts
-  candidates.push(...listSetupExes());
-  candidates.push(...listDistFiles(/^HyperSnatch_Vanguard_v.*\.zip$/i));
+  // Current Electron artifacts only
+  candidates.push(path.join(distDir, `HyperSnatch-Setup-${version}.exe`));
+  candidates.push(path.join(distDir, `HyperSnatch-Setup-${version}.exe.blockmap`));
+  candidates.push(path.join(distDir, `HyperSnatch_Vanguard_v${version}.zip`));
   candidates.push(path.join(distDir, "latest.yml"));
   candidates.push(path.join(distDir, "win-unpacked", "HyperSnatch.exe"));
   candidates.push(path.join(distDir, "win-unpacked", "resources", "app.asar"));
   candidates.push(path.join(distDir, "win-unpacked", "resources", "hs-core.exe"));
   candidates.push(path.join(distDir, "win-unpacked", "resources", "hs-core"));
-  candidates.push(path.join(distDir, `HyperSnatch_Vanguard_v${version}.zip`));
 
   // CLI / release pack artifacts (optional)
   candidates.push(path.join(distDir, "hypersnatch-cli.exe"));

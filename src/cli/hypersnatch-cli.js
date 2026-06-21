@@ -13,7 +13,13 @@ const path = require('path');
 const { spawn } = require('child_process');
 const SovereignAuth = require('../core/security/sovereign_auth');
 
-const APP_VERSION = "1.2.0";
+const APP_VERSION = (() => {
+    try {
+        return String(require('../../package.json').version || 'unknown');
+    } catch (err) {
+        return 'unknown';
+    }
+})();
 
 function printHelp() {
     console.log(`
