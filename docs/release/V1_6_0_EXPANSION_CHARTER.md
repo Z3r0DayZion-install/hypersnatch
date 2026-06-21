@@ -119,12 +119,12 @@ Not allowed:
 
 | Slice | Workstream | Status |
 |---|---|---|
-| v1.6.0-s1 | Intelligence Graph Panel | Pending |
-| v1.6.0-s2 | Case Assistant Panel | Pending |
-| v1.6.0-s3 | Pattern Discovery & Insights | Pending |
-| v1.6.0-s4 | HyperQuery Console | Pending |
-| v1.6.0-s5 | Fingerprint Library | Pending |
-| v1.6.0-s6 | Plugin Ecosystem | Pending |
-| v1.6.0-s7 | Workspace Panel | Pending |
-| v1.6.0-s8 | Policy & Deployment Panel | Pending |
-| v1.6.0-s9 | Research Mode | Pending |
+| v1.6.0-s1 | Intelligence Graph Panel | **Complete** (commit `a35f2e63`) |
+| v1.6.0-s2 | Case Assistant Panel | **Complete** (commit `ed69115e`) |
+| v1.6.0-s3 | Pattern Discovery & Insights | **Complete** (commit `a35f2e63`) |
+| v1.6.0-s4 | HyperQuery Console | **Complete** (pre-existing in Cases tab, Phase 61) |
+| v1.6.0-s5 | Fingerprint Library | **Complete** (pre-existing in Cases tab, Phase 73) |
+| v1.6.0-s6 | Plugin Ecosystem | **Complete** (pre-existing in Cases tab, Phase 60) |
+| v1.6.0-s7 | Workspace Panel | **Complete** (pre-existing in Cases tab, Phase 76) |
+| v1.6.0-s8 | Policy & Deployment Panel | Bounded-deferred (IPC wired; no dedicated panel required for v1.6.0) |
+| v1.6.0-s9 | Research Mode | **Complete** (pre-existing in Cases tab, Phases 64/75) |
