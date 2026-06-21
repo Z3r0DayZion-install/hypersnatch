@@ -58,12 +58,12 @@ test.afterAll(async () => {
 const MOCK_CASE = {
   case_id: "CASE-E2E-001",
   title: "E2E Proof Investigation",
-  bundleCount: 0,
+  bundleCount: 1,
   created: new Date().toISOString(),
   modified: new Date().toISOString(),
   notes: [],
   findings: [],
-  bundles: [],
+  bundles: [{ fingerprint: "fp-e2e-001", host: "cdn.proof-factory.test", url: "https://cdn.proof-factory.test/e2e.mp4", events: [] }],
   auditLog: []
 };
 
@@ -340,7 +340,29 @@ async function injectBridge(page) {
       expMemoryRecord: async (ctx) => ({ success: true, totalRecords: 12, count: 12 }),
       expMemoryAnnotate: async (ctx) => ({ success: true }),
       expProvTag: async (ctx) => ({ success: true, tag: "EVIDENCE", source: ctx.source }),
-      expProvStep: async (ctx) => ({ success: true, stepId: "STEP-E2E-001", action: ctx.action })
+      expProvStep: async (ctx) => ({ success: true, stepId: "STEP-E2E-001", action: ctx.action }),
+      // Phase 76 sub-actions
+      wsAddMember: async (wsId, member) => ({ success: true, wsId, member }),
+      wsActivityFeed: async (wsId) => ({ events: [
+        { type: "CASE_ASSIGNED", actor: "analyst-1", ts: "2025-01-01T00:00:00Z" },
+        { type: "MEMBER_ADDED",  actor: "analyst-2", ts: "2025-01-01T01:00:00Z" }
+      ]}),
+      // Phase 77 sub-actions
+      trustAddSource: async (src) => ({ success: true, id: src.id }),
+      trustLogExchange: async (data) => ({ success: true, exchangeId: "EX-E2E-001", action: data.action }),
+      // Phase 81 create
+      reviewCreate: async (caseId, reviewer, opts) => ({ reviewId: "REV-E2E-001", id: "REV-E2E-001", status: "pending" }),
+      // Phase 82 bundle redact
+      redactBundle: async (bundle) => ({ success: true, redactedFields: 7, count: 7, fingerprint: bundle.fingerprint || "fp-redacted" }),
+      // Phase 91 graph write + lineage
+      globalGraphAddNode: async (id, type, data, ctx) => ({ success: true, nodeId: id }),
+      globalGraphAddEdge: async (src, tgt, rel, data, ctx) => ({ success: true }),
+      globalGraphLineage: async (id) => ({ chain: [
+        { step: 1, element: id, action: "OBSERVED" },
+        { step: 2, element: "cdn-origin.test", action: "ORIGINATED_FROM" }
+      ]}),
+      // Phase 62 replay clear
+      replayMutateClear: async (sessionId) => ({ success: true, sessionId })
     };
   }, MOCK_CASE, MOCK_DECODE_RESULT);
 }
@@ -1063,4 +1085,116 @@ test("provenance engine: Step records prov step ID", async ({ page }) => {
 
   const text = await page.locator("#provenanceOutput").textContent();
   expect(text).toMatch(/STEP-E2E-001|ANALYSIS|report/i);
+});
+
+// ─── Test 44: Phase 76 — Workspace activity feed ──────────────────────────────
+
+test("workspace management: Activity feed populates events", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnWsActivityFeed");
+
+  await expect(page.locator("#workspacePanel")).not.toContainText("No workspaces", { timeout: 6000 });
+  const text = await page.locator("#workspacePanel").textContent();
+  expect(text).toMatch(/CASE_ASSIGNED|MEMBER_ADDED/i);
+});
+
+// ─── Test 45: Phase 77 — Trust add source ────────────────────────────────────
+
+test("trust registry: Add Source registers new trusted source", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#trustSourceInput", "cdn-new.test");
+  await page.click("#btnTrustAddSource");
+
+  await expect(page.locator("#trustRegistryPanel")).not.toContainText("No trusted sources", { timeout: 6000 });
+  const text = await page.locator("#trustRegistryPanel").textContent();
+  expect(text).toMatch(/cdn-new.test|added/i);
+});
+
+// ─── Test 46: Phase 77 — Trust log exchange ──────────────────────────────────
+
+test("trust registry: Log Exchange records exchange event", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#trustSourceInput", "partner.test");
+  await page.fill("#trustLogInput", "SHARE");
+  await page.click("#btnTrustLogExchange");
+
+  await expect(page.locator("#trustRegistryPanel")).not.toContainText("No trusted sources", { timeout: 6000 });
+  const text = await page.locator("#trustRegistryPanel").textContent();
+  expect(text).toMatch(/SHARE|Exchange logged|partner/i);
+});
+
+// ─── Test 47: Phase 81 — Review create ───────────────────────────────────────
+
+test("review workflow: Create review populates ID and pending count", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnReviewCreate");
+
+  await expect(page.locator("#reviewWorkflowPanel")).not.toContainText("No active reviews", { timeout: 6000 });
+  const text = await page.locator("#reviewWorkflowPanel").textContent();
+  expect(text).toMatch(/REV-E2E-001|created/i);
+  const idVal = await page.locator("#reviewIdInput").inputValue();
+  expect(idVal).toMatch(/REV/i);
+});
+
+// ─── Test 48: Phase 82 — Redact bundle ───────────────────────────────────────
+
+test("redaction engine: Redact Bundle scrubs fields from active bundle", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnRedactBundle");
+
+  await expect(page.locator("#redactionPanel")).not.toContainText("Redact tokens", { timeout: 6000 });
+  const text = await page.locator("#redactionPanel").textContent();
+  expect(text).toMatch(/7|redacted|scrubbed/i);
+});
+
+// ─── Test 49: Phase 91 — Global graph add node ────────────────────────────────
+
+test("global graph: Add Node increments node counter", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#globalNeighborInput", "new-cdn-node.test");
+  await page.click("#btnGlobalAddNode");
+
+  await expect(page.locator("#globalGraphPanel")).not.toContainText("Awaiting multi-workspace", { timeout: 6000 });
+  const text = await page.locator("#globalGraphPanel").textContent();
+  expect(text).toMatch(/new-cdn-node|added/i);
+});
+
+// ─── Test 50: Phase 91 — Global graph lineage ────────────────────────────────
+
+test("global graph: Lineage surfaces provenance chain", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#globalNeighborInput", "cdn-origin.test");
+  await page.click("#btnGlobalGraphLineage");
+
+  await expect(page.locator("#globalGraphPanel")).not.toContainText("Awaiting multi-workspace", { timeout: 6000 });
+  const text = await page.locator("#globalGraphPanel").textContent();
+  expect(text).toMatch(/OBSERVED|ORIGINATED_FROM|cdn-origin/i);
+});
+
+// ─── Test 51: Phase 62 — Replay mutate clear ─────────────────────────────────
+
+test("replay mutations: Clear All resets mutation state", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnReplayMutateClear");
+
+  const state = await page.locator("#mutationActiveState").textContent();
+  expect(state).toMatch(/INACTIVE/i);
+  const count = await page.locator("#mutationCount").textContent();
+  expect(count).toBe("0");
 });

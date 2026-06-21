@@ -1985,7 +1985,9 @@
             </div>
 
             <div class="panel">
-              <div class="panel-header">Mutation Status</div>
+              <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Mutation Status
+                <button id="btnReplayMutateClear" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-bad);border-color:var(--color-bad);">Clear All</button>
+              </div>
               <div id="mutationStatus" style="font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
                 <div style="display:flex; justify-content:space-between;">
                   <span class="muted">Status:</span>
@@ -2217,6 +2219,11 @@
               <input id="wsNameInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="New workspace name…" />
               <button id="btnCreateWorkspace" class="pill-btn tiny" style="font-size:0.6rem;">Create</button>
             </div>
+            <div style="display:flex;gap:4px;margin-top:4px;">
+              <input id="wsMemberInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Member ID to add…" />
+              <button id="btnWsAddMember" class="pill-btn tiny" style="font-size:0.6rem;">Add Member</button>
+              <button id="btnWsActivityFeed" class="pill-btn tiny" style="font-size:0.6rem;">Feed</button>
+            </div>
             <div class="tiny muted" style="margin-top:4px;">Workspaces: <b id="statWorkspaces" class="ok">0</b></div>
           </div>
 
@@ -2230,8 +2237,13 @@
               <div class="muted">No trusted sources registered.</div>
             </div>
             <div style="display:flex;gap:4px;margin-top:6px;">
-              <input id="trustSourceInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Source ID to verify…" />
+              <input id="trustSourceInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Source ID to verify or add…" />
               <button id="btnTrustVerify" class="pill-btn tiny" style="font-size:0.6rem;">Verify</button>
+              <button id="btnTrustAddSource" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-ok);border-color:var(--color-ok);">Add</button>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:4px;">
+              <input id="trustLogInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Log exchange action (e.g. SHARE)…" />
+              <button id="btnTrustLogExchange" class="pill-btn tiny" style="font-size:0.6rem;">Log</button>
             </div>
             <div class="tiny muted" style="margin-top:4px;">Sources: <b id="statTrustSources" class="ok">0</b> &nbsp;|&nbsp;
               Exchanges: <b id="statExchanges" class="ok">0</b></div>
@@ -2317,7 +2329,12 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
           <!-- Review Workflow (Phase 81) -->
           <div class="panel">
-            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Collaborative Review<button id="btnLoadReviews" class="pill-btn tiny" style="font-size:0.6rem;">Load Reviews</button></div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Collaborative Review
+              <div style="display:flex;gap:4px;">
+                <button id="btnReviewCreate" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-ok);border-color:var(--color-ok);">New</button>
+                <button id="btnLoadReviews" class="pill-btn tiny" style="font-size:0.6rem;">Load</button>
+              </div>
+            </div>
             <div id="reviewWorkflowPanel"
               style="max-height:110px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No active reviews.</div>
@@ -2346,7 +2363,8 @@
             </div>
             <div style="display:flex;gap:4px;margin-bottom:6px;">
               <input id="redactInput" class="input-field" style="flex:1;font-size:0.65rem;padding:4px 6px;" placeholder="Paste text to redact…" />
-              <button id="btnRedactText" class="pill-btn tiny" style="font-size:0.6rem;">Redact</button>
+              <button id="btnRedactText" class="pill-btn tiny" style="font-size:0.6rem;">Redact Text</button>
+              <button id="btnRedactBundle" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-warn);border-color:var(--color-warn);">Redact Bundle</button>
             </div>
             <div id="redactionPanel"
               style="max-height:120px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
@@ -2485,16 +2503,22 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-top:1.5rem;">
           <!-- Global Intelligence Graph (Phase 91) -->
           <div class="panel">
-            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Global Intelligence Graph<button id="btnGlobalGraphSummary" class="pill-btn tiny" style="font-size:0.6rem;">Summary</button></div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Global Intelligence Graph
+              <div style="display:flex;gap:4px;">
+                <button id="btnGlobalGraphSummary" class="pill-btn tiny" style="font-size:0.6rem;">Summary</button>
+                <button id="btnGlobalGraphLineage" class="pill-btn tiny" style="font-size:0.6rem;">Lineage</button>
+              </div>
+            </div>
             <div id="globalGraphPanel"
-              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:100px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Awaiting multi-workspace graph merge.</div>
             </div>
-            <div class="tiny muted" style="margin-top:6px;display:flex;gap:8px;align-items:center;">Nodes: <b id="statGlobalNodes" class="ok">0</b> | Edges: <b
-                id="statGlobalEdges" class="ok">0</b>
-              <input id="globalNeighborInput" class="input-field" style="flex:1;font-size:0.6rem;padding:2px 5px;" placeholder="Node ID for neighborhood…" />
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="globalNeighborInput" class="input-field" style="flex:1;font-size:0.6rem;padding:2px 5px;" placeholder="Node ID for neighborhood / lineage…" />
               <button id="btnGlobalNeighborhood" class="pill-btn tiny" style="font-size:0.6rem;">Explore</button>
+              <button id="btnGlobalAddNode" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-ok);border-color:var(--color-ok);">Add Node</button>
             </div>
+            <div class="tiny muted" style="margin-top:4px;">Nodes: <b id="statGlobalNodes" class="ok">0</b> | Edges: <b id="statGlobalEdges" class="ok">0</b></div>
           </div>
 
           <!-- Infra Attribution (Phase 92) -->
@@ -6986,6 +7010,146 @@
     }
     el('btnOperatorGet')?.addEventListener('click', operatorGet);
     el('operatorLookupInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') operatorGet(); });
+
+    // ==================== SUB-ACTION DEEP WIRING (v1.6.3) ====================
+
+    // ── Phase 76: Workspace add-member + activity feed ────────────────────────
+    async function wsAddMember() {
+      const memberId = el('wsMemberInput')?.value?.trim();
+      if (!memberId) { setStatus('Enter a member ID.', 'bad'); return; }
+      if (!window.electronAPI?.wsAddMember) { setStatus('Workspace API not available.', 'bad'); return; }
+      const wsId = window.caseMgr?.activeCase?.case_id || 'default-ws';
+      setStatus(`Adding member "${memberId}" to workspace…`, 'ok');
+      try {
+        await window.electronAPI.wsAddMember(wsId, memberId);
+        el('wsMemberInput').value = '';
+        el('workspacePanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:var(--color-ok);">Member <b>${escapeHtml(memberId)}</b> added to workspace <b>${escapeHtml(wsId)}</b>.</div>`;
+        setStatus(`Member "${memberId}" added.`, 'ok');
+      } catch(e) { setStatus(`Add member failed: ${e.message}`, 'bad'); }
+    }
+    async function wsActivityFeed() {
+      if (!window.electronAPI?.wsActivityFeed) { setStatus('Workspace API not available.', 'bad'); return; }
+      const wsId = window.caseMgr?.activeCase?.case_id || 'default-ws';
+      setStatus('Loading workspace activity feed…', 'ok');
+      try {
+        const result = await window.electronAPI.wsActivityFeed(wsId);
+        const events = result?.events || result || [];
+        renderList('workspacePanel', events, e => fmtItem(e, '#67e8f9'));
+        setStatus(`${events.length} activity event(s).`, 'ok');
+      } catch(e) { setStatus(`Activity feed failed: ${e.message}`, 'bad'); }
+    }
+    el('btnWsAddMember')?.addEventListener('click', wsAddMember);
+    el('btnWsActivityFeed')?.addEventListener('click', wsActivityFeed);
+    el('wsMemberInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') wsAddMember(); });
+
+    // ── Phase 77: Trust add-source + log-exchange ─────────────────────────────
+    async function trustAddSource() {
+      const sourceId = el('trustSourceInput')?.value?.trim();
+      if (!sourceId) { setStatus('Enter a source ID.', 'bad'); return; }
+      if (!window.electronAPI?.trustAddSource) { setStatus('Trust API not available.', 'bad'); return; }
+      setStatus(`Adding trusted source "${sourceId}"…`, 'ok');
+      try {
+        await window.electronAPI.trustAddSource({ id: sourceId, name: sourceId, type: 'manual', trustedSince: Date.now() });
+        el('trustRegistryPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:var(--color-ok);">Source <b>${escapeHtml(sourceId)}</b> added to trust registry.</div>`;
+        const countEl = el('statTrustSources');
+        if (countEl) countEl.textContent = parseInt(countEl.textContent || '0') + 1;
+        setStatus(`Source "${sourceId}" trusted.`, 'ok');
+      } catch(e) { setStatus(`Add source failed: ${e.message}`, 'bad'); }
+    }
+    async function trustLogExchange() {
+      const action = el('trustLogInput')?.value?.trim() || 'SHARE';
+      if (!window.electronAPI?.trustLogExchange) { setStatus('Trust API not available.', 'bad'); return; }
+      const sourceId = el('trustSourceInput')?.value?.trim() || 'unknown';
+      setStatus(`Logging trust exchange: ${action}…`, 'ok');
+      try {
+        const result = await window.electronAPI.trustLogExchange({ sourceId, action, timestamp: Date.now(), caseId: window.caseMgr?.activeCase?.case_id });
+        el('trustRegistryPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:#67e8f9;">Exchange logged: <b>${escapeHtml(action)}</b> from <b>${escapeHtml(sourceId)}</b>.</div>`;
+        const excEl = el('statExchanges');
+        if (excEl) excEl.textContent = parseInt(excEl.textContent || '0') + 1;
+        el('trustLogInput').value = '';
+        setStatus('Exchange logged.', 'ok');
+      } catch(e) { setStatus(`Log exchange failed: ${e.message}`, 'bad'); }
+    }
+    el('btnTrustAddSource')?.addEventListener('click', trustAddSource);
+    el('btnTrustLogExchange')?.addEventListener('click', trustLogExchange);
+    el('trustLogInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') trustLogExchange(); });
+
+    // ── Phase 81: Review create ───────────────────────────────────────────────
+    async function reviewCreate() {
+      if (!window.electronAPI?.reviewCreate) { setStatus('Review API not available.', 'bad'); return; }
+      const caseData = window.caseMgr?.activeCase;
+      if (!caseData) { setStatus('Load a case first.', 'bad'); return; }
+      setStatus('Creating review for active case…', 'ok');
+      try {
+        const result = await window.electronAPI.reviewCreate(caseData.case_id, 'ANALYST', { priority: 'normal' });
+        const revId = result?.reviewId || result?.id || 'REV-NEW';
+        el('reviewIdInput').value = revId;
+        el('reviewWorkflowPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:var(--color-ok);">Review created: <b>${escapeHtml(revId)}</b> for case <b>${escapeHtml(caseData.case_id)}</b>.</div>`;
+        const countEl = el('statPendingReviews');
+        if (countEl) countEl.textContent = parseInt(countEl.textContent || '0') + 1;
+        setStatus(`Review ${revId} created.`, 'ok');
+      } catch(e) { setStatus(`Review create failed: ${e.message}`, 'bad'); }
+    }
+    el('btnReviewCreate')?.addEventListener('click', reviewCreate);
+
+    // ── Phase 82: Redact entire bundle ────────────────────────────────────────
+    async function redactBundle() {
+      if (!window.electronAPI?.redactBundle) { setStatus('Redact bundle API not available.', 'bad'); return; }
+      const caseData = window.caseMgr?.activeCase;
+      const bundle = caseData?.bundles?.[0];
+      if (!bundle) { setStatus('No bundle in active case to redact.', 'bad'); return; }
+      setStatus('Redacting active bundle…', 'ok');
+      try {
+        const result = await window.electronAPI.redactBundle(bundle);
+        const redactedCount = result?.redactedFields ?? result?.count ?? 0;
+        el('redactionPanel').innerHTML = `<div style="font-size:0.65rem;word-break:break-all;color:var(--color-warn);">Bundle redacted: <b>${redactedCount}</b> field(s) scrubbed. Fingerprint: ${escapeHtml(bundle.fingerprint || 'unknown')}</div>`;
+        setStatus(`Bundle redacted (${redactedCount} fields).`, 'ok');
+      } catch(e) { setStatus(`Bundle redact failed: ${e.message}`, 'bad'); }
+    }
+    el('btnRedactBundle')?.addEventListener('click', redactBundle);
+
+    // ── Phase 91: Global graph add-node + lineage ─────────────────────────────
+    async function globalGraphAddNode() {
+      const nodeId = el('globalNeighborInput')?.value?.trim();
+      if (!nodeId) { setStatus('Enter a node ID to add.', 'bad'); return; }
+      if (!window.electronAPI?.globalGraphAddNode) { setStatus('Global graph API not available.', 'bad'); return; }
+      setStatus(`Adding node "${nodeId}" to global graph…`, 'ok');
+      try {
+        await window.electronAPI.globalGraphAddNode(nodeId, 'CDN', { label: nodeId }, { source: 'manual' });
+        const nodesEl = el('statGlobalNodes');
+        if (nodesEl) nodesEl.textContent = parseInt(nodesEl.textContent || '0') + 1;
+        el('globalGraphPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:var(--color-ok);">Node <b>${escapeHtml(nodeId)}</b> added to global graph.</div>`;
+        setStatus(`Node "${nodeId}" added.`, 'ok');
+      } catch(e) { setStatus(`Add node failed: ${e.message}`, 'bad'); }
+    }
+    async function globalGraphLineage() {
+      const elementId = el('globalNeighborInput')?.value?.trim();
+      if (!elementId) { setStatus('Enter an element ID for lineage.', 'bad'); return; }
+      if (!window.electronAPI?.globalGraphLineage) { setStatus('Global graph API not available.', 'bad'); return; }
+      setStatus(`Loading lineage for "${elementId}"…`, 'ok');
+      try {
+        const result = await window.electronAPI.globalGraphLineage(elementId);
+        const chain = result?.chain || result?.lineage || result || [];
+        renderList('globalGraphPanel', Array.isArray(chain) ? chain : [result], n => fmtItem(n, '#a78bfa'));
+        setStatus(`Lineage: ${Array.isArray(chain) ? chain.length : 1} step(s).`, 'ok');
+      } catch(e) { setStatus(`Lineage failed: ${e.message}`, 'bad'); }
+    }
+    el('btnGlobalAddNode')?.addEventListener('click', globalGraphAddNode);
+    el('btnGlobalGraphLineage')?.addEventListener('click', globalGraphLineage);
+
+    // ── Phase 62: Replay mutate clear ────────────────────────────────────────
+    async function replayMutateClear() {
+      if (!window.electronAPI?.replayMutateClear) { setStatus('Replay API not available.', 'bad'); return; }
+      setStatus('Clearing all replay mutations…', 'ok');
+      try {
+        await window.electronAPI.replayMutateClear('DEFAULT_REPLAY_SESSION');
+        el('mutationActiveState').textContent = 'INACTIVE';
+        el('mutationActiveState').className = 'muted';
+        el('mutationCount').textContent = '0';
+        setStatus('All replay mutations cleared.', 'ok');
+      } catch(e) { setStatus(`Clear mutations failed: ${e.message}`, 'bad'); }
+    }
+    el('btnReplayMutateClear')?.addEventListener('click', replayMutateClear);
 
     // ==================== PHASES 72, 74, 76-80 + CUSTODY WIRING ====================
 
