@@ -303,7 +303,44 @@ async function injectBridge(page) {
       ],
       deployActivate: async (name) => ({ activated: name }),
       deployCompliance: async () => ({ compliant: true }),
-      deployQuota: async () => ({ decodeQuota: 10000, casesUsed: 47, storageUsedMb: 238, tier: "PROFESSIONAL" })
+      deployQuota: async () => ({ decodeQuota: 10000, casesUsed: 47, storageUsedMb: 238, tier: "PROFESSIONAL" }),
+      // Phase 81 sub-actions
+      reviewComment: async (reviewId, author, text) => ({ success: true, reviewId, comment: text }),
+      reviewDecide: async (reviewId, decision, reason) => ({ success: true, reviewId, decision }),
+      // Phase 83 sub-actions
+      pubSubmit: async (item) => ({ id: "PUB-E2E-001", itemId: "PUB-E2E-001", status: "draft" }),
+      pubTransition: async (id, state) => ({ success: true, id, state }),
+      // Phase 85 sub-actions
+      orchestrateDeploy: async (cfg) => ({ deploymentId: "DEP-E2E-001", target: cfg.target, status: "deployed" }),
+      orchestrateRollback: async (cfg) => ({ status: "complete", target: cfg.target }),
+      // Phase 87 sub-actions
+      infraRecord: async (node) => ({ success: true, nodeId: node.nodeId }),
+      infraHistory: async () => ({ history: [
+        { nodeId: "cdn-a.test", event: "ADDED", ts: "2025-01-01T00:00:00Z" },
+        { nodeId: "cdn-b.test", event: "MIGRATED", ts: "2025-01-02T00:00:00Z" }
+      ]}),
+      infraMigrations: async () => ({ migrations: [
+        { from: "cdn-a.test", to: "cdn-b.test", reason: "capacity", ts: "2025-01-02T00:00:00Z" }
+      ]}),
+      // Phase 88 sub-action
+      predictHighRisk: async (cfg) => ({ highRisk: [
+        { node: "cdn-exploit.test", score: 0.97 },
+        { node: "edge-bad.test", score: 0.81 }
+      ]}),
+      // Phase 89 sub-action
+      simulateScenario: async (cfg) => ({ outcome: { scenario: cfg.name, result: "BREACH_DETECTED", confidence: 0.88, mitigations: ["BLOCK_CDN", "ROTATE_KEYS"] } }),
+      // Phase 73 sub-actions
+      fplibSearch: async (features) => ({ matches: [
+        { id: "FP-001", label: "CDN-Hijack-Pattern", confidence: 0.94 },
+        { id: "FP-002", label: "Token-Exfil-Pattern", confidence: 0.76 }
+      ]}),
+      fplibCompare: async (candidate) => ({ matchId: "FP-001", match: "CDN-Hijack-Pattern", confidence: 0.91, score: 0.91 }),
+      fplibExport: async () => ({ count: 5, entries: ["FP-001","FP-002","FP-003","FP-004","FP-005"] }),
+      // Phase 98-99 sub-actions
+      expMemoryRecord: async (ctx) => ({ success: true, totalRecords: 12, count: 12 }),
+      expMemoryAnnotate: async (ctx) => ({ success: true }),
+      expProvTag: async (ctx) => ({ success: true, tag: "EVIDENCE", source: ctx.source }),
+      expProvStep: async (ctx) => ({ success: true, stepId: "STEP-E2E-001", action: ctx.action })
     };
   }, MOCK_CASE, MOCK_DECODE_RESULT);
 }
@@ -903,4 +940,127 @@ test("enterprise controls: Quota report renders tier and usage", async ({ page }
   await expect(page.locator("#enterprisePanel")).not.toContainText("No deployment profile", { timeout: 6000 });
   const text = await page.locator("#enterprisePanel").textContent();
   expect(text).toMatch(/PROFESSIONAL|quota|Tier/i);
+});
+
+// ─── Test 35: Phase 81 — Review decide ───────────────────────────────────────
+
+test("review workflow: decide records decision in panel", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#reviewIdInput", "REV-001");
+  await page.selectOption("#reviewDecision", "approve");
+  await page.click("#btnReviewDecide");
+
+  await expect(page.locator("#reviewWorkflowPanel")).not.toContainText("No active reviews", { timeout: 6000 });
+  const text = await page.locator("#reviewWorkflowPanel").textContent();
+  expect(text).toMatch(/REV-001|APPROVE/i);
+});
+
+// ─── Test 36: Phase 83 — Publication submit ───────────────────────────────────
+
+test("publication pipeline: Submit creates pub item", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnPubSubmit");
+
+  await expect(page.locator("#publicationPanel")).not.toContainText("draft →", { timeout: 6000 });
+  const text = await page.locator("#publicationPanel").textContent();
+  expect(text).toMatch(/PUB-E2E-001|Submitted/i);
+});
+
+// ─── Test 37: Phase 85 — Orchestrator deploy ─────────────────────────────────
+
+test("deployment orchestrator: Deploy shows deployment ID", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#orchTargetInput", "staging");
+  await page.click("#btnOrchDeploy");
+
+  await expect(page.locator("#orchestrationPanel")).not.toContainText("No deployments", { timeout: 6000 });
+  const text = await page.locator("#orchestrationPanel").textContent();
+  expect(text).toMatch(/DEP-E2E-001|staging|DEPLOYED/i);
+});
+
+// ─── Test 38: Phase 87 — Infra history ───────────────────────────────────────
+
+test("infra evolution: History loads event list", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnInfraHistory");
+
+  await expect(page.locator("#infraEvolutionPanel")).not.toContainText("Tracking node lifetimes", { timeout: 6000 });
+  const text = await page.locator("#infraEvolutionPanel").textContent();
+  expect(text).toMatch(/cdn-a|cdn-b|ADDED|MIGRATED/i);
+});
+
+// ─── Test 39: Phase 88 — Predict high-risk ───────────────────────────────────
+
+test("predictive risk: High-Risk Only surfaces flagged nodes", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnPredictHighRisk");
+
+  await expect(page.locator("#predictivePanel")).not.toContainText("Forecasting trajectory", { timeout: 6000 });
+  const text = await page.locator("#predictivePanel").textContent();
+  expect(text).toMatch(/HIGH-RISK|cdn-exploit|edge-bad/i);
+});
+
+// ─── Test 40: Phase 89 — Simulate scenario ───────────────────────────────────
+
+test("forensic simulator: Run scenario with input shows outcome", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#simScenarioInput", "cdn-breach-test");
+  await page.click("#btnRunSimulation");
+
+  await expect(page.locator("#simulatorPanel")).not.toContainText("Simulation history", { timeout: 6000 });
+  const text = await page.locator("#simulatorPanel").textContent();
+  expect(text).toMatch(/BREACH_DETECTED|cdn-breach-test|BLOCK_CDN/i);
+});
+
+// ─── Test 41: Phase 73 — FP Library search ───────────────────────────────────
+
+test("fingerprint library: Search returns matches", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#fplibQueryInput", "cdn-hijack");
+  await page.click("#btnFplibSearch");
+
+  await expect(page.locator("#fpLibraryList")).not.toContainText("No entries", { timeout: 6000 });
+  const text = await page.locator("#fpLibraryList").textContent();
+  expect(text).toMatch(/CDN-Hijack|FP-001|FP-002/i);
+  const count = await page.locator("#statFpLibEntries").textContent();
+  expect(parseInt(count)).toBeGreaterThan(0);
+});
+
+// ─── Test 42: Phase 98 — Memory record + prov tag ────────────────────────────
+
+test("analyst memory: Record syncs memory count", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnMemoryRecord");
+
+  await expect(page.locator("#memoryRecordCount")).not.toContainText("0 records", { timeout: 6000 });
+  const text = await page.locator("#memoryRecordCount").textContent();
+  expect(text).toMatch(/12|record/i);
+});
+
+// ─── Test 43: Phase 98 — Provenance step ─────────────────────────────────────
+
+test("provenance engine: Step records prov step ID", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnProvStep");
+
+  const text = await page.locator("#provenanceOutput").textContent();
+  expect(text).toMatch(/STEP-E2E-001|ANALYSIS|report/i);
 });

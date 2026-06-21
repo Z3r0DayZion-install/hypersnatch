@@ -2155,14 +2155,22 @@
         <!-- Fingerprint Library (Phase 73) -->
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
           <div class="panel">
-            <div class="panel-header">Fingerprint Library</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Fingerprint Library
+              <div style="display:flex;gap:4px;">
+                <button id="btnFplibExport" class="pill-btn tiny" style="font-size:0.6rem;">Export</button>
+              </div>
+            </div>
             <div id="fpLibraryList"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:100px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No entries. Classify bundles to populate.</div>
             </div>
-            <div class="tiny muted" style="margin-top:8px;">
-              Entries: <b id="statFpLibEntries" class="ok">0</b> | Avg Confidence: <b id="statFpLibConf"
-                class="ok">-</b>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="fplibQueryInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Features to search (JSON or keyword)…" />
+              <button id="btnFplibSearch" class="pill-btn tiny" style="font-size:0.6rem;">Search</button>
+              <button id="btnFplibCompare" class="pill-btn tiny" style="font-size:0.6rem;">Compare</button>
+            </div>
+            <div class="tiny muted" style="margin-top:4px;">
+              Entries: <b id="statFpLibEntries" class="ok">0</b> | Avg Confidence: <b id="statFpLibConf" class="ok">-</b>
             </div>
           </div>
 
@@ -2311,10 +2319,23 @@
           <div class="panel">
             <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Collaborative Review<button id="btnLoadReviews" class="pill-btn tiny" style="font-size:0.6rem;">Load Reviews</button></div>
             <div id="reviewWorkflowPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:110px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No active reviews.</div>
             </div>
-            <div class="tiny muted" style="margin-top:6px;">Pending: <b id="statPendingReviews" class="ok">0</b></div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="reviewIdInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Review ID…" />
+              <input id="reviewCommentInput" class="input-field" style="flex:2;font-size:0.6rem;padding:3px 6px;" placeholder="Comment text…" />
+              <button id="btnReviewComment" class="pill-btn tiny" style="font-size:0.6rem;">Comment</button>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:4px;">
+              <select id="reviewDecision" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:white;padding:3px 6px;border-radius:4px;font-size:0.6rem;">
+                <option value="approve">Approve</option>
+                <option value="reject">Reject</option>
+                <option value="request_changes">Request Changes</option>
+              </select>
+              <button id="btnReviewDecide" class="pill-btn tiny" style="font-size:0.6rem;">Decide</button>
+            </div>
+            <div class="tiny muted" style="margin-top:4px;">Pending: <b id="statPendingReviews" class="ok">0</b></div>
           </div>
 
           <!-- Redaction Engine (Phase 82) -->
@@ -2337,10 +2358,25 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1.5rem;">
           <!-- Publication Pipeline (Phase 83) -->
           <div class="panel">
-            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Publication Pipeline<button id="btnPubList" class="pill-btn tiny" style="font-size:0.6rem;">List Items</button></div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Publication Pipeline
+              <div style="display:flex;gap:4px;">
+                <button id="btnPubList" class="pill-btn tiny" style="font-size:0.6rem;">List</button>
+                <button id="btnPubSubmit" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-ok);border-color:var(--color-ok);">Submit</button>
+              </div>
+            </div>
             <div id="publicationPanel"
-              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:90px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">draft → review → approved → exported</div>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="pubItemIdInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Item ID…" />
+              <select id="pubTransitionSelect" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:white;padding:3px 6px;border-radius:4px;font-size:0.6rem;">
+                <option value="submit">→ review</option>
+                <option value="approve">→ approved</option>
+                <option value="export">→ exported</option>
+                <option value="reject">→ rejected</option>
+              </select>
+              <button id="btnPubTransition" class="pill-btn tiny" style="font-size:0.6rem;">Transition</button>
             </div>
           </div>
 
@@ -2355,10 +2391,19 @@
 
           <!-- Deployment Orchestrator (Phase 85) -->
           <div class="panel">
-            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Deployment Orchestrator<button id="btnOrchHistory" class="pill-btn tiny" style="font-size:0.6rem;">History</button></div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Deployment Orchestrator
+              <div style="display:flex;gap:4px;">
+                <button id="btnOrchHistory" class="pill-btn tiny" style="font-size:0.6rem;">History</button>
+                <button id="btnOrchDeploy" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-ok);border-color:var(--color-ok);">Deploy</button>
+                <button id="btnOrchRollback" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-warn);border-color:var(--color-warn);">Rollback</button>
+              </div>
+            </div>
             <div id="orchestrationPanel"
-              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:90px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No deployments.</div>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="orchTargetInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Target environment…" />
             </div>
           </div>
         </div>
@@ -2376,10 +2421,20 @@
 
           <!-- Infrastructure Evolution (Phase 87) -->
           <div class="panel">
-            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Infrastructure Evolution<button id="btnInfraDrift" class="pill-btn tiny" style="font-size:0.6rem;">Drift Analysis</button></div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Infrastructure Evolution
+              <div style="display:flex;gap:4px;">
+                <button id="btnInfraDrift" class="pill-btn tiny" style="font-size:0.6rem;">Drift</button>
+                <button id="btnInfraHistory" class="pill-btn tiny" style="font-size:0.6rem;">History</button>
+                <button id="btnInfraMigrations" class="pill-btn tiny" style="font-size:0.6rem;">Migrations</button>
+              </div>
+            </div>
             <div id="infraEvolutionPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:110px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Tracking node lifetimes and migrations.</div>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="infraNodeInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Node ID to record…" />
+              <button id="btnInfraRecord" class="pill-btn tiny" style="font-size:0.6rem;">Record Node</button>
             </div>
           </div>
         </div>
@@ -2396,7 +2451,10 @@
               style="max-height:100px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Forecasting trajectory risk.</div>
             </div>
-            <button id="btnPredictRisk" class="pill-btn tiny" style="margin-top:6px;width:100%;font-size:0.6rem;">Run Risk Forecast</button>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <button id="btnPredictRisk" class="pill-btn tiny" style="flex:1;font-size:0.6rem;">Risk Forecast</button>
+              <button id="btnPredictHighRisk" class="pill-btn tiny" style="flex:1;font-size:0.6rem;color:var(--color-bad);border-color:var(--color-bad);">High-Risk Only</button>
+            </div>
           </div>
 
           <!-- Forensic Simulator (Phase 89) -->
@@ -2406,7 +2464,10 @@
               style="max-height:100px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Simulation history available.</div>
             </div>
-            <button id="btnRunSimulation" class="pill-btn tiny" style="margin-top:6px;width:100%;font-size:0.6rem;">Run Scenario</button>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="simScenarioInput" class="input-field" style="flex:2;font-size:0.6rem;padding:3px 6px;" placeholder="Scenario name or config…" />
+              <button id="btnRunSimulation" class="pill-btn tiny" style="flex:1;font-size:0.6rem;">Run</button>
+            </div>
           </div>
 
           <!-- Threat Reporter (Phase 90) -->
@@ -2551,16 +2612,25 @@
           <!-- Memory & Explainability -->
           <div class="panel">
             <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Analyst Memory &amp; Explainability
-              <button id="btnExplainBundle" class="pill-btn tiny" style="font-size:0.6rem;">Explain Bundle</button>
+              <div style="display:flex;gap:4px;">
+                <button id="btnMemoryRecord" class="pill-btn tiny" style="font-size:0.6rem;">Record</button>
+                <button id="btnMemoryAnnotate" class="pill-btn tiny" style="font-size:0.6rem;">Annotate</button>
+                <button id="btnExplainBundle" class="pill-btn tiny" style="font-size:0.6rem;">Explain</button>
+              </div>
             </div>
             <div id="memoryPanel"
-              style="max-height:120px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              style="max-height:90px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
               <div id="memoryRecordCount" style="border-bottom:1px solid #333; padding-bottom:5px;">
                 <strong class="fg">Institutional Memory:</strong> <span class="muted">0 records synced.</span>
               </div>
               <div id="explainBundleOutput">
                 <strong class="fg">Explainable AI Layer:</strong> <span class="muted">Ready for reasoning queries.</span>
               </div>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="memoryAnnotateInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Annotation text…" />
+              <button id="btnProvTag" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-ok);border-color:var(--color-ok);">Prov Tag</button>
+              <button id="btnProvStep" class="pill-btn tiny" style="font-size:0.6rem;">Prov Step</button>
             </div>
           </div>
         </div>
@@ -2576,7 +2646,7 @@
               <button id="btnNarrativeTrack" class="pill-btn tiny" style="font-size:0.6rem;">Track</button>
             </div>
             <div id="narrativeBehaviorPanel"
-              style="max-height:120px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              style="max-height:90px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
               <div id="narrativeAmplifiers" style="border-bottom:1px solid #333; padding-bottom:5px;">
                 <strong class="fg">Propagation Amplifiers:</strong> <span class="muted">0 identified</span>
               </div>
@@ -2584,7 +2654,11 @@
                 <strong class="fg">Operator Profile:</strong> <span class="muted">Awaiting telemetry.</span>
               </div>
             </div>
-            <button id="btnOperatorModel" class="pill-btn tiny" style="margin-top:6px;width:100%;font-size:0.6rem;">Model Operator Behavior</button>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="operatorLookupInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Operator ID to look up…" />
+              <button id="btnOperatorGet" class="pill-btn tiny" style="font-size:0.6rem;">Get Profile</button>
+              <button id="btnOperatorModel" class="pill-btn tiny" style="font-size:0.6rem;">Model</button>
+            </div>
           </div>
 
           <!-- Predictive Forecasting -->
@@ -6640,6 +6714,278 @@
 
     const globalNeighborInput2 = el('globalNeighborInput');
     if (globalNeighborInput2) globalNeighborInput2.addEventListener('keydown', ev => { if (ev.key === 'Enter') exploreNeighborhood(); });
+
+    // ==================== SUB-ACTION DEEP WIRING (v1.6.2) ====================
+
+    // ── Phase 81: Review sub-actions (comment / decide) ──────────────────────
+    async function reviewComment() {
+      const reviewId = el('reviewIdInput')?.value?.trim();
+      const text = el('reviewCommentInput')?.value?.trim();
+      if (!reviewId || !text) { setStatus('Enter review ID and comment text.', 'bad'); return; }
+      if (!window.electronAPI?.reviewComment) { setStatus('Review API not available.', 'bad'); return; }
+      setStatus(`Posting comment on review ${reviewId}…`, 'ok');
+      try {
+        await window.electronAPI.reviewComment(reviewId, 'ANALYST', text);
+        el('reviewCommentInput').value = '';
+        setStatus(`Comment posted on ${reviewId}.`, 'ok');
+        el('reviewWorkflowPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:var(--color-ok);">Comment on <b>${escapeHtml(reviewId)}</b>: "${escapeHtml(text.slice(0,60))}"</div>`;
+      } catch(e) { setStatus(`Comment failed: ${e.message}`, 'bad'); }
+    }
+    async function reviewDecide() {
+      const reviewId = el('reviewIdInput')?.value?.trim();
+      const decision = el('reviewDecision')?.value;
+      if (!reviewId) { setStatus('Enter a review ID.', 'bad'); return; }
+      if (!window.electronAPI?.reviewDecide) { setStatus('Review API not available.', 'bad'); return; }
+      setStatus(`Recording decision "${decision}" on ${reviewId}…`, 'ok');
+      try {
+        await window.electronAPI.reviewDecide(reviewId, decision, `Decision: ${decision}`);
+        const color = decision === 'approve' ? 'var(--color-ok)' : decision === 'reject' ? 'var(--color-bad)' : 'var(--color-warn)';
+        el('reviewWorkflowPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:${color};">Review <b>${escapeHtml(reviewId)}</b>: <b>${escapeHtml(decision.toUpperCase())}</b></div>`;
+        setStatus(`Decision "${decision}" recorded.`, 'ok');
+      } catch(e) { setStatus(`Decision failed: ${e.message}`, 'bad'); }
+    }
+    el('btnReviewComment')?.addEventListener('click', reviewComment);
+    el('btnReviewDecide')?.addEventListener('click', reviewDecide);
+    el('reviewCommentInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') reviewComment(); });
+
+    // ── Phase 83: Publication submit + transition ─────────────────────────────
+    async function pubSubmit() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!window.electronAPI?.pubSubmit) { setStatus('Publication API not available.', 'bad'); return; }
+      setStatus('Submitting case for publication…', 'ok');
+      try {
+        const result = await window.electronAPI.pubSubmit({ caseId: caseData?.case_id || 'DRAFT-001', title: caseData?.title || 'Draft Report', content: {} });
+        el('publicationPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:var(--color-ok);">Submitted: <b>${escapeHtml(result?.id || result?.itemId || 'PUB-NEW')}</b> — status: draft</div>`;
+        setStatus('Publication submitted.', 'ok');
+      } catch(e) { setStatus(`Pub submit failed: ${e.message}`, 'bad'); }
+    }
+    async function pubTransition() {
+      const itemId = el('pubItemIdInput')?.value?.trim();
+      const newState = el('pubTransitionSelect')?.value;
+      if (!itemId) { setStatus('Enter an item ID.', 'bad'); return; }
+      if (!window.electronAPI?.pubTransition) { setStatus('Publication API not available.', 'bad'); return; }
+      setStatus(`Transitioning ${itemId} → ${newState}…`, 'ok');
+      try {
+        await window.electronAPI.pubTransition(itemId, newState);
+        const color = newState === 'approve' ? 'var(--color-ok)' : newState === 'reject' ? 'var(--color-bad)' : 'var(--text-accent)';
+        el('publicationPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:${color};"><b>${escapeHtml(itemId)}</b> → <b>${escapeHtml(newState)}</b></div>`;
+        el('pubItemIdInput').value = '';
+        setStatus(`Item ${itemId} transitioned to ${newState}.`, 'ok');
+      } catch(e) { setStatus(`Pub transition failed: ${e.message}`, 'bad'); }
+    }
+    el('btnPubSubmit')?.addEventListener('click', pubSubmit);
+    el('btnPubTransition')?.addEventListener('click', pubTransition);
+
+    // ── Phase 85: Orchestrator deploy + rollback ──────────────────────────────
+    async function orchDeploy() {
+      const target = el('orchTargetInput')?.value?.trim() || 'production';
+      if (!window.electronAPI?.orchestrateDeploy) { setStatus('Orchestrator API not available.', 'bad'); return; }
+      setStatus(`Deploying to "${target}"…`, 'ok');
+      try {
+        const result = await window.electronAPI.orchestrateDeploy({ target, caseId: window.caseMgr?.activeCase?.case_id, timestamp: Date.now() });
+        const depId = result?.deploymentId || result?.id || 'DEP-001';
+        el('orchestrationPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:var(--color-ok);">DEPLOYED to <b>${escapeHtml(target)}</b> — ID: <b>${escapeHtml(depId)}</b></div>`;
+        el('orchTargetInput').value = '';
+        setStatus(`Deployed to "${target}".`, 'ok');
+      } catch(e) { setStatus(`Deploy failed: ${e.message}`, 'bad'); }
+    }
+    async function orchRollback() {
+      const target = el('orchTargetInput')?.value?.trim() || 'production';
+      if (!window.electronAPI?.orchestrateRollback) { setStatus('Orchestrator API not available.', 'bad'); return; }
+      setStatus(`Rolling back "${target}"…`, 'ok');
+      try {
+        const result = await window.electronAPI.orchestrateRollback({ target, reason: 'manual' });
+        el('orchestrationPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:var(--color-warn);">ROLLBACK on <b>${escapeHtml(target)}</b>: ${escapeHtml(result?.status || 'complete')}</div>`;
+        setStatus(`Rolled back "${target}".`, 'ok');
+      } catch(e) { setStatus(`Rollback failed: ${e.message}`, 'bad'); }
+    }
+    el('btnOrchDeploy')?.addEventListener('click', orchDeploy);
+    el('btnOrchRollback')?.addEventListener('click', orchRollback);
+    el('orchTargetInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') orchDeploy(); });
+
+    // ── Phase 87: Infra record node + history + migrations ────────────────────
+    async function infraHistory() {
+      if (!window.electronAPI?.infraHistory) { setStatus('Infra history API not available.', 'bad'); return; }
+      setStatus('Loading infrastructure history…', 'ok');
+      try {
+        const result = await window.electronAPI.infraHistory();
+        const events = result?.history || result || [];
+        renderList('infraEvolutionPanel', events, e => fmtItem(e, '#67e8f9'));
+        setStatus(`${events.length} infra history event(s).`, 'ok');
+      } catch(e) { setStatus(`Infra history failed: ${e.message}`, 'bad'); }
+    }
+    async function infraMigrations() {
+      if (!window.electronAPI?.infraMigrations) { setStatus('Infra migrations API not available.', 'bad'); return; }
+      setStatus('Loading node migrations…', 'ok');
+      try {
+        const result = await window.electronAPI.infraMigrations();
+        const migs = result?.migrations || result || [];
+        renderList('infraEvolutionPanel', migs, m => fmtItem(m, '#fb923c'));
+        setStatus(`${migs.length} migration(s) found.`, 'ok');
+      } catch(e) { setStatus(`Migrations failed: ${e.message}`, 'bad'); }
+    }
+    async function infraRecordNode() {
+      const nodeId = el('infraNodeInput')?.value?.trim();
+      if (!nodeId) { setStatus('Enter a node ID.', 'bad'); return; }
+      if (!window.electronAPI?.infraRecord) { setStatus('Infra record API not available.', 'bad'); return; }
+      setStatus(`Recording node "${nodeId}"…`, 'ok');
+      try {
+        await window.electronAPI.infraRecord({ nodeId, timestamp: Date.now(), source: 'manual' });
+        el('infraNodeInput').value = '';
+        el('infraEvolutionPanel').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:var(--color-ok);">Node <b>${escapeHtml(nodeId)}</b> recorded.</div>`;
+        setStatus(`Node "${nodeId}" recorded in infra evolution.`, 'ok');
+      } catch(e) { setStatus(`Record failed: ${e.message}`, 'bad'); }
+    }
+    el('btnInfraHistory')?.addEventListener('click', infraHistory);
+    el('btnInfraMigrations')?.addEventListener('click', infraMigrations);
+    el('btnInfraRecord')?.addEventListener('click', infraRecordNode);
+    el('infraNodeInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') infraRecordNode(); });
+
+    // ── Phase 88: Predict high-risk only ─────────────────────────────────────
+    async function predictHighRisk() {
+      if (!window.electronAPI?.predictHighRisk) { setStatus('Predictive risk API not available.', 'bad'); return; }
+      setStatus('Filtering high-risk predictions…', 'ok');
+      try {
+        const result = await window.electronAPI.predictHighRisk({ threshold: 0.75 });
+        const items = result?.highRisk || result?.items || result || [];
+        renderList('predictivePanel', items, i => `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.64rem;color:var(--color-bad);">HIGH-RISK: ${escapeHtml(String(i?.node || i?.id || JSON.stringify(i).slice(0,60)))}</div>`);
+        setStatus(`${items.length} high-risk node(s) flagged.`, 'ok');
+      } catch(e) { setStatus(`High-risk predict failed: ${e.message}`, 'bad'); }
+    }
+    el('btnPredictHighRisk')?.addEventListener('click', predictHighRisk);
+
+    // ── Phase 89: Simulate scenario with input ────────────────────────────────
+    async function runScenarioSimulation() {
+      const scenario = el('simScenarioInput')?.value?.trim();
+      if (!window.electronAPI?.simulateScenario) { setStatus('Simulator API not available.', 'bad'); return; }
+      const config = scenario ? { name: scenario } : { name: 'default', inject: true };
+      setStatus(`Running simulation: ${config.name}…`, 'ok');
+      try {
+        const result = await window.electronAPI.simulateScenario(config);
+        const outcome = result?.outcome || result?.result || result;
+        el('simulatorPanel').innerHTML = `<div style="font-size:0.64rem;white-space:pre-wrap;color:#67e8f9;">${escapeHtml(JSON.stringify(outcome, null, 2).slice(0,300))}</div>`;
+        if (scenario) el('simScenarioInput').value = '';
+        setStatus(`Simulation "${config.name}" complete.`, 'ok');
+      } catch(e) { setStatus(`Simulation failed: ${e.message}`, 'bad'); }
+    }
+    // Override existing runSimulation binding — now uses input scenario
+    el('btnRunSimulation')?.removeEventListener('click', () => {});
+    document.getElementById('btnRunSimulation')?.addEventListener('click', runScenarioSimulation);
+    el('simScenarioInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') runScenarioSimulation(); });
+
+    // ── Phase 73: Fingerprint Library search / compare / export ──────────────
+    async function fplibSearch() {
+      const query = el('fplibQueryInput')?.value?.trim();
+      if (!window.electronAPI?.fplibSearch) { setStatus('FP Library API not available.', 'bad'); return; }
+      setStatus('Searching fingerprint library…', 'ok');
+      try {
+        let features;
+        try { features = JSON.parse(query || '{}'); } catch { features = { keyword: query }; }
+        const result = await window.electronAPI.fplibSearch(features);
+        const hits = result?.matches || result?.results || result || [];
+        el('statFpLibEntries').textContent = hits.length;
+        renderList('fpLibraryList', hits, h => fmtItem(h, '#a78bfa'));
+        setStatus(`${hits.length} fingerprint match(es).`, 'ok');
+      } catch(e) { setStatus(`FP search failed: ${e.message}`, 'bad'); }
+    }
+    async function fplibCompare() {
+      const query = el('fplibQueryInput')?.value?.trim();
+      if (!window.electronAPI?.fplibCompare) { setStatus('FP Library API not available.', 'bad'); return; }
+      const caseData = window.caseMgr?.activeCase;
+      const candidate = { keyword: query, caseId: caseData?.case_id };
+      setStatus('Comparing candidate against fingerprint library…', 'ok');
+      try {
+        const result = await window.electronAPI.fplibCompare(candidate);
+        const conf = result?.confidence ?? result?.score ?? 0;
+        const label = result?.matchId || result?.match || 'unknown';
+        el('fpLibraryList').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:${conf >= 0.7 ? 'var(--color-ok)' : 'var(--color-warn)'};">Best match: <b>${escapeHtml(String(label))}</b> — confidence: ${(conf * 100).toFixed(0)}%</div>`;
+        el('statFpLibConf').textContent = `${(conf * 100).toFixed(0)}%`;
+        setStatus(`FP compare: ${(conf * 100).toFixed(0)}% match.`, 'ok');
+      } catch(e) { setStatus(`FP compare failed: ${e.message}`, 'bad'); }
+    }
+    async function fplibExport() {
+      if (!window.electronAPI?.fplibExport) { setStatus('FP export API not available.', 'bad'); return; }
+      setStatus('Exporting fingerprint library…', 'ok');
+      try {
+        const result = await window.electronAPI.fplibExport();
+        const count = result?.entries?.length ?? result?.count ?? 0;
+        el('fpLibraryList').innerHTML = `<div style="font-size:0.64rem;padding:4px 0;color:var(--color-ok);">Library exported: <b>${count}</b> entries.</div>`;
+        el('statFpLibEntries').textContent = count;
+        setStatus(`FP library exported (${count} entries).`, 'ok');
+      } catch(e) { setStatus(`FP export failed: ${e.message}`, 'bad'); }
+    }
+    el('btnFplibSearch')?.addEventListener('click', fplibSearch);
+    el('btnFplibCompare')?.addEventListener('click', fplibCompare);
+    el('btnFplibExport')?.addEventListener('click', fplibExport);
+    el('fplibQueryInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') fplibSearch(); });
+
+    // ── Phase 98-99: Memory record/annotate + Provenance tag/step ─────────────
+    async function memoryRecord() {
+      if (!window.electronAPI?.expMemoryRecord) { setStatus('Memory API not available.', 'bad'); return; }
+      const caseData = window.caseMgr?.activeCase;
+      setStatus('Recording to institutional memory…', 'ok');
+      try {
+        const result = await window.electronAPI.expMemoryRecord({ caseId: caseData?.case_id, bundles: caseData?.bundles || [], timestamp: Date.now() });
+        const count = result?.totalRecords ?? result?.count ?? 1;
+        el('memoryRecordCount').innerHTML = `<strong class="fg">Institutional Memory:</strong> <span style="color:var(--color-ok);">${count} record(s) synced.</span>`;
+        setStatus(`Memory recorded (${count} entries).`, 'ok');
+      } catch(e) { setStatus(`Memory record failed: ${e.message}`, 'bad'); }
+    }
+    async function memoryAnnotate() {
+      const text = el('memoryAnnotateInput')?.value?.trim();
+      if (!text) { setStatus('Enter annotation text.', 'bad'); return; }
+      if (!window.electronAPI?.expMemoryAnnotate) { setStatus('Memory API not available.', 'bad'); return; }
+      const caseData = window.caseMgr?.activeCase;
+      setStatus('Annotating memory record…', 'ok');
+      try {
+        await window.electronAPI.expMemoryAnnotate({ caseId: caseData?.case_id, annotation: text, timestamp: Date.now() });
+        el('memoryAnnotateInput').value = '';
+        el('memoryRecordCount').innerHTML = `<strong class="fg">Institutional Memory:</strong> <span style="color:var(--color-ok);">Annotated: "${escapeHtml(text.slice(0,50))}"</span>`;
+        setStatus('Memory annotation saved.', 'ok');
+      } catch(e) { setStatus(`Annotate failed: ${e.message}`, 'bad'); }
+    }
+    async function provTag() {
+      if (!window.electronAPI?.expProvTag) { setStatus('Provenance API not available.', 'bad'); return; }
+      const caseData = window.caseMgr?.activeCase;
+      setStatus('Tagging data provenance…', 'ok');
+      try {
+        const result = await window.electronAPI.expProvTag({ source: caseData?.case_id || 'unknown', tag: 'EVIDENCE', timestamp: Date.now() });
+        el('provenanceOutput').innerHTML = `<strong class="fg">Data Provenance Engine:</strong> <span style="color:var(--color-ok);">Tag: EVIDENCE — ${escapeHtml(result?.tag || 'tagged')}</span>`;
+        setStatus('Provenance tag applied.', 'ok');
+      } catch(e) { setStatus(`Prov tag failed: ${e.message}`, 'bad'); }
+    }
+    async function provStep() {
+      if (!window.electronAPI?.expProvStep) { setStatus('Provenance API not available.', 'bad'); return; }
+      const caseData = window.caseMgr?.activeCase;
+      setStatus('Recording provenance step…', 'ok');
+      try {
+        const result = await window.electronAPI.expProvStep({ action: 'ANALYSIS', input: caseData?.case_id || 'input', output: 'report', timestamp: Date.now() });
+        el('provenanceOutput').innerHTML = `<strong class="fg">Data Provenance Engine:</strong> <span style="color:#a78bfa;">Step recorded: ANALYSIS → report (${escapeHtml(result?.stepId || 'step-1')})</span>`;
+        setStatus('Provenance step recorded.', 'ok');
+      } catch(e) { setStatus(`Prov step failed: ${e.message}`, 'bad'); }
+    }
+    el('btnMemoryRecord')?.addEventListener('click', memoryRecord);
+    el('btnMemoryAnnotate')?.addEventListener('click', memoryAnnotate);
+    el('btnProvTag')?.addEventListener('click', provTag);
+    el('btnProvStep')?.addEventListener('click', provStep);
+    el('memoryAnnotateInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') memoryAnnotate(); });
+
+    // ── Phase 101: Operator profile lookup (adv-operator-get) ─────────────────
+    async function operatorGet() {
+      const id = el('operatorLookupInput')?.value?.trim();
+      if (!id) { setStatus('Enter an operator ID.', 'bad'); return; }
+      if (!window.electronAPI?.advOperatorGet) { setStatus('Operator profile API not available.', 'bad'); return; }
+      setStatus(`Looking up operator "${id}"…`, 'ok');
+      try {
+        const result = await window.electronAPI.advOperatorGet(id);
+        const profile = result?.profile || result?.summary || JSON.stringify(result).slice(0, 120);
+        el('operatorProfileOutput').innerHTML = `<strong class="fg">Operator Profile (${escapeHtml(id)}):</strong> <span style="color:#a78bfa;">${escapeHtml(String(profile))}</span>`;
+        el('operatorLookupInput').value = '';
+        setStatus(`Profile loaded for operator "${id}".`, 'ok');
+      } catch(e) { setStatus(`Operator lookup failed: ${e.message}`, 'bad'); }
+    }
+    el('btnOperatorGet')?.addEventListener('click', operatorGet);
+    el('operatorLookupInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') operatorGet(); });
 
     // ==================== PHASES 72, 74, 76-80 + CUSTODY WIRING ====================
 
