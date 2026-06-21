@@ -14,6 +14,7 @@ Branch: `release-readiness/v1.5.10-hardening`
 | PDG-01 click-path E2E proof deepening | P1 | Completed (slice 6) | `e2e/operator_ui.spec.js`: 12-test Playwright spec against real operator HTML with stubbed IPC bridge, all 12 passing; G-02 materially narrowed; remaining gap is live Electron runtime IPC wiring (bounded-deferred) | full required gate order executed and passed |
 | Operator friction reduction | P1 | Pending | reduce ambiguous signoff/release steps and interpretation burden | run full required gate order after real slices |
 | G-04 doc sweep — overclaim downgrade | P2 | Completed (slice 7) | proof-boundary caveats added to `USER_GUIDE.md`, `VERIFY_RELEASE.md`, `SUPPLY_CHAIN_SECURITY.md`, `RELEASE_DAY_CHECKLIST.md`; stale version stamps updated; signing/SLSA/Sigstore items marked aspirational | audit:stable APPROVED |
+| G-05 preflight checker | P2 | Completed (slice 8) | `scripts/preflight_check.js`: machine-checks OS, Node version, npm, lockfile, dist/ installer, stale artifacts, SHA256SUMS.txt, working tree; wired as `npm run preflight` | audit:stable APPROVED |
 | UI/brand/CLI/dist hygiene + dependency audit refresh | P1 | Completed (slice 5) | CLI version drift closed; dist stale-artifact hygiene enforced; UI brand identity applied; dev dependency vuln surface reduced from 15 to 6 (electron-builder chain bounded-deferred); gate order re-passed on updated lockfile | full required gate order executed and passed |
 
 ## Slice 1 Log (Governance/Setup Truth Closure)
@@ -347,6 +348,44 @@ Required gate order status:
 Unexpected output changes check:
 
 - only `docs/` modified; no runtime, test, or build surface changes
+
+## Slice 8 Log (G-05 Preflight Checker)
+
+Date: 2026-06-21  
+Branch: `main` (committed at `7ebb6c42`)
+
+Start status:
+
+- scope: new script + package.json script entry
+- runtime/code surface changed: no (read-only preflight assertions)
+
+Completed slice-8 outputs:
+
+- `scripts/preflight_check.js`: 7-check read-only preflight script
+  - OS: Windows check (warn if non-Windows)
+  - Node: version >= 20.17.0 (hard fail if below)
+  - npm: available on PATH (hard fail if missing)
+  - `package-lock.json`: present (hard fail if missing)
+  - `dist/` installer: current-version `HyperSnatch-Setup-1.5.9.exe` present (warn if missing)
+  - `dist/` stale check: no stale versioned installers (hard fail if found)
+  - `SHA256SUMS.txt`: present in `dist/` (warn if missing)
+  - Working tree: clean check (warn only)
+- `package.json`: `preflight` script entry added
+
+Slice-8 evidence summary:
+
+- All 7 checks PASS on current environment (1 expected WARN for uncommitted working tree during development)
+- G-05 closed; no runtime behavior changed
+- `audit:stable` APPROVED
+
+Required gate order status:
+
+- `npm run preflight` — PASS (all required checks pass)
+- `npm run audit:stable` — PASS (`SIGNOFF STATUS: APPROVED`)
+
+Unexpected output changes check:
+
+- only `scripts/preflight_check.js` and `package.json` modified; no test, build, or release surface changes
 
 ## Notes
 

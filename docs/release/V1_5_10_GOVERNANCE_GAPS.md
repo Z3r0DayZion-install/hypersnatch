@@ -3,7 +3,7 @@
 Date: 2026-03-22  
 Branch: `release-readiness/v1.5.10-hardening`
 
-This file tracks open truth/proof/governance gaps after slices 1 through 7.
+This file tracks open truth/proof/governance gaps after slices 1 through 8.
 
 ## Open Gaps
 
@@ -12,7 +12,7 @@ This file tracks open truth/proof/governance gaps after slices 1 through 7.
 | G-02 | P1 | Packaged interaction proof is still partially indirect (marker/harness heavy) | `e2e/operator_ui.spec.js` (slice 6): 12-test Playwright click-path spec with stubbed IPC bridge, all passing; remaining gap is live Electron runtime IPC (no stub) | Technical + proof docs | Partially closed (click-path E2E added in slice 6; live packaged Electron runner bounded-deferred) |
 | G-03 | P1 | Default strict signoff proves artifact/hash contract but does not by itself prove external signing trust acceptance | define explicit signing contract for stable releases (required vs optional), then align docs and automation checks accordingly | Policy + possible technical enforcement | Open (bounded-deferred in slice 4) |
 | G-04 | P2 | Some legacy docs outside top-level governance packet can still imply stronger trust/support than current proof surfaces | scoped doc sweep completed in slice 7: `USER_GUIDE.md`, `VERIFY_RELEASE.md`, `SUPPLY_CHAIN_SECURITY.md`, `RELEASE_DAY_CHECKLIST.md` — proof-boundary caveats added, stale version stamps updated, signing/SLSA/Sigstore items marked aspirational | Doc-only | Closed (slice 7) |
-| G-05 | P2 | Clean-machine assumptions are documented but not machine-checked by a dedicated preflight script | optionally add a narrow preflight checker for required environment assumptions (no runtime behavior change) | Technical (supporting tooling) | Open |
+| G-05 | P2 | Clean-machine assumptions are documented but not machine-checked by a dedicated preflight script | `scripts/preflight_check.js` added (slice 8): checks OS, Node >= 20.17.0, npm, package-lock.json, dist/ installer, stale artifact check, SHA256SUMS.txt, working tree state | Technical (supporting tooling) | Closed (slice 8) |
 | G-06 | P2 | `electron-builder` transitive dependency chain has 6 high-severity vulns not addressable without breaking changes | track as bounded-deferred; address during `electron-builder` upgrade cycle outside `v1.5.10` hardening scope | Dependency upgrade (out of scope for hardening lane) | Open (bounded-deferred in slice 5) |
 
 ## Closed in Slice 1
@@ -46,6 +46,12 @@ This file tracks open truth/proof/governance gaps after slices 1 through 7.
    - `docs/release/V1_5_10_PDG_CLOSURE.md`
 2. Branch-level hardening decision is explicit via:
    - `docs/release/V1_5_10_HARDENING_DECISION.md`
+
+## Closed in Slice 8 (G-05 Preflight Checker)
+
+1. `scripts/preflight_check.js`: narrow read-only preflight checker verifying all required environment assumptions from `V1_5_10_ENVIRONMENT_ASSUMPTIONS.md`.
+2. `package.json`: `npm run preflight` script wired.
+3. All checks PASS on current environment; audit:stable APPROVED.
 
 ## Closed in Slice 7 (G-04 Doc Sweep — Overclaim Downgrade)
 
