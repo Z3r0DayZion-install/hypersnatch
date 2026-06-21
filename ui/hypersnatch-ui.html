@@ -1364,6 +1364,201 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* ═══════════════════════════════════════════════════════════
+       UI POLISH v1.6.4 — unified component tokens
+       ═══════════════════════════════════════════════════════════ */
+
+    /* ── pill-btn: the shared small action button ─────────────── */
+    .pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 11px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(89, 121, 155, 0.45);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease,
+                  color 0.15s ease, transform 0.1s ease,
+                  box-shadow 0.15s ease;
+      white-space: nowrap;
+      user-select: none;
+      line-height: 1.4;
+    }
+
+    .pill-btn:hover:not(:disabled) {
+      background: rgba(42, 198, 255, 0.1);
+      border-color: rgba(42, 198, 255, 0.45);
+      color: #dff6ff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px -6px rgba(42, 198, 255, 0.3);
+    }
+
+    .pill-btn:active:not(:disabled) {
+      transform: translateY(0px) scale(0.97);
+      box-shadow: none;
+    }
+
+    .pill-btn:focus-visible {
+      outline: 2px solid var(--accent-main);
+      outline-offset: 2px;
+    }
+
+    .pill-btn:disabled,
+    .pill-btn.btn-loading {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      pointer-events: none;
+    }
+
+    .pill-btn.btn-loading::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border: 1.5px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: btn-spin 0.65s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes btn-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── input-field: shared text input across all panels ──────── */
+    .input-field {
+      background: rgba(4, 12, 22, 0.72);
+      color: var(--text-base);
+      border: 1px solid rgba(72, 103, 136, 0.5);
+      border-radius: 7px;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      font-family: inherit;
+      line-height: 1.5;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease,
+                  background 0.15s ease;
+      outline: none;
+    }
+
+    .input-field::placeholder {
+      color: var(--text-muted-dark);
+      font-style: italic;
+    }
+
+    .input-field:focus {
+      border-color: rgba(42, 198, 255, 0.6);
+      background: rgba(6, 18, 30, 0.9);
+      box-shadow: 0 0 0 2px rgba(42, 198, 255, 0.12);
+    }
+
+    .input-field:hover:not(:focus) {
+      border-color: rgba(89, 121, 155, 0.7);
+    }
+
+    /* ── select refinement inside panels ───────────────────────── */
+    .panel select,
+    .left-rail select,
+    .right-panel select {
+      background: rgba(4, 12, 22, 0.72);
+      color: var(--text-base);
+      border: 1px solid rgba(72, 103, 136, 0.5);
+      border-radius: 7px;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    .panel select:focus,
+    .left-rail select:focus,
+    .right-panel select:focus {
+      border-color: rgba(42, 198, 255, 0.6);
+      box-shadow: 0 0 0 2px rgba(42, 198, 255, 0.12);
+    }
+
+    /* ── empty-state: unified placeholder copy in panels ────────── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 12px 8px;
+      color: var(--text-muted-dark);
+      font-size: 0.66rem;
+      text-align: center;
+      letter-spacing: 0.03em;
+      border: 1px dashed rgba(72, 103, 136, 0.3);
+      border-radius: 8px;
+    }
+
+    .empty-state::before {
+      content: '—';
+      font-size: 0.9rem;
+      opacity: 0.4;
+    }
+
+    /* ── panel skeleton shimmer (loading placeholder) ───────────── */
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position:  200% center; }
+    }
+
+    .panel-skeleton {
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.03) 25%,
+        rgba(255,255,255,0.07) 50%,
+        rgba(255,255,255,0.03) 75%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.4s ease infinite;
+    }
+
+    /* ── panel hover accent border ──────────────────────────────── */
+    .panel {
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .panel:hover {
+      border-color: rgba(89, 121, 155, 0.65);
+    }
+
+    /* ── status footer bar text ─────────────────────────────────── */
+    #statusBar {
+      transition: color 0.2s ease;
+    }
+
+    /* ── version badge in topbar ────────────────────────────────── */
+    #uiVer {
+      background: rgba(42, 198, 255, 0.08);
+      border: 1px solid rgba(42, 198, 255, 0.25);
+      color: var(--text-accent);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    /* ── tiny pill-btn modifier ─────────────────────────────────── */
+    .pill-btn.tiny {
+      padding: 2px 8px;
+      font-size: 0.62rem;
+    }
   </style>
 </head>
 
@@ -1401,7 +1596,7 @@
       <div class="control-row header-tools">
         <span id="bridgeDot" class="idle" aria-hidden="true">●</span>
         <span id="bridgeText" class="tiny muted">Bridge: Initializing</span>
-        <span class="pill tiny mono" id="uiVer">v1.6.0</span>
+        <span class="pill tiny mono" id="uiVer">v1.6.4</span>
         <button id="nodeIdPill" class="pill tiny mono" type="button" title="Copy hardware node fingerprint">
           NODE <span id="nodeIdText">--</span>
         </button>
@@ -3031,7 +3226,17 @@
     "use strict";
 
     const el = (id) => document.getElementById(id);
-    const APP_VERSION_FALLBACK = "1.6.0";
+    const APP_VERSION_FALLBACK = "1.6.4";
+
+    function withLoading(btnOrId, fn) {
+      return async function(...args) {
+        const b = typeof btnOrId === 'string' ? el(btnOrId) : btnOrId;
+        const orig = b ? b.innerHTML : '';
+        if (b) { b.classList.add('btn-loading'); b.disabled = true; }
+        try { return await fn(...args); }
+        finally { if (b) { b.classList.remove('btn-loading'); b.disabled = false; b.innerHTML = orig; } }
+      };
+    }
 
     const state = {
       lastJson: null,
@@ -6730,7 +6935,7 @@
     ];
     _deep.forEach(([id, fn]) => {
       const btn = el(id);
-      if (btn) btn.addEventListener('click', fn);
+      if (btn) btn.addEventListener('click', withLoading(btn, fn));
     });
 
     const endgameInput = el('endgameCommandInput');
@@ -6768,8 +6973,8 @@
         setStatus(`Decision "${decision}" recorded.`, 'ok');
       } catch(e) { setStatus(`Decision failed: ${e.message}`, 'bad'); }
     }
-    el('btnReviewComment')?.addEventListener('click', reviewComment);
-    el('btnReviewDecide')?.addEventListener('click', reviewDecide);
+    el('btnReviewComment')?.addEventListener('click', withLoading('btnReviewComment', reviewComment));
+    el('btnReviewDecide')?.addEventListener('click', withLoading('btnReviewDecide', reviewDecide));
     el('reviewCommentInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') reviewComment(); });
 
     // ── Phase 83: Publication submit + transition ─────────────────────────────
@@ -6797,8 +7002,8 @@
         setStatus(`Item ${itemId} transitioned to ${newState}.`, 'ok');
       } catch(e) { setStatus(`Pub transition failed: ${e.message}`, 'bad'); }
     }
-    el('btnPubSubmit')?.addEventListener('click', pubSubmit);
-    el('btnPubTransition')?.addEventListener('click', pubTransition);
+    el('btnPubSubmit')?.addEventListener('click', withLoading('btnPubSubmit', pubSubmit));
+    el('btnPubTransition')?.addEventListener('click', withLoading('btnPubTransition', pubTransition));
 
     // ── Phase 85: Orchestrator deploy + rollback ──────────────────────────────
     async function orchDeploy() {
@@ -6823,8 +7028,8 @@
         setStatus(`Rolled back "${target}".`, 'ok');
       } catch(e) { setStatus(`Rollback failed: ${e.message}`, 'bad'); }
     }
-    el('btnOrchDeploy')?.addEventListener('click', orchDeploy);
-    el('btnOrchRollback')?.addEventListener('click', orchRollback);
+    el('btnOrchDeploy')?.addEventListener('click', withLoading('btnOrchDeploy', orchDeploy));
+    el('btnOrchRollback')?.addEventListener('click', withLoading('btnOrchRollback', orchRollback));
     el('orchTargetInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') orchDeploy(); });
 
     // ── Phase 87: Infra record node + history + migrations ────────────────────
@@ -6860,9 +7065,9 @@
         setStatus(`Node "${nodeId}" recorded in infra evolution.`, 'ok');
       } catch(e) { setStatus(`Record failed: ${e.message}`, 'bad'); }
     }
-    el('btnInfraHistory')?.addEventListener('click', infraHistory);
-    el('btnInfraMigrations')?.addEventListener('click', infraMigrations);
-    el('btnInfraRecord')?.addEventListener('click', infraRecordNode);
+    el('btnInfraHistory')?.addEventListener('click', withLoading('btnInfraHistory', infraHistory));
+    el('btnInfraMigrations')?.addEventListener('click', withLoading('btnInfraMigrations', infraMigrations));
+    el('btnInfraRecord')?.addEventListener('click', withLoading('btnInfraRecord', infraRecordNode));
     el('infraNodeInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') infraRecordNode(); });
 
     // ── Phase 88: Predict high-risk only ─────────────────────────────────────
@@ -6876,7 +7081,7 @@
         setStatus(`${items.length} high-risk node(s) flagged.`, 'ok');
       } catch(e) { setStatus(`High-risk predict failed: ${e.message}`, 'bad'); }
     }
-    el('btnPredictHighRisk')?.addEventListener('click', predictHighRisk);
+    el('btnPredictHighRisk')?.addEventListener('click', withLoading('btnPredictHighRisk', predictHighRisk));
 
     // ── Phase 89: Simulate scenario with input ────────────────────────────────
     async function runScenarioSimulation() {
@@ -6894,7 +7099,7 @@
     }
     // Override existing runSimulation binding — now uses input scenario
     el('btnRunSimulation')?.removeEventListener('click', () => {});
-    document.getElementById('btnRunSimulation')?.addEventListener('click', runScenarioSimulation);
+    document.getElementById('btnRunSimulation')?.addEventListener('click', withLoading('btnRunSimulation', runScenarioSimulation));
     el('simScenarioInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') runScenarioSimulation(); });
 
     // ── Phase 73: Fingerprint Library search / compare / export ──────────────
@@ -6938,9 +7143,9 @@
         setStatus(`FP library exported (${count} entries).`, 'ok');
       } catch(e) { setStatus(`FP export failed: ${e.message}`, 'bad'); }
     }
-    el('btnFplibSearch')?.addEventListener('click', fplibSearch);
-    el('btnFplibCompare')?.addEventListener('click', fplibCompare);
-    el('btnFplibExport')?.addEventListener('click', fplibExport);
+    el('btnFplibSearch')?.addEventListener('click', withLoading('btnFplibSearch', fplibSearch));
+    el('btnFplibCompare')?.addEventListener('click', withLoading('btnFplibCompare', fplibCompare));
+    el('btnFplibExport')?.addEventListener('click', withLoading('btnFplibExport', fplibExport));
     el('fplibQueryInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') fplibSearch(); });
 
     // ── Phase 98-99: Memory record/annotate + Provenance tag/step ─────────────
@@ -6988,10 +7193,10 @@
         setStatus('Provenance step recorded.', 'ok');
       } catch(e) { setStatus(`Prov step failed: ${e.message}`, 'bad'); }
     }
-    el('btnMemoryRecord')?.addEventListener('click', memoryRecord);
-    el('btnMemoryAnnotate')?.addEventListener('click', memoryAnnotate);
-    el('btnProvTag')?.addEventListener('click', provTag);
-    el('btnProvStep')?.addEventListener('click', provStep);
+    el('btnMemoryRecord')?.addEventListener('click', withLoading('btnMemoryRecord', memoryRecord));
+    el('btnMemoryAnnotate')?.addEventListener('click', withLoading('btnMemoryAnnotate', memoryAnnotate));
+    el('btnProvTag')?.addEventListener('click', withLoading('btnProvTag', provTag));
+    el('btnProvStep')?.addEventListener('click', withLoading('btnProvStep', provStep));
     el('memoryAnnotateInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') memoryAnnotate(); });
 
     // ── Phase 101: Operator profile lookup (adv-operator-get) ─────────────────
@@ -7008,7 +7213,7 @@
         setStatus(`Profile loaded for operator "${id}".`, 'ok');
       } catch(e) { setStatus(`Operator lookup failed: ${e.message}`, 'bad'); }
     }
-    el('btnOperatorGet')?.addEventListener('click', operatorGet);
+    el('btnOperatorGet')?.addEventListener('click', withLoading('btnOperatorGet', operatorGet));
     el('operatorLookupInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') operatorGet(); });
 
     // ==================== SUB-ACTION DEEP WIRING (v1.6.3) ====================
@@ -7038,8 +7243,8 @@
         setStatus(`${events.length} activity event(s).`, 'ok');
       } catch(e) { setStatus(`Activity feed failed: ${e.message}`, 'bad'); }
     }
-    el('btnWsAddMember')?.addEventListener('click', wsAddMember);
-    el('btnWsActivityFeed')?.addEventListener('click', wsActivityFeed);
+    el('btnWsAddMember')?.addEventListener('click', withLoading('btnWsAddMember', wsAddMember));
+    el('btnWsActivityFeed')?.addEventListener('click', withLoading('btnWsActivityFeed', wsActivityFeed));
     el('wsMemberInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') wsAddMember(); });
 
     // ── Phase 77: Trust add-source + log-exchange ─────────────────────────────
@@ -7070,8 +7275,8 @@
         setStatus('Exchange logged.', 'ok');
       } catch(e) { setStatus(`Log exchange failed: ${e.message}`, 'bad'); }
     }
-    el('btnTrustAddSource')?.addEventListener('click', trustAddSource);
-    el('btnTrustLogExchange')?.addEventListener('click', trustLogExchange);
+    el('btnTrustAddSource')?.addEventListener('click', withLoading('btnTrustAddSource', trustAddSource));
+    el('btnTrustLogExchange')?.addEventListener('click', withLoading('btnTrustLogExchange', trustLogExchange));
     el('trustLogInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') trustLogExchange(); });
 
     // ── Phase 81: Review create ───────────────────────────────────────────────
@@ -7090,7 +7295,7 @@
         setStatus(`Review ${revId} created.`, 'ok');
       } catch(e) { setStatus(`Review create failed: ${e.message}`, 'bad'); }
     }
-    el('btnReviewCreate')?.addEventListener('click', reviewCreate);
+    el('btnReviewCreate')?.addEventListener('click', withLoading('btnReviewCreate', reviewCreate));
 
     // ── Phase 82: Redact entire bundle ────────────────────────────────────────
     async function redactBundle() {
@@ -7106,7 +7311,7 @@
         setStatus(`Bundle redacted (${redactedCount} fields).`, 'ok');
       } catch(e) { setStatus(`Bundle redact failed: ${e.message}`, 'bad'); }
     }
-    el('btnRedactBundle')?.addEventListener('click', redactBundle);
+    el('btnRedactBundle')?.addEventListener('click', withLoading('btnRedactBundle', redactBundle));
 
     // ── Phase 91: Global graph add-node + lineage ─────────────────────────────
     async function globalGraphAddNode() {
@@ -7134,8 +7339,8 @@
         setStatus(`Lineage: ${Array.isArray(chain) ? chain.length : 1} step(s).`, 'ok');
       } catch(e) { setStatus(`Lineage failed: ${e.message}`, 'bad'); }
     }
-    el('btnGlobalAddNode')?.addEventListener('click', globalGraphAddNode);
-    el('btnGlobalGraphLineage')?.addEventListener('click', globalGraphLineage);
+    el('btnGlobalAddNode')?.addEventListener('click', withLoading('btnGlobalAddNode', globalGraphAddNode));
+    el('btnGlobalGraphLineage')?.addEventListener('click', withLoading('btnGlobalGraphLineage', globalGraphLineage));
 
     // ── Phase 62: Replay mutate clear ────────────────────────────────────────
     async function replayMutateClear() {
@@ -7149,7 +7354,7 @@
         setStatus('All replay mutations cleared.', 'ok');
       } catch(e) { setStatus(`Clear mutations failed: ${e.message}`, 'bad'); }
     }
-    el('btnReplayMutateClear')?.addEventListener('click', replayMutateClear);
+    el('btnReplayMutateClear')?.addEventListener('click', withLoading('btnReplayMutateClear', replayMutateClear));
 
     // ==================== PHASES 72, 74, 76-80 + CUSTODY WIRING ====================
 
