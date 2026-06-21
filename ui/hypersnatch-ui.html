@@ -1739,6 +1739,28 @@
             </div>
           </div>
 
+          <!-- Case Assistant Panel (v1.6.0-s2) -->
+          <div id="caseAssistantPanel" class="panel" style="display:none;">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="color:#a78bfa;">Case Assistant</span>
+              <div style="display:flex; gap:0.5rem;">
+                <button id="btnAssistantBriefing" class="pill-btn tiny" style="color:#a78bfa; border-color:rgba(167,139,250,0.4);">Generate Briefing</button>
+                <button id="btnAutoInvestigate" class="pill-btn tiny" style="color:#a78bfa; border-color:rgba(167,139,250,0.4);">Auto-Investigate</button>
+              </div>
+            </div>
+            <div id="assistantBriefingOutput" class="tiny muted" style="padding:0.5rem 0; min-height:2rem; white-space:pre-wrap;">Load a case and click Generate Briefing.</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:0.75rem;">
+              <div>
+                <div class="data-label" style="margin-bottom:4px;">Related Suggestions</div>
+                <div id="assistantRelatedList" class="tiny muted">—</div>
+              </div>
+              <div>
+                <div class="data-label" style="margin-bottom:4px;">Proposed Experiments</div>
+                <div id="assistantExperimentList" class="tiny muted">—</div>
+              </div>
+            </div>
+          </div>
+
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
             <!-- Bundle Alignment Panel -->
             <div id="caseBundlePanel" class="panel">
@@ -4775,6 +4797,7 @@
 
         el('caseExplorer').style.display = 'none';
         el('activeCaseDashboard').style.display = 'flex';
+        el('caseAssistantPanel').style.display = 'block';
         el('activeCaseTitle').textContent = c.title;
         el('activeCaseId').textContent = "CASE ID: " + c.case_id;
 
@@ -5159,6 +5182,7 @@
         this.activeCase = null;
         state.lastCaseWorkspaceReport = null;
         el('activeCaseDashboard').style.display = 'none';
+        el('caseAssistantPanel').style.display = 'none';
         el('caseExplorer').style.display = 'block';
         this.renderWorkspaceDepth(null, null);
         this.refreshCaseList();
@@ -6028,6 +6052,71 @@
 
     const btnRunPatterns = el('btnRunPatterns');
     if (btnRunPatterns) btnRunPatterns.addEventListener('click', runPatternDiscovery);
+
+    // ==================== CASE ASSISTANT LOGIC (v1.6.0-s2) ====================
+
+    async function generateCaseBriefing() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!caseData) { setStatus('No active case. Load a case first.', 'warn'); return; }
+      if (!window.electronAPI?.assistantBriefing) {
+        el('assistantBriefingOutput').textContent = 'Assistant API not available in this context.';
+        return;
+      }
+      setStatus('Generating case briefing\u2026', 'ok');
+      el('assistantBriefingOutput').textContent = 'Generating\u2026';
+      try {
+        const result = await window.electronAPI.assistantBriefing(caseData);
+        const text = result?.briefing || result?.text || result?.summary ||
+          (typeof result === 'string' ? result : JSON.stringify(result, null, 2));
+        el('assistantBriefingOutput').textContent = text;
+        setStatus('Case briefing generated.', 'ok');
+
+        if (window.electronAPI.assistantSuggestRelated && caseData.bundles?.length) {
+          const related = await window.electronAPI.assistantSuggestRelated(caseData.bundles[0], caseData.bundles);
+          const relList = (related || []).slice(0, 5);
+          el('assistantRelatedList').innerHTML = relList.length
+            ? relList.map(r => `<div style="padding:2px 0;">${escapeHtml(String(r?.url || r?.id || JSON.stringify(r)).substring(0, 60))}</div>`).join('')
+            : '<span class="muted">None found.</span>';
+        }
+
+        if (window.electronAPI.assistantProposeExperiments && caseData.bundles?.length) {
+          const exps = await window.electronAPI.assistantProposeExperiments(caseData.bundles[0]);
+          const expList = (exps || []).slice(0, 5);
+          el('assistantExperimentList').innerHTML = expList.length
+            ? expList.map(e => `<div style="padding:2px 0;">${escapeHtml(String(e?.description || e?.type || JSON.stringify(e)).substring(0, 60))}</div>`).join('')
+            : '<span class="muted">None proposed.</span>';
+        }
+      } catch (e) {
+        el('assistantBriefingOutput').textContent = `Error: ${e.message}`;
+        setStatus(`Briefing failed: ${e.message}`, 'bad');
+      }
+    }
+
+    async function runAutoInvestigate() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!caseData) { setStatus('No active case.', 'warn'); return; }
+      if (!window.electronAPI?.autoInvestigate) {
+        el('assistantBriefingOutput').textContent = 'Auto-Investigator API not available in this context.';
+        return;
+      }
+      setStatus('Running autonomous investigation\u2026', 'ok');
+      el('assistantBriefingOutput').textContent = 'Running auto-investigation\u2026';
+      try {
+        const result = await window.electronAPI.autoInvestigate(caseData.bundles || []);
+        const text = result?.summary || result?.report ||
+          (typeof result === 'string' ? result : JSON.stringify(result, null, 2));
+        el('assistantBriefingOutput').textContent = text;
+        setStatus('Auto-investigation complete.', 'ok');
+      } catch (e) {
+        el('assistantBriefingOutput').textContent = `Error: ${e.message}`;
+        setStatus(`Auto-investigate failed: ${e.message}`, 'bad');
+      }
+    }
+
+    const btnAssistantBriefing = el('btnAssistantBriefing');
+    if (btnAssistantBriefing) btnAssistantBriefing.addEventListener('click', generateCaseBriefing);
+    const btnAutoInvestigate = el('btnAutoInvestigate');
+    if (btnAutoInvestigate) btnAutoInvestigate.addEventListener('click', runAutoInvestigate);
 
     // ==================== END EXPANSION TABS ====================
 

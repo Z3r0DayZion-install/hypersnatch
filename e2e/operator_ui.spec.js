@@ -179,7 +179,11 @@ async function injectBridge(page) {
       patternsAnomalies: async (bundles, patterns) => ({ anomalies: [] }),
       patternsStats: async () => ({}),
       topologyMapCase: async (bundles) => ({ nodes: [], edges: [] }),
-      insightsGenerate: async (p, a, t) => ({ insights: [{ type: "SUMMARY", text: "E2E insight" }] })
+      insightsGenerate: async (p, a, t) => ({ insights: [{ type: "SUMMARY", text: "E2E insight" }] }),
+      assistantBriefing: async (caseData) => ({ briefing: `Auto-briefing for ${caseData.title || 'case'}: 0 bundles, no anomalies detected.` }),
+      assistantSuggestRelated: async (target, all) => [],
+      assistantProposeExperiments: async (bundle) => [{ type: "DECODE_VARIANT", description: "Try alternate base64 decode path" }],
+      autoInvestigate: async (bundles) => ({ summary: `Auto-investigation complete. Analysed ${bundles.length} bundle(s). No critical anomalies.` })
     };
   }, MOCK_CASE, MOCK_DECODE_RESULT);
 }
@@ -395,7 +399,22 @@ test("clear: after decode, Clear resets input and status", async ({ page }) => {
   expect(inputVal).toBe("");
 });
 
-// ─── Test 10: Intelligence tab renders ───────────────────────────────────────
+// ─── Test 10: Case Assistant panel ──────────────────────────────────────────
+
+test("case assistant: Generate Briefing populates briefing output", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+  await page.waitForSelector("#caseAssistantPanel", { state: "visible", timeout: 4000 });
+
+  await page.click("#btnAssistantBriefing");
+
+  await expect(page.locator("#assistantBriefingOutput")).not.toContainText("Load a case", { timeout: 8000 });
+  await expect(page.locator("#assistantBriefingOutput")).not.toContainText("Generating", { timeout: 8000 });
+  const text = await page.locator("#assistantBriefingOutput").textContent();
+  expect(text.length).toBeGreaterThan(10);
+});
+
+// ─── Test 11: Intelligence tab renders ───────────────────────────────────────
 
 test("intelligence tab: Rebuild Graph loads node data into panel", async ({ page }) => {
   await openFresh(page);
