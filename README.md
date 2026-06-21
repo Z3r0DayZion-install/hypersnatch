@@ -1,61 +1,76 @@
-# HyperSnatch v1.6.5
+# HyperSnatch
 
-**STATUS**: Active expansion (`v1.6.5` — Insane Mode)  
-**CURRENT LANE**: `feat/v1.6.x-expansion` — all IPC surfaces wired, 73/73 E2E tests passing  
-**LATEST PROOF RECORD**: `docs/release/RELEASE_PROOF_v1.6.5.md`  
-**LATEST REALITY AUDIT**: `docs/PROJECT_STATUS.md`  
-**STATE**: v1.6.x deep-wiring + UI polish complete; wsAssignCase wired; `withLoading` on all async buttons; tests 52–70 added
+**Offline evidence and stream intelligence workstation.**  
+Decode, organize, sign, verify, and seal investigation artifacts — locally, with cryptographic proof at every step.
 
-## Release-Readiness Truth Boundary
+[![Release](https://img.shields.io/badge/release-v1.6.6-brightgreen)](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.6)
+[![Tests](https://img.shields.io/badge/E2E%20tests-93%2F93-brightgreen)](#)
+[![Platform](https://img.shields.io/badge/platform-Windows-blue)](#)
 
-Use these docs as the current support/truth boundary for release-readiness claims:
+---
 
-- `docs/release/V1_5_10_SETUP_TRUTH_MATRIX.md`
-- `docs/release/V1_5_10_ENVIRONMENT_ASSUMPTIONS.md`
-- `docs/release/V1_5_10_CLAIM_TO_PROOF_MAP.md`
-- `docs/release/V1_5_10_GOVERNANCE_GAPS.md`
-- `docs/dev/WORKTREE_SETUP_NOTES.md`
-- `docs/release/CLEAN_WORKTREE_RELEASE_FLOW.md`
+## Download
 
-Signoff interpretation:
+**[HyperSnatch-Setup-1.6.6.exe](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.6)** — Windows installer  
+**[HyperSnatch_Vanguard_v1.6.6.zip](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.6)** — Portable zip
 
-- `npm run audit:final` is maintenance evidence only (`NON-SIGNOFF`).
-- `npm run audit:stable` is the strict stable signoff path (`APPROVED` required for stable tag/release).
+SHA256 hashes in [`docs/release/RELEASE_PROOF_v1.6.6.md`](docs/release/RELEASE_PROOF_v1.6.6.md).
 
-## Stewardship & Onboarding
-- **ARCHIVE_RECORD.md**: Immediate verification summary
-- **BUILD_ENVIRONMENT.md**: Runtime requirements
-- **docs/agent/**: Onboarding guide for future AI coding agents
-- **docs/ultimate/**: HyperSnatch v2 strategic roadmap
-- **docs/v2_godmode/**: Definitive GodMode v2 development blueprints
-- **docs/v2_ultimate_devkit/**: Complete v2 repository skeleton and DevKit
-- **docs/v2_godmode_devpack/**: Autonomous build kit for AI coding agents
-- **CAPSULE_SCHEMA.md**: Sealed .hsn structure definition
+---
 
-## Overview
-This pack contains the main pieces that were still missing from `HyperSnatch_Master_Dev_Pack_v2`.
+## What it does
 
-Included:
-- `AGENT_BOOT_PROMPT.md`
-- `REPO_FILE_TREE.md`
-- `UI_STYLE_GUIDE.md`
-- `NEURAL_EMPIRE_INTEGRATION.md`
-- `MODULE_CONTRACTS.md`
-- `ACCEPTANCE_CRITERIA.md`
-- `IMPLEMENTATION_GUARDRAILS.md`
+- **Decode & capture** — pull and store evidence bundles from streams and URLs
+- **Investigate** — build cases, log findings, attach bundles, run comparisons
+- **Sign & seal** — cryptographically sign evidence, seal packages, generate chain-of-custody
+- **Graph & analyze** — map infrastructure topology, find hot nodes, bridges, and cross-case correlations
+- **Trust registry** — track and verify intelligence sources
+- **Workspace management** — assign cases to analysts, manage teams
+- **Policy engine** — enforce export/redact/seal rules at the operator level
+- **Local-first** — no cloud dependency, no external calls during investigation
 
-Purpose:
-Turn v2 from a strong build pack into a stricter autonomous execution pack with:
-- a fixed repo structure
-- a high-quality GUI style system
-- exact module boundaries
-- integration into the wider NeuralEmpire ecosystem
-- clearer success/fail conditions for agents
+Everything is stored as a verifiable `.hsn` capsule. Hashes are recorded at every stage.
 
-## Institutional Summary
-HyperSnatch is an offline investigation platform that stores investigations as cryptographically verifiable capsules and automatically identifies connections between cases through infrastructure, entity, and narrative analysis.
+---
 
-## Future Expansion Rules
-1. **Core Immobility**: Never modify the `src/` core or `CAPSULE_SCHEMA.md`.
-2. **Plugin Expansion**: All new features must be implemented as separate plugins via the v2 API.
-3. **Deterministic Verification**: All changes must pass the capstone `scripts/verify_system.js`.
+## Proof
+
+Every release ships with a signed proof record:
+
+- `release:gate` must pass before any tag is created
+- Installer and zip SHA256 hashes are recorded in `docs/release/RELEASE_PROOF_vX.Y.Z.md`
+- 93 E2E Playwright tests cover the full operator UI surface
+
+---
+
+## Build from source
+
+```powershell
+npm install
+npm run dist
+```
+
+Requires Node.js 18+ and Windows (Electron build target).
+
+---
+
+## Verify a download
+
+```powershell
+Get-FileHash .\HyperSnatch-Setup-1.6.6.exe -Algorithm SHA256
+```
+
+Compare against `docs/release/RELEASE_PROOF_v1.6.6.md`.
+
+---
+
+## Release history
+
+| Version | Codename | Notes |
+|---------|----------|-------|
+| v1.6.6 | Insane Mode | caseUpdateFinding wired, policyAudit fix, 93 E2E tests |
+| v1.6.5 | Insane Mode | wsAssignCase wired, withLoading on all async buttons |
+| v1.6.4 | — | UI polish pass, pill-btn system, input-field system |
+| v1.6.3 | — | Full IPC surface wiring (ws/trust/review/redact/graph/replay) |
+
+Full changelog: [releases](https://github.com/Z3r0DayZion-install/hypersnatch/releases)
