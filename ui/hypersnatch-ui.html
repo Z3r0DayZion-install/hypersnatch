@@ -2141,11 +2141,15 @@
 
         <!-- Anomaly Scoring (Phase 72) -->
         <div class="panel">
-          <div class="panel-header">Anomaly ML Scoring</div>
+          <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Anomaly ML Scoring</span>
+            <button id="btnScoreAnomalies" class="pill-btn tiny" style="font-size:0.6rem;">Score Bundles</button>
+          </div>
           <div id="anomalyScoringList"
             style="max-height:180px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
             <div class="muted">Scores bundles for unusual delivery behavior.</div>
           </div>
+          <div class="tiny muted" style="margin-top:6px;">High-risk: <b id="statAnomalyHigh" class="ok">0</b> &nbsp;|&nbsp; Avg score: <b id="statAnomalyAvg" class="ok">—</b></div>
         </div>
 
         <!-- Fingerprint Library (Phase 73) -->
@@ -2164,11 +2168,14 @@
 
           <!-- Cross-Case Mining (Phase 74) -->
           <div class="panel">
-            <div class="panel-header">Cross-Case Intelligence</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Cross-Case Intelligence
+              <button id="btnCrossMineCases" class="pill-btn tiny" style="font-size:0.6rem;">Mine Cases</button>
+            </div>
             <div id="crossCaseResults"
               style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Multi-case analysis not yet run.</div>
             </div>
+            <div class="tiny muted" style="margin-top:6px;">Correlations: <b id="statCrossCorrelations" class="ok">0</b></div>
           </div>
         </div>
 
@@ -2191,22 +2198,34 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
           <!-- Workspace Management (Phase 76) -->
           <div class="panel">
-            <div class="panel-header">Workspace Management</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Workspace Management
+              <button id="btnListWorkspaces" class="pill-btn tiny" style="font-size:0.6rem;">List</button>
+            </div>
             <div id="workspacePanel"
               style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No workspaces created.</div>
             </div>
-            <div class="tiny muted" style="margin-top:6px;">Workspaces: <b id="statWorkspaces" class="ok">0</b></div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="wsNameInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="New workspace name…" />
+              <button id="btnCreateWorkspace" class="pill-btn tiny" style="font-size:0.6rem;">Create</button>
+            </div>
+            <div class="tiny muted" style="margin-top:4px;">Workspaces: <b id="statWorkspaces" class="ok">0</b></div>
           </div>
 
           <!-- Federation Status (Phase 77) -->
           <div class="panel">
-            <div class="panel-header">Federation / Trust Registry</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Federation / Trust Registry
+              <button id="btnTrustAudit" class="pill-btn tiny" style="font-size:0.6rem;">Audit</button>
+            </div>
             <div id="trustRegistryPanel"
               style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No trusted sources registered.</div>
             </div>
-            <div class="tiny muted" style="margin-top:6px;">Sources: <b id="statTrustSources" class="ok">0</b> |
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="trustSourceInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Source ID to verify…" />
+              <button id="btnTrustVerify" class="pill-btn tiny" style="font-size:0.6rem;">Verify</button>
+            </div>
+            <div class="tiny muted" style="margin-top:4px;">Sources: <b id="statTrustSources" class="ok">0</b> &nbsp;|&nbsp;
               Exchanges: <b id="statExchanges" class="ok">0</b></div>
           </div>
         </div>
@@ -2215,39 +2234,75 @@
         <div class="panel">
           <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
             <span>Graph Analytics</span>
-            <div class="pill tiny secure" style="background:var(--color-ok); color:#000; font-weight:700;">ANALYTICS
+            <div style="display:flex;gap:4px;align-items:center;">
+              <button id="btnGraphHotNodes" class="pill-btn tiny" style="font-size:0.6rem;">Hot Nodes</button>
+              <button id="btnGraphCentrality" class="pill-btn tiny" style="font-size:0.6rem;">Centrality</button>
+              <button id="btnGraphBridges" class="pill-btn tiny" style="font-size:0.6rem;">Bridges</button>
             </div>
           </div>
           <div id="graphAnalyticsPanel"
             style="max-height:180px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
-            <div class="muted">Run autonomous investigation to populate graph analytics.</div>
+            <div class="muted">Run a graph analysis to surface centrality and bridge nodes.</div>
           </div>
+          <div class="tiny muted" style="margin-top:6px;">Top node: <b id="statTopNode" class="ok">—</b> &nbsp;|&nbsp; Bridges: <b id="statBridgeCount" class="ok">0</b></div>
         </div>
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
           <!-- Policy Engine (Phase 79) -->
           <div class="panel">
-            <div class="panel-header">Policy Engine</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Policy Engine
+              <div style="display:flex;gap:4px;">
+                <button id="btnPolicyLoadDefaults" class="pill-btn tiny" style="font-size:0.6rem;">Load Defaults</button>
+                <button id="btnPolicyAudit" class="pill-btn tiny" style="font-size:0.6rem;">Audit Log</button>
+              </div>
+            </div>
             <div id="policyPanel"
               style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No policies loaded.</div>
             </div>
-            <div class="tiny muted" style="margin-top:6px;">Decisions: <b id="statPolicyDecisions" class="ok">0</b>
-            </div>
+            <div class="tiny muted" style="margin-top:6px;">Decisions: <b id="statPolicyDecisions" class="ok">0</b></div>
           </div>
 
           <!-- Enterprise Controls (Phase 80) -->
           <div class="panel">
             <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
               <span>Enterprise Controls</span>
-              <div class="pill tiny secure" style="background:var(--color-accent); font-weight:700;">ENTERPRISE</div>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <button id="btnDeployList" class="pill-btn tiny" style="font-size:0.6rem;">Profiles</button>
+                <button id="btnDeployQuota" class="pill-btn tiny" style="font-size:0.6rem;">Quota</button>
+              </div>
             </div>
             <div id="enterprisePanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:120px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No deployment profile active.</div>
             </div>
-            <div class="tiny muted" style="margin-top:6px;">Profile: <b id="statActiveProfile" class="ok">none</b></div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="deployProfileInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Profile name to activate…" />
+              <button id="btnDeployActivate" class="pill-btn tiny" style="font-size:0.6rem;">Activate</button>
+            </div>
+            <div class="tiny muted" style="margin-top:4px;">Active profile: <b id="statActiveProfile" class="ok">none</b></div>
           </div>
+        </div>
+
+        <!-- Chain of Custody (Phase 58) -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Chain of Custody</span>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <button id="btnAuditGetLogs" class="pill-btn tiny" style="font-size:0.6rem;">Audit Log</button>
+              <button id="btnCustodyGetChain" class="pill-btn tiny" style="font-size:0.6rem;">Custody Chain</button>
+              <button id="btnEvidenceSign" class="pill-btn tiny" style="font-size:0.6rem;background:var(--color-ok);color:#000;">Sign Evidence</button>
+            </div>
+          </div>
+          <div id="custodyChainPanel"
+            style="max-height:160px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+            <div class="muted">Load a case to view custody chain.</div>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:6px;">
+            <input id="custodyFingerprintInput" class="input-field" style="flex:1;font-size:0.6rem;padding:3px 6px;" placeholder="Bundle fingerprint for custody lookup…" />
+            <button id="btnCustodyLookup" class="pill-btn tiny" style="font-size:0.6rem;">Lookup</button>
+          </div>
+          <div class="tiny muted" style="margin-top:4px;">Audit entries: <b id="statAuditEntries" class="ok">0</b> &nbsp;|&nbsp; Custody events: <b id="statCustodyEvents" class="ok">0</b></div>
         </div>
 
         <!-- Collaboration & Publication (Phases 81-85) -->
@@ -6585,6 +6640,313 @@
 
     const globalNeighborInput2 = el('globalNeighborInput');
     if (globalNeighborInput2) globalNeighborInput2.addEventListener('keydown', ev => { if (ev.key === 'Enter') exploreNeighborhood(); });
+
+    // ==================== PHASES 72, 74, 76-80 + CUSTODY WIRING ====================
+
+    // ── Phase 72: Anomaly ML Scoring ────────────────────────────────────────
+    async function scoreAnomalies() {
+      if (!window.electronAPI?.aiScoreAnomalies) { setStatus('Anomaly scorer not available.', 'bad'); return; }
+      const obs = window.caseMgr?.activeCase?.bundles || [];
+      setStatus('Scoring anomalies…', 'ok');
+      try {
+        const result = await window.electronAPI.aiScoreAnomalies(obs);
+        const scores = result?.scores || result || [];
+        const high = scores.filter(s => (s.score ?? s.riskScore ?? 0) >= 0.7).length;
+        const avg = scores.length ? (scores.reduce((a, s) => a + (s.score ?? s.riskScore ?? 0), 0) / scores.length).toFixed(2) : '—';
+        el('statAnomalyHigh').textContent = high;
+        el('statAnomalyAvg').textContent = avg;
+        renderList('anomalyScoringList', scores, s =>
+          `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);">` +
+          `<span class="mono tiny" style="color:var(--text-accent);">${escapeHtml(s.bundleId || s.id || 'bundle')}</span>` +
+          `<span style="color:${(s.score ?? s.riskScore ?? 0) >= 0.7 ? 'var(--color-bad)' : 'var(--color-ok)'};">${((s.score ?? s.riskScore ?? 0) * 100).toFixed(0)}%</span>` +
+          `</div>`
+        );
+        setStatus(`Scored ${scores.length} bundle(s). ${high} high-risk.`, 'ok');
+      } catch(e) { setStatus(`Anomaly scoring failed: ${e.message}`, 'bad'); }
+    }
+    el('btnScoreAnomalies')?.addEventListener('click', scoreAnomalies);
+
+    // ── Phase 74: Cross-Case Mining ──────────────────────────────────────────
+    async function crossMineCases() {
+      if (!window.electronAPI?.crossCaseMine) { setStatus('Cross-case miner not available.', 'bad'); return; }
+      setStatus('Mining cross-case correlations…', 'ok');
+      try {
+        const cases = (await window.electronAPI.caseList?.()) || [];
+        const result = await window.electronAPI.crossCaseMine(cases);
+        const hits = result?.correlations || result?.hits || result || [];
+        el('statCrossCorrelations').textContent = hits.length;
+        renderList('crossCaseResults', hits, h =>
+          `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.64rem;">` +
+          `<span style="color:var(--text-accent);">${escapeHtml(h.caseA || h.from || '?')}</span>` +
+          ` ↔ <span style="color:var(--color-ok);">${escapeHtml(h.caseB || h.to || '?')}</span>` +
+          ` <span class="muted">${escapeHtml(String(h.similarity || h.score || ''))}</span></div>`
+        );
+        setStatus(`${hits.length} cross-case correlation(s) found.`, 'ok');
+      } catch(e) { setStatus(`Cross-case mining failed: ${e.message}`, 'bad'); }
+    }
+    el('btnCrossMineCases')?.addEventListener('click', crossMineCases);
+
+    // ── Phase 76: Workspace Management ──────────────────────────────────────
+    async function listWorkspaces() {
+      if (!window.electronAPI?.wsList) { setStatus('Workspace API not available.', 'bad'); return; }
+      setStatus('Loading workspaces…', 'ok');
+      try {
+        const ws = await window.electronAPI.wsList();
+        const list = ws || [];
+        el('statWorkspaces').textContent = list.length;
+        renderList('workspacePanel', list, w =>
+          `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);">` +
+          `<span style="color:var(--text-accent);font-size:0.64rem;">${escapeHtml(w.name || w.id || 'workspace')}</span>` +
+          `<span class="muted tiny">${(w.members?.length ?? 0)} member(s)</span></div>`
+        );
+        setStatus(`${list.length} workspace(s) loaded.`, 'ok');
+      } catch(e) { setStatus(`Workspace list failed: ${e.message}`, 'bad'); }
+    }
+    async function createWorkspace() {
+      const name = el('wsNameInput')?.value?.trim();
+      if (!name) { setStatus('Enter a workspace name.', 'bad'); return; }
+      if (!window.electronAPI?.wsCreate) { setStatus('Workspace API not available.', 'bad'); return; }
+      setStatus(`Creating workspace "${name}"…`, 'ok');
+      try {
+        await window.electronAPI.wsCreate(name, {});
+        el('wsNameInput').value = '';
+        setStatus(`Workspace "${name}" created.`, 'ok');
+        await listWorkspaces();
+      } catch(e) { setStatus(`Workspace create failed: ${e.message}`, 'bad'); }
+    }
+    el('btnListWorkspaces')?.addEventListener('click', listWorkspaces);
+    el('btnCreateWorkspace')?.addEventListener('click', createWorkspace);
+    el('wsNameInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') createWorkspace(); });
+
+    // ── Phase 77: Trust Registry ─────────────────────────────────────────────
+    async function trustAudit() {
+      if (!window.electronAPI?.trustAudit) { setStatus('Trust registry not available.', 'bad'); return; }
+      setStatus('Loading trust audit…', 'ok');
+      try {
+        const result = await window.electronAPI.trustAudit();
+        const exchanges = result?.exchanges || result || [];
+        el('statExchanges').textContent = exchanges.length;
+        renderList('trustRegistryPanel', exchanges, x =>
+          `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.64rem;">` +
+          `<span style="color:var(--text-accent);">${escapeHtml(x.sourceId || x.id || 'source')}</span>` +
+          ` <span class="muted">${escapeHtml(x.action || x.type || '')} · ${escapeHtml(String(x.timestamp || ''))}</span></div>`
+        );
+        setStatus(`${exchanges.length} exchange(s) in trust audit.`, 'ok');
+      } catch(e) { setStatus(`Trust audit failed: ${e.message}`, 'bad'); }
+    }
+    async function trustVerifySource() {
+      const id = el('trustSourceInput')?.value?.trim();
+      if (!id) { setStatus('Enter a source ID.', 'bad'); return; }
+      if (!window.electronAPI?.trustVerify) { setStatus('Trust registry not available.', 'bad'); return; }
+      setStatus(`Verifying source "${id}"…`, 'ok');
+      try {
+        const result = await window.electronAPI.trustVerify(id);
+        const trusted = result?.trusted ?? result?.status === 'trusted' ?? false;
+        const sourceCountEl = el('statTrustSources');
+        if (sourceCountEl) sourceCountEl.textContent = trusted ? '1+' : '0';
+        el('trustRegistryPanel').innerHTML =
+          `<div style="padding:6px;font-size:0.64rem;color:${trusted ? 'var(--color-ok)' : 'var(--color-bad)'};">` +
+          `Source <b>${escapeHtml(id)}</b>: ${trusted ? 'TRUSTED ✓' : 'UNTRUSTED ✗'}</div>`;
+        setStatus(`Source "${id}" is ${trusted ? 'trusted' : 'NOT trusted'}.`, trusted ? 'ok' : 'bad');
+      } catch(e) { setStatus(`Trust verify failed: ${e.message}`, 'bad'); }
+    }
+    el('btnTrustAudit')?.addEventListener('click', trustAudit);
+    el('btnTrustVerify')?.addEventListener('click', trustVerifySource);
+    el('trustSourceInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') trustVerifySource(); });
+
+    // ── Phase 78: Graph Analytics ────────────────────────────────────────────
+    async function runGraphAnalytics(mode) {
+      if (!window.electronAPI) { setStatus('Graph analytics not available.', 'bad'); return; }
+      const graph = window._lastIntelGraph || { nodes: [], edges: [] };
+      setStatus(`Running graph ${mode}…`, 'ok');
+      try {
+        let result, label;
+        if (mode === 'hot') {
+          result = await window.electronAPI.graphHotNodes(graph);
+          label = 'Hot Nodes';
+          const nodes = result?.hotNodes || result?.nodes || result || [];
+          const top = nodes[0]?.id || nodes[0] || '—';
+          el('statTopNode').textContent = String(top);
+          renderList('graphAnalyticsPanel', nodes, n =>
+            `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);">` +
+            `<span style="color:var(--text-accent);font-size:0.64rem;">${escapeHtml(String(n.id || n))}</span>` +
+            `<span class="muted tiny">score: ${escapeHtml(String(n.score ?? n.heat ?? ''))}</span></div>`
+          );
+          setStatus(`${nodes.length} hot node(s) scored.`, 'ok');
+        } else if (mode === 'centrality') {
+          result = await window.electronAPI.graphCentrality(graph);
+          label = 'Centrality';
+          const scores = result?.scores ? Object.entries(result.scores) : [];
+          scores.sort((a,b) => b[1] - a[1]);
+          if (scores.length) el('statTopNode').textContent = scores[0][0];
+          renderList('graphAnalyticsPanel', scores, ([id, score]) =>
+            `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);">` +
+            `<span style="color:var(--text-accent);font-size:0.64rem;">${escapeHtml(id)}</span>` +
+            `<span class="muted tiny">${(score * 100).toFixed(1)}%</span></div>`
+          );
+          setStatus(`Centrality computed for ${scores.length} node(s).`, 'ok');
+        } else if (mode === 'bridges') {
+          result = await window.electronAPI.graphBridges(graph);
+          label = 'Bridges';
+          const bridges = result?.bridges || result || [];
+          el('statBridgeCount').textContent = bridges.length;
+          renderList('graphAnalyticsPanel', bridges, b =>
+            `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.64rem;color:var(--color-warn);">` +
+            `BRIDGE: ${escapeHtml(String(b.edge || b.from || b))}</div>`
+          );
+          setStatus(`${bridges.length} bridge edge(s) detected.`, 'ok');
+        }
+      } catch(e) { setStatus(`Graph ${mode} failed: ${e.message}`, 'bad'); }
+    }
+    el('btnGraphHotNodes')?.addEventListener('click', () => runGraphAnalytics('hot'));
+    el('btnGraphCentrality')?.addEventListener('click', () => runGraphAnalytics('centrality'));
+    el('btnGraphBridges')?.addEventListener('click', () => runGraphAnalytics('bridges'));
+
+    // ── Phase 79: Policy Engine ──────────────────────────────────────────────
+    async function policyLoadDefaults() {
+      if (!window.electronAPI?.policyLoad) { setStatus('Policy engine not available.', 'bad'); return; }
+      setStatus('Loading default policies…', 'ok');
+      try {
+        const defaults = [
+          { id: 'EXPORT_CONTROL', action: 'export', allow: true },
+          { id: 'REDACT_REQUIRED', action: 'publish', requireRedact: true },
+          { id: 'SEAL_ON_CLOSE', action: 'close_case', sealEvidence: true }
+        ];
+        await window.electronAPI.policyLoad(defaults);
+        renderList('policyPanel', defaults, p =>
+          `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.64rem;">` +
+          `<span style="color:var(--text-accent);">${escapeHtml(p.id)}</span>` +
+          `<span class="muted">${escapeHtml(p.action)}</span></div>`
+        );
+        el('statPolicyDecisions').textContent = defaults.length;
+        setStatus(`${defaults.length} default polic(ies) loaded.`, 'ok');
+      } catch(e) { setStatus(`Policy load failed: ${e.message}`, 'bad'); }
+    }
+    async function policyAuditLog() {
+      if (!window.electronAPI?.policyAudit) { setStatus('Policy engine not available.', 'bad'); return; }
+      setStatus('Loading policy audit log…', 'ok');
+      try {
+        const log = await window.electronAPI.policyAudit();
+        const entries = log?.entries || log || [];
+        el('statPolicyDecisions').textContent = entries.length;
+        renderList('policyPanel', entries, e =>
+          `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.64rem;">` +
+          `<span style="color:${e.allowed ? 'var(--color-ok)' : 'var(--color-bad)'};">${e.allowed ? 'ALLOW' : 'DENY'}</span>` +
+          ` <span class="muted">${escapeHtml(e.action || e.rule || '')} · ${escapeHtml(String(e.timestamp || ''))}</span></div>`
+        );
+        setStatus(`${entries.length} policy decision(s) in log.`, 'ok');
+      } catch(e) { setStatus(`Policy audit failed: ${e.message}`, 'bad'); }
+    }
+    el('btnPolicyLoadDefaults')?.addEventListener('click', policyLoadDefaults);
+    el('btnPolicyAudit')?.addEventListener('click', policyAuditLog);
+
+    // ── Phase 80: Enterprise Controls / Deployment Profiles ──────────────────
+    async function listDeployProfiles() {
+      if (!window.electronAPI?.deployList) { setStatus('Deployment profiles not available.', 'bad'); return; }
+      setStatus('Loading deployment profiles…', 'ok');
+      try {
+        const profiles = await window.electronAPI.deployList();
+        const list = profiles || [];
+        renderList('enterprisePanel', list, p =>
+          `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);">` +
+          `<span style="color:var(--text-accent);font-size:0.64rem;">${escapeHtml(p.name || p.id || 'profile')}</span>` +
+          `<span class="pill tiny" style="background:${p.active ? 'var(--color-ok)' : 'rgba(255,255,255,0.08)'};color:${p.active ? '#000' : 'inherit'};">${p.active ? 'ACTIVE' : 'idle'}</span></div>`
+        );
+        const active = list.find(p => p.active);
+        if (active) el('statActiveProfile').textContent = active.name || active.id;
+        setStatus(`${list.length} profile(s) available.`, 'ok');
+      } catch(e) { setStatus(`Profile list failed: ${e.message}`, 'bad'); }
+    }
+    async function deployQuotaReport() {
+      if (!window.electronAPI?.deployQuota) { setStatus('Quota API not available.', 'bad'); return; }
+      setStatus('Loading quota report…', 'ok');
+      try {
+        const quota = await window.electronAPI.deployQuota();
+        el('enterprisePanel').innerHTML =
+          `<div style="font-size:0.64rem;padding:6px;display:flex;flex-direction:column;gap:4px;">` +
+          `<div><span class="muted">Decode quota:</span> <b style="color:var(--color-ok);">${quota?.decodeQuota ?? '∞'}</b></div>` +
+          `<div><span class="muted">Cases used:</span> <b style="color:var(--color-ok);">${quota?.casesUsed ?? 0}</b></div>` +
+          `<div><span class="muted">Storage:</span> <b style="color:var(--color-ok);">${quota?.storageUsedMb ?? 0} MB</b></div>` +
+          `<div><span class="muted">Tier:</span> <b style="color:var(--text-accent);">${quota?.tier ?? 'COMMUNITY'}</b></div>` +
+          `</div>`;
+        setStatus('Quota report loaded.', 'ok');
+      } catch(e) { setStatus(`Quota report failed: ${e.message}`, 'bad'); }
+    }
+    async function deployActivateProfile() {
+      const name = el('deployProfileInput')?.value?.trim();
+      if (!name) { setStatus('Enter a profile name.', 'bad'); return; }
+      if (!window.electronAPI?.deployActivate) { setStatus('Deployment API not available.', 'bad'); return; }
+      setStatus(`Activating profile "${name}"…`, 'ok');
+      try {
+        await window.electronAPI.deployActivate(name);
+        el('statActiveProfile').textContent = name;
+        el('deployProfileInput').value = '';
+        setStatus(`Profile "${name}" activated.`, 'ok');
+        await listDeployProfiles();
+      } catch(e) { setStatus(`Profile activation failed: ${e.message}`, 'bad'); }
+    }
+    el('btnDeployList')?.addEventListener('click', listDeployProfiles);
+    el('btnDeployQuota')?.addEventListener('click', deployQuotaReport);
+    el('btnDeployActivate')?.addEventListener('click', deployActivateProfile);
+    el('deployProfileInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') deployActivateProfile(); });
+
+    // ── Phase 58: Chain of Custody ────────────────────────────────────────────
+    async function auditGetLogs() {
+      if (!window.electronAPI?.auditGetLogs) { setStatus('Audit API not available.', 'bad'); return; }
+      setStatus('Loading audit log…', 'ok');
+      try {
+        const logs = await window.electronAPI.auditGetLogs();
+        const entries = logs || [];
+        el('statAuditEntries').textContent = entries.length;
+        renderList('custodyChainPanel', entries, e =>
+          `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.64rem;">` +
+          `<span style="color:var(--text-accent);">${escapeHtml(e.type || e.event || 'AUDIT')}</span>` +
+          ` <span class="muted">${escapeHtml(String(e.timestamp || e.ts || ''))}</span>` +
+          ` <span style="font-size:0.6rem;color:rgba(255,255,255,0.4);">${escapeHtml(JSON.stringify(e.data || {}).slice(0,60))}</span></div>`
+        );
+        setStatus(`${entries.length} audit log entries.`, 'ok');
+      } catch(e) { setStatus(`Audit log failed: ${e.message}`, 'bad'); }
+    }
+    async function custodyGetChain() {
+      const fp = el('custodyFingerprintInput')?.value?.trim() || (window.caseMgr?.activeCase?.bundles?.[0]?.fingerprint);
+      if (!fp) { setStatus('No fingerprint — load a case or enter one.', 'bad'); return; }
+      if (!window.electronAPI?.custodyGetChain) { setStatus('Custody API not available.', 'bad'); return; }
+      setStatus(`Loading custody chain for ${fp.slice(0,12)}…`, 'ok');
+      try {
+        const chain = await window.electronAPI.custodyGetChain(fp);
+        const events = chain?.events || chain || [];
+        el('statCustodyEvents').textContent = events.length;
+        renderList('custodyChainPanel', events, ev =>
+          `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.64rem;">` +
+          `<span class="pill tiny" style="background:rgba(42,198,255,0.15);color:var(--text-accent);">${escapeHtml(ev.action || ev.type || 'EVENT')}</span>` +
+          ` <span class="muted">${escapeHtml(String(ev.timestamp || ev.ts || ''))}</span>` +
+          ` ${escapeHtml(ev.details || ev.by || '')}</div>`
+        );
+        setStatus(`${events.length} custody event(s) for fingerprint.`, 'ok');
+      } catch(e) { setStatus(`Custody chain failed: ${e.message}`, 'bad'); }
+    }
+    async function evidenceSignActive() {
+      if (!window.electronAPI?.evidenceSign) { setStatus('Evidence sign API not available.', 'bad'); return; }
+      const caseData = window.caseMgr?.activeCase;
+      if (!caseData) { setStatus('Load a case before signing.', 'bad'); return; }
+      setStatus('Signing evidence bundle…', 'ok');
+      try {
+        const result = await window.electronAPI.evidenceSign(caseData);
+        el('custodyChainPanel').innerHTML =
+          `<div style="padding:8px;font-size:0.64rem;color:var(--color-ok);">` +
+          `Evidence SIGNED ✓<br><span class="mono" style="word-break:break-all;font-size:0.58rem;">${escapeHtml(result?.signature?.slice(0,64) || String(result))}</span></div>`;
+        setStatus('Evidence signed and recorded.', 'ok');
+      } catch(e) { setStatus(`Sign failed: ${e.message}`, 'bad'); }
+    }
+    async function custodyLookup() {
+      const fp = el('custodyFingerprintInput')?.value?.trim();
+      if (fp) await custodyGetChain();
+    }
+    el('btnAuditGetLogs')?.addEventListener('click', auditGetLogs);
+    el('btnCustodyGetChain')?.addEventListener('click', custodyGetChain);
+    el('btnEvidenceSign')?.addEventListener('click', evidenceSignActive);
+    el('btnCustodyLookup')?.addEventListener('click', custodyLookup);
+    el('custodyFingerprintInput')?.addEventListener('keydown', ev => { if (ev.key === 'Enter') custodyLookup(); });
 
     // ==================== v1.6.0 POLISH ====================
 

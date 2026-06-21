@@ -241,7 +241,69 @@ async function injectBridge(page) {
       advOperatorModel: async (operatorId, logs) => ({ profile: `Operator ${operatorId}: HIGH_PRECISION analyst. 94% accuracy. Avg decision time: 2.3s.` }),
       advOperatorGet: async (id) => ({ profile: `Profile: ${id}` }),
       advPredictFuture: async (trends, profile) => ({ forecast: [{ horizon: "7d", riskLevel: "LOW", trajectory: "STABLE" }, { horizon: "30d", riskLevel: "MEDIUM", trajectory: "ESCALATING" }] }),
-      advAssistantSynthesize: async (seq, logs) => ({ synthesis: "Synthesis complete. 3 subsystems correlated. Recommend: escalate to Tier-2 review. Confidence: 0.91." })
+      advAssistantSynthesize: async (seq, logs) => ({ synthesis: "Synthesis complete. 3 subsystems correlated. Recommend: escalate to Tier-2 review. Confidence: 0.91." }),
+      // Phase 58 — Chain of Custody
+      auditGetLogs: async () => [
+        { type: "DECODE", timestamp: "2025-01-01T00:00:00Z", data: { bundle: "B-001" } },
+        { type: "SIGN", timestamp: "2025-01-01T00:01:00Z", data: { caseId: "CASE-E2E" } }
+      ],
+      auditLog: async () => ({ success: true }),
+      custodyGetChain: async (fp) => ({ events: [
+        { action: "RECORDED", timestamp: "2025-01-01T00:00:00Z", by: "analyst-1", details: fp },
+        { action: "VERIFIED", timestamp: "2025-01-01T00:01:00Z", by: "system", details: "hash match" }
+      ]}),
+      custodyRecord: async () => ({ success: true }),
+      evidenceSign: async (data) => ({ signature: "e2e-sig-abc123def456789012345678901234567890abcdef01234567890abcdef0123", algorithm: "ED25519" }),
+      evidenceVerify: async () => ({ valid: true }),
+      evidenceSealCase: async () => ({ sealed: true }),
+      // Phase 72 — Anomaly Scoring
+      aiScoreAnomalies: async (obs) => ({
+        scores: (obs && obs.length)
+          ? obs.map((b, i) => ({ id: b?.id || `B-00${i}`, bundleId: b?.fingerprint || `fp-${i}`, score: i % 3 === 0 ? 0.87 : 0.23 }))
+          : [{ id: "B-SYNTHETIC", bundleId: "fp-synthetic", score: 0.42 }, { id: "B-HIGH", bundleId: "fp-high", score: 0.91 }]
+      }),
+      // Phase 74 — Cross-Case Mining
+      crossCaseMine: async (cases) => ({ correlations: [
+        { caseA: "CASE-001", caseB: "CASE-002", similarity: "0.82", sharedNodes: 3 },
+        { caseA: "CASE-001", caseB: "CASE-003", similarity: "0.61", sharedNodes: 1 }
+      ]}),
+      // Phase 76 — Workspace Management
+      wsList: async () => [
+        { id: "WS-001", name: "Alpha Team", members: ["analyst-1", "analyst-2"] },
+        { id: "WS-002", name: "Beta Team", members: ["analyst-3"] }
+      ],
+      wsCreate: async (name, opts) => ({ id: `WS-${Date.now()}`, name, members: [] }),
+      wsAddMember: async () => ({ success: true }),
+      wsAssignCase: async () => ({ success: true }),
+      wsActivityFeed: async () => [],
+      // Phase 77 — Trust Registry
+      trustAudit: async () => [
+        { id: "SRC-001", sourceId: "cdn-trust.test", action: "VERIFIED", timestamp: "2025-01-01T00:00:00Z" },
+        { id: "SRC-002", sourceId: "partner.test", action: "ADDED", timestamp: "2025-01-01T00:01:00Z" }
+      ],
+      trustAddSource: async () => ({ success: true }),
+      trustVerify: async (id) => ({ trusted: true, sourceId: id, verifiedAt: new Date().toISOString() }),
+      trustLogExchange: async () => ({ success: true }),
+      // Phase 78 — Graph Analytics
+      graphHotNodes: async (g) => ({ hotNodes: [{ id: "cdn-primary.test", score: 0.97 }, { id: "edge-node-1.test", score: 0.74 }] }),
+      graphBridges: async (g) => ({ bridges: [{ edge: "cdn-a→cdn-b", from: "cdn-a.test", to: "cdn-b.test" }] }),
+      graphRankClusters: async (g) => ({ clusters: [] }),
+      // Phase 79 — Policy Engine
+      policyLoad: async (rules) => ({ loaded: rules.length }),
+      policyEvaluate: async () => ({ allowed: true }),
+      policyCheck: async () => ({ allowed: true }),
+      policyAudit: async () => [
+        { rule: "EXPORT_CONTROL", action: "export", allowed: true, timestamp: "2025-01-01T00:00:00Z" },
+        { rule: "REDACT_REQUIRED", action: "publish", allowed: false, timestamp: "2025-01-01T00:01:00Z" }
+      ],
+      // Phase 80 — Deployment Profiles
+      deployList: async () => [
+        { id: "PROFILE-STANDARD", name: "Standard", active: true },
+        { id: "PROFILE-ENTERPRISE", name: "Enterprise", active: false }
+      ],
+      deployActivate: async (name) => ({ activated: name }),
+      deployCompliance: async () => ({ compliant: true }),
+      deployQuota: async () => ({ decodeQuota: 10000, casesUsed: 47, storageUsedMb: 238, tier: "PROFESSIONAL" })
     };
   }, MOCK_CASE, MOCK_DECODE_RESULT);
 }
@@ -711,4 +773,134 @@ test("workflow: decode → create case → generate briefing → threat report",
   // Step 5: footer reflects active case
   const footerCase = await page.locator("#footerCase").textContent();
   expect(footerCase).toMatch(/Case:/i);
+});
+
+// ─── Test 26: Phase 58 — Audit Log ───────────────────────────────────────────
+
+test("chain of custody: Audit Log populates custody panel", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnAuditGetLogs");
+
+  await expect(page.locator("#custodyChainPanel")).not.toContainText("Load a case", { timeout: 6000 });
+  const text = await page.locator("#custodyChainPanel").textContent();
+  expect(text).toMatch(/DECODE|SIGN|AUDIT/i);
+  const entries = await page.locator("#statAuditEntries").textContent();
+  expect(parseInt(entries)).toBeGreaterThan(0);
+});
+
+// ─── Test 27: Phase 58 — Evidence Sign ───────────────────────────────────────
+
+test("chain of custody: Sign Evidence outputs signature", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnEvidenceSign");
+
+  await expect(page.locator("#custodyChainPanel")).not.toContainText("Load a case", { timeout: 6000 });
+  const text = await page.locator("#custodyChainPanel").textContent();
+  expect(text).toMatch(/SIGNED|e2e-sig/i);
+});
+
+// ─── Test 28: Phase 72 — Anomaly Scoring ─────────────────────────────────────
+
+test("anomaly scoring: Score Bundles renders scored list with stats", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnScoreAnomalies");
+
+  await expect(page.locator("#anomalyScoringList")).not.toContainText("Scores bundles", { timeout: 6000 });
+  const high = await page.locator("#statAnomalyHigh").textContent();
+  const avg = await page.locator("#statAnomalyAvg").textContent();
+  expect(avg).not.toBe("—");
+  expect(parseInt(high)).toBeGreaterThanOrEqual(0);
+});
+
+// ─── Test 29: Phase 74 — Cross-Case Mining ───────────────────────────────────
+
+test("cross-case mining: Mine Cases populates correlation results", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnCrossMineCases");
+
+  await expect(page.locator("#crossCaseResults")).not.toContainText("not yet run", { timeout: 6000 });
+  const text = await page.locator("#crossCaseResults").textContent();
+  expect(text).toMatch(/CASE-001|CASE-002/i);
+  const count = await page.locator("#statCrossCorrelations").textContent();
+  expect(parseInt(count)).toBeGreaterThan(0);
+});
+
+// ─── Test 30: Phase 76 — Workspace Management ────────────────────────────────
+
+test("workspace management: List populates workspace panel", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnListWorkspaces");
+
+  await expect(page.locator("#workspacePanel")).not.toContainText("No workspaces", { timeout: 6000 });
+  const text = await page.locator("#workspacePanel").textContent();
+  expect(text).toMatch(/Alpha Team|Beta Team/i);
+  const count = await page.locator("#statWorkspaces").textContent();
+  expect(parseInt(count)).toBeGreaterThan(0);
+});
+
+// ─── Test 31: Phase 77 — Trust Registry ──────────────────────────────────────
+
+test("trust registry: Audit renders exchange list with counts", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnTrustAudit");
+
+  await expect(page.locator("#trustRegistryPanel")).not.toContainText("No trusted sources", { timeout: 6000 });
+  const text = await page.locator("#trustRegistryPanel").textContent();
+  expect(text).toMatch(/cdn-trust|partner/i);
+  const exchanges = await page.locator("#statExchanges").textContent();
+  expect(parseInt(exchanges)).toBeGreaterThan(0);
+});
+
+// ─── Test 32: Phase 78 — Graph Analytics: Hot Nodes ──────────────────────────
+
+test("graph analytics: Hot Nodes surfaces top node stat", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnGraphHotNodes");
+
+  await expect(page.locator("#graphAnalyticsPanel")).not.toContainText("Run a graph analysis", { timeout: 6000 });
+  const topNode = await page.locator("#statTopNode").textContent();
+  expect(topNode).not.toBe("—");
+  expect(topNode.length).toBeGreaterThan(2);
+});
+
+// ─── Test 33: Phase 79 — Policy Engine ───────────────────────────────────────
+
+test("policy engine: Load Defaults populates panel with policy rules", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnPolicyLoadDefaults");
+
+  await expect(page.locator("#policyPanel")).not.toContainText("No policies", { timeout: 6000 });
+  const text = await page.locator("#policyPanel").textContent();
+  expect(text).toMatch(/EXPORT_CONTROL|REDACT_REQUIRED|SEAL_ON_CLOSE/i);
+  const decisions = await page.locator("#statPolicyDecisions").textContent();
+  expect(parseInt(decisions)).toBeGreaterThan(0);
+});
+
+// ─── Test 34: Phase 80 — Enterprise Controls: Quota ──────────────────────────
+
+test("enterprise controls: Quota report renders tier and usage", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnDeployQuota");
+
+  await expect(page.locator("#enterprisePanel")).not.toContainText("No deployment profile", { timeout: 6000 });
+  const text = await page.locator("#enterprisePanel").textContent();
+  expect(text).toMatch(/PROFESSIONAL|quota|Tier/i);
 });
