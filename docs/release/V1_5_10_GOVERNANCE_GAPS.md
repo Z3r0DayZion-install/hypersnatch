@@ -3,7 +3,7 @@
 Date: 2026-03-22  
 Branch: `release-readiness/v1.5.10-hardening`
 
-This file tracks open truth/proof/governance gaps after slices 1 through 6.
+This file tracks open truth/proof/governance gaps after slices 1 through 7.
 
 ## Open Gaps
 
@@ -11,7 +11,7 @@ This file tracks open truth/proof/governance gaps after slices 1 through 6.
 |---|---|---|---|---|---|
 | G-02 | P1 | Packaged interaction proof is still partially indirect (marker/harness heavy) | `e2e/operator_ui.spec.js` (slice 6): 12-test Playwright click-path spec with stubbed IPC bridge, all passing; remaining gap is live Electron runtime IPC (no stub) | Technical + proof docs | Partially closed (click-path E2E added in slice 6; live packaged Electron runner bounded-deferred) |
 | G-03 | P1 | Default strict signoff proves artifact/hash contract but does not by itself prove external signing trust acceptance | define explicit signing contract for stable releases (required vs optional), then align docs and automation checks accordingly | Policy + possible technical enforcement | Open (bounded-deferred in slice 4) |
-| G-04 | P2 | Some legacy docs outside top-level governance packet can still imply stronger trust/support than current proof surfaces | run scoped doc sweep on release/setup/user docs and downgrade overclaims to claim-map language | Doc-only | Open |
+| G-04 | P2 | Some legacy docs outside top-level governance packet can still imply stronger trust/support than current proof surfaces | scoped doc sweep completed in slice 7: `USER_GUIDE.md`, `VERIFY_RELEASE.md`, `SUPPLY_CHAIN_SECURITY.md`, `RELEASE_DAY_CHECKLIST.md` — proof-boundary caveats added, stale version stamps updated, signing/SLSA/Sigstore items marked aspirational | Doc-only | Closed (slice 7) |
 | G-05 | P2 | Clean-machine assumptions are documented but not machine-checked by a dedicated preflight script | optionally add a narrow preflight checker for required environment assumptions (no runtime behavior change) | Technical (supporting tooling) | Open |
 | G-06 | P2 | `electron-builder` transitive dependency chain has 6 high-severity vulns not addressable without breaking changes | track as bounded-deferred; address during `electron-builder` upgrade cycle outside `v1.5.10` hardening scope | Dependency upgrade (out of scope for hardening lane) | Open (bounded-deferred in slice 5) |
 
@@ -46,6 +46,13 @@ This file tracks open truth/proof/governance gaps after slices 1 through 6.
    - `docs/release/V1_5_10_PDG_CLOSURE.md`
 2. Branch-level hardening decision is explicit via:
    - `docs/release/V1_5_10_HARDENING_DECISION.md`
+
+## Closed in Slice 7 (G-04 Doc Sweep — Overclaim Downgrade)
+
+1. `docs/USER_GUIDE.md`: version stamp updated `v1.5.2` → `v1.5.9`; footer `Sovereign Authority Verified` replaced with scoped integrity claim.
+2. `docs/VERIFY_RELEASE.md`: proof-boundary caveat added — signing artifacts (`manifest.sig`, `provenance.json`, etc.) not present in current release.
+3. `docs/SUPPLY_CHAIN_SECURITY.md`: caveat added — Sigstore/SLSA/Ed25519/transparency log entries are aspirational, not currently active.
+4. `docs/RELEASE_DAY_CHECKLIST.md`: caveat added — active vs planned pipeline steps clarified; example version refs (`v1.3.1`) noted as examples only.
 
 ## Closed in Slice 6 (PDG-01 Click-Path E2E Proof Deepening)
 

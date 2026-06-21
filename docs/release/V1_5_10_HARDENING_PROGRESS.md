@@ -13,6 +13,7 @@ Branch: `release-readiness/v1.5.10-hardening`
 | PDG closure decision (runtime interaction + trust acceptance) | P1 | Completed (slice 4) | PDG-01/PDG-02 closure state is explicitly classified as bounded-deferred with evidence-backed non-closure rationale | full required gate order executed and passed |
 | PDG-01 click-path E2E proof deepening | P1 | Completed (slice 6) | `e2e/operator_ui.spec.js`: 12-test Playwright spec against real operator HTML with stubbed IPC bridge, all 12 passing; G-02 materially narrowed; remaining gap is live Electron runtime IPC wiring (bounded-deferred) | full required gate order executed and passed |
 | Operator friction reduction | P1 | Pending | reduce ambiguous signoff/release steps and interpretation burden | run full required gate order after real slices |
+| G-04 doc sweep — overclaim downgrade | P2 | Completed (slice 7) | proof-boundary caveats added to `USER_GUIDE.md`, `VERIFY_RELEASE.md`, `SUPPLY_CHAIN_SECURITY.md`, `RELEASE_DAY_CHECKLIST.md`; stale version stamps updated; signing/SLSA/Sigstore items marked aspirational | audit:stable APPROVED |
 | UI/brand/CLI/dist hygiene + dependency audit refresh | P1 | Completed (slice 5) | CLI version drift closed; dist stale-artifact hygiene enforced; UI brand identity applied; dev dependency vuln surface reduced from 15 to 6 (electron-builder chain bounded-deferred); gate order re-passed on updated lockfile | full required gate order executed and passed |
 
 ## Slice 1 Log (Governance/Setup Truth Closure)
@@ -313,6 +314,39 @@ Unexpected output changes check:
 
 - only `e2e/operator_ui.spec.js` and `docs/release/` modified
 - no runtime code surface changes; no working-tree drift outside expected scope
+
+## Slice 7 Log (G-04 Doc Sweep — Overclaim Downgrade)
+
+Date: 2026-06-21  
+Branch: `main` (committed at `ae59d7c9`)
+
+Start status:
+
+- scope: docs only (`docs/USER_GUIDE.md`, `docs/VERIFY_RELEASE.md`, `docs/SUPPLY_CHAIN_SECURITY.md`, `docs/RELEASE_DAY_CHECKLIST.md`)
+- runtime/code surface changed: no
+
+Completed slice-7 outputs:
+
+- `docs/USER_GUIDE.md`: version `v1.5.2` → `v1.5.9`; footer downgraded from `Sovereign Authority Verified` to scoped artifact/hash integrity claim
+- `docs/VERIFY_RELEASE.md`: proof-boundary caveat — signing artifacts not present in current release; steps 3-8 are aspirational
+- `docs/SUPPLY_CHAIN_SECURITY.md`: caveat — Sigstore keyless, SLSA provenance, Ed25519 manifest sig, transparency log, CI tag verification are aspirational/planned; SHA256 and manifest hash verification are active
+- `docs/RELEASE_DAY_CHECKLIST.md`: caveat — active vs planned pipeline steps clarified; `v1.3.1` example refs noted as examples only
+- `docs/release/V1_5_10_GOVERNANCE_GAPS.md`: G-04 closed; slice 7 closed items added
+- `docs/release/V1_5_10_HARDENING_PROGRESS.md` (this file): progress grid + slice 7 log added
+
+Slice-7 evidence summary:
+
+- All four user-facing docs now carry explicit proof-boundary caveats aligned to `V1_5_10_SIGNOFF_LANGUAGE_NORMALIZATION.md` norms
+- No signing/SLSA/Sigstore capability claims remain unqualified in current-release docs
+- G-04 closed; no new gaps introduced
+
+Required gate order status:
+
+- `npm run audit:stable` — PASS (`SIGNOFF STATUS: APPROVED`)
+
+Unexpected output changes check:
+
+- only `docs/` modified; no runtime, test, or build surface changes
 
 ## Notes
 
