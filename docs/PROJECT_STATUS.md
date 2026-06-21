@@ -1,7 +1,8 @@
 # HyperSnatch Status Summary
 
-Current stable release: `1.5.9`  
-Current hardening target: `1.5.10` (truth/proof/governance/dependency closure before expansion)  
+Current stable release: `1.5.9` (tagged; `v1.5.10` hardening commits on `main`)  
+Current hardening state: `v1.5.10` — all 5 charter exit criteria satisfied (slices 1–9 complete)  
+Expansion gate: **OPEN** — `feat/v1.6.0-expansion` is now unblocked  
 Current prerelease checkpoints: `1.5.0-beta.1` and `1.4.0-beta.1` (published, closed)
 
 Core platform status:
@@ -20,7 +21,8 @@ Core platform status:
 - `v1.5.8` trust/proof hardening + identity release shipped with clean proof
 - `v1.5.9` trust/proof/governance hardening + identity release shipped with clean proof
 - Post-`v1.5.9` reality audit decision: complete `v1.5.10` hardening before any `v1.6.0` expansion
-- Active branch: `release-readiness/v1.5.10-hardening`
+- `v1.5.10` hardening: **complete** (slices 1–9; all P1 gaps closed; G-02/G-03/G-06 bounded-deferred)
+- Active lane: `feat/v1.6.0-expansion` (expansion gate open as of 2026-06-21)
 
 Release discipline status:
 
@@ -30,9 +32,18 @@ Release discipline status:
 - v1.5.x maintenance lines continue to require clean-worktree proof before tagging
 - stable tagging requires strict signoff (`npm run audit:stable` -> `SIGNOFF STATUS: APPROVED`)
 
-Current `v1.5.10` hardening focus:
+v1.5.10 hardening summary (complete):
 
-- governance/status/setup narrative consistency with shipped `v1.5.9` truth
-- dependency warning baseline refresh on the current shipped line
-- packaged/runtime proof-depth strengthening for operator-critical interaction flows
-- conservative claim language where proof remains indirect
+- governance/status/setup narrative: closed (slice 1)
+- dependency baseline: closed (slice 2)
+- direct-proof conversion: closed (slice 3)
+- PDG closure decision: closed (slice 4)
+- UI/brand/CLI/dist hygiene: closed (slice 5)
+- PDG-01 click-path E2E spec (12 passing): closed (slice 6)
+- G-04 doc sweep / overclaim downgrade: closed (slice 7)
+- G-05 preflight checker (`npm run preflight`): closed (slice 8)
+- Operator friction / release gate (`npm run release:gate`): closed (slice 9)
+
+v1.6.0 expansion scope (active):
+
+- to be defined in `docs/release/V1_6_0_EXPANSION_CHARTER.md`

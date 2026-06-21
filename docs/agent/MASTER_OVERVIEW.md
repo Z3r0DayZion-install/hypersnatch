@@ -1,7 +1,7 @@
 # HyperSnatch Stewardship & Dev Agent Pack
 
-Project: HyperSnatch `v1.5.9` (stable) with active hardening lane `release-readiness/v1.5.10-hardening`  
-Status: Active trust/governance/proof-depth hardening (`feat/v1.6.0-expansion` remains blocked until `v1.5.10` exits cleanly)
+Project: HyperSnatch `v1.5.9` (stable) — `v1.5.10` hardening complete (slices 1–9)  
+Status: **Expansion gate OPEN** — `feat/v1.6.0-expansion` is now the active lane
 
 Purpose:
 This pack allows human developers or AI coding agents to immediately understand the HyperSnatch system.

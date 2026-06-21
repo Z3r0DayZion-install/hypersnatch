@@ -1467,6 +1467,10 @@
           aria-selected="false" tabindex="-1" style="color:var(--text-accent);">SmartSnatch Queue</button>
         <button id="tabBtnCases" class="tab-btn" data-tab="tabCases" role="tab" aria-controls="tabCases"
           aria-selected="false" tabindex="-1" style="color:var(--color-ok);">Investigation Cases</button>
+        <button id="tabBtnIntelligence" class="tab-btn" data-tab="tabIntelligence" role="tab" aria-controls="tabIntelligence"
+          aria-selected="false" tabindex="-1" style="color:#c084fc;">Intelligence</button>
+        <button id="tabBtnPatterns" class="tab-btn" data-tab="tabPatterns" role="tab" aria-controls="tabPatterns"
+          aria-selected="false" tabindex="-1" style="color:#fb923c;">Patterns</button>
       </div>
 
       <div id="tabSummary" class="tab-content active" role="tabpanel" aria-labelledby="tabBtnSummary">
@@ -2697,6 +2701,61 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- ==================== INTELLIGENCE TAB (v1.6.0-s1) ==================== -->
+      <div id="tabIntelligence" class="tab-content" style="display:none;" role="tabpanel" aria-labelledby="tabBtnIntelligence">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <h2 style="font-size:1.2rem; margin:0; color:#c084fc;">Intelligence Graph</h2>
+          <div style="display:flex; gap:0.75rem;">
+            <button id="btnIntelRebuildGraph" class="pill" style="background:rgba(192,132,252,0.15); color:#c084fc; border-color:#c084fc;">Rebuild Graph</button>
+            <button id="btnIntelGraphCentrality" class="pill" style="background:rgba(192,132,252,0.08); color:#c084fc; border-color:rgba(192,132,252,0.4);">Score Centrality</button>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 340px; gap:1rem; height:calc(100% - 80px);">
+          <div class="panel" style="overflow:auto;">
+            <div class="panel-header">Entity Graph</div>
+            <div id="intelGraphStats" class="muted tiny" style="padding:0.5rem 0.75rem; border-bottom:1px solid var(--border-soft);">No graph loaded. Click Rebuild Graph to build from active cases.</div>
+            <div id="intelGraphNodes" style="padding:0.75rem; display:flex; flex-wrap:wrap; gap:0.5rem;"></div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:1rem;">
+            <div class="panel" style="flex:1; overflow:auto;">
+              <div class="panel-header">Hot Nodes</div>
+              <div id="intelHotNodes" class="muted tiny" style="padding:0.75rem;">—</div>
+            </div>
+            <div class="panel" style="flex:1; overflow:auto;">
+              <div class="panel-header">Similar Bundles</div>
+              <input id="intelSimilarInput" class="input-field" style="margin:0.5rem 0.75rem; width:calc(100% - 1.5rem - 2px);" placeholder="Enter bundle fingerprint…" />
+              <div id="intelSimilarResults" class="muted tiny" style="padding:0.75rem;">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== PATTERNS TAB (v1.6.0-s3) ==================== -->
+      <div id="tabPatterns" class="tab-content" style="display:none;" role="tabpanel" aria-labelledby="tabBtnPatterns">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <h2 style="font-size:1.2rem; margin:0; color:#fb923c;">Pattern Discovery</h2>
+          <button id="btnRunPatterns" class="pill" style="background:rgba(251,146,60,0.15); color:#fb923c; border-color:#fb923c;">Run Discovery</button>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto auto; gap:1rem;">
+          <div class="panel">
+            <div class="panel-header">Clusters</div>
+            <div id="patternClusters" class="muted tiny" style="padding:0.75rem;">—</div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">Anomalies</div>
+            <div id="patternAnomalies" class="muted tiny" style="padding:0.75rem;">—</div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">Topology Map</div>
+            <div id="patternTopology" class="muted tiny" style="padding:0.75rem;">—</div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">Insights</div>
+            <div id="patternInsights" class="muted tiny" style="padding:0.75rem;">—</div>
+          </div>
+        </div>
       </div>
 
     </main>
@@ -5810,6 +5869,167 @@
         setStatus(`${result.suggestions.length} research suggestions generated (review required).`, "ok");
       }
     }
+
+    // ==================== INTELLIGENCE TAB LOGIC (v1.6.0-s1) ====================
+
+    function renderIntelNode(node) {
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:6px 10px; background:rgba(192,132,252,0.1); border:1px solid rgba(192,132,252,0.3); border-radius:20px; font-size:0.72rem; cursor:default;';
+      div.title = node.id || '';
+      const label = node.data?.url ? new URL(node.data.url).hostname : (node.id || 'node').substring(0, 20);
+      div.textContent = `${node.type || 'ENTITY'}: ${label}`;
+      return div;
+    }
+
+    async function loadIntelGraph() {
+      if (!window.electronAPI?.intelligenceGetGraph) {
+        el('intelGraphStats').textContent = 'Intelligence API not available in this context.';
+        return;
+      }
+      setStatus('Loading intelligence graph…', 'ok');
+      try {
+        const { nodes, edges } = await window.electronAPI.intelligenceGetGraph();
+        const nodesEl = el('intelGraphNodes');
+        nodesEl.innerHTML = '';
+        el('intelGraphStats').textContent = `${nodes.length} nodes · ${edges.length} edges`;
+        if (nodes.length === 0) {
+          nodesEl.innerHTML = '<span class="muted tiny">No entities in graph. Decode some content first, then rebuild.</span>';
+        } else {
+          nodes.slice(0, 120).forEach(n => nodesEl.appendChild(renderIntelNode(n)));
+          if (nodes.length > 120) {
+            const more = document.createElement('span');
+            more.className = 'muted tiny';
+            more.textContent = `+${nodes.length - 120} more`;
+            nodesEl.appendChild(more);
+          }
+        }
+        setStatus(`Graph: ${nodes.length} nodes, ${edges.length} edges.`, 'ok');
+      } catch (e) {
+        el('intelGraphStats').textContent = `Error: ${e.message}`;
+        setStatus('Intelligence graph load failed.', 'bad');
+      }
+    }
+
+    async function rebuildAndLoadGraph() {
+      if (!window.electronAPI?.intelligenceRebuildGraph) return;
+      setStatus('Rebuilding intelligence graph…', 'ok');
+      try {
+        await window.electronAPI.intelligenceRebuildGraph();
+        await loadIntelGraph();
+      } catch (e) {
+        setStatus(`Graph rebuild failed: ${e.message}`, 'bad');
+      }
+    }
+
+    async function scoreGraphCentrality() {
+      if (!window.electronAPI?.intelligenceGetGraph) return;
+      setStatus('Scoring graph centrality…', 'ok');
+      try {
+        const { nodes, edges } = await window.electronAPI.intelligenceGetGraph();
+        const graph = { nodes, edges };
+        const hotNodes = await window.electronAPI.graphHotNodes(graph);
+        const hotEl = el('intelHotNodes');
+        if (!hotNodes || hotNodes.length === 0) {
+          hotEl.textContent = 'No hot nodes found.';
+        } else {
+          hotEl.innerHTML = hotNodes.slice(0, 10).map(n =>
+            `<div style="padding:4px 0; border-bottom:1px solid var(--border-soft);">` +
+            `<span style="color:#c084fc;">${escapeHtml(String(n.id || '').substring(0, 30))}</span>` +
+            ` <span class="muted tiny">score: ${(n.score || 0).toFixed(3)}</span></div>`
+          ).join('');
+        }
+        setStatus('Centrality scoring complete.', 'ok');
+      } catch (e) {
+        setStatus(`Centrality scoring failed: ${e.message}`, 'bad');
+      }
+    }
+
+    async function findSimilarBundles(fingerprint) {
+      if (!fingerprint || !window.electronAPI?.intelligenceGetSimilar) return;
+      setStatus('Finding similar bundles…', 'ok');
+      try {
+        const results = await window.electronAPI.intelligenceGetSimilar(fingerprint);
+        const resEl = el('intelSimilarResults');
+        if (!results || results.length === 0) {
+          resEl.textContent = 'No similar bundles found.';
+        } else {
+          resEl.innerHTML = results.slice(0, 8).map(r =>
+            `<div style="padding:4px 0;">${escapeHtml(String(r.id || r).substring(0, 40))}` +
+            (r.score !== undefined ? ` <span class="muted">(${r.score.toFixed(3)})</span>` : '') +
+            `</div>`
+          ).join('');
+        }
+        setStatus(`Found ${results.length} similar bundle(s).`, 'ok');
+      } catch (e) {
+        setStatus(`Similarity search failed: ${e.message}`, 'bad');
+      }
+    }
+
+    const btnIntelRebuildGraph = el('btnIntelRebuildGraph');
+    if (btnIntelRebuildGraph) btnIntelRebuildGraph.addEventListener('click', rebuildAndLoadGraph);
+    const btnIntelGraphCentrality = el('btnIntelGraphCentrality');
+    if (btnIntelGraphCentrality) btnIntelGraphCentrality.addEventListener('click', scoreGraphCentrality);
+    const intelSimilarInput = el('intelSimilarInput');
+    if (intelSimilarInput) {
+      intelSimilarInput.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') findSimilarBundles(intelSimilarInput.value.trim());
+      });
+    }
+
+    document.getElementById('tabBtnIntelligence')?.addEventListener('click', () => {
+      loadIntelGraph();
+    });
+
+    // ==================== PATTERNS TAB LOGIC (v1.6.0-s3) ====================
+
+    async function runPatternDiscovery() {
+      if (!window.electronAPI?.patternsDiscover) {
+        el('patternClusters').textContent = 'Patterns API not available in this context.';
+        return;
+      }
+      setStatus('Running pattern discovery…', 'ok');
+      try {
+        const bundles = state.lastJson?.candidates || [];
+        if (bundles.length === 0) {
+          setStatus('No candidates in current session to analyse. Decode first.', 'warn');
+          el('patternClusters').textContent = 'No candidates available. Run a decode first.';
+          return;
+        }
+
+        const [patterns, anomaliesRaw, topologyRaw, insights] = await Promise.all([
+          window.electronAPI.patternsDiscover(bundles),
+          window.electronAPI.patternsAnomalies(bundles, []),
+          window.electronAPI.topologyMapCase(bundles),
+          window.electronAPI.insightsGenerate([], [], null),
+        ]);
+
+        const clusters = patterns?.clusters || patterns || [];
+        const anomalies = anomaliesRaw?.anomalies || anomaliesRaw || [];
+        const topology = topologyRaw?.nodes || topologyRaw || [];
+        const insightList = insights?.insights || insights || [];
+
+        const fmt = (arr, label) => arr.length === 0
+          ? `<span class="muted tiny">No ${label} found.</span>`
+          : arr.slice(0, 6).map(item =>
+              `<div style="padding:4px 0; border-bottom:1px solid var(--border-soft); font-size:0.75rem;">` +
+              escapeHtml(JSON.stringify(item).substring(0, 120)) + `</div>`
+            ).join('');
+
+        el('patternClusters').innerHTML = fmt(clusters, 'clusters');
+        el('patternAnomalies').innerHTML = fmt(anomalies, 'anomalies');
+        el('patternTopology').innerHTML = fmt(topology, 'topology nodes');
+        el('patternInsights').innerHTML = fmt(insightList, 'insights');
+
+        setStatus(`Pattern discovery complete: ${clusters.length} clusters, ${anomalies.length} anomalies.`, 'ok');
+      } catch (e) {
+        setStatus(`Pattern discovery failed: ${e.message}`, 'bad');
+      }
+    }
+
+    const btnRunPatterns = el('btnRunPatterns');
+    if (btnRunPatterns) btnRunPatterns.addEventListener('click', runPatternDiscovery);
+
+    // ==================== END EXPANSION TABS ====================
 
     const caseMgr = new CaseManager();
     window.caseMgr = caseMgr; // Expose globally for onclick handlers

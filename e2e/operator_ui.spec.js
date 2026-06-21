@@ -168,7 +168,18 @@ async function injectBridge(page) {
       bundleLoad: async () => null,
       bundleAnalyze: async () => ({ alerts: [] }),
       validateLicense: async () => ({ valid: true, tier: "SOVEREIGN" }),
-      openExternal: async () => {}
+      openExternal: async () => {},
+      intelligenceGetGraph: async () => ({ nodes: [{ id: "NODE-1", type: "URL", data: { url: "https://proof-factory.test/e2e" } }], edges: [] }),
+      intelligenceRebuildGraph: async () => ({ success: true }),
+      intelligenceGetSimilar: async (fp) => [{ id: "NODE-SIM-1", score: 0.91 }],
+      graphHotNodes: async (graph) => [{ id: "NODE-1", score: 0.99 }],
+      graphCentrality: async (graph) => ({ scores: {} }),
+      patternsDiscover: async (bundles) => ({ clusters: [{ id: "C1", members: bundles.length }] }),
+      patternsCluster: async (bundles, traits) => [{ id: "CL1" }],
+      patternsAnomalies: async (bundles, patterns) => ({ anomalies: [] }),
+      patternsStats: async () => ({}),
+      topologyMapCase: async (bundles) => ({ nodes: [], edges: [] }),
+      insightsGenerate: async (p, a, t) => ({ insights: [{ type: "SUMMARY", text: "E2E insight" }] })
     };
   }, MOCK_CASE, MOCK_DECODE_RESULT);
 }
@@ -382,4 +393,43 @@ test("clear: after decode, Clear resets input and status", async ({ page }) => {
 
   const inputVal = await page.locator("#input").inputValue();
   expect(inputVal).toBe("");
+});
+
+// ─── Test 10: Intelligence tab renders ───────────────────────────────────────
+
+test("intelligence tab: Rebuild Graph loads node data into panel", async ({ page }) => {
+  await openFresh(page);
+  await page.evaluate(() => window.activateTab
+    ? window.activateTab(document.getElementById("tabBtnIntelligence"))
+    : document.getElementById("tabBtnIntelligence").click()
+  );
+  await page.waitForSelector("#tabIntelligence", { state: "visible", timeout: 5000 });
+
+  await page.click("#btnIntelRebuildGraph");
+
+  await expect(page.locator("#intelGraphStats")).not.toContainText("No graph loaded", { timeout: 8000 });
+  const statsText = await page.locator("#intelGraphStats").textContent();
+  expect(statsText).toMatch(/node/i);
+});
+
+// ─── Test 11: Patterns tab renders ───────────────────────────────────────────
+
+test("patterns tab: Run Discovery with active candidates populates cluster panel", async ({ page }) => {
+  await openFresh(page);
+
+  await page.fill("#input", "https://proof-factory.test/watch/pattern-test");
+  await page.click("#btnDecode");
+  await expect(page.locator("#status")).not.toContainText("Awaiting payload", { timeout: 8000 });
+
+  await page.evaluate(() => {
+    const btn = document.getElementById("tabBtnPatterns");
+    if (window.activateTab) window.activateTab(btn); else btn.click();
+  });
+  await page.waitForSelector("#tabPatterns", { state: "visible", timeout: 5000 });
+
+  await page.click("#btnRunPatterns");
+
+  await expect(page.locator("#patternClusters")).not.toContainText("—", { timeout: 8000 });
+  const clustersText = await page.locator("#patternClusters").textContent();
+  expect(clustersText.length).toBeGreaterThan(3);
 });
