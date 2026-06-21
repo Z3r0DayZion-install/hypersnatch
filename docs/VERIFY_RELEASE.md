@@ -2,6 +2,8 @@
 
 > Step-by-step instructions for verifying a HyperSnatch release artifact.
 
+> **Proof boundary note (v1.5.9/v1.5.10):** SHA256 hash verification (`SHA256SUMS.txt`) is available for current release artifacts. Signing artifacts (`manifest.sig`, `root_public_key.pem`, `provenance.json`, `maintainer.sig`) are not present in the current release. Steps referencing those artifacts are aspirational/template only. External trust-chain verification is not claimed without explicit signing evidence.
+
 ## Prerequisites
 
 - Windows: PowerShell 5.1+ (built-in)

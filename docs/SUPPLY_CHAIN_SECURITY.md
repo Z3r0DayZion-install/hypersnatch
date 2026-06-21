@@ -2,6 +2,8 @@
 
 > How HyperSnatch protects against supply chain attacks.
 
+> **Proof boundary note (v1.5.9/v1.5.10):** SHA256 checksums (`SHA256SUMS.txt`) and manifest hash verification are active for current releases. Sigstore keyless signing, SLSA provenance attestation, Ed25519 manifest signatures, transparency log, and CI-based tag verification are aspirational/planned features not yet active in the current release pipeline. Items marked ✅ in this document reflect design intent unless otherwise noted.
+
 ## Protections Matrix
 
 | Attack Vector | Protection | Implementation | Status |

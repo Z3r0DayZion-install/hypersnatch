@@ -2,6 +2,8 @@
 
 This is the exact sequence to execute a verifiable release. Follow this rigorously to maintain the 10/10 credibility score.
 
+> **Proof boundary note (v1.5.9/v1.5.10):** This checklist is the aspirational release pipeline. Active steps for current releases: freeze, local gate order (npm test, npm run verify, npm run audit:stable), artifact build, SHA256 verification. GPG-signed tags, CI Sigstore, SLSA provenance, Docker repro build, and transparency log are planned and not yet active. Version refs like v1.3.1 are examples only.
+
 ## 1. Freeze the Repository
 Before tagging, make sure nothing accidental slips in. Verify the working tree is completely clean.
 ```bash
