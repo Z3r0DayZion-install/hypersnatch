@@ -362,7 +362,15 @@ async function injectBridge(page) {
         { step: 2, element: "cdn-origin.test", action: "ORIGINATED_FROM" }
       ]}),
       // Phase 62 replay clear
-      replayMutateClear: async (sessionId) => ({ success: true, sessionId })
+      replayMutateClear: async (sessionId) => ({ success: true, sessionId }),
+      // Phase 76 wsAssignCase (new — not previously stubbed)
+      wsAssignCase: async (wsId, caseId, analystId) => ({ success: true, wsId, caseId, analystId }),
+      // caseList (new — used by crossCaseMine handler)
+      caseList: async () => [{ case_id: 'CASE-001' }, { case_id: 'CASE-002' }],
+      // wsCreate (new)
+      wsCreate: async (name) => ({ id: 'WS-NEW', name }),
+      // Phase 78 graphCentrality override (existing stub returns empty scores)
+      graphCentrality: async (g) => ({ scores: { 'cdn-primary.test': 0.97, 'edge-node-1.test': 0.74 } })
     };
   }, MOCK_CASE, MOCK_DECODE_RESULT);
 }
@@ -1197,4 +1205,272 @@ test("replay mutations: Clear All resets mutation state", async ({ page }) => {
   expect(state).toMatch(/INACTIVE/i);
   const count = await page.locator("#mutationCount").textContent();
   expect(count).toBe("0");
+});
+
+// ─── Test 52: Phase 76 — wsAssignCase happy path ──────────────────────────────
+
+test("workspace: Assign Case wires analyst to active case workspace", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#wsAssignCaseInput", "analyst-007");
+  await page.click("#btnWsAssignCase");
+
+  await expect(page.locator("#workspacePanel")).toContainText(/analyst-007|assigned/i, { timeout: 6000 });
+});
+
+// ─── Test 53: error — wsAddMember with empty input does not call IPC ──────────
+
+test("workspace: Add Member with empty input shows validation error", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#wsMemberInput", "");
+  await page.click("#btnWsAddMember");
+
+  const status = await page.locator("#status").textContent();
+  expect(status).toMatch(/enter a member id/i);
+});
+
+// ─── Test 54: error — wsAssignCase with no active case shows error ─────────────
+
+test("workspace: Assign Case with no active case shows error", async ({ page }) => {
+  await openFresh(page);
+
+  await page.evaluate(() => {
+    document.getElementById('wsAssignCaseInput').value = 'analyst-007';
+  });
+  await page.evaluate(async () => {
+    const btn = document.getElementById('btnWsAssignCase');
+    btn.click();
+    await new Promise(r => setTimeout(r, 200));
+  });
+
+  const status = await page.locator("#status").textContent();
+  expect(status).toMatch(/load a case|no active case/i);
+});
+
+// ─── Test 55: keyboard — wsMemberInput Enter triggers Add Member ───────────────
+
+test("workspace: Enter key in member input triggers Add Member", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#wsMemberInput", "analyst-enter");
+  await page.press("#wsMemberInput", "Enter");
+
+  await expect(page.locator("#workspacePanel")).toContainText(/analyst-enter|added/i, { timeout: 6000 });
+});
+
+// ─── Test 56: keyboard — wsAssignCaseInput Enter triggers Assign Case ─────────
+
+test("workspace: Enter key in assign input triggers Assign Case", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#wsAssignCaseInput", "analyst-enter");
+  await page.press("#wsAssignCaseInput", "Enter");
+
+  await expect(page.locator("#workspacePanel")).toContainText(/analyst-enter|assigned/i, { timeout: 6000 });
+});
+
+// ─── Test 57: Phase 74 — Cross-Case Mining ────────────────────────────────────
+
+test("intelligence: Cross-Case Mine surfaces correlations", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnCrossMineCases");
+
+  await expect(page.locator("#crossCaseResults")).not.toContainText("No data", { timeout: 6000 });
+  const text = await page.locator("#crossCaseResults").textContent();
+  expect(text).toMatch(/CASE-001|CASE-002|0\.82/i);
+});
+
+// ─── Test 58: Phase 72 — Anomaly scoring ─────────────────────────────────────
+
+test("intelligence: Anomaly scoring renders scored bundles", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnScoreAnomalies");
+
+  await expect(page.locator("#anomalyScoringList")).not.toContainText("No data", { timeout: 6000 });
+  const text = await page.locator("#anomalyScoringList").textContent();
+  expect(text).toMatch(/%|score|bundle/i);
+});
+
+// ─── Test 59: Phase 76 — List Workspaces ─────────────────────────────────────
+
+test("workspace: List Workspaces renders workspace entries", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnListWorkspaces");
+
+  await expect(page.locator("#workspacePanel")).toContainText(/Alpha Team|Beta Team|WS-001/i, { timeout: 6000 });
+});
+
+// ─── Test 60: Phase 76 — stat counter increments on list ─────────────────────
+
+test("workspace: List Workspaces updates workspace stat counter", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnListWorkspaces");
+
+  await page.waitForTimeout(1500);
+  const stat = await page.locator("#statWorkspaces").textContent();
+  expect(parseInt(stat)).toBeGreaterThanOrEqual(1);
+});
+
+// ─── Test 61: Phase 77 — Trust Audit renders exchanges ───────────────────────
+
+test("trust registry: Audit loads exchange entries", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnTrustAudit");
+
+  await expect(page.locator("#trustRegistryPanel")).not.toContainText("No trusted sources", { timeout: 6000 });
+  const text = await page.locator("#trustRegistryPanel").textContent();
+  expect(text).toMatch(/cdn-trust|partner|VERIFIED/i);
+});
+
+// ─── Test 62: Phase 77 — Trust Verify shows TRUSTED ─────────────────────────
+
+test("trust registry: Verify Source shows TRUSTED for known source", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#trustSourceInput", "src-trusted-001");
+  await page.click("#btnTrustVerify");
+
+  await expect(page.locator("#trustRegistryPanel")).toContainText(/TRUSTED/i, { timeout: 6000 });
+});
+
+// ─── Test 63: error — Trust Verify empty input ───────────────────────────────
+
+test("trust registry: Verify with empty input shows validation error", async ({ page }) => {
+  await openFresh(page);
+
+  await page.evaluate(() => {
+    document.getElementById('trustSourceInput').value = '';
+  });
+  await page.evaluate(async () => {
+    document.getElementById('btnTrustVerify').click();
+    await new Promise(r => setTimeout(r, 200));
+  });
+
+  const status = await page.locator("#status").textContent();
+  expect(status).toMatch(/enter a source id/i);
+});
+
+// ─── Test 64: Phase 78 — Graph Hot Nodes ─────────────────────────────────────
+
+test("graph analytics: Hot Nodes scores and renders top nodes", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnGraphHotNodes");
+
+  await expect(page.locator("#graphAnalyticsPanel")).not.toContainText("No data", { timeout: 6000 });
+  const text = await page.locator("#graphAnalyticsPanel").textContent();
+  expect(text).toMatch(/cdn-primary|cdn\.e2e|score/i);
+});
+
+// ─── Test 65: Phase 78 — Graph Centrality ────────────────────────────────────
+
+test("graph analytics: Centrality computes scores for all nodes", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnGraphCentrality");
+
+  await expect(page.locator("#graphAnalyticsPanel")).not.toContainText("No data", { timeout: 6000 });
+  const text = await page.locator("#graphAnalyticsPanel").textContent();
+  expect(text).toMatch(/cdn-primary|97\.0%|74\.0%/i);
+});
+
+// ─── Test 66: Phase 78 — Graph Bridges ───────────────────────────────────────
+
+test("graph analytics: Bridges detects bridge edges", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnGraphBridges");
+
+  await expect(page.locator("#graphAnalyticsPanel")).not.toContainText("No data", { timeout: 6000 });
+  const text = await page.locator("#graphAnalyticsPanel").textContent();
+  expect(text).toMatch(/BRIDGE|cdn/i);
+});
+
+// ─── Test 67: Phase 79 — Policy Load Defaults ────────────────────────────────
+
+test("policy engine: Load Defaults renders policy rules", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnPolicyLoadDefaults");
+
+  await expect(page.locator("#policyPanel")).not.toContainText("No data", { timeout: 6000 });
+  const text = await page.locator("#policyPanel").textContent();
+  expect(text).toMatch(/EXPORT_CONTROL|REDACT_REQUIRED|SEAL_ON_CLOSE/i);
+});
+
+// ─── Test 68: Phase 80 — Deploy Quota report ─────────────────────────────────
+
+test("enterprise: Deploy Quota report surfaces tier and usage", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnDeployQuota");
+
+  await expect(page.locator("#enterprisePanel")).not.toContainText("No data", { timeout: 6000 });
+  const text = await page.locator("#enterprisePanel").textContent();
+  expect(text).toMatch(/PROFESSIONAL|SOVEREIGN|10000|1000|MB/i);
+});
+
+// ─── Test 69: btn-loading spinner class applied during async call ─────────────
+
+test("UI polish: btn-loading class applied during async IPC call", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  // Intercept mid-flight by racing the click with a class check
+  await page.evaluate(() => {
+    const orig = window.electronAPI.wsList;
+    window.electronAPI.wsList = async (...args) => {
+      await new Promise(r => setTimeout(r, 120));
+      return orig(...args);
+    };
+  });
+
+  const clickPromise = page.click("#btnListWorkspaces");
+  const hadLoadingClass = await page.evaluate(() =>
+    new Promise(resolve => {
+      const check = () => {
+        const btn = document.getElementById('btnListWorkspaces');
+        if (btn && btn.classList.contains('btn-loading')) { resolve(true); return; }
+        if (btn && btn.disabled) { resolve(true); return; }
+        setTimeout(check, 10);
+      };
+      setTimeout(check, 0);
+    })
+  );
+  await clickPromise;
+
+  expect(hadLoadingClass).toBe(true);
+});
+
+// ─── Test 70: keyboard — trustSourceInput Enter triggers Verify ───────────────
+
+test("trust registry: Enter key in source input triggers Verify", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#trustSourceInput", "src-enter-test");
+  await page.press("#trustSourceInput", "Enter");
+
+  await expect(page.locator("#trustRegistryPanel")).toContainText(/TRUSTED/i, { timeout: 6000 });
 });

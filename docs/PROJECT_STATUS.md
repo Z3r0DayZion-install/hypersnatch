@@ -44,7 +44,7 @@ v1.5.10 hardening summary (complete):
 - G-05 preflight checker (`npm run preflight`): closed (slice 8)
 - Operator friction / release gate (`npm run release:gate`): closed (slice 9)
 
-v1.6.0 expansion scope (active):
+v1.6.x expansion scope (complete through v1.6.5):
 
 - s1: Intelligence Graph tab — complete (commit a35f2e63)
 - s2: Case Assistant panel (briefing, auto-investigate) — complete (commit ed69115e)
@@ -57,5 +57,16 @@ v1.6.0 expansion scope (active):
   Adversary Fingerprinting, Self-Healing, Autonomous Discovery,
   Endgame Command Layer, Threat Heatmap, Explainability, Narrative
   Propagation, Operator Behavior Model, Advanced Forecast, AI Copilot
-- E2E coverage: 23 Playwright tests, 23/23 passing; release:gate PASS
+- `v1.6.1`: phases 58/72/74/76-80 + Chain of Custody — complete
+- `v1.6.2`: sub-action deep wiring phases 73/81/83/85/87-89/98-99/101 — complete
+- `v1.6.3`: gap wiring (ws add-member/activity-feed, trust add-source/log-exchange,
+  review-create, redact-bundle, global-graph add-node/lineage, replay-mutate-clear) — complete
+- `v1.6.4`: UI polish pass (.pill-btn, .input-field, withLoading() spinner helper,
+  .empty-state, .panel-skeleton shimmer, all async buttons wrapped) — complete
+- `v1.6.5`: Insane Mode — wsAssignCase wired (last remaining IPC gap); withLoading
+  on ALL remaining bare async bindings (phases 72/74/76-80, policy, deploy, graph,
+  assistant); 19 new E2E tests (52–70: wsAssignCase, error paths, keyboard-Enter,
+  stat counters, btn-loading class proof, trust verify, cross-mine, anomaly scoring,
+  graph analytics, policy, quota); VERSION.json + README synced — complete
+- E2E coverage: 73 Playwright tests, 73/73 passing; release:gate PASS
 - See `docs/release/V1_6_0_EXPANSION_CHARTER.md` for full scope

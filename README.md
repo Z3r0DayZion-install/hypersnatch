@@ -1,10 +1,10 @@
-# HyperSnatch v1.5.9
+# HyperSnatch v1.6.5
 
-**STATUS**: Stable shipped (`v1.5.9`)  
-**CURRENT HARDENING LINE**: `release-readiness/v1.5.10-hardening`  
-**LATEST PROOF RECORD**: `docs/release/RELEASE_PROOF_v1.5.9.md`  
-**LATEST REALITY AUDIT**: `docs/release/POST_V159_REALITY_AUDIT.md`  
-**STATE**: Post-release truth/proof/governance hardening continues before any `v1.6.0` expansion work
+**STATUS**: Active expansion (`v1.6.5` — Insane Mode)  
+**CURRENT LANE**: `feat/v1.6.x-expansion` — all IPC surfaces wired, 73/73 E2E tests passing  
+**LATEST PROOF RECORD**: `docs/release/RELEASE_PROOF_v1.6.5.md`  
+**LATEST REALITY AUDIT**: `docs/PROJECT_STATUS.md`  
+**STATE**: v1.6.x deep-wiring + UI polish complete; wsAssignCase wired; `withLoading` on all async buttons; tests 52–70 added
 
 ## Release-Readiness Truth Boundary
 
