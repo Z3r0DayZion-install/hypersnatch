@@ -46,4 +46,16 @@ v1.5.10 hardening summary (complete):
 
 v1.6.0 expansion scope (active):
 
-- to be defined in `docs/release/V1_6_0_EXPANSION_CHARTER.md`
+- s1: Intelligence Graph tab — complete (commit a35f2e63)
+- s2: Case Assistant panel (briefing, auto-investigate) — complete (commit ed69115e)
+- s3: Pattern Discovery & Insights tab — complete (commit a35f2e63)
+- s4–s9: Pre-existing backend panels verified live (phases 60–76)
+- deep-wiring pass (phases 81–150): ALL IPC surfaces fully wired
+  Review Workflow, Redaction Engine, Publication Pipeline, Model Reporter,
+  Deployment Orchestrator, Timeline Engine, Infra Drift, Predictive Risk,
+  Forensic Simulator, Threat Reporter, Global Graph, Attribution,
+  Adversary Fingerprinting, Self-Healing, Autonomous Discovery,
+  Endgame Command Layer, Threat Heatmap, Explainability, Narrative
+  Propagation, Operator Behavior Model, Advanced Forecast, AI Copilot
+- E2E coverage: 23 Playwright tests, 23/23 passing; release:gate PASS
+- See `docs/release/V1_6_0_EXPANSION_CHARTER.md` for full scope

@@ -2252,7 +2252,7 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
           <!-- Review Workflow (Phase 81) -->
           <div class="panel">
-            <div class="panel-header">Collaborative Review</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Collaborative Review<button id="btnLoadReviews" class="pill-btn tiny" style="font-size:0.6rem;">Load Reviews</button></div>
             <div id="reviewWorkflowPanel"
               style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No active reviews.</div>
@@ -2266,8 +2266,12 @@
               <span>Redaction Engine</span>
               <div class="pill tiny secure" style="background:var(--color-bad); font-weight:700;">SENSITIVE</div>
             </div>
+            <div style="display:flex;gap:4px;margin-bottom:6px;">
+              <input id="redactInput" class="input-field" style="flex:1;font-size:0.65rem;padding:4px 6px;" placeholder="Paste text to redact…" />
+              <button id="btnRedactText" class="pill-btn tiny" style="font-size:0.6rem;">Redact</button>
+            </div>
             <div id="redactionPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:120px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Redact tokens, URLs, emails, IPs before export.</div>
             </div>
           </div>
@@ -2276,7 +2280,7 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1.5rem;">
           <!-- Publication Pipeline (Phase 83) -->
           <div class="panel">
-            <div class="panel-header">Publication Pipeline</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Publication Pipeline<button id="btnPubList" class="pill-btn tiny" style="font-size:0.6rem;">List Items</button></div>
             <div id="publicationPanel"
               style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">draft → review → approved → exported</div>
@@ -2285,7 +2289,7 @@
 
           <!-- Model Reporter (Phase 84) -->
           <div class="panel">
-            <div class="panel-header">Model Reporter</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Model Reporter<button id="btnGenerateModelReport" class="pill-btn tiny" style="font-size:0.6rem;">Generate</button></div>
             <div id="reporterPanel"
               style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">AI-assisted report generation.</div>
@@ -2294,7 +2298,7 @@
 
           <!-- Deployment Orchestrator (Phase 85) -->
           <div class="panel">
-            <div class="panel-header">Deployment Orchestrator</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Deployment Orchestrator<button id="btnOrchHistory" class="pill-btn tiny" style="font-size:0.6rem;">History</button></div>
             <div id="orchestrationPanel"
               style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No deployments.</div>
@@ -2306,7 +2310,7 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-top:1.5rem;">
           <!-- Timeline Engine (Phase 86) -->
           <div class="panel">
-            <div class="panel-header">Timeline Reconstruction</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Timeline Reconstruction<button id="btnReconstructTimeline" class="pill-btn tiny" style="font-size:0.6rem;">Reconstruct</button></div>
             <div id="timelinePanel"
               style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No timelines reconstructed.</div>
@@ -2315,7 +2319,7 @@
 
           <!-- Infrastructure Evolution (Phase 87) -->
           <div class="panel">
-            <div class="panel-header">Infrastructure Evolution</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Infrastructure Evolution<button id="btnInfraDrift" class="pill-btn tiny" style="font-size:0.6rem;">Drift Analysis</button></div>
             <div id="infraEvolutionPanel"
               style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Tracking node lifetimes and migrations.</div>
@@ -2332,27 +2336,30 @@
               </div>
             </div>
             <div id="predictivePanel"
-              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:100px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Forecasting trajectory risk.</div>
             </div>
+            <button id="btnPredictRisk" class="pill-btn tiny" style="margin-top:6px;width:100%;font-size:0.6rem;">Run Risk Forecast</button>
           </div>
 
           <!-- Forensic Simulator (Phase 89) -->
           <div class="panel">
-            <div class="panel-header">Forensic Simulator</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Forensic Simulator<button id="btnSimHistory" class="pill-btn tiny" style="font-size:0.6rem;">History</button></div>
             <div id="simulatorPanel"
-              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:100px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Simulation history available.</div>
             </div>
+            <button id="btnRunSimulation" class="pill-btn tiny" style="margin-top:6px;width:100%;font-size:0.6rem;">Run Scenario</button>
           </div>
 
           <!-- Threat Reporter (Phase 90) -->
           <div class="panel">
-            <div class="panel-header">Automated Threat Reports</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Automated Threat Reports<button id="btnThreatList" class="pill-btn tiny" style="font-size:0.6rem;">Load</button></div>
             <div id="threatReportPanel"
-              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:100px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Generating intelligence briefs.</div>
             </div>
+            <button id="btnGenerateThreat" class="pill-btn tiny" style="margin-top:6px;width:100%;font-size:0.6rem;">Generate Threat Report</button>
           </div>
         </div>
 
@@ -2360,25 +2367,26 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-top:1.5rem;">
           <!-- Global Intelligence Graph (Phase 91) -->
           <div class="panel">
-            <div class="panel-header">Global Intelligence Graph</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Global Intelligence Graph<button id="btnGlobalGraphSummary" class="pill-btn tiny" style="font-size:0.6rem;">Summary</button></div>
             <div id="globalGraphPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Awaiting multi-workspace graph merge.</div>
             </div>
-            <div class="tiny muted" style="margin-top:6px;">Nodes: <b id="statGlobalNodes" class="ok">0</b> | Edges: <b
-                id="statGlobalEdges" class="ok">0</b></div>
+            <div class="tiny muted" style="margin-top:6px;display:flex;gap:8px;align-items:center;">Nodes: <b id="statGlobalNodes" class="ok">0</b> | Edges: <b
+                id="statGlobalEdges" class="ok">0</b>
+              <input id="globalNeighborInput" class="input-field" style="flex:1;font-size:0.6rem;padding:2px 5px;" placeholder="Node ID for neighborhood…" />
+              <button id="btnGlobalNeighborhood" class="pill-btn tiny" style="font-size:0.6rem;">Explore</button>
+            </div>
           </div>
 
           <!-- Infra Attribution (Phase 92) -->
           <div class="panel">
             <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
               <span>Infrastructure Attribution</span>
-              <div class="pill tiny secure"
-                style="background:var(--color-bg); border-color:var(--color-fg); color:var(--color-fg);">ATTRIBUTION
-              </div>
+              <button id="btnRunAttribution" class="pill-btn tiny" style="font-size:0.6rem;">Attribute</button>
             </div>
             <div id="attributionPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No attributions generated.</div>
             </div>
           </div>
@@ -2387,33 +2395,35 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1.5rem;">
           <!-- Adversary Fingerprinting (Phase 93) -->
           <div class="panel">
-            <div class="panel-header">Adversary Fingerprints</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Adversary Fingerprints<button id="btnAdvfpGroup" class="pill-btn tiny" style="font-size:0.6rem;">Group Patterns</button></div>
             <div id="fingerprintPanel"
-              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:100px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Matching operational patterns.</div>
             </div>
+            <button id="btnAdvfpFingerprint" class="pill-btn tiny" style="margin-top:6px;width:100%;font-size:0.6rem;">Fingerprint Active Bundle</button>
           </div>
 
           <!-- Self-Healing Pipelines (Phase 94) -->
           <div class="panel">
-            <div class="panel-header">Self-Healing Orchestrator</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Self-Healing Orchestrator<button id="btnHealAudit" class="pill-btn tiny" style="font-size:0.6rem;">Audit Log</button></div>
             <div id="healingPanel"
-              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:100px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">Pipeline healthy.</div>
             </div>
+            <button id="btnHealRecover" class="pill-btn tiny" style="margin-top:6px;width:100%;font-size:0.6rem;">Trigger Recovery</button>
           </div>
 
           <!-- Autonomous Discovery (Phase 95) -->
           <div class="panel">
             <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
               <span>Autonomous Discovery</span>
-              <div class="pill tiny outline" style="border-color:var(--color-bad); color:var(--color-bad);">NEW INQUIRY
-              </div>
+              <button id="btnDiscoveryRun" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-bad);border-color:var(--color-bad);">Run Discovery</button>
             </div>
             <div id="discoveryPanel"
-              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
+              style="max-height:100px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:4px;">
               <div class="muted">No research suggestions queued.</div>
             </div>
+            <div id="discoveryHistoryBar" class="tiny muted" style="margin-top:4px;">History: 0 runs</div>
           </div>
         </div>
 
@@ -2424,31 +2434,37 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
           <!-- Mission Replay (Phase 96) & Counterfactual (Phase 97) -->
           <div class="panel">
-            <div class="panel-header">Temporal Operations</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Temporal Operations
+              <div style="display:flex;gap:4px;">
+                <button id="btnEndgameReplay" class="pill-btn tiny" style="font-size:0.6rem;">Get Replay</button>
+                <button id="btnEndgameHistory" class="pill-btn tiny" style="font-size:0.6rem;">Command History</button>
+              </div>
+            </div>
             <div id="temporalPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
               <div style="border-bottom:1px solid #333; padding-bottom:5px;">
-                <strong class="fg">Mission Replay:</strong> <span class="muted">Awaiting timeline ingestion.</span>
+                <strong class="fg">Mission Replay:</strong> <span class="muted" id="missionReplayStatus">Awaiting timeline ingestion.</span>
               </div>
-              <div>
-                <strong class="fg">Counterfactual Simulator:</strong> <span class="muted">Awaiting hypothesis
-                  parameters.</span>
-              </div>
+              <div id="commandHistoryList" class="muted">No commands executed.</div>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+              <input id="endgameCommandInput" class="input-field" style="flex:1;font-size:0.65rem;padding:3px 6px;" placeholder="Command (e.g. SEAL_CASE, ESCALATE)…" />
+              <button id="btnEndgameExecute" class="pill-btn tiny" style="font-size:0.6rem;color:#f87171;border-color:#f87171;">Execute</button>
             </div>
           </div>
 
           <!-- Constitution (Phase 98) & Challenge Mode (Phase 99) -->
           <div class="panel">
-            <div class="panel-header">Argument Verification</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Argument Verification
+              <button id="btnExplainCase" class="pill-btn tiny" style="font-size:0.6rem;">Explain</button>
+            </div>
             <div id="argumentPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              style="max-height:130px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
               <div style="border-bottom:1px solid #333; padding-bottom:5px;">
-                <strong class="fg">Evidence Constitution:</strong> <span class="muted">Awaiting evidence vector for
-                  weighting.</span>
+                <strong class="fg">Evidence Constitution:</strong> <span class="muted" id="constitutionOutput">Awaiting evidence vector.</span>
               </div>
               <div>
-                <strong class="fg">Challenge Mode:</strong> <span class="muted">Awaiting conclusion for subversion
-                  analysis.</span>
+                <strong class="fg">Explainability:</strong> <span class="muted" id="explainOutput">Ready for reasoning queries.</span>
               </div>
             </div>
           </div>
@@ -2461,13 +2477,15 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
           <!-- Heatmap & Provenance -->
           <div class="panel">
-            <div class="panel-header">Threat Heatmaps & Provenance</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Threat Heatmaps &amp; Provenance
+              <button id="btnGenerateHeatmap" class="pill-btn tiny" style="font-size:0.6rem;">Generate Heatmap</button>
+            </div>
             <div id="heatmapPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
-              <div style="border-bottom:1px solid #333; padding-bottom:5px;">
+              style="max-height:120px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              <div id="heatmapOutput" style="border-bottom:1px solid #333; padding-bottom:5px;">
                 <strong class="fg">Global Heatmap:</strong> <span class="muted">No clusters analyzed.</span>
               </div>
-              <div>
+              <div id="provenanceOutput">
                 <strong class="fg">Data Provenance Engine:</strong> <span class="muted">Tracking signal pedigree.</span>
               </div>
             </div>
@@ -2475,15 +2493,16 @@
 
           <!-- Memory & Explainability -->
           <div class="panel">
-            <div class="panel-header">Analyst Memory & Explainability</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Analyst Memory &amp; Explainability
+              <button id="btnExplainBundle" class="pill-btn tiny" style="font-size:0.6rem;">Explain Bundle</button>
+            </div>
             <div id="memoryPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
-              <div style="border-bottom:1px solid #333; padding-bottom:5px;">
+              style="max-height:120px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              <div id="memoryRecordCount" style="border-bottom:1px solid #333; padding-bottom:5px;">
                 <strong class="fg">Institutional Memory:</strong> <span class="muted">0 records synced.</span>
               </div>
-              <div>
-                <strong class="fg">Explainable AI Layer:</strong> <span class="muted">Ready for reasoning
-                  queries.</span>
+              <div id="explainBundleOutput">
+                <strong class="fg">Explainable AI Layer:</strong> <span class="muted">Ready for reasoning queries.</span>
               </div>
             </div>
           </div>
@@ -2496,23 +2515,28 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1.5rem;">
           <!-- Narrative Propagation & Behavior Model -->
           <div class="panel">
-            <div class="panel-header">Narrative & Behavior Tracking</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Narrative &amp; Behavior
+              <button id="btnNarrativeTrack" class="pill-btn tiny" style="font-size:0.6rem;">Track</button>
+            </div>
             <div id="narrativeBehaviorPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
-              <div style="border-bottom:1px solid #333; padding-bottom:5px;">
+              style="max-height:120px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              <div id="narrativeAmplifiers" style="border-bottom:1px solid #333; padding-bottom:5px;">
                 <strong class="fg">Propagation Amplifiers:</strong> <span class="muted">0 identified</span>
               </div>
-              <div>
+              <div id="operatorProfileOutput">
                 <strong class="fg">Operator Profile:</strong> <span class="muted">Awaiting telemetry.</span>
               </div>
             </div>
+            <button id="btnOperatorModel" class="pill-btn tiny" style="margin-top:6px;width:100%;font-size:0.6rem;">Model Operator Behavior</button>
           </div>
 
           <!-- Predictive Forecasting -->
           <div class="panel">
-            <div class="panel-header">Predictive Intelligence Model</div>
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Predictive Intelligence
+              <button id="btnAdvPredict" class="pill-btn tiny" style="font-size:0.6rem;">Forecast</button>
+            </div>
             <div id="advPredictPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              style="max-height:120px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
               <div class="muted">No temporal forecasting generated.</div>
             </div>
           </div>
@@ -2521,11 +2545,10 @@
           <div class="panel">
             <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
               <span>AI Investigation Copilot</span>
-              <div class="pill tiny secure"
-                style="background:var(--color-bg); border-color:var(--color-fg); color:var(--color-fg);">ACTIVE</div>
+              <button id="btnCopilotSynthesize" class="pill-btn tiny" style="font-size:0.6rem;color:var(--color-secure);border-color:var(--color-secure);">Synthesize</button>
             </div>
             <div id="copilotPanel"
-              style="max-height:150px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
+              style="max-height:120px; overflow-y:auto; font-size:0.65rem; display:flex; flex-direction:column; gap:8px;">
               <div class="muted">Awaiting subsystem synthesis data to suggest queries.</div>
             </div>
           </div>
@@ -6117,6 +6140,449 @@
     if (btnAssistantBriefing) btnAssistantBriefing.addEventListener('click', generateCaseBriefing);
     const btnAutoInvestigate = el('btnAutoInvestigate');
     if (btnAutoInvestigate) btnAutoInvestigate.addEventListener('click', runAutoInvestigate);
+
+    // ==================== DEEP WIRING: PHASES 81-150 ====================
+
+    function renderList(panelId, items, renderer) {
+      const el2 = el(panelId);
+      if (!el2) return;
+      if (!items || items.length === 0) { el2.innerHTML = '<div class="muted tiny">No data.</div>'; return; }
+      el2.innerHTML = items.slice(0, 20).map(renderer).join('');
+    }
+
+    function fmtItem(obj, color) {
+      const t = typeof obj === 'string' ? obj : JSON.stringify(obj).substring(0, 120);
+      return `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.64rem;color:${color||'var(--text-base)'};">${escapeHtml(t)}</div>`;
+    }
+
+    // Phase 81 — Review Workflow
+    async function loadReviews() {
+      if (!window.electronAPI?.reviewPending) return;
+      setStatus('Loading reviews\u2026', 'ok');
+      try {
+        const reviews = await window.electronAPI.reviewPending();
+        const list = reviews || [];
+        el('statPendingReviews').textContent = list.length;
+        renderList('reviewWorkflowPanel', list, r =>
+          `<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.64rem;">` +
+          `<span style="color:var(--text-accent);">${escapeHtml(r.reviewId||r.id||'review')}</span> ` +
+          `<span class="muted">${escapeHtml(r.status||'pending')}</span></div>`
+        );
+        setStatus(`${list.length} pending review(s).`, 'ok');
+      } catch (e) { setStatus(`Reviews load failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 82 — Redaction Engine
+    async function redactText() {
+      const text = el('redactInput')?.value?.trim();
+      if (!text) return;
+      if (!window.electronAPI?.redactText) { el('redactionPanel').innerHTML = '<div class="muted tiny">Redaction API not available.</div>'; return; }
+      setStatus('Redacting text\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.redactText(text, null);
+        const out = result?.redacted || result?.text || result || text;
+        el('redactionPanel').innerHTML = `<div style="font-size:0.65rem;word-break:break-all;color:var(--color-ok);">${escapeHtml(String(out))}</div>`;
+        setStatus('Redaction complete.', 'ok');
+      } catch (e) { setStatus(`Redaction failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 83 — Publication Pipeline
+    async function loadPubItems() {
+      if (!window.electronAPI?.pubList) return;
+      setStatus('Loading publication pipeline\u2026', 'ok');
+      try {
+        const items = await window.electronAPI.pubList(null);
+        const list = Array.isArray(items) ? items : (items?.items || []);
+        renderList('publicationPanel', list, i =>
+          `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.64rem;">` +
+          `<span style="color:#a78bfa;">${escapeHtml(i.title||i.id||'item')}</span> ` +
+          `<span class="pill tiny" style="background:rgba(167,139,250,0.15);font-size:0.55rem;">${escapeHtml(i.state||'draft')}</span></div>`
+        );
+        setStatus(`${list.length} publication item(s).`, 'ok');
+      } catch (e) { setStatus(`Pub pipeline load failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 84 — Model Reporter
+    async function generateModelReport() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!caseData) { setStatus('No active case for report generation.', 'warn'); return; }
+      if (!window.electronAPI?.reportGenerate) return;
+      setStatus('Generating model report\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.reportGenerate(caseData);
+        const text = result?.report || result?.markdown || result?.text || JSON.stringify(result, null, 2);
+        el('reporterPanel').innerHTML = `<div style="font-size:0.64rem;white-space:pre-wrap;color:var(--text-base);">${escapeHtml(String(text).substring(0, 600))}</div>`;
+        setStatus('Model report generated.', 'ok');
+      } catch (e) { setStatus(`Report generation failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 85 — Deployment Orchestrator
+    async function loadOrchHistory() {
+      if (!window.electronAPI?.orchestrateHistory) return;
+      setStatus('Loading deployment history\u2026', 'ok');
+      try {
+        const history = await window.electronAPI.orchestrateHistory();
+        const list = Array.isArray(history) ? history : (history?.deployments || []);
+        renderList('orchestrationPanel', list, d =>
+          `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.64rem;">` +
+          `<span style="color:var(--text-accent);">${escapeHtml(d.id||d.deploymentId||'deploy')}</span> ` +
+          `<span class="muted">${escapeHtml(d.status||d.environment||'')}</span></div>`
+        );
+        setStatus(`${list.length} deployment(s) in history.`, 'ok');
+      } catch (e) { setStatus(`Deployment history load failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 86 — Timeline Engine
+    async function reconstructTimeline() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!caseData) { setStatus('No active case for timeline reconstruction.', 'warn'); return; }
+      if (!window.electronAPI?.timelineGet) return;
+      setStatus('Reconstructing timeline\u2026', 'ok');
+      try {
+        const events = caseData.bundles?.flatMap(b => b.events || []) || [];
+        if (events.length) await window.electronAPI.timelineReconstruct(caseData.case_id, events);
+        const timeline = await window.electronAPI.timelineGet(caseData.case_id);
+        const evts = timeline?.events || timeline || [];
+        renderList('timelinePanel', evts, e =>
+          `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.64rem;">` +
+          `<span style="color:#67e8f9;">${escapeHtml(e.timestamp||e.ts||'?')}</span> ` +
+          `<span class="muted">${escapeHtml(e.type||e.action||JSON.stringify(e).substring(0,60))}</span></div>`
+        );
+        setStatus(`Timeline: ${evts.length} event(s).`, 'ok');
+      } catch (e) { setStatus(`Timeline reconstruction failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 87 — Infrastructure Tracker
+    async function infraDriftAnalysis() {
+      if (!window.electronAPI?.infraDrift) return;
+      setStatus('Running infra drift analysis\u2026', 'ok');
+      try {
+        const drift = await window.electronAPI.infraDrift();
+        const items = drift?.migrations || drift?.changes || drift || [];
+        renderList('infraEvolutionPanel', Array.isArray(items) ? items : [items], d =>
+          fmtItem(d, '#fcd34d')
+        );
+        setStatus('Infra drift analysis complete.', 'ok');
+      } catch (e) { setStatus(`Infra drift failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 88 — Predictive Anomaly
+    async function predictRisk() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!window.electronAPI?.predictRisk) return;
+      setStatus('Running risk forecast\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.predictRisk([], caseData || {});
+        const preds = result?.predictions || result?.risks || (Array.isArray(result) ? result : [result]);
+        renderList('predictivePanel', preds, p => fmtItem(p, '#fb923c'));
+        setStatus(`Risk forecast: ${preds.length} prediction(s).`, 'ok');
+      } catch (e) { setStatus(`Risk forecast failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 89 — Forensic Simulator
+    async function loadSimHistory() {
+      if (!window.electronAPI?.simulateHistory) return;
+      try {
+        const history = await window.electronAPI.simulateHistory();
+        renderList('simulatorPanel', Array.isArray(history) ? history : (history?.history || []), h => fmtItem(h, '#a78bfa'));
+      } catch (e) { el('simulatorPanel').innerHTML = `<div class="muted tiny">Error: ${escapeHtml(e.message)}</div>`; }
+    }
+    async function runSimulation() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!window.electronAPI?.simulateScenario) return;
+      setStatus('Running forensic simulation\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.simulateScenario('DEFAULT', caseData?.bundles?.[0] || {});
+        const out = result?.result || result?.output || JSON.stringify(result, null, 2);
+        el('simulatorPanel').innerHTML = `<div style="font-size:0.64rem;white-space:pre-wrap;color:#a78bfa;">${escapeHtml(String(out).substring(0,400))}</div>`;
+        setStatus('Simulation complete.', 'ok');
+      } catch (e) { setStatus(`Simulation failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 90 — Threat Reporter
+    async function loadThreatList() {
+      if (!window.electronAPI?.threatList) return;
+      try {
+        const reports = await window.electronAPI.threatList();
+        const list = Array.isArray(reports) ? reports : (reports?.reports || []);
+        renderList('threatReportPanel', list, r =>
+          `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.64rem;">` +
+          `<span style="color:#f87171;">${escapeHtml(r.id||r.title||'report')}</span> ` +
+          `<span class="muted">${escapeHtml(r.severity||r.level||'')}</span></div>`
+        );
+      } catch (e) { el('threatReportPanel').innerHTML = `<div class="muted tiny">Error: ${escapeHtml(e.message)}</div>`; }
+    }
+    async function generateThreatReport() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!caseData) { setStatus('No active case for threat report.', 'warn'); return; }
+      if (!window.electronAPI?.threatGenerate) return;
+      setStatus('Generating threat report\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.threatGenerate(caseData);
+        const text = result?.report || result?.markdown || result?.summary || JSON.stringify(result, null, 2);
+        el('threatReportPanel').innerHTML = `<div style="font-size:0.64rem;white-space:pre-wrap;color:#f87171;">${escapeHtml(String(text).substring(0,400))}</div>`;
+        setStatus('Threat report generated.', 'ok');
+      } catch (e) { setStatus(`Threat report failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 91 — Global Graph
+    async function loadGlobalGraphSummary() {
+      if (!window.electronAPI?.globalGraphSummary) return;
+      setStatus('Loading global graph summary\u2026', 'ok');
+      try {
+        const summary = await window.electronAPI.globalGraphSummary();
+        el('statGlobalNodes').textContent = summary?.nodeCount ?? summary?.nodes ?? 0;
+        el('statGlobalEdges').textContent = summary?.edgeCount ?? summary?.edges ?? 0;
+        el('globalGraphPanel').innerHTML = `<div style="font-size:0.64rem;white-space:pre-wrap;">${escapeHtml(JSON.stringify(summary, null, 2).substring(0,300))}</div>`;
+        setStatus('Global graph summary loaded.', 'ok');
+      } catch (e) { setStatus(`Global graph failed: ${e.message}`, 'bad'); }
+    }
+    async function exploreNeighborhood() {
+      const nodeId = el('globalNeighborInput')?.value?.trim();
+      if (!nodeId || !window.electronAPI?.globalGraphNeighborhood) return;
+      setStatus(`Exploring neighborhood of ${nodeId}\u2026`, 'ok');
+      try {
+        const result = await window.electronAPI.globalGraphNeighborhood(nodeId, 2);
+        const nodes = result?.nodes || result || [];
+        renderList('globalGraphPanel', Array.isArray(nodes) ? nodes : [result], n => fmtItem(n, '#67e8f9'));
+        setStatus(`Neighborhood: ${nodes.length} nodes.`, 'ok');
+      } catch (e) { setStatus(`Neighborhood explore failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 92 — Infra Attribution
+    async function runAttribution() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!window.electronAPI?.attribAttribute) return;
+      setStatus('Running attribution\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.attribAttribute({ caseId: caseData?.case_id, bundles: caseData?.bundles || [] });
+        const attrs = result?.attributions || result?.results || (Array.isArray(result) ? result : [result]);
+        renderList('attributionPanel', attrs, a => fmtItem(a, '#34d399'));
+        setStatus(`Attribution: ${attrs.length} result(s).`, 'ok');
+      } catch (e) { setStatus(`Attribution failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 93 — Adversary Fingerprinting
+    async function advfpGroupPatterns() {
+      if (!window.electronAPI?.advfpGroup) return;
+      setStatus('Grouping adversary patterns\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.advfpGroup();
+        const groups = result?.groups || result || [];
+        renderList('fingerprintPanel', Array.isArray(groups) ? groups : [result], g => fmtItem(g, '#e879f9'));
+        setStatus(`${Array.isArray(groups) ? groups.length : 1} adversary group(s).`, 'ok');
+      } catch (e) { setStatus(`Adversary grouping failed: ${e.message}`, 'bad'); }
+    }
+    async function advfpFingerprintBundle() {
+      const caseData = window.caseMgr?.activeCase;
+      const bundle = caseData?.bundles?.[0] || state.lastJson?.candidates?.[0] || {};
+      if (!window.electronAPI?.advfpFingerprint) return;
+      setStatus('Fingerprinting active bundle\u2026', 'ok');
+      try {
+        const fp = await window.electronAPI.advfpFingerprint(bundle);
+        el('fingerprintPanel').innerHTML = `<div style="font-size:0.64rem;white-space:pre-wrap;color:#e879f9;">${escapeHtml(JSON.stringify(fp, null, 2).substring(0,400))}</div>`;
+        setStatus('Bundle fingerprint generated.', 'ok');
+      } catch (e) { setStatus(`Fingerprint failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 94 — Self-Healing Orchestrator
+    async function loadHealAudit() {
+      if (!window.electronAPI?.healAudit) return;
+      try {
+        const log = await window.electronAPI.healAudit();
+        const events = Array.isArray(log) ? log : (log?.events || []);
+        renderList('healingPanel', events, e => fmtItem(e, '#4ade80'));
+        setStatus(`Heal audit: ${events.length} event(s).`, 'ok');
+      } catch (e) { setStatus(`Heal audit failed: ${e.message}`, 'bad'); }
+    }
+    async function triggerRecovery() {
+      if (!window.electronAPI?.healRecover) return;
+      setStatus('Triggering recovery\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.healRecover({ manual: true, timestamp: Date.now() });
+        const text = result?.status || result?.message || JSON.stringify(result);
+        el('healingPanel').innerHTML = `<div style="font-size:0.64rem;color:#4ade80;">${escapeHtml(String(text).substring(0,200))}</div>`;
+        setStatus('Recovery complete.', 'ok');
+      } catch (e) { setStatus(`Recovery failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 95 — Autonomous Discovery
+    async function runAutonomousDiscovery() {
+      if (!window.electronAPI?.discoveryRun) return;
+      const caseData = window.caseMgr?.activeCase;
+      setStatus('Running autonomous discovery\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.discoveryRun({ caseId: caseData?.case_id, bundles: caseData?.bundles || [] });
+        const findings = result?.findings || result?.discoveries || (Array.isArray(result) ? result : [result]);
+        renderList('discoveryPanel', findings, f => fmtItem(f, '#f87171'));
+        const hist = await window.electronAPI.discoveryHistory();
+        el('discoveryHistoryBar').textContent = `History: ${Array.isArray(hist) ? hist.length : 0} runs`;
+        setStatus(`Discovery: ${findings.length} finding(s).`, 'ok');
+      } catch (e) { setStatus(`Discovery failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 96-100 — Endgame Command Layer
+    async function getEndgameReplay() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!window.electronAPI?.endgameReplayGet) return;
+      setStatus('Loading mission replay\u2026', 'ok');
+      try {
+        const replay = await window.electronAPI.endgameReplayGet(caseData?.case_id || 'default');
+        el('missionReplayStatus').textContent = replay?.status || replay?.summary || 'Replay data loaded.';
+        setStatus('Mission replay loaded.', 'ok');
+      } catch (e) { setStatus(`Replay load failed: ${e.message}`, 'bad'); }
+    }
+    async function loadCommandHistory() {
+      if (!window.electronAPI?.endgameHistory) return;
+      try {
+        const history = await window.electronAPI.endgameHistory();
+        const cmds = Array.isArray(history) ? history : (history?.commands || []);
+        el('commandHistoryList').innerHTML = cmds.length
+          ? cmds.slice(0, 5).map(c => `<div style="font-size:0.63rem;padding:2px 0;color:#fca5a5;">${escapeHtml(String(c.command||c).substring(0,60))}</div>`).join('')
+          : '<span class="muted">No commands executed.</span>';
+      } catch (e) {}
+    }
+    async function executeEndgameCommand() {
+      const cmd = el('endgameCommandInput')?.value?.trim();
+      if (!cmd || !window.electronAPI?.endgameCommand) return;
+      setStatus(`Executing endgame command: ${cmd}\u2026`, 'ok');
+      try {
+        const result = await window.electronAPI.endgameCommand(cmd, { caseId: window.caseMgr?.activeCase?.case_id });
+        el('commandHistoryList').innerHTML = `<div style="color:#4ade80;font-size:0.64rem;">${escapeHtml(String(result?.status||result?.message||'OK').substring(0,120))}</div>`;
+        el('endgameCommandInput').value = '';
+        setStatus(`Command executed: ${cmd}.`, 'ok');
+        await loadCommandHistory();
+      } catch (e) { setStatus(`Command failed: ${e.message}`, 'bad'); }
+    }
+
+    // Explainability
+    async function explainCase() {
+      const caseData = window.caseMgr?.activeCase;
+      if (!window.electronAPI?.expExplain) return;
+      setStatus('Generating case explanation\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.expExplain('CASE', { caseId: caseData?.case_id, bundles: caseData?.bundles || [] });
+        el('explainOutput').textContent = result?.explanation || result?.text || JSON.stringify(result).substring(0,200);
+        setStatus('Explanation generated.', 'ok');
+      } catch (e) { setStatus(`Explain failed: ${e.message}`, 'bad'); }
+    }
+
+    // Threat Heatmap
+    async function generateHeatmap() {
+      if (!window.electronAPI?.expHeatmapGenerate) return;
+      const caseData = window.caseMgr?.activeCase;
+      setStatus('Generating threat heatmap\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.expHeatmapGenerate({ bundles: caseData?.bundles || [], graphContext: {} });
+        const clusters = result?.clusters || result?.hotspots || [];
+        el('heatmapOutput').innerHTML = `<strong class="fg">Global Heatmap:</strong> <span style="color:#f87171;">${clusters.length} cluster(s). Top: ${escapeHtml(clusters[0] ? JSON.stringify(clusters[0]).substring(0,60) : 'none')}</span>`;
+        setStatus('Heatmap generated.', 'ok');
+      } catch (e) { setStatus(`Heatmap failed: ${e.message}`, 'bad'); }
+    }
+
+    // Explainability (bundle)
+    async function explainBundle() {
+      const bundle = window.caseMgr?.activeCase?.bundles?.[0] || state.lastJson?.candidates?.[0];
+      if (!window.electronAPI?.expExplain) return;
+      setStatus('Explaining bundle\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.expExplain('BUNDLE', { bundle });
+        el('explainBundleOutput').innerHTML = `<strong class="fg">Explainable AI Layer:</strong> <span style="color:#a78bfa;">${escapeHtml(String(result?.explanation||result?.text||JSON.stringify(result)).substring(0,150))}</span>`;
+        setStatus('Bundle explanation complete.', 'ok');
+      } catch (e) { setStatus(`Bundle explain failed: ${e.message}`, 'bad'); }
+    }
+
+    // Phase 101+ Narrative & Behavior
+    async function trackNarrative() {
+      if (!window.electronAPI?.advNarrativeTrack) return;
+      const caseData = window.caseMgr?.activeCase;
+      setStatus('Tracking narrative propagation\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.advNarrativeTrack(caseData?.bundles || []);
+        const amps = result?.amplifiers || result?.propagators || [];
+        el('narrativeAmplifiers').innerHTML = `<strong class="fg">Propagation Amplifiers:</strong> <span style="color:#fb923c;">${amps.length} identified${amps[0] ? ' — ' + escapeHtml(String(amps[0]?.id||amps[0]).substring(0,40)) : ''}</span>`;
+        setStatus(`Narrative: ${amps.length} amplifier(s).`, 'ok');
+      } catch (e) { setStatus(`Narrative track failed: ${e.message}`, 'bad'); }
+    }
+    async function modelOperatorBehavior() {
+      if (!window.electronAPI?.advOperatorModel) return;
+      const caseData = window.caseMgr?.activeCase;
+      setStatus('Modelling operator behavior\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.advOperatorModel('ANALYST_01', caseData?.auditLog || []);
+        el('operatorProfileOutput').innerHTML = `<strong class="fg">Operator Profile:</strong> <span style="color:#a78bfa;">${escapeHtml(String(result?.profile||result?.summary||JSON.stringify(result)).substring(0,120))}</span>`;
+        setStatus('Operator model built.', 'ok');
+      } catch (e) { setStatus(`Operator model failed: ${e.message}`, 'bad'); }
+    }
+
+    // Advanced Prediction
+    async function runAdvancedForecast() {
+      if (!window.electronAPI?.advPredictFuture) return;
+      setStatus('Running advanced temporal forecast\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.advPredictFuture([], {});
+        const forecast = result?.forecast || result?.predictions || result;
+        el('advPredictPanel').innerHTML = `<div style="font-size:0.64rem;white-space:pre-wrap;color:#fbbf24;">${escapeHtml(JSON.stringify(forecast, null, 2).substring(0,350))}</div>`;
+        setStatus('Advanced forecast complete.', 'ok');
+      } catch (e) { setStatus(`Forecast failed: ${e.message}`, 'bad'); }
+    }
+
+    // Copilot Synthesis
+    async function copilotSynthesize() {
+      if (!window.electronAPI?.advAssistantSynthesize) return;
+      const caseData = window.caseMgr?.activeCase;
+      setStatus('AI Copilot synthesizing\u2026', 'ok');
+      try {
+        const result = await window.electronAPI.advAssistantSynthesize(caseData?.bundles || [], caseData?.auditLog || []);
+        const text = result?.synthesis || result?.recommendations || result?.text || JSON.stringify(result, null, 2);
+        el('copilotPanel').innerHTML = `<div style="font-size:0.64rem;white-space:pre-wrap;color:var(--color-secure);">${escapeHtml(String(text).substring(0,500))}</div>`;
+        setStatus('Copilot synthesis complete.', 'ok');
+      } catch (e) { setStatus(`Copilot synthesis failed: ${e.message}`, 'bad'); }
+    }
+
+    // ── Wire all buttons ──
+    const _deep = [
+      ['btnLoadReviews',        loadReviews],
+      ['btnRedactText',         redactText],
+      ['btnPubList',            loadPubItems],
+      ['btnGenerateModelReport',generateModelReport],
+      ['btnOrchHistory',        loadOrchHistory],
+      ['btnReconstructTimeline',reconstructTimeline],
+      ['btnInfraDrift',         infraDriftAnalysis],
+      ['btnPredictRisk',        predictRisk],
+      ['btnSimHistory',         loadSimHistory],
+      ['btnRunSimulation',      runSimulation],
+      ['btnThreatList',         loadThreatList],
+      ['btnGenerateThreat',     generateThreatReport],
+      ['btnGlobalGraphSummary', loadGlobalGraphSummary],
+      ['btnGlobalNeighborhood', exploreNeighborhood],
+      ['btnRunAttribution',     runAttribution],
+      ['btnAdvfpGroup',         advfpGroupPatterns],
+      ['btnAdvfpFingerprint',   advfpFingerprintBundle],
+      ['btnHealAudit',          loadHealAudit],
+      ['btnHealRecover',        triggerRecovery],
+      ['btnDiscoveryRun',       runAutonomousDiscovery],
+      ['btnEndgameReplay',      getEndgameReplay],
+      ['btnEndgameHistory',     loadCommandHistory],
+      ['btnEndgameExecute',     executeEndgameCommand],
+      ['btnExplainCase',        explainCase],
+      ['btnGenerateHeatmap',    generateHeatmap],
+      ['btnExplainBundle',      explainBundle],
+      ['btnNarrativeTrack',     trackNarrative],
+      ['btnOperatorModel',      modelOperatorBehavior],
+      ['btnAdvPredict',         runAdvancedForecast],
+      ['btnCopilotSynthesize',  copilotSynthesize],
+    ];
+    _deep.forEach(([id, fn]) => {
+      const btn = el(id);
+      if (btn) btn.addEventListener('click', fn);
+    });
+
+    const endgameInput = el('endgameCommandInput');
+    if (endgameInput) endgameInput.addEventListener('keydown', ev => { if (ev.key === 'Enter') executeEndgameCommand(); });
+
+    const globalNeighborInput2 = el('globalNeighborInput');
+    if (globalNeighborInput2) globalNeighborInput2.addEventListener('keydown', ev => { if (ev.key === 'Enter') exploreNeighborhood(); });
 
     // ==================== END EXPANSION TABS ====================
 
