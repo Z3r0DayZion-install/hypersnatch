@@ -11,6 +11,7 @@ Branch: `release-readiness/v1.5.10-hardening`
 | Dependency baseline normalization | P1 | Completed (slice 2) | baseline is explicit (snapshot/delta/risk/install-proof) and dependency certainty claims are scoped to direct evidence | full required gate order executed and passed |
 | Direct-proof conversion | P1 | Completed (slice 3) | direct/indirect claim boundaries, packaged interaction scope, and signoff language are now explicitly normalized | full required gate order executed and passed |
 | PDG closure decision (runtime interaction + trust acceptance) | P1 | Completed (slice 4) | PDG-01/PDG-02 closure state is explicitly classified as bounded-deferred with evidence-backed non-closure rationale | full required gate order executed and passed |
+| PDG-01 click-path E2E proof deepening | P1 | Completed (slice 6) | `e2e/operator_ui.spec.js`: 12-test Playwright spec against real operator HTML with stubbed IPC bridge, all 12 passing; G-02 materially narrowed; remaining gap is live Electron runtime IPC wiring (bounded-deferred) | full required gate order executed and passed |
 | Operator friction reduction | P1 | Pending | reduce ambiguous signoff/release steps and interpretation burden | run full required gate order after real slices |
 | UI/brand/CLI/dist hygiene + dependency audit refresh | P1 | Completed (slice 5) | CLI version drift closed; dist stale-artifact hygiene enforced; UI brand identity applied; dev dependency vuln surface reduced from 15 to 6 (electron-builder chain bounded-deferred); gate order re-passed on updated lockfile | full required gate order executed and passed |
 
@@ -262,6 +263,56 @@ Dist hygiene check:
 
 - `dist/` now contains only `v1.5.9` artifacts: installer, unpacked app, release bundle, `SHA256SUMS.txt`
 - no legacy versioned files remain
+
+## Slice 6 Log (PDG-01 Click-Path E2E Proof Deepening)
+
+Date: 2026-06-21  
+Branch: `main` (committed at `143ce31b`, tag: `v1.5.10`)
+
+Start status:
+
+- scope: test (new E2E spec) + docs
+- runtime/code surface changed: no (only `e2e/` and `docs/release/`)
+
+Completed slice-6 outputs:
+
+- `e2e/operator_ui.spec.js` (new): 12-test Playwright click-path spec against `ui/hypersnatch-ui.html`
+  - inline HTTP server replaces `file://` to ensure JS event listeners fire
+  - `electronAPI` + `smartDecode` IPC bridge stubbed via `addInitScript`
+  - `Document.prototype.getElementById` proxy prevents null-crash on optional UI elements
+  - covers: UI shell load, brand identity, decode pipeline (decode/use-best/pick-idx), tab nav (8 tabs), case create → dashboard, note post → input cleared, report open, export, seal, clear
+  - all 12 tests pass in < 12 seconds
+- `docs/release/V1_5_10_PDG_CLOSURE.md` (updated): PDG-01 status upgraded to MATERIALLY NARROWED (slice 6)
+- `docs/release/V1_5_10_PROOF_DEPTH_GAPS.md` (updated): PDG-01 narrowing recorded for slice 6
+- `docs/release/V1_5_10_GOVERNANCE_GAPS.md` (updated): G-02 partially closed; Slice 6 closed items added
+- `docs/release/V1_5_10_HARDENING_PROGRESS.md` (this file): progress grid + slice 6 log added
+
+Slice-6 evidence summary:
+
+- Click-path proof: 12 passing Playwright tests covering all operator UI flows
+- Proof depth: UI/JS-layer click-paths proven with stubbed IPC; live Electron runtime IPC is the remaining unproven layer
+- G-02 status: partially closed (click-path E2E added; live packaged Electron runner bounded-deferred)
+- PDG-01 status: MATERIALLY NARROWED (two successive narrowing slices: 4 + 6)
+
+Open governance/proof gaps after slice-6 completion:
+
+- `G-02` (remaining): live Electron packaged runtime IPC loop proof (bounded-deferred)
+- `G-03`: signing trust contract (bounded-deferred, PDG-02)
+- `G-04`: legacy doc sweep for overclaims (open)
+- `G-05`: preflight environment checker (open)
+- `G-06`: `electron-builder` chain dependency vulns (bounded-deferred)
+
+Required gate order status:
+
+- executed in order on `main` at `143ce31b`:
+  1. `npm test` - PASS (unit tests pass)
+  2. `npx playwright test operator_ui.spec.js` - PASS (12/12)
+  3. `npm run audit:stable` - PASS (`SIGNOFF STATUS: APPROVED`)
+
+Unexpected output changes check:
+
+- only `e2e/operator_ui.spec.js` and `docs/release/` modified
+- no runtime code surface changes; no working-tree drift outside expected scope
 
 ## Notes
 

@@ -9,7 +9,7 @@ This file tracks what remains indirect after proof-upgrade execution and the req
 
 | Gap ID | Severity | Indirect Zone | Why Still Indirect | Status | Closure Type | Closure Path |
 |---|---|---|---|---|---|---|
-| PDG-01 | P1 | Full packaged click-path execution for queue/manual-review/reopen/export | packaged proof now includes marker checks + packaged method-level interaction assertions from `app.asar`, but still does not execute full packaged event-loop/GUI click-path flows | BOUNDED-DEFERRED (materially narrowed in proof-upgrade) | Runtime-work later | add packaged click-path runner/assertions that execute operator flows in live packaged app context |
+| PDG-01 | P1 | Full packaged click-path execution in live Electron runtime (no IPC stub) | `e2e/operator_ui.spec.js` (slice 6, 12 tests passing) drives the real operator HTML with stubbed IPC bridge — click-paths are proven at UI/JS level; remaining gap is live packaged Electron IPC wiring (no stub) | MATERIALLY NARROWED (slice 6 — click-path E2E spec added) | Runtime-work later | extend E2E runner to drive the packaged Electron app directly (e.g. via `electron` launch in Playwright) without stub |
 | PDG-02 | P1 | External trust acceptance for shipped binaries | trust boundary is now captured deterministically in-gate, but strict signoff still proves artifact/hash contract and does not by itself close signed trust-chain acceptance | BOUNDED-DEFERRED (materially narrowed in proof-upgrade) | Policy + runtime-work later | define/enforce signing contract and require signed evidence in stable release proof flow |
 | PDG-03 | P1 | Wrapper behavior under fresh-machine install/use cycle | current proof validates artifact outputs and hashes, not full installer journey on clean host | Open | Runtime-work later | add reproducible installer lifecycle proof on clean host profile |
 | PDG-04 | P2 | Cross-environment install reproducibility strength | clean install proof currently reflects documented environment, not broad environment matrix | Open | Script/doc later | add optional environment preflight and multi-host install evidence matrix |
@@ -18,9 +18,10 @@ This file tracks what remains indirect after proof-upgrade execution and the req
 ## Proof-Upgrade Narrowing Achieved
 
 1. Direct vs indirect classification is explicit across release-critical claims.
-2. PDG-01 now has direct packaged method-level interaction assertions from `app.asar`, not marker-only packaged evidence.
-3. PDG-02 now has deterministic in-gate signature-boundary capture, not manual-only trust-boundary checks.
-4. Signoff language remains normalized and conservative with no expansion overclaim.
+2. PDG-01 (slice 4): direct packaged method-level interaction assertions from `app.asar`, not marker-only packaged evidence.
+3. PDG-01 (slice 6): `e2e/operator_ui.spec.js` — 12-test Playwright click-path spec against real operator HTML; all 12 tests pass. Covers decode, tab nav, case create/note/report/export/seal flows. IPC stubbed via `electronAPI`/`smartDecode` bridge.
+4. PDG-02: deterministic in-gate signature-boundary capture, not manual-only trust-boundary checks.
+5. Signoff language remains normalized and conservative with no expansion overclaim.
 
 ## Decision Impact
 
