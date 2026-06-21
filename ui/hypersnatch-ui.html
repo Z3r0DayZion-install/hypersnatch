@@ -1401,7 +1401,7 @@
       <div class="control-row header-tools">
         <span id="bridgeDot" class="idle" aria-hidden="true">●</span>
         <span id="bridgeText" class="tiny muted">Bridge: Initializing</span>
-        <span class="pill tiny mono" id="uiVer">v?</span>
+        <span class="pill tiny mono" id="uiVer">v1.6.0</span>
         <button id="nodeIdPill" class="pill tiny mono" type="button" title="Copy hardware node fingerprint">
           NODE <span id="nodeIdText">--</span>
         </button>
@@ -1661,7 +1661,9 @@
 
         <!-- Case Explorer (Shown when no case is active) -->
         <div id="caseExplorer" class="panel" style="display:block;">
-          <div class="panel-header">Investigation Registry</div>
+          <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">Investigation Registry
+            <input id="caseSearchInput" class="input-field" style="width:220px;font-size:0.65rem;padding:3px 8px;" placeholder="Filter by title or case ID…" />
+          </div>
           <table class="data-table">
             <thead>
               <tr>
@@ -2876,7 +2878,7 @@
     "use strict";
 
     const el = (id) => document.getElementById(id);
-    const APP_VERSION_FALLBACK = "1.5.9";
+    const APP_VERSION_FALLBACK = "1.6.0";
 
     const state = {
       lastJson: null,
@@ -3851,7 +3853,7 @@
       };
       const exportMetadata = {
         reportType: "operator-workflow",
-        schema: "v1.5.0-reporting",
+        schema: "v1.6.0-reporting",
         generatedAt,
         source: "automation-get-state",
         mode: snapshot?.mode || "OFF",
@@ -4800,7 +4802,7 @@
         }
 
         body.innerHTML = cases.map(c => `
-                <tr>
+                <tr data-case-id="${c.case_id}">
                     <td class="mono tiny">${c.case_id}</td>
                     <td style="font-weight:600;">${escapeHtml(c.title)}</td>
                     <td><span class="pill tiny">${c.bundleCount} items</span></td>
@@ -5037,7 +5039,7 @@
         };
         const exportMetadata = {
           reportType: "case-workspace",
-          schema: "v1.5.0-reporting",
+          schema: "v1.6.0-reporting",
           generatedAt: new Date().toISOString(),
           source: "case-workspace-context",
           deterministicHeadings: true,
@@ -6584,12 +6586,170 @@
     const globalNeighborInput2 = el('globalNeighborInput');
     if (globalNeighborInput2) globalNeighborInput2.addEventListener('keydown', ev => { if (ev.key === 'Enter') exploreNeighborhood(); });
 
+    // ==================== v1.6.0 POLISH ====================
+
+    // ── Footer live updater ──────────────────────────────────────────────────
+    function updateFooter(action) {
+      const footerCase = el('footerCase');
+      const footerQueue = el('footerQueue');
+      const footerLast = el('footerLastAction');
+      if (footerCase) {
+        const c = window.caseMgr?.activeCase;
+        footerCase.textContent = c ? `Case: ${c.title || c.case_id}` : 'No active case';
+        footerCase.style.color = c ? 'var(--color-ok)' : 'var(--text-muted)';
+      }
+      if (footerQueue) {
+        const q = state.lastAutomation?.queue?.length ?? 0;
+        footerQueue.textContent = `Queue: ${q}`;
+        footerQueue.style.color = q > 0 ? 'var(--color-warn)' : 'var(--text-muted)';
+      }
+      if (footerLast && action) {
+        const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        footerLast.textContent = `${action} · ${t}`;
+        footerLast.style.color = 'var(--text-accent)';
+        setTimeout(() => { if (footerLast) footerLast.style.color = 'var(--text-muted)'; }, 4000);
+      }
+    }
+    // Patch setStatus to also push to footer
+    const _origSetStatus = typeof setStatus === 'function' ? setStatus : null;
+    if (_origSetStatus) {
+      window._setStatus = _origSetStatus;
+      window.setStatus = function(msg, type) {
+        _origSetStatus(msg, type);
+        updateFooter(msg);
+      };
+    }
+    setInterval(updateFooter, 5000);
+
+    // ── Keyboard shortcuts ───────────────────────────────────────────────────
+    const _tabOrder = [
+      'tabBtnSummary','tabBtnTimeline','tabBtnLadder','tabBtnCandidates',
+      'tabBtnHar','tabBtnReport','tabBtnAutomation','tabBtnCases',
+      'tabBtnIntelligence'
+    ];
+    document.addEventListener('keydown', ev => {
+      const tag = document.activeElement?.tagName;
+      const inInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+      // Ctrl+D — decode
+      if (ev.ctrlKey && ev.key === 'd' && !inInput) {
+        ev.preventDefault();
+        el('btnDecode')?.click();
+        updateFooter('Ctrl+D → decode');
+        return;
+      }
+      // Ctrl+K — clear input
+      if (ev.ctrlKey && ev.key === 'k') {
+        ev.preventDefault();
+        el('btnClear')?.click();
+        updateFooter('Ctrl+K → clear');
+        return;
+      }
+      // Ctrl+Enter — rebuild intelligence graph
+      if (ev.ctrlKey && ev.key === 'Enter') {
+        ev.preventDefault();
+        el('btnIntelRebuildGraph')?.click();
+        updateFooter('Ctrl+↵ → rebuild graph');
+        return;
+      }
+      // Ctrl+1..9 — switch tabs
+      if (ev.ctrlKey && !ev.shiftKey && !ev.altKey && ev.key >= '1' && ev.key <= '9') {
+        const idx = parseInt(ev.key, 10) - 1;
+        const tabBtn = _tabOrder[idx] ? el(_tabOrder[idx]) : null;
+        if (tabBtn) {
+          ev.preventDefault();
+          tabBtn.click();
+          updateFooter(`Ctrl+${ev.key} → ${tabBtn.textContent.trim()}`);
+        }
+        return;
+      }
+      // Ctrl+/ — focus decode input
+      if (ev.ctrlKey && ev.key === '/') {
+        ev.preventDefault();
+        el('input')?.focus();
+        updateFooter('Ctrl+/ → focus input');
+      }
+    });
+
+    // ── Case search/filter ───────────────────────────────────────────────────
+    const caseSearchInput = el('caseSearchInput');
+    if (caseSearchInput) {
+      caseSearchInput.addEventListener('input', () => {
+        const q = caseSearchInput.value.toLowerCase().trim();
+        const rows = el('caseListBody')?.querySelectorAll('tr[data-case-id]') || [];
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = (!q || text.includes(q)) ? '' : 'none';
+        });
+      });
+    }
+
+    // ── Intelligence tab: auto-load on first open ────────────────────────────
+    const _intelTabBtn = el('tabBtnIntelligence');
+    let _intelLoaded = false;
+    if (_intelTabBtn) {
+      _intelTabBtn.addEventListener('click', () => {
+        if (!_intelLoaded) {
+          _intelLoaded = true;
+          setTimeout(() => { el('btnIntelRebuildGraph')?.click(); }, 150);
+        }
+      });
+    }
+
+    // ── Patterns tab: auto-load on first open ────────────────────────────────
+    const _patternTabBtn = el('tabBtnPatterns');
+    let _patternsLoaded = false;
+    if (_patternTabBtn) {
+      _patternTabBtn.addEventListener('click', () => {
+        if (!_patternsLoaded && state.lastJson?.candidates?.length) {
+          _patternsLoaded = true;
+          setTimeout(() => { el('btnRunPatterns')?.click(); }, 150);
+        }
+      });
+    }
+
+    // ── Patch CaseManager to keep footer in sync ─────────────────────────────
+    // Run after caseMgr is constructed
+    setTimeout(() => {
+      if (window.caseMgr) {
+        const _origLoad = window.caseMgr.loadCase.bind(window.caseMgr);
+        const _origClose = window.caseMgr.closeCase.bind(window.caseMgr);
+        window.caseMgr.loadCase = function(id) { const r = _origLoad(id); updateFooter(`Case loaded: ${id}`); return r; };
+        window.caseMgr.closeCase = function() { const r = _origClose(); updateFooter('Case closed'); return r; };
+      }
+    }, 200);
+
+    // ── Queue depth footer sync — hook into render cycle ─────────────────────
+    const _origRender = typeof render === 'function' ? render : null;
+    if (_origRender) {
+      window.render = function(data) {
+        _origRender(data);
+        updateFooter(null);
+      };
+    }
+
+    // ── Initial footer paint ─────────────────────────────────────────────────
+    updateFooter('v1.6.0 ready');
+
     // ==================== END EXPANSION TABS ====================
 
     const caseMgr = new CaseManager();
     window.caseMgr = caseMgr; // Expose globally for onclick handlers
 
   </script>
+  <div id="appFooter" style="position:fixed;bottom:0;left:0;right:0;height:26px;background:rgba(6,10,14,0.97);border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:12px;padding:0 14px;font-size:0.6rem;z-index:9999;user-select:none;">
+    <span style="color:var(--color-secure);font-weight:700;letter-spacing:0.05em;">HyperSnatch</span>
+    <span class="muted" style="opacity:0.5;">|</span>
+    <span id="footerVersion" style="color:var(--text-muted);">v1.6.0</span>
+    <span class="muted" style="opacity:0.5;">|</span>
+    <span id="footerCase" style="color:var(--text-muted);">No active case</span>
+    <span class="muted" style="opacity:0.5;">|</span>
+    <span id="footerQueue" style="color:var(--text-muted);">Queue: 0</span>
+    <span class="muted" style="opacity:0.5;">|</span>
+    <span id="footerLastAction" style="color:var(--text-muted);">Ready</span>
+    <span style="flex:1;"></span>
+    <span id="footerShortcuts" style="color:rgba(255,255,255,0.2);font-size:0.55rem;">Ctrl+D decode &nbsp; Ctrl+K clear &nbsp; Ctrl+1–9 tabs &nbsp; Ctrl+↵ rebuild graph</span>
+  </div>
 </body>
 
 </html>

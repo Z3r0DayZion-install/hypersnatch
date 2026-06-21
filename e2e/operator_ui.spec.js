@@ -621,3 +621,94 @@ test("copilot: Synthesize with active case populates copilot panel", async ({ pa
   expect(text.length).toBeGreaterThan(20);
   expect(text).toMatch(/Synthesis|correlated|Tier-2|Confidence/i);
 });
+
+// ─── Test 21: v1.6.0 footer bar renders ──────────────────────────────────────
+
+test("footer bar: renders with version and ready state on load", async ({ page }) => {
+  await openFresh(page);
+  await page.waitForSelector("#appFooter", { state: "visible", timeout: 5000 });
+  const footer = await page.locator("#appFooter").textContent();
+  expect(footer).toMatch(/HyperSnatch/);
+  expect(footer).toMatch(/v1\.6\.0/);
+  expect(footer).toMatch(/Queue/i);
+});
+
+// ─── Test 22: keyboard shortcut Ctrl+K clears input ──────────────────────────
+
+test("keyboard: Ctrl+K clears the input field", async ({ page }) => {
+  await openFresh(page);
+  await page.fill("#input", "https://proof-factory.test/watch/keyboard-test");
+  const before = await page.locator("#input").inputValue();
+  expect(before.length).toBeGreaterThan(0);
+
+  await page.keyboard.press("Control+k");
+  await page.waitForTimeout(200);
+
+  const after = await page.locator("#input").inputValue();
+  expect(after).toBe("");
+});
+
+// ─── Test 23: keyboard shortcut Ctrl+8 switches to Cases tab ─────────────────
+
+test("keyboard: Ctrl+8 switches to Investigation Cases tab", async ({ page }) => {
+  await openFresh(page);
+  // Ensure focus is NOT on an input
+  await page.click("body");
+  await page.keyboard.press("Control+8");
+  await page.waitForSelector("#tabCases", { state: "visible", timeout: 5000 });
+  const visible = await page.locator("#tabCases").isVisible();
+  expect(visible).toBe(true);
+});
+
+// ─── Test 24: case search filter hides non-matching rows ─────────────────────
+
+test("case search: filter hides rows not matching query", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  // Close back to explorer
+  await page.click("#btnCloseCase");
+  await page.waitForSelector("#caseExplorer", { state: "visible", timeout: 5000 });
+
+  // Type a filter that won't match any case
+  await page.fill("#caseSearchInput", "zzzz_no_match_at_all");
+  await page.waitForTimeout(300);
+
+  const rows = await page.locator("#caseListBody tr[data-case-id]").count();
+  // All matching rows should be hidden
+  let visibleCount = 0;
+  for (let i = 0; i < rows; i++) {
+    const display = await page.locator(`#caseListBody tr[data-case-id]`).nth(i).evaluate(el => el.style.display);
+    if (display !== "none") visibleCount++;
+  }
+  expect(visibleCount).toBe(0);
+});
+
+// ─── Test 25: full operator workflow smoke ────────────────────────────────────
+
+test("workflow: decode → create case → generate briefing → threat report", async ({ page }) => {
+  await openFresh(page);
+
+  // Step 1: decode
+  await page.fill("#input", "https://proof-factory.test/watch/workflow-smoke");
+  await page.click("#btnDecode");
+  await expect(page.locator("#status")).not.toContainText("Awaiting payload", { timeout: 8000 });
+
+  // Step 2: create case
+  await createCase(page);
+  await page.waitForSelector("#activeCaseDashboard", { state: "visible", timeout: 5000 });
+
+  // Step 3: generate briefing
+  await page.click("#btnAssistantBriefing");
+  await expect(page.locator("#assistantBriefingOutput")).not.toContainText("Load a case", { timeout: 8000 });
+
+  // Step 4: generate threat report
+  await page.click("#btnGenerateThreat");
+  await expect(page.locator("#threatReportPanel")).not.toContainText("Generating intelligence", { timeout: 8000 });
+  const threatText = await page.locator("#threatReportPanel").textContent();
+  expect(threatText).toMatch(/THREAT REPORT|MEDIUM|CDN_HIJACK/i);
+
+  // Step 5: footer reflects active case
+  const footerCase = await page.locator("#footerCase").textContent();
+  expect(footerCase).toMatch(/Case:/i);
+});
