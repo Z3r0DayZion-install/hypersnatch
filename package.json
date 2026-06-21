@@ -53,6 +53,7 @@
     "ui:open": "start ui/hypersnatch-ui.html",
     "build:wrapper": "node scripts/build_release_pack.js",
     "release:pack": "node scripts/build_release_pack.js",
+    "preflight": "node scripts/preflight_check.js",
     "clean:dist:stale": "node scripts/clean_dist_stale.js",
     "test": "node tests/smartdecode.test.js && node tests/dns_fallback.test.js && node tests/decode_queue.test.js",
     "test:ci": "node tests/smartdecode.test.js && node tests/dns_fallback.test.js && node tests/decode_queue.test.js",
