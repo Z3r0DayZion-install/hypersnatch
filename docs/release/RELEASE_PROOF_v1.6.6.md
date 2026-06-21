@@ -1,4 +1,4 @@
-# HyperSnatch Release Proof v1.6.6
+ HyperSnatch Release Proof v1.6.6
 
 Date: 2026-06-21
 Release line: stable
@@ -62,11 +62,12 @@ Release line: stable
 
 ## Publish Checklist
 
-- [x] `release:gate` PASS
-- [x] 93/93 E2E tests green
-- [x] Annotated tag `v1.6.6` on `9bca2eb1`
-- [x] MANIFEST.json with SHA256 hashes generated
-- [x] `git push origin main`
-- [x] `git push origin v1.6.6`
-- [ ] GitHub Release created with installer + zip attached
-- [ ] Post-download SHA256 hash verified against MANIFEST.json
+* [x] `release:gate` PASS
+* [x] 93/93 E2E tests green
+* [x] Annotated tag `v1.6.6` on `9bca2eb1`
+* [x] MANIFEST.json with SHA256 hashes generated
+* [x] `git push origin main`
+* [x] `git push origin v1.6.6`
+* [x] GitHub Release created with installer + zip attached
+* [x] Post-download SHA256 hash verified against MANIFEST.json
+
