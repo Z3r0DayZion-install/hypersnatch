@@ -40,13 +40,21 @@ git status --short --branch
 
 4. Run release gates in clean worktree.
 
+**Option A — single command (recommended):**
 ```powershell
 npm install
+npm run release:gate
+```
+`release:gate` runs: `preflight → test → verify:ui → build:wrapper → verify → audit:stable` in sequence, stops on first failure, and prints a clear PASS/FAIL summary.
+
+**Option B — manual sequence:**
+```powershell
+npm install
+npm run preflight
 npm test
 npm run verify:ui
 npm run build:wrapper
 npm run verify
-npm run audit:final
 npm run audit:stable
 ```
 
