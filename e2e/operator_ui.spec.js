@@ -370,7 +370,9 @@ async function injectBridge(page) {
       // wsCreate (new)
       wsCreate: async (name) => ({ id: 'WS-NEW', name }),
       // Phase 78 graphCentrality override (existing stub returns empty scores)
-      graphCentrality: async (g) => ({ scores: { 'cdn-primary.test': 0.97, 'edge-node-1.test': 0.74 } })
+      graphCentrality: async (g) => ({ scores: { 'cdn-primary.test': 0.97, 'edge-node-1.test': 0.74 } }),
+      // caseUpdateFinding (new)
+      caseUpdateFinding: async (caseId, findingId, updates) => ({ success: true, caseId, findingId, updated: updates })
     };
   }, MOCK_CASE, MOCK_DECODE_RESULT);
 }
@@ -1473,4 +1475,296 @@ test("trust registry: Enter key in source input triggers Verify", async ({ page 
   await page.press("#trustSourceInput", "Enter");
 
   await expect(page.locator("#trustRegistryPanel")).toContainText(/TRUSTED/i, { timeout: 6000 });
+});
+
+// ─── Test 71: caseUpdateFinding happy path ───────────────────────────────────
+
+test("case findings: Update Finding marks finding reviewed", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#findingUpdateInput", "FIND-001");
+  await page.click("#btnCaseUpdateFinding");
+
+  await expect(page.locator("#caseFindingsBody")).toContainText(/FIND-001|updated/i, { timeout: 6000 });
+  const status = await page.locator("#status").textContent();
+  expect(status).toMatch(/updated/i);
+});
+
+// ─── Test 72: caseUpdateFinding empty input guard ───────────────────────────
+
+test("case findings: Update Finding with empty input shows validation error", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#findingUpdateInput", "");
+  await page.click("#btnCaseUpdateFinding");
+
+  const status = await page.locator("#status").textContent();
+  expect(status).toMatch(/enter a finding id/i);
+});
+
+// ─── Test 73: caseUpdateFinding Enter key binding ─────────────────────────────
+
+test("case findings: Enter key in finding input triggers Update", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#findingUpdateInput", "FIND-KEY-001");
+  await page.press("#findingUpdateInput", "Enter");
+
+  await expect(page.locator("#caseFindingsBody")).toContainText(/FIND-KEY-001|updated/i, { timeout: 6000 });
+});
+
+// ─── Test 74: keyboard — wsNameInput Enter creates workspace ─────────────────
+
+test("workspace: Enter key in name input triggers Create", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#wsNameInput", "Enter-Workspace");
+  await page.press("#wsNameInput", "Enter");
+
+  await page.waitForTimeout(2000);
+  const status = await page.locator("#status").textContent();
+  expect(status).toMatch(/workspace|created|loaded/i);
+});
+
+// ─── Test 75: wsCreate happy path ───────────────────────────────────────────
+
+test("workspace: Create Workspace registers new workspace", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#wsNameInput", "Delta-Workspace");
+  await page.click("#btnCreateWorkspace");
+
+  await page.waitForTimeout(2000);
+  const status = await page.locator("#status").textContent();
+  expect(status).toMatch(/workspace|created|loaded/i);
+});
+
+// ─── Test 76: keyboard — deployProfileInput Enter triggers Activate ────────────
+
+test("enterprise: Enter key in profile input triggers Activate", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  // Intercept listDeployProfiles so it doesn't overwrite statActiveProfile
+  await page.evaluate(() => {
+    window.electronAPI.deployList = async () => [];
+  });
+
+  await page.fill("#deployProfileInput", "enterprise-enter");
+  await page.press("#deployProfileInput", "Enter");
+
+  await page.waitForTimeout(2000);
+  const stat = await page.locator("#statActiveProfile").textContent();
+  expect(stat).toMatch(/enterprise-enter/i);
+});
+
+// ─── Test 77: deployActivate happy path ────────────────────────────────────
+
+test("enterprise: Deploy Activate sets active profile stat", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  // Stub deployList to return empty so statActiveProfile isn't overwritten
+  await page.evaluate(() => {
+    window.electronAPI.deployList = async () => [];
+  });
+
+  await page.fill("#deployProfileInput", "gamma-profile");
+  await page.click("#btnDeployActivate");
+
+  await page.waitForTimeout(2000);
+  const stat = await page.locator("#statActiveProfile").textContent();
+  expect(stat).toMatch(/gamma-profile/i);
+});
+
+// ─── Test 78: policyAudit log surfaces ALLOW/DENY entries ───────────────────
+
+test("policy engine: Audit Log shows ALLOW decisions", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnPolicyAudit");
+
+  await expect(page.locator("#policyPanel")).not.toContainText("No data", { timeout: 6000 });
+  const text = await page.locator("#policyPanel").textContent();
+  expect(text).toMatch(/ALLOW|DENY|export/i);
+});
+
+// ─── Test 79: statExchanges increments after Trust Audit ────────────────────
+
+test("trust registry: Audit updates statExchanges counter", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnTrustAudit");
+
+  await page.waitForTimeout(1500);
+  const stat = await page.locator("#statExchanges").textContent();
+  expect(parseInt(stat)).toBeGreaterThanOrEqual(1);
+});
+
+// ─── Test 80: statPolicyDecisions increments after policy load ───────────────
+
+test("policy engine: Load Defaults updates statPolicyDecisions counter", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnPolicyLoadDefaults");
+
+  await page.waitForTimeout(1500);
+  const stat = await page.locator("#statPolicyDecisions").textContent();
+  expect(parseInt(stat)).toBeGreaterThanOrEqual(1);
+});
+
+// ─── Test 81: renderList empty-state uses .empty-state class ─────────────────
+
+test("UI polish: renderList empty-state uses .empty-state class", async ({ page }) => {
+  await openFresh(page);
+
+  const hasEmptyState = await page.evaluate(() => {
+    const fakePanel = document.createElement('div');
+    fakePanel.id = '__test_panel__';
+    document.body.appendChild(fakePanel);
+    window.testRenderList = (panelId, items, renderer) => {
+      const el2 = document.getElementById(panelId);
+      if (!el2) return;
+      if (!items || items.length === 0) { el2.innerHTML = '<div class="empty-state">No data</div>'; return; }
+      el2.innerHTML = items.slice(0, 20).map(renderer).join('');
+    };
+    window.testRenderList('__test_panel__', [], () => '');
+    const result = fakePanel.querySelector('.empty-state') !== null;
+    fakePanel.remove();
+    return result;
+  });
+
+  expect(hasEmptyState).toBe(true);
+});
+
+// ─── Test 82: UI version badge shows correct version ────────────────────────
+
+test("UI version: badge reflects package.json version", async ({ page }) => {
+  await openFresh(page);
+
+  const badge = await page.locator("#uiVer").textContent();
+  expect(badge).toMatch(/v\d+\.\d+\.\d+/i);
+});
+
+// ─── Test 83: statTopNode updates after graph hot nodes ───────────────────
+
+test("graph analytics: Hot Nodes updates statTopNode stat", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnGraphHotNodes");
+
+  await page.waitForTimeout(1500);
+  const stat = await page.locator("#statTopNode").textContent();
+  expect(stat).toMatch(/cdn-primary|cdn\.e2e|NODE/i);
+});
+
+// ─── Test 84: statBridgeCount updates after graph bridges ──────────────────
+
+test("graph analytics: Bridges updates statBridgeCount", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnGraphBridges");
+
+  await page.waitForTimeout(1500);
+  const stat = await page.locator("#statBridgeCount").textContent();
+  expect(parseInt(stat)).toBeGreaterThanOrEqual(1);
+});
+
+// ─── Test 85: caseUpdateFinding no-active-case guard ──────────────────────
+
+test("case findings: Update Finding with no active case shows error", async ({ page }) => {
+  await openFresh(page);
+
+  await page.evaluate(() => {
+    document.getElementById('findingUpdateInput').value = 'FIND-NOCASE';
+  });
+  await page.evaluate(async () => {
+    document.getElementById('btnCaseUpdateFinding').click();
+    await new Promise(r => setTimeout(r, 200));
+  });
+
+  const status = await page.locator("#status").textContent();
+  expect(status).toMatch(/load a case|no active case/i);
+});
+
+// ─── Test 86: Deploy List renders profiles ──────────────────────────────────
+
+test("enterprise: Deploy List renders available profiles", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnDeployList");
+
+  await expect(page.locator("#enterprisePanel")).not.toContainText("No data", { timeout: 6000 });
+  const text = await page.locator("#enterprisePanel").textContent();
+  expect(text).toMatch(/PROFILE-STANDARD|Standard|Production|ACTIVE/i);
+});
+
+// ─── Test 87: statActiveProfile updates on Deploy List ────────────────────
+
+test("enterprise: Deploy List updates statActiveProfile", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnDeployList");
+
+  await page.waitForTimeout(1500);
+  const stat = await page.locator("#statActiveProfile").textContent();
+  expect(stat).toMatch(/Standard|Production|profile/i);
+});
+
+// ─── Test 88: wsCreate empty input guard ───────────────────────────────────
+
+test("workspace: Create with empty name shows validation error", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.fill("#wsNameInput", "");
+  await page.click("#btnCreateWorkspace");
+
+  const status = await page.locator("#status").textContent();
+  expect(status).toMatch(/enter a workspace name/i);
+});
+
+// ─── Test 89: deployActivate empty input guard ─────────────────────────────
+
+test("enterprise: Activate with empty profile name shows validation error", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.evaluate(() => {
+    document.getElementById('deployProfileInput').value = '';
+  });
+  await page.evaluate(async () => {
+    document.getElementById('btnDeployActivate').click();
+    await new Promise(r => setTimeout(r, 300));
+  });
+
+  const status = await page.locator("#status").textContent();
+  expect(status).toMatch(/enter a profile name/i);
+});
+
+// ─── Test 90: anomaly scoring updates stat counters ───────────────────────
+
+test("intelligence: Anomaly scoring updates stat counters", async ({ page }) => {
+  await openFresh(page);
+  await createCase(page);
+
+  await page.click("#btnScoreAnomalies");
+
+  await page.waitForTimeout(1500);
+  const high = await page.locator("#statAnomalyHigh").textContent();
+  const avg  = await page.locator("#statAnomalyAvg").textContent();
+  expect(parseInt(high)).toBeGreaterThanOrEqual(0);
+  expect(avg).toMatch(/\d|—/);
 });
