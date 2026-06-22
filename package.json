@@ -84,6 +84,7 @@
       "core/",
       "modules/",
       "ui/hypersnatch-ui.html",
+      "ui/hypersnatch-ui.js",
       "package.json"
     ],
     "extraResources": [

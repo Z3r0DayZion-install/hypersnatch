@@ -5,9 +5,44 @@ const path = require("path");
 const vm = require("vm");
 
 const uiPath = path.join(__dirname, "..", "ui", "hypersnatch-ui.html");
-const html = fs.readFileSync(uiPath, "utf8");
+const jsPath = path.join(__dirname, "..", "ui", "hypersnatch-ui.js");
+const htmlRaw = fs.readFileSync(uiPath, "utf8");
+const jsRaw = fs.readFileSync(jsPath, "utf8");
+// Renderer JS now lives in an external packaged file (CSP hardening: no inline script).
+// Combine for substring/function-source checks so existing proofs keep validating the logic.
+const html = htmlRaw + "\n" + jsRaw;
 const pkgPath = path.join(__dirname, "..", "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+
+// ── CSP hardening contract ───────────────────────────────────────────────
+if (!/<script\s+src="hypersnatch-ui\.js"><\/script>/.test(htmlRaw)) {
+  console.error("[ui-smoke] Renderer must load the packaged external script ui/hypersnatch-ui.js.");
+  process.exit(1);
+}
+if (/<script(?![^>]*\bsrc=)[^>]*>/.test(htmlRaw)) {
+  console.error("[ui-smoke] Inline <script> blocks are not allowed; renderer JS must be external.");
+  process.exit(1);
+}
+const inlineHandlerRe = /\son(?:click|change|input|submit|keydown|keyup|load|mouseover|mouseenter|mouseleave|focus|blur|dblclick)\s*=/i;
+if (inlineHandlerRe.test(htmlRaw)) {
+  console.error("[ui-smoke] Inline event handlers are not allowed in renderer HTML; use data-action delegation.");
+  process.exit(1);
+}
+if (/\son(?:click|change|input|submit|keydown|keyup|mouseover|mouseenter|focus|blur|dblclick)\s*=/i.test(jsRaw)) {
+  console.error("[ui-smoke] Generated markup must not emit inline event handlers; use data-action delegation.");
+  process.exit(1);
+}
+const mainPath = path.join(__dirname, "..", "src", "main.js");
+const mainSrc = fs.readFileSync(mainPath, "utf8");
+const scriptSrcMatch = mainSrc.match(/script-src[^;]*;/);
+if (!scriptSrcMatch) {
+  console.error("[ui-smoke] Could not locate script-src directive in src/main.js CSP.");
+  process.exit(1);
+}
+if (/unsafe-inline/.test(scriptSrcMatch[0])) {
+  console.error("[ui-smoke] CSP script-src must not contain 'unsafe-inline'.");
+  process.exit(1);
+}
 
 function assertPattern(pattern, message) {
   if (!pattern.test(html)) {
