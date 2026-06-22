@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="Screenshot placeholder for the captured demo page">
+  <rect width="1280" height="720" fill="#0a0d12"/>
+  <rect x="280" y="180" width="720" height="360" rx="12" fill="#101820" stroke="#263242" stroke-width="2"/>
+  <text x="640" y="300" fill="#eaf2ff" font-family="system-ui, sans-serif" font-size="34" font-weight="700" text-anchor="middle">Example Vendor — Quarterly Report</text>
+  <text x="640" y="350" fill="#7a8aa0" font-family="system-ui, sans-serif" font-size="20" text-anchor="middle">Synthetic screenshot placeholder (no real capture)</text>
+  <rect x="520" y="400" width="240" height="56" rx="8" fill="#20c7ff"/>
+  <text x="640" y="436" fill="#04141c" font-family="system-ui, sans-serif" font-size="20" font-weight="700" text-anchor="middle">Download sample report</text>
+  <text x="640" y="600" fill="#23d18b" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">HyperSnatch demo case · Capture the artifact. Keep the proof.</text>
+</svg>

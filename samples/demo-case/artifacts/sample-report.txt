@@ -1,0 +1,15 @@
+Example Vendor — Quarterly Report (SAMPLE)
+==========================================
+
+This is a synthetic artifact created for the HyperSnatch demo case.
+It contains no real, private, or copyrighted content.
+
+Summary
+-------
+- Period: Q2 (demo)
+- Status: Synthetic sample for proof-workflow demonstration
+- Source: Captured from samples/demo-case/captured-page/index.html
+
+This file is the downloadable artifact referenced by the captured page's
+visible "Download sample report" link. HyperSnatch records the link, the
+page context, and a content hash of this file to build a download receipt.
