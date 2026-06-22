@@ -113,4 +113,7 @@ manifested in the packed asar.**
 - [x] Post-download SHA256 verified from GitHub
       Installer: 7757217586FA23612E6CABB17940079B43A19009C5146B30944F7B950112DA7B ✅
       Zip:       78F4AADF6FD58763F6E81B93848212ADFB7B1558099B250E4A9672E8D0CA43CC ✅
-- [ ] HN post
+- [x] HN post — PUBLISHED
+      https://news.ycombinator.com/item?id=48625074
+      Title: Show HN: HyperSnatch – local-first evidence workstation for Windows
+      First comment posted. v1.6.11 launch complete.
