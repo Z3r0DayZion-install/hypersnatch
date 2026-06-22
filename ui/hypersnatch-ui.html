@@ -1589,6 +1589,143 @@
       padding: 2px 8px;
       font-size: 0.62rem;
     }
+
+    /* ── Workbench 3-step flow ──────────────────────────────────── */
+    .workbench-steps {
+      margin-bottom: 1.25rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(42, 198, 255, 0.05), rgba(6, 10, 14, 0.2));
+    }
+    .workbench-steps .wb-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.9rem;
+      flex-wrap: wrap;
+    }
+    .workbench-steps .wb-heading h2 {
+      font-size: 1.15rem;
+      margin: 0;
+      color: var(--text-accent);
+    }
+    .workbench-steps .wb-tagline {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .wb-steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.85rem;
+    }
+    .wb-step {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.3rem;
+      text-align: left;
+      padding: 0.85rem 0.95rem;
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      background: var(--bg-panel-alt);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: border-color 0.2s ease, transform 0.1s ease;
+    }
+    .wb-step:hover {
+      border-color: var(--text-accent);
+      transform: translateY(-1px);
+    }
+    .wb-step .wb-step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--color-bg, #060a0e);
+      background: var(--color-secure, #38f5b0);
+    }
+    .wb-step .wb-step-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+    .wb-step .wb-step-desc {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* ── evidence gating placeholder ────────────────────────────── */
+    .gate-placeholder {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      min-height: 220px;
+      padding: 2rem;
+      border: 1px dashed var(--border-soft);
+      border-radius: 12px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .gate-placeholder .gate-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .gate-placeholder .gate-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    body:not(.evidence-loaded) .gated > *:not(.gate-placeholder) {
+      display: none !important;
+    }
+    body:not(.evidence-loaded) .gated > .gate-placeholder {
+      display: flex;
+    }
+
+    /* ── proof status + diagnostics drawer ──────────────────────── */
+    .proof-status {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 0.75rem;
+    }
+    .diag-drawer {
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      background: var(--bg-panel-alt);
+    }
+    .diag-drawer > summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 7px 10px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      user-select: none;
+    }
+    .diag-drawer > summary::-webkit-details-marker {
+      display: none;
+    }
+    .diag-drawer > summary::before {
+      content: "▸ ";
+      color: var(--text-accent);
+    }
+    .diag-drawer[open] > summary::before {
+      content: "▾ ";
+    }
+    .diag-drawer > .trust-panel,
+    .diag-drawer > .panel {
+      margin: 0 8px 8px;
+    }
   </style>
 </head>
 
@@ -1688,28 +1825,53 @@
     <main class="center-workspace">
       <div class="tab-bar" role="tablist" aria-label="Operator workspace tabs">
         <button id="tabBtnSummary" class="tab-btn active" data-tab="tabSummary" role="tab" aria-controls="tabSummary"
-          aria-selected="true" tabindex="0">Summary</button>
+          aria-selected="true" tabindex="0">Workbench</button>
         <button id="tabBtnTimeline" class="tab-btn" data-tab="tabTimeline" role="tab" aria-controls="tabTimeline"
           aria-selected="false" tabindex="-1">Timeline</button>
         <button id="tabBtnLadder" class="tab-btn" data-tab="tabLadder" role="tab" aria-controls="tabLadder"
-          aria-selected="false" tabindex="-1">Stream Ladder</button>
+          aria-selected="false" tabindex="-1">Streams</button>
         <button id="tabBtnCandidates" class="tab-btn" data-tab="tabCandidates" role="tab" aria-controls="tabCandidates"
           aria-selected="false" tabindex="-1">Candidates</button>
         <button id="tabBtnHar" class="tab-btn" data-tab="tabHar" role="tab" aria-controls="tabHar" aria-selected="false"
-          tabindex="-1">Network HAR</button>
+          tabindex="-1">Network</button>
         <button id="tabBtnReport" class="tab-btn" data-tab="tabReport" role="tab" aria-controls="tabReport"
-          aria-selected="false" tabindex="-1">Report</button>
+          aria-selected="false" tabindex="-1">Proof</button>
         <button id="tabBtnAutomation" class="tab-btn" data-tab="tabAutomation" role="tab" aria-controls="tabAutomation"
-          aria-selected="false" tabindex="-1" style="color:var(--text-accent);">SmartSnatch Queue</button>
+          aria-selected="false" tabindex="-1" style="color:var(--text-accent);">Queue</button>
         <button id="tabBtnCases" class="tab-btn" data-tab="tabCases" role="tab" aria-controls="tabCases"
-          aria-selected="false" tabindex="-1" style="color:var(--color-ok);">Investigation Cases</button>
+          aria-selected="false" tabindex="-1" style="color:var(--color-ok);">Cases</button>
         <button id="tabBtnIntelligence" class="tab-btn" data-tab="tabIntelligence" role="tab" aria-controls="tabIntelligence"
           aria-selected="false" tabindex="-1" style="color:#c084fc;">Intelligence</button>
         <button id="tabBtnPatterns" class="tab-btn" data-tab="tabPatterns" role="tab" aria-controls="tabPatterns"
           aria-selected="false" tabindex="-1" style="color:#fb923c;">Patterns</button>
+        <button id="tabBtnAdvanced" class="tab-btn" data-tab="tabAdvanced" role="tab" aria-controls="tabAdvanced"
+          aria-selected="false" tabindex="-1" style="color:var(--text-muted);">Advanced</button>
       </div>
 
       <div id="tabSummary" class="tab-content active" role="tabpanel" aria-labelledby="tabBtnSummary">
+        <section class="workbench-steps" aria-label="HyperSnatch workflow">
+          <div class="wb-heading">
+            <h2>HyperSnatch Workbench</h2>
+            <span class="wb-tagline">Capture the artifact. Keep the proof.</span>
+          </div>
+          <div class="wb-steps-grid">
+            <button type="button" class="wb-step" id="wbStepLoad">
+              <span class="wb-step-num">1</span>
+              <span class="wb-step-title">Load Evidence</span>
+              <span class="wb-step-desc">Folder, file, URL, or paste.</span>
+            </button>
+            <button type="button" class="wb-step" id="wbStepDecode">
+              <span class="wb-step-num">2</span>
+              <span class="wb-step-title">Decode &amp; Analyze</span>
+              <span class="wb-step-desc">Extract candidates, traces, and notes.</span>
+            </button>
+            <button type="button" class="wb-step" id="wbStepProof">
+              <span class="wb-step-num">3</span>
+              <span class="wb-step-title">Seal Proof</span>
+              <span class="wb-step-desc">Hash, manifest, receipt, export.</span>
+            </button>
+          </div>
+        </section>
         <section class="input-dropzone" aria-label="Evidence intake and decode controls">
           <div class="intake-hero">
             <div class="intake-copy">
@@ -2112,6 +2274,7 @@
             </div>
           </div>
 
+          <div id="advancedRelocateSrc">
           <!-- Intelligence Layer (Phase 59) -->
           <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.5rem;">
             <!-- Infrastructure Graph Panel -->
@@ -2952,10 +3115,20 @@
             </div>
           </div>
         </div>
+          </div><!-- /advancedRelocateSrc -->
 
       </div>
 
-      <div id="tabTimeline" class="tab-content" style="display:none;" role="tabpanel"
+      <div id="tabAdvanced" class="tab-content gated" style="display:none;" role="tabpanel"
+        aria-labelledby="tabBtnAdvanced">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1rem;">
+          <h2 style="font-size:1.1rem; margin:0;">Advanced Analysis &amp; Labs</h2>
+          <span class="muted tiny">Deep modules unlock after evidence is loaded</span>
+        </div>
+        <!-- Deep modules are relocated here at runtime from the Workbench tab -->
+      </div>
+
+      <div id="tabTimeline" class="tab-content gated" style="display:none;" role="tabpanel"
         aria-labelledby="tabBtnTimeline">
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1rem;">
           <h2 style="font-size:1.1rem; margin:0;">Network Event Timeline</h2>
@@ -3205,8 +3378,33 @@
     </main>
 
     <aside class="right-panel">
-      <div class="panel-header">Trust and Proof Control</div>
+      <div class="panel-header">Proof Status</div>
 
+      <div class="proof-status">
+        <div class="trust-row">
+          <span class="muted">Evidence</span>
+          <span id="psEvidence" class="pill tiny idle">Not loaded</span>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Case</span>
+          <span id="psCase" class="pill tiny idle">No active case</span>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Hash</span>
+          <span id="psHash" class="pill tiny idle">Pending</span>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Manifest</span>
+          <span id="psManifest" class="pill tiny idle">Pending</span>
+        </div>
+        <div class="trust-row">
+          <span class="muted">Export</span>
+          <span id="psExport" class="pill tiny idle">Not ready</span>
+        </div>
+      </div>
+
+      <details class="diag-drawer">
+        <summary>Diagnostics</summary>
       <div class="trust-panel">
         <div class="trust-row">
           <span class="muted">Player Runtime</span>
@@ -3254,6 +3452,7 @@
         <div class="data-label" style="font-size:0.65rem;">Evidence Hash (SHA-256)</div>
         <div id="intHash" class="mono muted" style="font-size:0.65rem; word-break:break-all;">--</div>
       </div>
+      </details>
 
       <div id="forensicCard" class="forensic-console">
         <div class="panel-header">Tactical Event Console</div>
@@ -3654,6 +3853,7 @@
 
     function render(result) {
       state.lastJson = result || null;
+      if (result && typeof window.setEvidenceLoaded === 'function') window.setEvidenceLoaded(true);
 
       if (result?.batch && Array.isArray(result.jobs)) {
         renderBatch(result);
@@ -4895,6 +5095,7 @@
           setStatus("Loading Forensic Artifact bundle...", "muted");
           const res = await window.electronAPI.getForensicSnapshot();
           if (res && res.success) {
+            if (typeof window.setEvidenceLoaded === 'function') window.setEvidenceLoaded(true);
 
             const artifacts = res.artifacts || {};
 
@@ -5154,6 +5355,72 @@
     });
 
     activateTab(tabButtons.find((b) => b.classList.contains('active')) || tabButtons[0]);
+
+    // ==================== WORKBENCH IA: relocate, gate, proof-status ====================
+    // Relocate deep/advanced modules out of the Workbench into the Advanced tab.
+    (function relocateAdvancedModules() {
+      const src = el('advancedRelocateSrc');
+      const dest = el('tabAdvanced');
+      if (src && dest) dest.appendChild(src);
+    })();
+
+    // Gate analysis tools behind evidence load with a calm placeholder.
+    const GATED_TAB_IDS = ['tabTimeline', 'tabLadder', 'tabCandidates', 'tabHar', 'tabIntelligence', 'tabPatterns', 'tabAdvanced'];
+    GATED_TAB_IDS.forEach((id) => {
+      const panel = el(id);
+      if (!panel) return;
+      panel.classList.add('gated');
+      const ph = document.createElement('div');
+      ph.className = 'gate-placeholder';
+      ph.innerHTML = '<div class="gate-title">Load evidence to unlock analysis tools.</div>' +
+        '<div class="gate-sub">Use the Workbench to load a folder, file, URL, or pasted payload.</div>';
+      panel.insertBefore(ph, panel.firstChild);
+    });
+
+    function setEvidenceLoaded(v) {
+      if (v) {
+        document.body.classList.add('evidence-loaded');
+        const g = el('valGlobalStatus');
+        if (g) { g.textContent = 'EVIDENCE LOADED'; g.className = 'status-badge ok'; }
+      } else {
+        document.body.classList.remove('evidence-loaded');
+      }
+      updateProofStatus();
+    }
+    window.setEvidenceLoaded = setEvidenceLoaded;
+
+    function setPill(id, text, cls) {
+      const node = el(id);
+      if (!node) return;
+      node.textContent = text;
+      node.className = 'pill tiny ' + cls;
+    }
+
+    function updateProofStatus() {
+      const loaded = document.body.classList.contains('evidence-loaded');
+      setPill('psEvidence', loaded ? 'Loaded' : 'Not loaded', loaded ? 'ok' : 'idle');
+
+      const c = window.caseMgr && window.caseMgr.activeCase;
+      setPill('psCase', c ? 'Active' : 'No active case', c ? 'ok' : 'idle');
+
+      const hashTxt = (el('intHash') && el('intHash').textContent) || '--';
+      const hasHash = hashTxt && hashTxt !== '--' && hashTxt.replace(/\s/g, '').length > 8;
+      setPill('psHash', hasHash ? 'Created' : 'Pending', hasHash ? 'ok' : 'idle');
+      setPill('psManifest', hasHash ? 'Ready' : 'Pending', hasHash ? 'ok' : 'idle');
+
+      const exTxt = (el('intExportReady') && el('intExportReady').textContent) || '';
+      const ready = /ready/i.test(exTxt) && !/blocked|waiting/i.test(exTxt);
+      setPill('psExport', ready ? 'Ready' : 'Not ready', ready ? 'ok' : 'idle');
+    }
+    window.updateProofStatus = updateProofStatus;
+    updateProofStatus();
+
+    // Workbench 3-step shortcuts (reuse existing controls; no new behavior).
+    el('wbStepLoad') && el('wbStepLoad').addEventListener('click', () => {
+      const i = el('input'); if (i) { i.focus(); i.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    });
+    el('wbStepDecode') && el('wbStepDecode').addEventListener('click', () => { el('btnDecode') && el('btnDecode').click(); });
+    el('wbStepProof') && el('wbStepProof').addEventListener('click', () => { el('tabBtnReport') && el('tabBtnReport').click(); });
 
     // ==================== PHASE 57: CASE MANAGEMENT LOGIC ====================
     class CaseManager {
@@ -7764,6 +8031,12 @@
       const footerCase = el('footerCase');
       const footerQueue = el('footerQueue');
       const footerLast = el('footerLastAction');
+      const footerVersion = el('footerVersion');
+      const uiVer = el('uiVer');
+      if (footerVersion && uiVer) {
+        footerVersion.textContent = uiVer.textContent;
+      }
+      if (typeof window.updateProofStatus === 'function') window.updateProofStatus();
       if (footerCase) {
         const c = window.caseMgr?.activeCase;
         footerCase.textContent = c ? `Case: ${c.title || c.case_id}` : 'No active case';
@@ -7796,7 +8069,7 @@
     const _tabOrder = [
       'tabBtnSummary','tabBtnTimeline','tabBtnLadder','tabBtnCandidates',
       'tabBtnHar','tabBtnReport','tabBtnAutomation','tabBtnCases',
-      'tabBtnIntelligence'
+      'tabBtnIntelligence','tabBtnPatterns','tabBtnAdvanced'
     ];
     document.addEventListener('keydown', ev => {
       const tag = document.activeElement?.tagName;
@@ -7900,7 +8173,7 @@
     }
 
     // ── Initial footer paint ─────────────────────────────────────────────────
-    updateFooter('v1.6.0 ready');
+    updateFooter('Ready');
 
     // ==================== END EXPANSION TABS ====================
 
@@ -7911,7 +8184,7 @@
   <div id="appFooter" style="position:fixed;bottom:0;left:0;right:0;height:26px;background:rgba(6,10,14,0.97);border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:12px;padding:0 14px;font-size:0.6rem;z-index:9999;user-select:none;">
     <span style="color:var(--color-secure);font-weight:700;letter-spacing:0.05em;">HyperSnatch</span>
     <span class="muted" style="opacity:0.5;">|</span>
-    <span id="footerVersion" style="color:var(--text-muted);">v1.6.0</span>
+    <span id="footerVersion" style="color:var(--text-muted);">v1.6.12</span>
     <span class="muted" style="opacity:0.5;">|</span>
     <span id="footerCase" style="color:var(--text-muted);">No active case</span>
     <span class="muted" style="opacity:0.5;">|</span>
