@@ -101,11 +101,12 @@ manifested in the packed asar.**
 - [x] `win-unpacked` launch: window visible, title = `HyperSnatch — The Proof Foundry™`
 - [x] Annotated tag `v1.6.11`
 - [x] MANIFEST.json with SHA256 hashes generated
-- [ ] `git push origin main`
-- [ ] `git push origin v1.6.11`
-- [ ] Run installer `HyperSnatch-Setup-1.6.11.exe` → install → double-click → confirm visible window
+- [x] `git push origin main`
+- [x] `git push origin v1.6.11`
+- [x] Run installer `HyperSnatch-Setup-1.6.11.exe` → install → double-click → **PASS**
+      MainWindowHandle: 2233720 | MainWindowTitle: HyperSnatch — The Proof Foundry™
 - [ ] GitHub Release: title `HyperSnatch v1.6.11 — Public Launch`
 - [ ] Upload `HyperSnatch-Setup-1.6.11.exe` + `HyperSnatch_Vanguard_v1.6.11.zip`
 - [ ] v1.6.6–v1.6.10 marked superseded on GitHub
 - [ ] Post-download SHA256 verified from GitHub
-- [ ] HN post after installer proof confirmed
+- [ ] HN post
