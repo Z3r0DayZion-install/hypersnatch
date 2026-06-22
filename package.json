@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.6.10",
+  "version": "1.6.11",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",
@@ -76,17 +76,10 @@
       "buildResources": "build"
     },
     "files": [
-      "src/main.js",
-      "src/preload.js",
-      "src/security-crypto.js",
-      "src/dompurify.js",
-      "src/utils/logger.js",
-      "src/utils/crash-logger.js",
-      "src/core/",
+      "src/**/*",
       "core/",
       "modules/",
       "ui/hypersnatch-ui.html",
-      "src/cli/hypersnatch-cli.js",
       "package.json"
     ],
     "extraResources": [
