@@ -1975,6 +1975,7 @@ app.whenReady().then(() => {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
+    show: false,            // Hidden until ready-to-show fires
     frame: false,           // SOVEREIGN SHELL: Frameless
     fullscreen: false,      // Disabled Kiosk mode for standard desktop usage
     backgroundColor: '#0a1016',
@@ -2008,10 +2009,7 @@ app.whenReady().then(() => {
   });
 
   // Security: Log window creation
-  logSecurityEvent('WINDOW_CREATED', {
-    securityConfig: SECURITY_CONFIG,
-    rendererPath: mainWindow.webContents.executeJavaScript(`window.rendererPath = '${getRendererPath().replace(/\\/g, '\\\\')}'`)
-  });
+  logSecurityEvent('WINDOW_CREATED', { securityConfig: SECURITY_CONFIG, rendererPath: getRendererPath() });
 
   // Load the app
   mainWindow.loadFile(getRendererPath());
@@ -2044,6 +2042,11 @@ app.whenReady().then(() => {
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     logSecurityEvent('WINDOW_SHOWN');
+  });
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    logSecurityEvent('RENDERER_LOAD_FAILED', { errorCode, errorDescription });
+    mainWindow.show(); // Show anyway so the user sees something
   });
 
   // Security: Handle unresponsive
