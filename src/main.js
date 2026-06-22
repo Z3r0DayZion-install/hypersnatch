@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const secureCrypto = require('./security-crypto');
 const log = require('./utils/logger');
 const SmartDecode = require('./core/smartdecode');
+const SovereignAuth = require('./core/security/sovereign_auth');
 
 // QR Engine purged in Vanguard Edition for zero-trace portability.
 
@@ -1933,7 +1934,7 @@ app.whenReady().then(() => {
         'Content-Security-Policy': [
           "default-src 'self'; " +
           "connect-src 'self' http://localhost:3000; " +
-          "script-src 'self'; " +
+          "script-src 'self' 'unsafe-inline'; " +
           "style-src 'self' 'unsafe-inline'; " + // Allow inline styles for UI components
           "img-src 'self' data: blob: https://*; " +
           "media-src 'self' data: blob: https://*;"
@@ -1975,6 +1976,9 @@ app.whenReady().then(() => {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
+    minWidth: 900,
+    minHeight: 600,
+    resizable: true,
     show: true,             // Show immediately — ready-to-show unreliable when renderer crashes in sandbox
     frame: false,           // SOVEREIGN SHELL: Frameless
     fullscreen: false,      // Disabled Kiosk mode for standard desktop usage

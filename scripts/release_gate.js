@@ -15,7 +15,8 @@
  *   3. verify:ui      — UI smoke / harness check
  *   4. build:wrapper  — release artifact build
  *   5. verify         — packaged artifact + signature boundary checks
- *   6. audit:stable   — strict stable signoff (APPROVED required)
+ *   6. verify:asar    — asar module completeness + unpacked window launch proof
+ *   7. audit:stable   — strict stable signoff (APPROVED required)
  */
 
 const { execSync } = require("child_process");
@@ -29,6 +30,7 @@ const STEPS = [
   { name: "verify:ui",     cmd: "npm run verify:ui"       },
   { name: "build:wrapper", cmd: "npm run build:wrapper"   },
   { name: "verify",        cmd: "npm run verify"          },
+  { name: "verify:asar",   cmd: "npm run verify:asar"     },
   { name: "audit:stable",  cmd: "npm run audit:stable"    },
 ];
 
