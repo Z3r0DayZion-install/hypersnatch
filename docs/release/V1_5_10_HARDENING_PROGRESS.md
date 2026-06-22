@@ -228,15 +228,15 @@ Completed slice-5 outputs:
 - `scripts/clean_dist_stale.js` (new: removes stale versioned artifacts from `dist/`)
 - `scripts/generate_manifest.cjs` (narrowed: hashes current-release artifacts only, not all installer variants)
 - `package.json` (`clean:dist:stale` script wired)
-- `ui/hypersnatch-logo.svg` (new: factory-motif brand logo for The Proof Factory)
-- `ui/hypersnatch-ui.html` (brand kicker updated to `The Proof Factory`, inline mark replaced, report header updated)
+- `ui/hypersnatch-logo.svg` (new: brand logo for The Proof Foundry)
+- `ui/hypersnatch-ui.html` (brand kicker updated to `The Proof Foundry`, inline mark replaced, report header updated)
 - `package-lock.json` (refreshed via `npm audit fix`: 15 vulns → 6; remaining 6 are `electron-builder` chain, bounded-deferred)
 
 Slice-5 evidence summary:
 
 - CLI version drift: closed (`hypersnatch-cli.js` now resolves version from `package.json`)
 - Dist stale artifacts: closed (`HyperSnatch-Setup-1.3.1.exe`, legacy `hashes.txt`, old `manifest.json` removed)
-- UI brand identity: applied (`The Proof Factory` kicker + factory logo; all functional IDs unchanged)
+- UI brand identity: applied (`The Proof Foundry` kicker + brand logo; all functional IDs unchanged)
 - Dependency vuln baseline: refreshed (dev-dep surface reduced; `electron-builder` chain explicitly bounded-deferred, not force-fixed)
 - `npm audit` remaining count: 6 (all in `electron-builder` dependency tree; require breaking changes to address)
 

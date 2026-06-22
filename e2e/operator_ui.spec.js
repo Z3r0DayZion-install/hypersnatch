@@ -425,11 +425,11 @@ test("UI shell loads with core operator IDs present", async ({ page }) => {
   await expect(page.locator("#tabBtnCandidates")).toBeVisible();
 });
 
-test("brand identity: The Proof Factory kicker is rendered", async ({ page }) => {
+test("brand identity: The Proof Foundry kicker is rendered", async ({ page }) => {
   await openFresh(page);
   const kicker = page.locator(".brand-kicker");
   await expect(kicker).toBeVisible();
-  await expect(kicker).toContainText("The Proof Factory");
+  await expect(kicker).toContainText("The Proof Foundry");
 });
 
 // ─── Test 2: Decode flow ─────────────────────────────────────────────────────

@@ -82,4 +82,4 @@ This file tracks open truth/proof/governance gaps after slices 1 through 9.
 2. Stale release artifacts in `dist/`: closed — `HyperSnatch-Setup-1.3.1.exe`, legacy `hashes.txt`, and old `manifest.json` removed; `clean:dist:stale` script added and wired.
 3. Manifest scope drift (`generate_manifest.cjs` hashing all installer variants): closed — narrowed to current-release artifacts only.
 4. Dev dependency vuln baseline stale (15 vulns): partially closed — `npm audit fix` applied, surface reduced to 6; remaining 6 registered as `G-06` (bounded-deferred, `electron-builder` chain).
-5. UI brand identity: applied — `The Proof Factory` kicker, factory-motif logo SVG, and updated report header committed to `ui/`.
+5. UI brand identity: applied — `The Proof Foundry` kicker, brand logo SVG, and updated report header committed to `ui/`.

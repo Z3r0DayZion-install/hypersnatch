@@ -56,4 +56,4 @@ A: HyperSnatch is designed for airgapped use. While it can run online, **Airgap 
 A: Strategy Packs can be imported via the settings menu, provided they are signed by a trusted authority.
 
 ---
-*HyperSnatch v1.5.9 // The Proof Factory — artifact/hash integrity verified; external signing trust not claimed without explicit evidence*
+*HyperSnatch v1.5.9 // The Proof Foundry — artifact/hash integrity verified; external signing trust not claimed without explicit evidence*
