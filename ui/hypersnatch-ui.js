@@ -1,7 +1,7 @@
     "use strict";
 
     const el = (id) => document.getElementById(id);
-    const APP_VERSION_FALLBACK = "1.6.12";
+    const APP_VERSION_FALLBACK = "1.6.13";
 
     // CSP-safe event delegation (replaces former inline onclick handlers).
     document.addEventListener("click", (ev) => {
