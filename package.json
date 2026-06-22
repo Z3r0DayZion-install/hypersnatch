@@ -1,6 +1,6 @@
 {
   "name": "hypersnatch",
-  "version": "1.6.11",
+  "version": "1.6.12",
   "description": "HyperSnatch - Security-First Evidence Analyzer",
   "main": "src/main.js",
   "author": "HyperSnatch Security Team",

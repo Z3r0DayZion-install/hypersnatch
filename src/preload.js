@@ -888,6 +888,19 @@ const electronAPI = {
   advAssistantSynthesize: (graphSequence, telemetryLogs) => {
     validateIPCChannel('adv-assistant-synthesize');
     return ipcRenderer.invoke('adv-assistant-synthesize', { graphSequence, telemetryLogs });
+  },
+
+  windowMinimize: () => {
+    validateIPCChannel('window-minimize');
+    return ipcRenderer.invoke('window-minimize');
+  },
+  windowMaximize: () => {
+    validateIPCChannel('window-maximize');
+    return ipcRenderer.invoke('window-maximize');
+  },
+  windowClose: () => {
+    validateIPCChannel('window-close');
+    return ipcRenderer.invoke('window-close');
   }
 };
 
