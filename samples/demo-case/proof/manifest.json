@@ -1,0 +1,56 @@
+{
+  "schema": "hypersnatch.demo.manifest/v1",
+  "synthetic": true,
+  "case": {
+    "id": "DEMO-CASE-0001",
+    "title": "Example Vendor — Quarterly Report (demo)",
+    "createdAt": "2026-06-22T19:30:00Z"
+  },
+  "capture": {
+    "source": "local",
+    "capturePath": "samples/demo-case/captured-page/index.html",
+    "domSnapshot": "captured-page/dom-snapshot.html",
+    "screenshot": "captured-page/screenshot-placeholder.svg",
+    "capturedAt": "2026-06-22T19:30:00Z",
+    "viewport": "1280x720",
+    "userAgent": "HyperSnatch-Demo/1.0 (synthetic)"
+  },
+  "hashAlgorithm": "sha256",
+  "files": [
+    {
+      "path": "captured-page/index.html",
+      "role": "page-html",
+      "sha256": "009cfb9b6b3eb77622143d5ef7be72adc5ebfbb50837c4fd7aec36c42b550964"
+    },
+    {
+      "path": "captured-page/dom-snapshot.html",
+      "role": "dom-snapshot",
+      "sha256": "6d05d823bddda62808a8145db22a5be983e6ea404aa2a4128b25bef2d191a438"
+    },
+    {
+      "path": "captured-page/screenshot-placeholder.svg",
+      "role": "screenshot",
+      "sha256": "606c45ce064706d6ba4d17199dfa3aa2d1d591640afe9d50482ec0da952f307b"
+    },
+    {
+      "path": "artifacts/sample-report.txt",
+      "role": "download-artifact",
+      "sha256": "b4cdf05c36012568d5cc2353d8a8560150501776de9309a3ffdef1e238e86960"
+    },
+    {
+      "path": "artifacts/sample-download.bin",
+      "role": "download-artifact",
+      "sha256": "f8574ce3883e96a3c78f7722fe9eea32fbcf96e979ef71363c2845e52051a2d7"
+    }
+  ],
+  "download": {
+    "pageUrl": "samples/demo-case/captured-page/index.html",
+    "linkText": "Download sample report",
+    "linkSelector": "a#downloadLink",
+    "linkHref": "../artifacts/sample-report.txt",
+    "resolvedPath": "artifacts/sample-report.txt",
+    "filename": "sample-report.txt",
+    "contentType": "text/plain",
+    "sha256": "b4cdf05c36012568d5cc2353d8a8560150501776de9309a3ffdef1e238e86960"
+  }
+}

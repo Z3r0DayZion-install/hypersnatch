@@ -1,0 +1,29 @@
+{
+  "schema": "hypersnatch.demo.receipt/v1",
+  "synthetic": true,
+  "receiptId": "RCPT-DEMO-0001",
+  "caseId": "DEMO-CASE-0001",
+  "issuedAt": "2026-06-22T19:30:05Z",
+  "manifest": {
+    "path": "proof/manifest.json",
+    "sha256": "3c73e649c9c1264ac7b3059424511a4ce1d257ac0a89ad82795e004c450a4fea"
+  },
+  "page": {
+    "capturePath": "samples/demo-case/captured-page/index.html",
+    "domSnapshot": "captured-page/dom-snapshot.html",
+    "screenshot": "captured-page/screenshot-placeholder.svg",
+    "capturedAt": "2026-06-22T19:30:00Z"
+  },
+  "download": {
+    "linkText": "Download sample report",
+    "linkSelector": "a#downloadLink",
+    "resolvedPath": "artifacts/sample-report.txt",
+    "filename": "sample-report.txt",
+    "sha256": "b4cdf05c36012568d5cc2353d8a8560150501776de9309a3ffdef1e238e86960"
+  },
+  "verification": {
+    "sumsFile": "proof/SHA256SUMS.txt",
+    "algorithm": "sha256",
+    "note": "Synthetic demo receipt. Hashes are computed over the committed sample files."
+  }
+}
