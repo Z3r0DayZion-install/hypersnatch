@@ -1,8 +1,8 @@
-# Technical Post — HyperSnatch v1.6.8
+# Technical Post — HyperSnatch v1.6.11
 
 **Platform:** Reddit r/netsec, r/ReverseEngineering, or similar
 
-**Title:** I built an offline evidence workstation that hashes everything — v1.6.8 just shipped (fresh-install launch fix)
+**Title:** I built an offline evidence workstation that hashes everything — v1.6.11 just shipped (packaged build fix)
 
 ---
 
@@ -21,7 +21,7 @@ Every release goes through a gate before tagging:
 
 The investigation artifacts are stored as `.hsn` capsules — sealed containers with embedded hashes for each evidence bundle, finding, and chain-of-custody event.
 
-**What the UI covers (v1.6.8 — all IPC surfaces wired):**
+**What the UI covers (v1.6.11 — all IPC surfaces wired):**
 
 - Evidence decode and bundle capture
 - Case management: findings, notes, comparisons, audit log
@@ -34,19 +34,20 @@ The investigation artifacts are stored as `.hsn` capsules — sealed containers 
 - Autonomous investigation assistant
 - 93 E2E Playwright tests covering the full operator surface
 
-**What changed in the v1.6.6 → v1.6.8 hotfix chain:**
+**What changed in the v1.6.6 → v1.6.11 hotfix chain:**
 
-v1.6.6 passed gate but broke on fresh install. The hotfixes caught three real bugs:
+v1.6.6 passed gate but broke on fresh install. A chain of hotfixes caught the real bugs:
 
 1. `IntelligenceGraph` used at module scope without a `require` — Node threw before `app.whenReady()` fired
 2. `BundleSigner.ensureKeyPair` called `crypto.generateKeyPairSync` with `secp256k1` — Electron ships BoringSSL, not OpenSSL; BoringSSL doesn't support that curve; replaced with `prime256v1`
 3. `BrowserWindow` was created without `show: false`, and `executeJavaScript` was called before `loadFile`, corrupting `webContents` state and preventing `ready-to-show` from firing
+4. The electron-builder `files` list in `package.json` was an explicit allowlist that omitted all `src/` subdirectories. `main.js` requires 20+ subdirs at startup — none were packed into the `.asar`. The app crashed silently before `app.whenReady()` on every packaged build. Dev mode reads the filesystem directly, so all 93 E2E tests passed every time. Only the installed build failed.
 
-All three were caught in pre-launch testing before the HN post. That's the system working.
+All were caught in pre-launch installer proof testing before the HN post. That's the system working.
 
 **Stack:** Electron 28, Node.js 18, Playwright for E2E, no frontend framework (vanilla JS in a single hardened HTML file). Windows only for now.
 
 **Repo / release:**
-https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.8
+https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.11
 
 Open to questions on the capsule format, the graph model, or the release proof approach.

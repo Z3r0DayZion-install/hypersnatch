@@ -1,4 +1,4 @@
-# HN Launch Post — HyperSnatch v1.6.8
+# HN Launch Post — HyperSnatch v1.6.11
 
 **Title:** Show HN: HyperSnatch — offline evidence and stream intelligence workstation
 
@@ -8,7 +8,7 @@
 
 HyperSnatch is a local-first Windows tool for decoding, organizing, signing, verifying, and sealing investigation artifacts. Everything hashed, nothing leaves your machine.
 
-I've been building it for about a year. v1.6.8 is the first version I'd call genuinely launch-ready — the previous two hotfixes (v1.6.6 → v1.6.7 → v1.6.8) were all caught in pre-launch testing, which is the system working as intended.
+I've been building it for about a year. v1.6.11 is the first version I'd call genuinely launch-ready — a chain of hotfixes (v1.6.6 → v1.6.11) were all caught in pre-launch installer testing, which is the system working as intended.
 
 **What it does:**
 
@@ -32,7 +32,7 @@ When you're investigating infrastructure incidents, stream captures, or sourcing
 HyperSnatch is a Proof Foundry product for local-first evidence, stream intelligence, release proof, and artifact verification.
 
 **Download / verify:**
-https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.8
+https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.11
 
 SHA256 hashes in the release proof doc if you want to verify before running.
 

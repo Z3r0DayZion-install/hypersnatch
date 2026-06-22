@@ -105,8 +105,12 @@ manifested in the packed asar.**
 - [x] `git push origin v1.6.11`
 - [x] Run installer `HyperSnatch-Setup-1.6.11.exe` → install → double-click → **PASS**
       MainWindowHandle: 2233720 | MainWindowTitle: HyperSnatch — The Proof Foundry™
-- [ ] GitHub Release: title `HyperSnatch v1.6.11 — Public Launch`
-- [ ] Upload `HyperSnatch-Setup-1.6.11.exe` + `HyperSnatch_Vanguard_v1.6.11.zip`
-- [ ] v1.6.6–v1.6.10 marked superseded on GitHub
-- [ ] Post-download SHA256 verified from GitHub
+- [x] GitHub Release: title `HyperSnatch v1.6.11 — Public Launch` — PUBLISHED
+      https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.11
+- [x] Upload `HyperSnatch-Setup-1.6.11.exe` + `HyperSnatch_Vanguard_v1.6.11.zip` — via `gh release create`
+- [x] v1.6.6–v1.6.10 marked superseded on GitHub
+      (v1.6.6 + v1.6.8 had release pages — both updated; v1.6.7/v1.6.9/v1.6.10 had no release pages, tags only)
+- [x] Post-download SHA256 verified from GitHub
+      Installer: 7757217586FA23612E6CABB17940079B43A19009C5146B30944F7B950112DA7B ✅
+      Zip:       78F4AADF6FD58763F6E81B93848212ADFB7B1558099B250E4A9672E8D0CA43CC ✅
 - [ ] HN post
