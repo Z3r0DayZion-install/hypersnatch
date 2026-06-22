@@ -1934,8 +1934,8 @@ app.whenReady().then(() => {
         'Content-Security-Policy': [
           "default-src 'self'; " +
           "connect-src 'self' http://localhost:3000; " +
-          "script-src 'self' 'unsafe-inline'; " +
-          "style-src 'self' 'unsafe-inline'; " + // Allow inline styles for UI components
+          "script-src 'self'; " + // Renderer JS is packaged (ui/hypersnatch-ui.js); no inline script allowed
+          "style-src 'self' 'unsafe-inline'; " + // Inline styles still used by UI components (separate hardening lane)
           "img-src 'self' data: blob: https://*; " +
           "media-src 'self' data: blob: https://*;"
         ]
