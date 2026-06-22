@@ -121,9 +121,10 @@ Do not block the hotfix on that refactor.
 - [x] `win-unpacked` launch: window visible, title = `HyperSnatch — The Proof Foundry™`
 - [x] Installed-copy interaction proof: window handle != 0, v1.6.12 everywhere, getAppInfo OK, getForensicSnapshot success=true, real click → visible state change
 - [x] MANIFEST.json + SHA256SUMS.txt generated and consistent with computed hashes
-- [ ] Annotated tag `v1.6.12`
-- [ ] `git push origin <branch>` + `git push origin v1.6.12`
-- [ ] GitHub Release: title `HyperSnatch v1.6.12 — Critical Packaged UI Interaction Hotfix` — PUBLISHED
-- [ ] Upload `HyperSnatch-Setup-1.6.12.exe` + `HyperSnatch_Vanguard_v1.6.12.zip`
-- [ ] v1.6.11 marked superseded on GitHub
-- [ ] HN update posted
+- [x] Annotated tag `v1.6.12` (commit `5a3f574a`)
+- [x] `git push origin postlaunch/release-gate-packaged-asar-proof` + `git push origin v1.6.12`
+- [x] GitHub Release: title `HyperSnatch v1.6.12 — Critical Packaged UI Interaction Hotfix` — PUBLISHED (marked latest)
+      https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.12
+- [x] Upload `HyperSnatch-Setup-1.6.12.exe` + `HyperSnatch_Vanguard_v1.6.12.zip` (via `gh release create`)
+- [x] v1.6.11 marked superseded on GitHub (banner prepended, original body preserved)
+- [ ] HN update posted (draft prepared; post manually)
