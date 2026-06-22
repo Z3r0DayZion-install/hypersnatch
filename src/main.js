@@ -40,7 +40,7 @@ const SECURITY_CONFIG = {
   contextIsolation: true,
   nodeIntegration: false,
   enableRemoteModule: false,
-  sandbox: true,
+  sandbox: false,           // OS sandbox (AppContainer) blocks file:// asar in packaged builds on Windows
   webSecurity: true
 };
 
@@ -1975,7 +1975,7 @@ app.whenReady().then(() => {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    show: false,            // Hidden until ready-to-show fires
+    show: true,             // Show immediately — ready-to-show unreliable when renderer crashes in sandbox
     frame: false,           // SOVEREIGN SHELL: Frameless
     fullscreen: false,      // Disabled Kiosk mode for standard desktop usage
     backgroundColor: '#0a1016',
@@ -2040,14 +2040,15 @@ app.whenReady().then(() => {
   });
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
     logSecurityEvent('WINDOW_SHOWN');
   });
 
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
     logSecurityEvent('RENDERER_LOAD_FAILED', { errorCode, errorDescription });
-    mainWindow.show(); // Show anyway so the user sees something
   });
+
+  // Safety: force focus after load regardless of renderer state
+  setTimeout(() => { if (!mainWindow.isDestroyed()) mainWindow.focus(); }, 1000);
 
   // Security: Handle unresponsive
   mainWindow.on('unresponsive', () => {

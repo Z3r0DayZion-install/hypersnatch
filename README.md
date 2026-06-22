@@ -5,7 +5,7 @@ Decode, organize, sign, verify, and seal investigation artifacts — locally, wi
 
 A [Proof Foundry](https://github.com/Z3r0DayZion-install/hypersnatch) product.
 
-[![Release](https://img.shields.io/badge/release-v1.6.9-brightgreen)](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.9)
+[![Release](https://img.shields.io/badge/release-v1.6.10-brightgreen)](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.10)
 [![Tests](https://img.shields.io/badge/E2E%20tests-93%2F93-brightgreen)](#)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](#)
 
@@ -13,9 +13,9 @@ A [Proof Foundry](https://github.com/Z3r0DayZion-install/hypersnatch) product.
 
 ## Download
 
-**[HyperSnatch-Setup-1.6.9.exe](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.9)** — Windows installer
+**[HyperSnatch-Setup-1.6.10.exe](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.10)** — Windows installer
 
-SHA256 hashes in [`docs/release/RELEASE_PROOF_v1.6.9.md`](docs/release/RELEASE_PROOF_v1.6.9.md).
+SHA256 hashes in [`docs/release/RELEASE_PROOF_v1.6.10.md`](docs/release/RELEASE_PROOF_v1.6.10.md).
 
 ---
 
@@ -58,10 +58,10 @@ Requires Node.js 18+ and Windows (Electron build target).
 ## Verify a download
 
 ```powershell
-Get-FileHash .\HyperSnatch-Setup-1.6.9.exe -Algorithm SHA256
+Get-FileHash .\HyperSnatch-Setup-1.6.10.exe -Algorithm SHA256
 ```
 
-Compare against [`docs/release/RELEASE_PROOF_v1.6.9.md`](docs/release/RELEASE_PROOF_v1.6.9.md).
+Compare against [`docs/release/RELEASE_PROOF_v1.6.10.md`](docs/release/RELEASE_PROOF_v1.6.10.md).
 
 ---
 
@@ -69,7 +69,8 @@ Compare against [`docs/release/RELEASE_PROOF_v1.6.9.md`](docs/release/RELEASE_PR
 
 | Version | Notes |
 |---------|-------|
-| v1.6.9 | Public launch: Proof Foundry brand, window-show + module-load fixes consolidated |
+| v1.6.10 | Public launch: sandbox:false fix (AppContainer blocked packaged renderer on Windows) |
+| v1.6.9 | Proof Foundry brand + consolidated window-show fixes — superseded |
 | v1.6.8 | Fresh-install window-show hotfix (show:false, executeJavaScript removal, did-fail-load handler) — superseded |
 | v1.6.7 | Module-load crash fixes (IntelligenceGraph require, secp256k1→prime256v1) |
 | v1.6.6 | caseUpdateFinding wired, policyAudit fix, 93 E2E tests, withLoading on all async buttons |
