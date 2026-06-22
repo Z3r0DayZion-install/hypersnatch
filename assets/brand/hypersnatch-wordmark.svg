@@ -1,0 +1,11 @@
+<svg width="920" height="200" viewBox="0 0 920 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HyperSnatch">
+  <title>HyperSnatch wordmark</title>
+  <!-- Capture-bracket accents framing the wordmark -->
+  <g stroke="#20C7FF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M28 92 V54 Q28 40 42 40 H82"/>
+    <path d="M892 108 V146 Q892 160 878 160 H838"/>
+  </g>
+  <text x="100" y="134"
+        font-family="'Segoe UI Semibold','Segoe UI',Inter,'Helvetica Neue',Arial,sans-serif"
+        font-size="116" font-weight="700" letter-spacing="1.5" fill="#EAF2FF">HyperSnatch</text>
+</svg>

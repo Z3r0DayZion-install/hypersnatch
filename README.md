@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/brand/hypersnatch-hero.png" alt="HyperSnatch — Capture the artifact. Keep the proof." width="100%">
+</p>
+
 # HyperSnatch
 
 **Offline evidence and stream intelligence workstation.**  

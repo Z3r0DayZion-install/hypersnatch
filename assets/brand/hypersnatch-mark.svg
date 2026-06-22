@@ -1,0 +1,35 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HyperSnatch mark">
+  <title>HyperSnatch mark — capture brackets, sealed receipt, proof check</title>
+  <defs>
+    <linearGradient id="hs_page" x1="256" y1="132" x2="256" y2="392" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F2F6FC"/>
+      <stop offset="1" stop-color="#D4DEEC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Receipt / artifact page with folded top-right corner and perforated bottom -->
+  <path d="M192 132 H304 L340 168 V360 L327 378 L313 360 L300 378 L287 360 L273 378 L260 360 L247 378 L233 360 L220 378 L207 360 L193 378 L180 360 V144 Q180 132 192 132 Z"
+        fill="url(#hs_page)" stroke="#0A0D12" stroke-width="6" stroke-linejoin="round"/>
+  <!-- Dog-ear fold underside -->
+  <path d="M304 132 L304 168 L340 168 Z" fill="#B6C3D4"/>
+
+  <!-- Hash / log lines with small gold prefix bullets -->
+  <rect x="200" y="206" width="12" height="12" rx="2" fill="#E6B450"/>
+  <rect x="220" y="207" width="98" height="10" rx="5" fill="#2E3A49"/>
+  <rect x="200" y="240" width="12" height="12" rx="2" fill="#E6B450"/>
+  <rect x="220" y="241" width="118" height="10" rx="5" fill="#2E3A49"/>
+  <rect x="200" y="274" width="12" height="12" rx="2" fill="#E6B450"/>
+  <rect x="220" y="275" width="78" height="10" rx="5" fill="#2E3A49"/>
+
+  <!-- Capture brackets (cyan) -->
+  <g stroke="#20C7FF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M72 158 V96 Q72 72 96 72 H158"/>
+    <path d="M440 158 V96 Q440 72 416 72 H354"/>
+    <path d="M72 354 V416 Q72 440 96 440 H158"/>
+    <path d="M440 354 V416 Q440 440 416 440 H354"/>
+  </g>
+
+  <!-- Proof seal / check (green), sealing the bottom-right corner -->
+  <circle cx="340" cy="358" r="52" fill="#0A0D12" stroke="#23D18B" stroke-width="8"/>
+  <path d="M318 358 l14 17 l30 -36" stroke="#23D18B" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

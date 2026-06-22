@@ -1,0 +1,63 @@
+<svg width="1280" height="420" viewBox="0 0 1280 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HyperSnatch — offline evidence workstation">
+  <title>HyperSnatch hero</title>
+  <defs>
+    <linearGradient id="hs_bg" x1="0" y1="0" x2="1280" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A0D12"/>
+      <stop offset="1" stop-color="#10161F"/>
+    </linearGradient>
+    <linearGradient id="hs_page_h" x1="256" y1="132" x2="256" y2="392" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F2F6FC"/>
+      <stop offset="1" stop-color="#D4DEEC"/>
+    </linearGradient>
+    <radialGradient id="hs_glow" cx="240" cy="150" r="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#20C7FF" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#20C7FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1280" height="420" fill="url(#hs_bg)"/>
+  <rect width="1280" height="420" fill="url(#hs_glow)"/>
+
+  <!-- Mark -->
+  <g transform="translate(56 96) scale(0.46)">
+    <path d="M192 132 H304 L340 168 V360 L327 378 L313 360 L300 378 L287 360 L273 378 L260 360 L247 378 L233 360 L220 378 L207 360 L193 378 L180 360 V144 Q180 132 192 132 Z"
+          fill="url(#hs_page_h)" stroke="#0A0D12" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M304 132 L304 168 L340 168 Z" fill="#B6C3D4"/>
+    <rect x="200" y="206" width="12" height="12" rx="2" fill="#E6B450"/>
+    <rect x="220" y="207" width="98" height="10" rx="5" fill="#2E3A49"/>
+    <rect x="200" y="240" width="12" height="12" rx="2" fill="#E6B450"/>
+    <rect x="220" y="241" width="118" height="10" rx="5" fill="#2E3A49"/>
+    <rect x="200" y="274" width="12" height="12" rx="2" fill="#E6B450"/>
+    <rect x="220" y="275" width="78" height="10" rx="5" fill="#2E3A49"/>
+    <g stroke="#20C7FF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M72 158 V96 Q72 72 96 72 H158"/>
+      <path d="M440 158 V96 Q440 72 416 72 H354"/>
+      <path d="M72 354 V416 Q72 440 96 440 H158"/>
+      <path d="M440 354 V416 Q440 440 416 440 H354"/>
+    </g>
+    <circle cx="340" cy="358" r="52" fill="#0A0D12" stroke="#23D18B" stroke-width="8"/>
+    <path d="M318 358 l14 17 l30 -36" stroke="#23D18B" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- Wordmark + messaging -->
+  <text x="300" y="180" font-family="'Segoe UI Semibold','Segoe UI',Inter,Arial,sans-serif" font-size="80" font-weight="700" letter-spacing="1.5" fill="#EAF2FF">HyperSnatch</text>
+  <text x="304" y="232" font-family="'Segoe UI',Inter,Arial,sans-serif" font-size="30" font-weight="500" fill="#20C7FF">Capture the artifact. Keep the proof.</text>
+  <text x="304" y="296" font-family="'Segoe UI',Inter,Arial,sans-serif" font-size="22" font-weight="400" fill="#9FB0C7">Offline, local-first. Hashed at every step.</text>
+  <text x="304" y="338" font-family="'Segoe UI',Inter,Arial,sans-serif" font-size="17" font-weight="600" letter-spacing="4" fill="#607089">A PROOF FOUNDRY PRODUCT</text>
+
+  <!-- Proof receipt panel -->
+  <g transform="translate(872 92)">
+    <rect width="356" height="236" rx="16" fill="#121821" stroke="#263242" stroke-width="2"/>
+    <text x="24" y="40" font-family="'Cascadia Code','Consolas',ui-monospace,monospace" font-size="16" font-weight="600" letter-spacing="3" fill="#20C7FF">PROOF RECEIPT</text>
+    <line x1="24" y1="58" x2="332" y2="58" stroke="#263242" stroke-width="1.5"/>
+    <g font-family="'Cascadia Code','Consolas',ui-monospace,monospace" font-size="16" fill="#9FB0C7">
+      <text x="24" y="92"><tspan fill="#607089">setup  </tspan><tspan fill="#EAF2FF">9ef2035a…0e92feb4</tspan></text>
+      <text x="24" y="124"><tspan fill="#607089">asar   </tspan><tspan fill="#EAF2FF">0675e529…a4c03f73</tspan></text>
+      <text x="24" y="156"><tspan fill="#607089">bundle </tspan><tspan fill="#EAF2FF">b748daec…bc536692</tspan></text>
+    </g>
+    <line x1="24" y1="176" x2="332" y2="176" stroke="#263242" stroke-width="1.5"/>
+    <circle cx="40" cy="206" r="14" fill="#0A0D12" stroke="#23D18B" stroke-width="3"/>
+    <path d="M33 206 l5 6 l10 -12" stroke="#23D18B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <text x="64" y="212" font-family="'Cascadia Code','Consolas',ui-monospace,monospace" font-size="17" font-weight="600" letter-spacing="2" fill="#23D18B">SEALED &amp; VERIFIED</text>
+  </g>
+</svg>

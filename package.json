@@ -26,11 +26,13 @@
     "chrome-remote-interface": "^0.34.0"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "electron": "28.3.3",
     "electron-builder": "^24.13.3",
     "electron-playwright-helpers": "^2.1.0",
     "jsdom": "26.1.0",
-    "playwright": "^1.58.2"
+    "playwright": "^1.58.2",
+    "png-to-ico": "^3.0.1"
   },
   "scripts": {
     "start": "electron .",
@@ -38,6 +40,7 @@
     "hs-core:prepare": "node scripts/prepare_hs_core.cjs",
     "sign:win": "node scripts/sign_windows.cjs",
     "strategy-pack:hash": "node scripts/hash_strategy_pack.cjs",
+    "brand:assets": "node scripts/generate_brand_assets.js",
     "prebuild": "node scripts/prepare_hs_core.cjs",
     "predist": "node scripts/prepare_hs_core.cjs && node scripts/sign_windows.cjs --pre",
     "prepack": "node scripts/prepare_hs_core.cjs",
@@ -94,7 +97,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "assets/icon.ico",
+      "icon": "assets/icons/icon.ico",
       "timeStampServer": "http://timestamp.digicert.com",
       "publisherName": "HyperSnatch Security Team",
       "signAndEditExecutable": true
@@ -108,6 +111,8 @@
       "shortcutName": "HyperSnatch",
       "uninstallDisplayName": "HyperSnatch",
       "deleteAppDataOnUninstall": false,
+      "installerIcon": "assets/icons/icon.ico",
+      "uninstallerIcon": "assets/icons/icon.ico",
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "publish": {
