@@ -2116,6 +2116,20 @@
     .pbd-passport .pbd-pp-row { display: flex; justify-content: space-between; gap: 0.8rem; }
     .pbd-passport .pbd-pp-row .mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+    .enl-section { margin-bottom: 0.7rem; }
+    .enl-section-title {
+      font-size: 0.66rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-accent);
+      margin: 0 0 0.35rem;
+    }
+    .enl-explain { margin-top: 0.6rem; border-top: 1px solid var(--border-soft); padding-top: 0.6rem; }
+    .enl-explain-block { font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 0.45rem; }
+    .enl-explain-block:last-child { margin-bottom: 0; }
+    .enl-explain-head { color: var(--text-base); font-weight: 600; }
+
     .ssc-stats {
       display: flex;
       gap: 1.8rem;
@@ -2669,6 +2683,43 @@
           <div class="pbd-passport" id="pbdPassportDiff" style="display:none;"></div>
           <div class="ppc-actions">
             <button type="button" class="pill-btn" id="btnCompareBundles" disabled title="Select Bundle A and Bundle B, then compare.">Compare Proof Bundles</button>
+          </div>
+        </section>
+        <section class="proof-passport-card evidence-nutrition-label" id="evidenceNutritionLabel" style="display:none;" aria-label="Evidence Nutrition Label">
+          <div class="ppc-head">
+            <span class="ppc-icon">&#x1F9FE;</span>
+            <span class="ppc-title">Evidence Nutrition Label</span>
+            <span class="ppc-status" id="enlStatus">Not exported yet</span>
+          </div>
+          <p class="ttc-note">Know what your proof contains before you trust it. This is a plain summary of the current case and export — it is not a legal certification.</p>
+          <div class="enl-section">
+            <div class="enl-section-title">Proof Contents</div>
+            <div class="ppc-grid">
+              <div class="ppc-field"><span class="ppc-label">Artifacts</span><span class="ppc-value" id="enlArtifacts">—</span></div>
+              <div class="ppc-field"><span class="ppc-label">Receipts</span><span class="ppc-value" id="enlReceipts">—</span></div>
+              <div class="ppc-field"><span class="ppc-label">SHA256 entries</span><span class="ppc-value" id="enlHashes">—</span></div>
+              <div class="ppc-field"><span class="ppc-label">Offline verifier</span><span class="ppc-value" id="enlVerifier">Not yet exported</span></div>
+            </div>
+          </div>
+          <div class="enl-section">
+            <div class="enl-section-title">Verification</div>
+            <div class="ppc-grid">
+              <div class="ppc-field"><span class="ppc-label">Proof Passport</span><span class="ppc-value" id="enlPassport">Not yet exported</span></div>
+              <div class="ppc-field"><span class="ppc-label">Prove It Again</span><span class="ppc-value" id="enlProveAgain">Available after export</span></div>
+              <div class="ppc-field"><span class="ppc-label">Tamper Trial</span><span class="ppc-value" id="enlTamper">Available after export</span></div>
+              <div class="ppc-field"><span class="ppc-label">Network required to verify</span><span class="ppc-value ok" id="enlNetwork">No</span></div>
+            </div>
+          </div>
+          <div class="enl-section">
+            <div class="enl-section-title">Privacy / Claims</div>
+            <div class="ppc-grid">
+              <div class="ppc-field"><span class="ppc-label">Cloud required</span><span class="ppc-value ok" id="enlCloud">No</span></div>
+              <div class="ppc-field"><span class="ppc-label">Court certified</span><span class="ppc-value" id="enlCourt">No</span></div>
+            </div>
+          </div>
+          <div class="enl-explain">
+            <p class="enl-explain-block"><span class="enl-explain-head">What this proof contains:</span> Artifacts, receipts, hashes, a Proof Passport, and an offline verifier after export. Everything is hash-verified and local-first.</p>
+            <p class="enl-explain-block"><span class="enl-explain-head">What this does not claim:</span> Court certification, legal admissibility, chain-of-custody, or that the original website cannot change later. This is a tamper-evident, self-verifying export — not legal evidence.</p>
           </div>
         </section>
         <section class="input-dropzone" aria-label="Evidence intake and decode controls">

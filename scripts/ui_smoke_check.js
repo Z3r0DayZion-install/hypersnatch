@@ -241,6 +241,18 @@ const requiredIds = [
   "pbdRemoved",
   "pbdChangesList",
   "btnCompareBundles",
+  "evidenceNutritionLabel",
+  "enlStatus",
+  "enlArtifacts",
+  "enlReceipts",
+  "enlHashes",
+  "enlVerifier",
+  "enlPassport",
+  "enlProveAgain",
+  "enlTamper",
+  "enlNetwork",
+  "enlCloud",
+  "enlCourt",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));
