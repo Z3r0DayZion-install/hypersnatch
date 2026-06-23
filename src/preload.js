@@ -172,7 +172,8 @@ const ALLOWED_IPC_CHANNELS = new Set([
   'select-export-destination',
   'export-proof-bundle',
   'open-export-folder',
-  'reverify-export-bundle'
+  'reverify-export-bundle',
+  'run-tamper-trial'
 ]);
 
 function validateIPCChannel(channel) {
@@ -943,6 +944,11 @@ const electronAPI = {
   reverifyExportBundle: (bundlePath) => {
     validateIPCChannel('reverify-export-bundle');
     return ipcRenderer.invoke('reverify-export-bundle', { bundlePath });
+  },
+
+  runTamperTrial: (bundlePath) => {
+    validateIPCChannel('run-tamper-trial');
+    return ipcRenderer.invoke('run-tamper-trial', { bundlePath });
   }
 };
 

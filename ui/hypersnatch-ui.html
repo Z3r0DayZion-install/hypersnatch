@@ -2072,6 +2072,11 @@
     .ppc-label { color: var(--text-muted); flex-shrink: 0; }
     .ppc-value { color: var(--text-base); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .ppc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.85rem; }
+    .ttc-note { font-size: 0.74rem; color: var(--text-muted); margin: 0 0 0.7rem; line-height: 1.4; }
+    .ttc-path-row { display: flex; justify-content: space-between; gap: 0.8rem; font-size: 0.78rem; margin-top: 0.6rem; }
+    .ttc-path-row .ppc-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ppc-value.ok { color: var(--color-ok); }
+    .ppc-value.bad { color: var(--color-bad); }
 
     .ssc-stats {
       display: flex;
@@ -2574,6 +2579,27 @@
           </div>
           <div class="ppc-actions">
             <button type="button" class="pill-btn" id="btnProveItAgain" disabled title="Export a proof bundle first, then re-prove it from disk.">Prove It Again</button>
+          </div>
+        </section>
+        <section class="proof-passport-card tamper-trial-card" id="tamperTrialCard" style="display:none;" aria-label="Tamper Trial">
+          <div class="ppc-head">
+            <span class="ppc-icon">&#x1F9EA;</span>
+            <span class="ppc-title">Tamper Trial</span>
+            <span class="ppc-status" id="ttStatus">Not run</span>
+          </div>
+          <p class="ttc-note">Don't just trust the proof — watch it catch tampering. This damages a temporary copy only. Your real export is never changed.</p>
+          <div class="ppc-grid">
+            <div class="ppc-field"><span class="ppc-label">Cases caught</span><span class="ppc-value" id="ttCaught">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Modified file</span><span class="ppc-value" id="ttCaseModified">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Missing file</span><span class="ppc-value" id="ttCaseMissing">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Passport tamper</span><span class="ppc-value" id="ttCasePassport">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Verifier missing</span><span class="ppc-value" id="ttCaseVerifier">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Original export</span><span class="ppc-value" id="ttOriginal">—</span></div>
+          </div>
+          <div class="ttc-path-row" style="display:none;"><span class="ppc-label">Trial folder</span><span class="ppc-value mono" id="ttTrialPath">—</span></div>
+          <div class="ppc-actions">
+            <button type="button" class="pill-btn" id="btnRunTamperTrial" disabled title="Export a proof bundle first, then run a tamper trial on a temporary copy.">Run Tamper Trial</button>
+            <button type="button" class="pill-btn" id="btnOpenTamperResult" disabled title="Open the temporary trial folder and result file.">Open trial result</button>
           </div>
         </section>
         <section class="input-dropzone" aria-label="Evidence intake and decode controls">

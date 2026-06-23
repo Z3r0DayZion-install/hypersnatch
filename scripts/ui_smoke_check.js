@@ -217,6 +217,16 @@ const requiredIds = [
   "ppProofStatus",
   "ppVerifier",
   "btnProveItAgain",
+  "tamperTrialCard",
+  "ttStatus",
+  "ttCaught",
+  "ttCaseModified",
+  "ttCaseMissing",
+  "ttCasePassport",
+  "ttCaseVerifier",
+  "ttOriginal",
+  "btnRunTamperTrial",
+  "btnOpenTamperResult",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));
