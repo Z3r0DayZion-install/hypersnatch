@@ -335,6 +335,7 @@
         try {
           const info = await window.electronAPI.getAppInfo();
           if (info.version) el("uiVer").textContent = `v${info.version}`;
+          if (typeof window._populateSettingsPaths === 'function') window._populateSettingsPaths(info);
 
           // 2. Hardware Node Identity
           const hw = await window.electronAPI.getHardwareStatus();
@@ -4794,10 +4795,7 @@
         window.open('https://github.com/Z3r0DayZion-install/hypersnatch/releases/latest', '_blank');
         setSettingsStatus('Opening the release page in your browser…', 'ok');
       });
-      el('btnSetOpenSample') && el('btnSetOpenSample').addEventListener('click', () => {
-        window.open('https://github.com/Z3r0DayZion-install/hypersnatch/blob/main/samples/demo-case/DEMO_CASE.md', '_blank');
-        setSettingsStatus('Opening the sample proof workspace guide…', 'ok');
-      });
+      // btnSetOpenSample handler moved below (in-app sample load)
       el('btnSetClearEvidence') && el('btnSetClearEvidence').addEventListener('click', () => {
         if (typeof window.setEvidenceLoaded === 'function') window.setEvidenceLoaded(false);
         const list = el('lrFileList');
@@ -4859,6 +4857,26 @@
           }
         });
       }
+
+      // Settings trust surface: path population
+      window._populateSettingsPaths = function(appInfo) {
+        if (appInfo && appInfo.runtimeDir) { setText('setStoragePath', appInfo.runtimeDir); }
+        const ws = window._sampleWorkspace;
+        setText('setSamplesPath', (ws && ws.base) ? ws.base : 'bundled with the app (samples/demo-case)');
+      };
+
+      el('btnSetReopenOnboarding') && el('btnSetReopenOnboarding').addEventListener('click', function() {
+        closeSettings();
+        setTimeout(function() {
+          if (typeof window._reopenOnboarding === 'function') window._reopenOnboarding();
+        }, 50);
+      });
+
+      el('btnSetOpenSample') && el('btnSetOpenSample').addEventListener('click', function() {
+        closeSettings();
+        const fd = el('fdOpenSample');
+        if (fd) { fd.click(); if (typeof setStatus === 'function') setStatus('Loading sample proof workspace...', 'ok'); }
+      });
     })();
 
     // ── Left/right rail responsiveness ───────────────────────────────────────
@@ -4904,6 +4922,8 @@
     })();
 
     // ── Front-door Workbench actions ─────────────────────────────────────────
+    function setText(id, val) { var n = el(id); if (n) n.textContent = val == null ? '—' : String(val); }
+
     (function wireFrontDoor() {
       el('fdOpenSample') && el('fdOpenSample').addEventListener('click', async () => {
         if (typeof setStatus === 'function') setStatus('Loading sample proof workspace...', 'ok');
@@ -4923,7 +4943,7 @@
           if (list && Array.isArray(result.files)) {
             list.innerHTML = result.files.map((f) => {
               const shorts = (f.sha256 || '').slice(0, 12);
-              return '<div class="file-entry"><span class="file-name mono">' + escapeHTML(f.path) + '</span><span class="file-hash mono tiny muted">' + escapeHTML((f.role || '') + ' · ' + shorts) + '</span></div>';
+              return '<div class="file-entry"><span class="file-name mono">' + escapeHtml(f.path) + '</span><span class="file-hash mono tiny muted">' + escapeHtml((f.role || '') + ' · ' + shorts) + '</span></div>';
             }).join('');
           }
 
@@ -4936,6 +4956,9 @@
             setText('sscHashCount', String(counts.hashes));
             setText('sscReceiptCount', String(counts.receipts));
           }
+
+          const exportBtn = el('btnExportBundle');
+          if (exportBtn) { exportBtn.disabled = false; exportBtn.title = 'Export the sample proof bundle to a folder of your choice.'; }
 
           const proofPills = el('proofStatus');
           if (proofPills) proofPills.style.display = 'block';
@@ -5018,7 +5041,7 @@
               if (v) {
                 verifiedHtml = v.verified ? '<span class="pill tiny ok" style="font-size:0.58rem;">OK</span>' : '<span class="pill tiny bad" style="font-size:0.58rem;">FAIL</span>';
               }
-              return '<tr><td class="mono">' + escapeHTML(f.path) + '</td><td>' + escapeHTML(f.role || '') + '</td><td class="mono tiny">' + escapeHTML(f.sha256 || '') + '</td><td>' + verifiedHtml + '</td></tr>';
+              return '<tr><td class="mono">' + escapeHtml(f.path) + '</td><td>' + escapeHtml(f.role || '') + '</td><td class="mono tiny">' + escapeHtml(f.sha256 || '') + '</td><td>' + verifiedHtml + '</td></tr>';
             }).join('');
           }
 
@@ -5053,12 +5076,66 @@
         });
       });
 
-      el('btnExportBundle') && el('btnExportBundle').addEventListener('click', function() {
-        if (typeof setStatus === 'function') setStatus('Export Proof Bundle will be available in the next update.', 'muted');
+      el('btnExportBundle') && el('btnExportBundle').addEventListener('click', async function() {
+        try {
+          if (typeof setStatus === 'function') setStatus('Selecting export destination...', 'ok');
+          const sel = await window.electronAPI.selectExportDestination();
+          if (!sel || !sel.success) {
+            if (sel && sel.canceled) {
+              if (typeof setStatus === 'function') setStatus('Export cancelled.', 'muted');
+              return;
+            }
+            if (typeof setStatus === 'function') setStatus('Could not open folder picker: ' + ((sel && sel.error) || 'unknown error'), 'bad');
+            return;
+          }
+          if (typeof setStatus === 'function') setStatus('Exporting proof bundle to ' + sel.destPath + '...', 'ok');
+          const exp = await window.electronAPI.exportProofBundle(sel.destPath);
+          if (exp && exp.success) {
+            if (typeof setStatus === 'function') setStatus('Export complete: ' + exp.fileCount + ' files written to ' + exp.bundleName, 'ok');
+            if (confirm('Export complete.\n\nBundle: ' + exp.bundleName + '\nFiles: ' + exp.fileCount + '\n\nOpen the bundle folder?')) {
+              window.electronAPI.openExportFolder(exp.bundlePath).catch(function() {});
+            }
+          } else {
+            if (typeof setStatus === 'function') setStatus('Export failed: ' + ((exp && exp.error) || 'unknown error'), 'bad');
+          }
+        } catch (e) {
+          if (typeof setStatus === 'function') setStatus('Export error: ' + (e.message || e), 'bad');
+        }
       });
     })();
 
-    function setText(id, val) { var n = el(id); if (n) n.textContent = val == null ? '—' : String(val); }
+    (function wireOnboarding() {
+      const modal = el('onboardingModal');
+      const KEY = 'hs_onboarding_seen';
+
+      function isDismissed() {
+        try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; }
+      }
+      function dismiss() { try { localStorage.setItem(KEY, '1'); } catch (e) {} if (modal) modal.style.display = 'none'; }
+      function show() { if (modal) modal.style.display = 'flex'; }
+
+      if (!isDismissed() && modal) { modal.style.display = 'flex'; }
+
+      window._reopenOnboarding = function() { if (modal) modal.style.display = 'flex'; };
+
+      el('btnOnboardingDismiss') && el('btnOnboardingDismiss').addEventListener('click', dismiss);
+
+      if (modal) {
+        modal.addEventListener('click', function(e) { if (e.target === modal) dismiss(); });
+      }
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal && modal.style.display === 'flex') dismiss();
+      });
+
+      el('btnOnboardingSample') && el('btnOnboardingSample').addEventListener('click', function() {
+        dismiss();
+        el('fdOpenSample') && el('fdOpenSample').click();
+      });
+      el('btnOnboardingLoadEvidence') && el('btnOnboardingLoadEvidence').addEventListener('click', function() {
+        dismiss();
+        el('fdLoadEvidence') && el('fdLoadEvidence').click();
+      });
+    })();
 
     const caseMgr = new CaseManager();
     window.caseMgr = caseMgr; // Expose globally for onclick handlers

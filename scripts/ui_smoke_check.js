@@ -183,6 +183,13 @@ const requiredIds = [
   "btnReceiptClose",
   "btnCopyReceipt",
   "btnOpenReceiptFolder",
+  "onboardingModal",
+  "btnOnboardingSample",
+  "btnOnboardingLoadEvidence",
+  "btnOnboardingDismiss",
+  "btnSetReopenOnboarding",
+  "setStoragePath",
+  "setSamplesPath",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));

@@ -168,7 +168,10 @@ const ALLOWED_IPC_CHANNELS = new Set([
   'adv-assistant-synthesize',
   'read-sample-workspace',
   'verify-sample-workspace',
-  'open-sample-proof-folder'
+  'open-sample-proof-folder',
+  'select-export-destination',
+  'export-proof-bundle',
+  'open-export-folder'
 ]);
 
 function validateIPCChannel(channel) {
@@ -919,6 +922,21 @@ const electronAPI = {
   openSampleProofFolder: () => {
     validateIPCChannel('open-sample-proof-folder');
     return ipcRenderer.invoke('open-sample-proof-folder');
+  },
+
+  selectExportDestination: () => {
+    validateIPCChannel('select-export-destination');
+    return ipcRenderer.invoke('select-export-destination');
+  },
+
+  exportProofBundle: (destDir) => {
+    validateIPCChannel('export-proof-bundle');
+    return ipcRenderer.invoke('export-proof-bundle', { destDir });
+  },
+
+  openExportFolder: (bundlePath) => {
+    validateIPCChannel('open-export-folder');
+    return ipcRenderer.invoke('open-export-folder', { bundlePath });
   }
 };
 
