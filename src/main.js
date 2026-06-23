@@ -877,6 +877,144 @@ ipcMain.handle('run-tamper-trial', async (_event, { bundlePath }) => {
   }
 });
 
+// ==================== PROOF BUNDLE DIFF ====================
+// Validate a folder is a HyperSnatch proof bundle (broader than the tamper-trial
+// name check: diff lets the user pick any folder, but it must be a real bundle).
+function isProofBundleDir(resolved) {
+  try {
+    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) return false;
+    if (!fs.existsSync(path.join(resolved, 'SHA256SUMS.txt'))) return false;
+    if (!fs.existsSync(path.join(resolved, 'PROOF-PASSPORT.json'))) return false;
+    if (!fs.existsSync(path.join(resolved, 'README.txt'))) return false;
+    if (!fs.existsSync(path.join(resolved, 'proof'))) return false;
+    const hasArtifacts = fs.existsSync(path.join(resolved, 'artifacts'));
+    const hasCapture = fs.existsSync(path.join(resolved, 'captured-page'));
+    if (!hasArtifacts && !hasCapture) return false;
+    return true;
+  } catch (e) { return false; }
+}
+
+// Parse SHA256SUMS.txt into { relPath: hash }.
+function parseSumsMap(resolved) {
+  const sumsPath = path.join(resolved, 'SHA256SUMS.txt');
+  if (!fs.existsSync(sumsPath)) return null;
+  const map = {};
+  const lines = fs.readFileSync(sumsPath, 'utf8').split(/\r?\n/);
+  for (const line of lines) {
+    const m = /^([0-9a-fA-F]{64})\s+(.+)$/.exec(line.trim());
+    if (m) map[m[2].trim()] = m[1].toLowerCase();
+  }
+  return map;
+}
+
+function readPassportSafe(resolved) {
+  try { return JSON.parse(fs.readFileSync(path.join(resolved, 'PROOF-PASSPORT.json'), 'utf8')); }
+  catch (e) { return null; }
+}
+
+// Let the user explicitly choose one bundle folder to compare.
+ipcMain.handle('select-proof-bundle-for-diff', async (_event, { which }) => {
+  try {
+    const mainWindow = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: 'Choose Proof Bundle ' + (which === 'b' ? 'B' : 'A'),
+      properties: ['openDirectory'],
+      buttonLabel: 'Use This Bundle'
+    });
+    if (canceled || !filePaths || filePaths.length === 0) {
+      return { success: false, canceled: true };
+    }
+    const resolved = path.resolve(filePaths[0]);
+    if (!isProofBundleDir(resolved)) {
+      return { success: false, error: 'That folder is not a HyperSnatch proof bundle (missing SHA256SUMS.txt, PROOF-PASSPORT.json, README.txt, proof/, or artifacts/captured-page).' };
+    }
+    const pp = readPassportSafe(resolved);
+    return { success: true, bundlePath: resolved, bundleId: (pp && pp.bundle_id) || null };
+  } catch (err) {
+    log.error('SELECT_PROOF_BUNDLE_FOR_DIFF_ERROR', { message: err.message });
+    return { success: false, error: err.message };
+  }
+});
+
+// Compare two HyperSnatch proof bundles. Read-only; both folders are validated
+// before anything is read. No network, no recursive scan of arbitrary folders.
+ipcMain.handle('compare-proof-bundles', async (_event, { bundleA, bundleB }) => {
+  try {
+    if (!bundleA || !bundleB || typeof bundleA !== 'string' || typeof bundleB !== 'string') {
+      return { success: false, error: 'Two bundle paths are required.' };
+    }
+    const a = path.resolve(bundleA);
+    const b = path.resolve(bundleB);
+    if (!isProofBundleDir(a)) return { success: false, error: 'Bundle A is not a valid HyperSnatch proof bundle.' };
+    if (!isProofBundleDir(b)) return { success: false, error: 'Bundle B is not a valid HyperSnatch proof bundle.' };
+
+    const vA = verifyBundleDir(a);
+    const vB = verifyBundleDir(b);
+    if (vA.error) return { success: false, error: 'Bundle A: ' + vA.error };
+    if (vB.error) return { success: false, error: 'Bundle B: ' + vB.error };
+
+    // Diff the actual on-disk content of every corpus file (recompute hashes),
+    // not just the SHA256SUMS strings. This way tampering inside a bundle is
+    // surfaced as a real change even if its SHA256SUMS line was left untouched.
+    const crypto = require('crypto');
+    const mapA = parseSumsMap(a) || {};
+    const mapB = parseSumsMap(b) || {};
+    const all = new Set([...Object.keys(mapA), ...Object.keys(mapB)]);
+    const actualHash = (dir, rel) => {
+      const fp = path.join(dir, rel);
+      try { if (!fs.existsSync(fp) || !fs.statSync(fp).isFile()) return null; return crypto.createHash('sha256').update(fs.readFileSync(fp)).digest('hex'); }
+      catch (e) { return null; }
+    };
+
+    const same = [], changed = [], added = [], removed = [];
+    for (const rel of [...all].sort()) {
+      const ha = actualHash(a, rel);
+      const hb = actualHash(b, rel);
+      if (ha && hb) {
+        if (ha === hb) same.push(rel);
+        else changed.push({ path: rel, a_hash: ha, b_hash: hb });
+      } else if (!ha && hb) {
+        added.push({ path: rel, b_hash: hb });
+      } else if (ha && !hb) {
+        removed.push({ path: rel, a_hash: ha });
+      }
+    }
+
+    // Passport differences (informational; passport is presence/schema verified,
+    // not part of the SHA256SUMS corpus, so report it separately).
+    const ppA = readPassportSafe(a) || {};
+    const ppB = readPassportSafe(b) || {};
+    const passportFields = [
+      ['bundle_id', ppA.bundle_id, ppB.bundle_id],
+      ['created_at', ppA.created_at, ppB.created_at],
+      ['app_version', ppA.app_version, ppB.app_version],
+      ['artifacts', ppA.counts && ppA.counts.artifacts, ppB.counts && ppB.counts.artifacts],
+      ['receipts', ppA.counts && ppA.counts.receipts, ppB.counts && ppB.counts.receipts],
+      ['sha256_entries', ppA.counts && ppA.counts.sha256_entries, ppB.counts && ppB.counts.sha256_entries]
+    ];
+    const passportDiff = passportFields
+      .filter(([, av, bv]) => String(av) !== String(bv))
+      .map(([field, av, bv]) => ({ field, a: av == null ? null : av, b: bv == null ? null : bv }));
+
+    const needsReview = changed.length > 0 || added.length > 0 || removed.length > 0 ||
+      vA.status !== 'clean' || vB.status !== 'clean';
+
+    return {
+      success: true,
+      schema: 'hypersnatch.proof_bundle_diff.v1',
+      created_at: new Date().toISOString(),
+      bundle_a: { path: a, bundle_id: vA.bundleId, verified: vA.status === 'clean', hashes_verified: vA.verified },
+      bundle_b: { path: b, bundle_id: vB.bundleId, verified: vB.status === 'clean', hashes_verified: vB.verified },
+      summary: { same: same.length, changed: changed.length, added: added.length, removed: removed.length, needs_review: needsReview },
+      changes: { same, changed, added, removed },
+      passport_diff: passportDiff
+    };
+  } catch (err) {
+    log.error('COMPARE_PROOF_BUNDLES_ERROR', { message: err.message });
+    return { success: false, error: err.message };
+  }
+});
+
 // ==================== SMART DECODE IPC ====================
 ipcMain.handle('smart-decode-run', async (event, { input, options }) => {
   try {

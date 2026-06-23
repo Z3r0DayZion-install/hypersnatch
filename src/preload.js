@@ -173,7 +173,9 @@ const ALLOWED_IPC_CHANNELS = new Set([
   'export-proof-bundle',
   'open-export-folder',
   'reverify-export-bundle',
-  'run-tamper-trial'
+  'run-tamper-trial',
+  'select-proof-bundle-for-diff',
+  'compare-proof-bundles'
 ]);
 
 function validateIPCChannel(channel) {
@@ -949,6 +951,16 @@ const electronAPI = {
   runTamperTrial: (bundlePath) => {
     validateIPCChannel('run-tamper-trial');
     return ipcRenderer.invoke('run-tamper-trial', { bundlePath });
+  },
+
+  selectProofBundleForDiff: (which) => {
+    validateIPCChannel('select-proof-bundle-for-diff');
+    return ipcRenderer.invoke('select-proof-bundle-for-diff', { which });
+  },
+
+  compareProofBundles: (bundleA, bundleB) => {
+    validateIPCChannel('compare-proof-bundles');
+    return ipcRenderer.invoke('compare-proof-bundles', { bundleA, bundleB });
   }
 };
 
