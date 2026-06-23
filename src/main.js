@@ -249,6 +249,10 @@ function timestamp() {
 
 const SKIP_NAMES = new Set(['.gitattributes', '.gitignore', '.gitkeep', '.DS_Store', 'Thumbs.db', 'README.md', '.git']);
 
+// Files that must never appear inside an exported proof bundle. Prove It Again
+// flags any of these as a hygiene failure.
+const REPO_HYGIENE_NAMES = new Set(['.gitattributes', '.gitignore', '.gitkeep', '.DS_Store', 'Thumbs.db', 'README.md', '.git', '.gitmodules']);
+
 function copyDirRecursive(src, dest) {
   if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
   const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -262,6 +266,22 @@ function copyDirRecursive(src, dest) {
       fs.copyFileSync(srcPath, destPath);
     }
   }
+}
+
+// Recursively count repo-hygiene files present under a directory.
+function scanRepoHygiene(dir) {
+  const found = [];
+  function walk(d, rel) {
+    let entries = [];
+    try { entries = fs.readdirSync(d, { withFileTypes: true }); } catch (e) { return; }
+    for (const entry of entries) {
+      const childRel = rel ? rel + '/' + entry.name : entry.name;
+      if (REPO_HYGIENE_NAMES.has(entry.name)) { found.push(childRel); continue; }
+      if (entry.isDirectory()) walk(path.join(d, entry.name), childRel);
+    }
+  }
+  walk(dir, '');
+  return found;
 }
 
 ipcMain.handle('export-proof-bundle', async (_event, { destDir }) => {
@@ -291,32 +311,77 @@ ipcMain.handle('export-proof-bundle', async (_event, { destDir }) => {
       }
     }
 
+    const sumsText = sumsLines.join('\n') + '\n';
+    fs.writeFileSync(path.join(bundlePath, 'SHA256SUMS.txt'), sumsText);
+
+    // ── Proof Passport ────────────────────────────────────────────────────
+    // Deterministic bundle id derived from the (sorted) checksum corpus so the
+    // id is tied to the proof, not random.
+    const idDigest = crypto.createHash('sha256')
+      .update([...sumsLines].sort().join('\n'))
+      .digest('hex').slice(0, 6).toUpperCase();
+    const bundleId = 'HS-' + timestamp() + '-' + idDigest;
+
+    const missingFiles = sumsEntries.length - fileCount;
+    const hygieneFound = scanRepoHygiene(bundlePath);
+    // Count proof/ vs artifact entries from the corpus list (honest, not scored).
+    const proofFileCount = sumsEntries.filter((r) => r.startsWith('proof/')).length;
+    const artifactCount = sumsEntries.length - proofFileCount;
+    const verificationStatus = (missingFiles === 0 && hygieneFound.length === 0) ? 'clean' : 'needs_review';
+
+    const passport = {
+      schema: 'hypersnatch.proof_passport.v1',
+      app: 'HyperSnatch',
+      app_version: app.getVersion(),
+      bundle_id: bundleId,
+      bundle_type: 'sample-proof-export',
+      created_at: new Date().toISOString(),
+      source: { kind: 'bundled-sample-workspace', name: 'HyperSnatch Sample Proof Workspace' },
+      counts: { artifacts: artifactCount, receipts: 1, sha256_entries: fileCount },
+      verification: {
+        status: verificationStatus,
+        hashes_verified: fileCount,
+        hashes_failed: 0,
+        missing_files: missingFiles,
+        repo_hygiene_files_found: hygieneFound.length
+      },
+      privacy: { cloud_required: false, telemetry_required: false, local_first: true },
+      claims: { court_certified: false, chain_of_custody_claimed: false },
+      // PROOF-PASSPORT.json is intentionally NOT listed in SHA256SUMS.txt: it
+      // summarizes that corpus, so self-listing would couple its identity to its
+      // own checksum line. It is instead verified by presence + schema during
+      // "Prove It Again". The corpus checksum count stays stable at sha256_entries.
+      notes: 'Verify the corpus with `sha256sum -c SHA256SUMS.txt`. This passport is verified by presence and schema, not self-listed in SHA256SUMS.'
+    };
+    fs.writeFileSync(path.join(bundlePath, 'PROOF-PASSPORT.json'), JSON.stringify(passport, null, 2) + '\n');
+
     const readme = [
       'HyperSnatch Proof Bundle',
       '========================',
       '',
       'Bundle: ' + bundleName,
+      'Bundle ID: ' + bundleId,
       'Exported: ' + new Date().toISOString(),
       'Schema: hypersnatch.demo.manifest/v1 (synthetic)',
       '',
       'Contents:',
-      '  artifacts/          -- Download artifacts',
-      '  captured-page/      -- Page capture (HTML, DOM snapshot, screenshot)',
-      '  proof/               -- Original manifest, receipt, and SHA256SUMS',
-      '  SHA256SUMS.txt      -- Recomputed SHA-256 checksums',
+      '  artifacts/            -- Download artifacts',
+      '  captured-page/        -- Page capture (HTML, DOM snapshot, screenshot)',
+      '  proof/                -- Original manifest, receipt, and SHA256SUMS',
+      '  SHA256SUMS.txt        -- Recomputed SHA-256 checksums (' + fileCount + ' files)',
+      '  PROOF-PASSPORT.json   -- Bundle identity card (counts + verification summary)',
       '',
       'Verification:',
       '  Run  sha256sum -c SHA256SUMS.txt  to verify file integrity.',
+      '  Open PROOF-PASSPORT.json for the bundle id and a verification summary.',
       '',
       'This bundle was exported from a local instance of HyperSnatch.',
       'No cloud calls were made during extraction or export.',
       'https://github.com/Z3r0DayZion-install/hypersnatch'
     ].join('\n') + '\n';
-
-    fs.writeFileSync(path.join(bundlePath, 'SHA256SUMS.txt'), sumsLines.join('\n') + '\n');
     fs.writeFileSync(path.join(bundlePath, 'README.txt'), readme);
 
-    return { success: true, bundlePath, bundleName, fileCount };
+    return { success: true, bundlePath, bundleName, fileCount, bundleId, passport };
   } catch (err) {
     log.error('EXPORT_PROOF_BUNDLE_ERROR', { message: err.message });
     return { success: false, error: err.message };
@@ -335,6 +400,82 @@ ipcMain.handle('open-export-folder', async (_event, { bundlePath }) => {
     shell.openPath(resolved);
     return { success: true };
   } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+// Re-verify an exported proof bundle from disk ("Prove It Again").
+// Path safety: only a path that exists on disk (returned by a prior export or
+// selected by the user) is inspected; nothing outside the bundle is scanned.
+ipcMain.handle('reverify-export-bundle', async (_event, { bundlePath }) => {
+  try {
+    if (!bundlePath || typeof bundlePath !== 'string') {
+      return { success: false, error: 'No bundle path specified.' };
+    }
+    const resolved = path.resolve(bundlePath);
+    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
+      return { success: false, error: 'Bundle folder no longer exists: ' + resolved };
+    }
+
+    const crypto = require('crypto');
+    const sumsPath = path.join(resolved, 'SHA256SUMS.txt');
+    if (!fs.existsSync(sumsPath)) {
+      return { success: false, error: 'SHA256SUMS.txt not found in bundle.' };
+    }
+    const sumsText = fs.readFileSync(sumsPath, 'utf8');
+    const lines = sumsText.split(/\r?\n/).filter((l) => l.trim().length > 0);
+
+    let verified = 0, failed = 0, missing = 0;
+    const failures = [];
+    for (const line of lines) {
+      const m = /^([0-9a-fA-F]{64})\s+(.+)$/.exec(line.trim());
+      if (!m) continue;
+      const expected = m[1].toLowerCase();
+      const rel = m[2].trim();
+      const fp = path.join(resolved, rel);
+      if (!fs.existsSync(fp)) { missing++; failures.push('missing: ' + rel); continue; }
+      const actual = crypto.createHash('sha256').update(fs.readFileSync(fp)).digest('hex');
+      if (actual === expected) { verified++; }
+      else { failed++; failures.push('hash mismatch: ' + rel); }
+    }
+    const total = verified + failed + missing;
+
+    // Proof Passport presence + schema
+    let passportPresent = false, passportValid = false, bundleId = null;
+    const passportPath = path.join(resolved, 'PROOF-PASSPORT.json');
+    if (fs.existsSync(passportPath)) {
+      passportPresent = true;
+      try {
+        const pp = JSON.parse(fs.readFileSync(passportPath, 'utf8'));
+        passportValid = pp && pp.schema === 'hypersnatch.proof_passport.v1';
+        bundleId = (pp && pp.bundle_id) || null;
+      } catch (e) { passportValid = false; }
+    }
+
+    // Receipt + manifest presence
+    const receiptPresent = fs.existsSync(path.join(resolved, 'proof', 'receipt.json'));
+    const manifestPresent = fs.existsSync(path.join(resolved, 'proof', 'manifest.json'));
+
+    // Repo hygiene scan
+    const hygieneFound = scanRepoHygiene(resolved);
+
+    const clean = failed === 0 && missing === 0 && total > 0 &&
+      passportPresent && passportValid && receiptPresent && manifestPresent &&
+      hygieneFound.length === 0;
+
+    return {
+      success: true,
+      status: clean ? 'clean' : 'failed',
+      bundleId,
+      total, verified, failed, missing,
+      passportPresent, passportValid,
+      receiptPresent, manifestPresent,
+      repoHygieneFound: hygieneFound.length,
+      repoHygieneFiles: hygieneFound,
+      failures
+    };
+  } catch (err) {
+    log.error('REVERIFY_EXPORT_BUNDLE_ERROR', { message: err.message });
     return { success: false, error: err.message };
   }
 });

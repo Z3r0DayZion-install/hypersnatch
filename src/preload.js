@@ -171,7 +171,8 @@ const ALLOWED_IPC_CHANNELS = new Set([
   'open-sample-proof-folder',
   'select-export-destination',
   'export-proof-bundle',
-  'open-export-folder'
+  'open-export-folder',
+  'reverify-export-bundle'
 ]);
 
 function validateIPCChannel(channel) {
@@ -937,6 +938,11 @@ const electronAPI = {
   openExportFolder: (bundlePath) => {
     validateIPCChannel('open-export-folder');
     return ipcRenderer.invoke('open-export-folder', { bundlePath });
+  },
+
+  reverifyExportBundle: (bundlePath) => {
+    validateIPCChannel('reverify-export-bundle');
+    return ipcRenderer.invoke('reverify-export-bundle', { bundlePath });
   }
 };
 

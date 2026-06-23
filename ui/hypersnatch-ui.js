@@ -5076,6 +5076,8 @@
           const exportBtn = el('btnExportBundle');
           if (exportBtn) { exportBtn.disabled = false; exportBtn.title = 'Export the sample proof bundle to a folder of your choice.'; }
 
+          if (typeof window._showPassportPreExport === 'function') window._showPassportPreExport(counts);
+
           const proofPills = el('proofStatus');
           if (proofPills) proofPills.style.display = 'block';
           updateProofStatus();
@@ -5218,6 +5220,7 @@
           if (exp && exp.success) {
             if (typeof setStatus === 'function') setStatus('Export complete: ' + exp.fileCount + ' files written to ' + exp.bundleName, 'ok');
             if (window.recordRecentExport) window.recordRecentExport(exp);
+            if (typeof window._showPassportAfterExport === 'function') window._showPassportAfterExport(exp);
             if (exportToast) {
               window.updateToast(exportToast, 'Export complete: ' + exp.fileCount + ' files → ' + exp.bundleName, 'ok', {
                 actionLabel: 'Open folder',
@@ -5421,6 +5424,97 @@
       });
 
       render();
+    })();
+
+    // ── Proof Passport + Prove It Again (v1.6.16) ───────────────────────────
+    (function wireProofPassport() {
+      let lastExport = null; // { bundlePath, bundleId, fileCount, passport }
+
+      function setText(id, val) { const n = el(id); if (n) n.textContent = (val == null ? '—' : String(val)); }
+      function setStatusPill(text, kind) {
+        const p = el('ppProofStatus');
+        if (!p) return;
+        p.textContent = text;
+        p.className = 'ppc-status' + (kind ? ' ' + kind : '');
+      }
+
+      window._showPassportPreExport = function(counts) {
+        const card = el('proofPassportCard');
+        if (!card) return;
+        card.style.display = 'block';
+        setText('ppBundleId', '— export to generate');
+        setText('ppArtifacts', counts ? counts.artifacts : '—');
+        setText('ppReceipts', counts ? counts.receipts : '—');
+        setText('ppHashes', 'not exported yet');
+        setText('ppExportStatus', 'Not exported');
+        setText('ppLastVerified', '—');
+        setText('ppCloud', 'No');
+        setStatusPill('Not exported', '');
+        const btn = el('btnProveItAgain');
+        if (btn) { btn.disabled = true; btn.title = 'Export a proof bundle first, then re-prove it from disk.'; }
+      };
+
+      window._showPassportAfterExport = function(exp) {
+        const card = el('proofPassportCard');
+        if (!card || !exp) return;
+        card.style.display = 'block';
+        lastExport = { bundlePath: exp.bundlePath, bundleId: exp.bundleId, fileCount: exp.fileCount, passport: exp.passport };
+        const pp = exp.passport || {};
+        const counts = pp.counts || {};
+        setText('ppBundleId', exp.bundleId || (pp.bundle_id) || '—');
+        setText('ppArtifacts', counts.artifacts != null ? counts.artifacts : '—');
+        setText('ppReceipts', counts.receipts != null ? counts.receipts : '—');
+        setText('ppHashes', (counts.sha256_entries != null ? counts.sha256_entries : exp.fileCount) + ' files hashed');
+        setText('ppExportStatus', 'Exported');
+        setText('ppLastVerified', 'not re-proven yet');
+        setText('ppCloud', 'No');
+        const clean = pp.verification && pp.verification.status === 'clean';
+        setStatusPill(clean ? 'Clean' : 'Needs review', clean ? 'clean' : 'bad');
+        const btn = el('btnProveItAgain');
+        if (btn) { btn.disabled = false; btn.title = 'Re-read the exported bundle from disk and re-verify every hash.'; }
+      };
+
+      el('btnProveItAgain') && el('btnProveItAgain').addEventListener('click', async function() {
+        if (!lastExport || !lastExport.bundlePath) {
+          if (window.showToast) window.showToast('Export a proof bundle first.', 'bad');
+          return;
+        }
+        const t = window.showToast ? window.showToast('Re-proving exported bundle from disk…', 'loading') : null;
+        try {
+          const r = await window.electronAPI.reverifyExportBundle(lastExport.bundlePath);
+          if (!r || !r.success) {
+            const emsg = 'Could not re-prove bundle: ' + ((r && r.error) || 'unknown error');
+            if (t) window.updateToast(t, emsg, 'bad'); else if (window.showToast) window.showToast(emsg, 'bad');
+            setStatusPill('Needs review', 'bad');
+            return;
+          }
+          const when = new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          setText('ppLastVerified', when);
+          if (r.status === 'clean') {
+            setStatusPill('Clean', 'clean');
+            setText('ppHashes', r.verified + '/' + r.total + ' verified');
+            const msg = 'Still clean. ' + r.verified + '/' + r.total + ' hashes verified. No missing files. No repo hygiene files. Proof Passport present.';
+            if (t) window.updateToast(t, msg, 'ok'); else if (window.showToast) window.showToast(msg, 'ok');
+            if (typeof setStatus === 'function') setStatus(msg, 'ok');
+          } else {
+            setStatusPill('Needs review', 'bad');
+            const reasons = [];
+            if (r.failed) reasons.push(r.failed + ' hash mismatch');
+            if (r.missing) reasons.push(r.missing + ' missing');
+            if (!r.passportPresent) reasons.push('passport missing');
+            else if (!r.passportValid) reasons.push('passport invalid');
+            if (!r.receiptPresent) reasons.push('receipt missing');
+            if (!r.manifestPresent) reasons.push('manifest missing');
+            if (r.repoHygieneFound) reasons.push(r.repoHygieneFound + ' repo hygiene file(s)');
+            const msg = 'Re-prove failed: ' + (reasons.join(', ') || 'verification did not pass');
+            if (t) window.updateToast(t, msg, 'bad'); else if (window.showToast) window.showToast(msg, 'bad');
+            if (typeof setStatus === 'function') setStatus(msg, 'bad');
+          }
+        } catch (e) {
+          const emsg = 'Re-prove error: ' + (e.message || e);
+          if (t) window.updateToast(t, emsg, 'bad'); else if (window.showToast) window.showToast(emsg, 'bad');
+        }
+      });
     })();
 
     const caseMgr = new CaseManager();
