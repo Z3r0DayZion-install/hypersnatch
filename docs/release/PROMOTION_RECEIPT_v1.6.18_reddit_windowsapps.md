@@ -16,7 +16,21 @@
 | **Thread URL** | https://www.reddit.com/r/windowsapps/comments/1udtnoh/hypersnatch_v1618_localfirst_proof_workstation/ |
 | **Release URL** | https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.18 |
 | **Launch receipt** | docs/release/LAUNCH_RECEIPT_v1.6.18.md |
-| **Screenshot** | not saved |
+| **Screenshot** | captured ~2:52 PM UTC-7 (see user screenshot) |
+
+---
+
+## Live Metrics (~39 min after post)
+
+| Metric | Value |
+|---|---|
+| **Views** | ~105 |
+| **Upvotes** | 1 |
+| **Comments** | 0 |
+| **Subreddit size** | 10K members / 491 weekly contributors |
+| **Observation time** | ~2:52 PM UTC-7 (approx 39 min after post) |
+
+Notes: 105 views in ~39 min is solid for a niche tool in a small subreddit. No comments yet. Let breathe before posting elsewhere. Check GitHub release download count tonight or tomorrow.
 
 ---
 
