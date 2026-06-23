@@ -1,1 +1,0 @@
-Confidence models combine evidence weights and correlation strength.

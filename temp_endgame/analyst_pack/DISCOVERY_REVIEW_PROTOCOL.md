@@ -1,1 +1,0 @@
-Discovery suggestions must always be reviewed and confirmed by analysts.

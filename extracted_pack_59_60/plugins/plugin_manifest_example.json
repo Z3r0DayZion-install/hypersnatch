@@ -1,7 +1,0 @@
-{
-  "name": "sample-player-detector",
-  "version": "1.0.0",
-  "capabilities": ["analysis.player"],
-  "permissions": ["read_bundle"],
-  "entry": "plugin.js"
-}

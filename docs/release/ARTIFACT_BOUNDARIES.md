@@ -19,7 +19,7 @@ Define what is code, what is documentation, and what is generated output so rele
 
 ## Non-Canonical Generated Assets
 
-- `dist/`, `build/`, `out/`, `coverage/`, `logs/`, `release/`, `release_handoff/`
+- `dist/`, `build/`, `out/`, `coverage/`, `logs/`, `release/`
 - binary outputs (`*.exe`, generated `*.zip`)
 
 ## Handling Rules
