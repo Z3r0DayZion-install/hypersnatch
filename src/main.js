@@ -216,6 +216,126 @@ ipcMain.handle('open-sample-proof-folder', () => {
   }
 });
 
+// ==================== EXPORT PROOF BUNDLE IPC ====================
+
+ipcMain.handle('select-export-destination', async () => {
+  try {
+    const mainWindow = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: 'Choose Export Destination Folder',
+      properties: ['openDirectory', 'createDirectory'],
+      buttonLabel: 'Export Here'
+    });
+    if (canceled || !filePaths || filePaths.length === 0) {
+      return { success: false, canceled: true };
+    }
+    return { success: true, destPath: filePaths[0] };
+  } catch (err) {
+    log.error('SELECT_EXPORT_DESTINATION_ERROR', { message: err.message });
+    return { success: false, error: err.message };
+  }
+});
+
+function timestamp() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return d.getFullYear() +
+    pad(d.getMonth() + 1) +
+    pad(d.getDate()) + '-' +
+    pad(d.getHours()) +
+    pad(d.getMinutes()) +
+    pad(d.getSeconds());
+}
+
+function copyDirRecursive(src, dest) {
+  if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+ipcMain.handle('export-proof-bundle', async (_event, { destDir }) => {
+  try {
+    if (!destDir || typeof destDir !== 'string') {
+      return { success: false, error: 'No destination directory specified.' };
+    }
+    const bundleName = 'HyperSnatch-Proof-Bundle-' + timestamp();
+    const bundlePath = path.join(destDir, bundleName);
+    if (fs.existsSync(bundlePath)) {
+      return { success: false, error: 'A proof bundle already exists at ' + bundlePath + '. Choose a different location.' };
+    }
+    const src = sampleWorkspaceDir();
+    copyDirRecursive(src, bundlePath);
+
+    const crypto = require('crypto');
+    const sumsEntries = ['captured-page/index.html', 'captured-page/dom-snapshot.html', 'captured-page/screenshot-placeholder.svg', 'artifacts/sample-report.txt', 'artifacts/sample-download.bin'];
+    const sumsLines = [];
+    let fileCount = 0;
+    for (const rel of sumsEntries) {
+      const fp = path.join(bundlePath, rel);
+      if (fs.existsSync(fp)) {
+        const buf = fs.readFileSync(fp);
+        const hash = crypto.createHash('sha256').update(buf).digest('hex');
+        sumsLines.push(hash + '  ' + rel);
+        fileCount++;
+      }
+    }
+
+    const readme = [
+      'HyperSnatch Proof Bundle',
+      '========================',
+      '',
+      'Bundle: ' + bundleName,
+      'Exported: ' + new Date().toISOString(),
+      'Schema: hypersnatch.demo.manifest/v1 (synthetic)',
+      '',
+      'Contents:',
+      '  artifacts/          -- Download artifacts',
+      '  captured-page/      -- Page capture (HTML, DOM snapshot, screenshot)',
+      '  proof/               -- Original manifest, receipt, and SHA256SUMS',
+      '  SHA256SUMS.txt      -- Recomputed SHA-256 checksums',
+      '',
+      'Verification:',
+      '  Run  sha256sum -c SHA256SUMS.txt  to verify file integrity.',
+      '',
+      'This bundle was exported from a local instance of HyperSnatch.',
+      'No cloud calls were made during extraction or export.',
+      'https://github.com/Z3r0DayZion-install/hypersnatch'
+    ].join('\n') + '\n';
+
+    fs.writeFileSync(path.join(bundlePath, 'SHA256SUMS.txt'), sumsLines.join('\n') + '\n');
+    fs.writeFileSync(path.join(bundlePath, 'README.txt'), readme);
+
+    return { success: true, bundlePath, bundleName, fileCount };
+  } catch (err) {
+    log.error('EXPORT_PROOF_BUNDLE_ERROR', { message: err.message });
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('open-export-folder', async (_event, { bundlePath }) => {
+  try {
+    if (!bundlePath || typeof bundlePath !== 'string') {
+      return { success: false, error: 'No bundle path specified.' };
+    }
+    const resolved = path.resolve(bundlePath);
+    if (!fs.existsSync(resolved)) {
+      return { success: false, error: 'Export folder no longer exists: ' + resolved };
+    }
+    shell.openPath(resolved);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 // ==================== SMART DECODE IPC ====================
 ipcMain.handle('smart-decode-run', async (event, { input, options }) => {
   try {
