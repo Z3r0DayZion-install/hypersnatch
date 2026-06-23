@@ -247,10 +247,13 @@ function timestamp() {
     pad(d.getSeconds());
 }
 
+const SKIP_NAMES = new Set(['.gitattributes', '.gitignore', '.gitkeep', '.DS_Store', 'Thumbs.db', 'README.md', '.git']);
+
 function copyDirRecursive(src, dest) {
   if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
   const entries = fs.readdirSync(src, { withFileTypes: true });
   for (const entry of entries) {
+    if (SKIP_NAMES.has(entry.name)) continue;
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
     if (entry.isDirectory()) {
@@ -275,7 +278,7 @@ ipcMain.handle('export-proof-bundle', async (_event, { destDir }) => {
     copyDirRecursive(src, bundlePath);
 
     const crypto = require('crypto');
-    const sumsEntries = ['captured-page/index.html', 'captured-page/dom-snapshot.html', 'captured-page/screenshot-placeholder.svg', 'artifacts/sample-report.txt', 'artifacts/sample-download.bin'];
+    const sumsEntries = ['captured-page/index.html', 'captured-page/dom-snapshot.html', 'captured-page/screenshot-placeholder.svg', 'artifacts/sample-report.txt', 'artifacts/sample-download.bin', 'proof/manifest.json', 'proof/receipt.json', 'proof/SHA256SUMS.txt', 'proof/download-receipt.md', 'proof/page-receipt.md'];
     const sumsLines = [];
     let fileCount = 0;
     for (const rel of sumsEntries) {
