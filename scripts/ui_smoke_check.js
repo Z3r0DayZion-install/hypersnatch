@@ -173,6 +173,16 @@ const requiredIds = [
   "btnCaseWorkspaceReport",
   "btnCaseWorkspaceReportExport",
   "btnCaseWorkspaceExport",
+  "sampleSummaryCard",
+  "sscArtifactCount",
+  "sscHashCount",
+  "sscReceiptCount",
+  "btnViewReceipt",
+  "btnExportBundle",
+  "receiptModal",
+  "btnReceiptClose",
+  "btnCopyReceipt",
+  "btnOpenReceiptFolder",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));
