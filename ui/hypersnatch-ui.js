@@ -1,7 +1,7 @@
     "use strict";
 
     const el = (id) => document.getElementById(id);
-    const APP_VERSION_FALLBACK = "1.6.15";
+    const APP_VERSION_FALLBACK = "1.6.16";
 
     // ── Appearance / Theme system (v1.6.16 polish) ───────────────────────────
     (function appearanceSystem() {
