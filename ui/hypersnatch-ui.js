@@ -337,8 +337,10 @@
           if (info.version) el("uiVer").textContent = `v${info.version}`;
           if (typeof window._populateSettingsPaths === 'function') window._populateSettingsPaths(info);
 
-          // 2. Hardware Node Identity
-          const hw = await window.electronAPI.getHardwareStatus();
+          // 2. Hardware Node Identity (guard: wrapper may be absent in some builds)
+          const hw = (typeof window.electronAPI.getHardwareStatus === 'function')
+            ? await window.electronAPI.getHardwareStatus()
+            : null;
           if (hw && hw.displayId) {
             el("nodeIdText").textContent = hw.displayId;
             el("nodeIdPill").addEventListener("click", () => {
@@ -4927,10 +4929,13 @@
     (function wireFrontDoor() {
       el('fdOpenSample') && el('fdOpenSample').addEventListener('click', async () => {
         if (typeof setStatus === 'function') setStatus('Loading sample proof workspace...', 'ok');
+        const loadToast = window.showToast ? window.showToast('Loading sample proof workspace…', 'loading') : null;
         try {
           const result = await window.electronAPI.readSampleWorkspace();
           if (!result || !result.success) {
-            if (typeof setStatus === 'function') setStatus('Could not load sample workspace: ' + ((result && result.error) || 'unknown error'), 'bad');
+            const emsg = 'Could not load sample workspace: ' + ((result && result.error) || 'unknown error');
+            if (typeof setStatus === 'function') setStatus(emsg, 'bad');
+            if (loadToast) window.updateToast(loadToast, emsg, 'bad');
             return;
           }
           window._sampleWorkspace = result;
@@ -4968,12 +4973,16 @@
           if (front) front.style.display = 'none';
 
           if (typeof setStatus === 'function') setStatus('Sample case loaded: ' + counts.artifacts + ' artifacts, ' + counts.hashes + ' hashes, ' + counts.receipts + ' receipt. Proof: Ready.', 'ok');
+          if (loadToast) window.updateToast(loadToast, 'Sample loaded: ' + counts.artifacts + ' artifacts · ' + counts.hashes + ' hashes · ' + counts.receipts + ' receipt', 'ok');
+          if (window.recordRecentSample) window.recordRecentSample(result.base);
 
           window.electronAPI.verifySampleWorkspace().then((vr) => {
             window._sampleVerify = vr;
           }).catch(() => {});
         } catch (e) {
-          if (typeof setStatus === 'function') setStatus('Sample workspace error: ' + (e.message || e), 'bad');
+          const emsg = 'Sample workspace error: ' + (e.message || e);
+          if (typeof setStatus === 'function') setStatus(emsg, 'bad');
+          if (loadToast) window.updateToast(loadToast, emsg, 'bad');
         }
       });
       el('fdLoadEvidence') && el('fdLoadEvidence').addEventListener('click', () => {
@@ -5068,6 +5077,7 @@
         if (!ws || !ws.receipt) { alert('No receipt to copy.'); return; }
         var ok = window.electronAPI.copyToClipboard(JSON.stringify(ws.receipt, null, 2));
         if (typeof setStatus === 'function') setStatus(ok ? 'Receipt copied to clipboard.' : 'Could not copy receipt.', ok ? 'ok' : 'bad');
+        if (window.showToast) window.showToast(ok ? 'Receipt copied to clipboard' : 'Could not copy receipt', ok ? 'ok' : 'bad');
       });
 
       el('btnOpenReceiptFolder') && el('btnOpenReceiptFolder').addEventListener('click', function() {
@@ -5077,6 +5087,7 @@
       });
 
       el('btnExportBundle') && el('btnExportBundle').addEventListener('click', async function() {
+        let exportToast = null;
         try {
           if (typeof setStatus === 'function') setStatus('Selecting export destination...', 'ok');
           const sel = await window.electronAPI.selectExportDestination();
@@ -5085,21 +5096,34 @@
               if (typeof setStatus === 'function') setStatus('Export cancelled.', 'muted');
               return;
             }
-            if (typeof setStatus === 'function') setStatus('Could not open folder picker: ' + ((sel && sel.error) || 'unknown error'), 'bad');
+            const emsg = 'Could not open folder picker: ' + ((sel && sel.error) || 'unknown error');
+            if (typeof setStatus === 'function') setStatus(emsg, 'bad');
+            if (window.showToast) window.showToast(emsg, 'bad');
             return;
           }
           if (typeof setStatus === 'function') setStatus('Exporting proof bundle to ' + sel.destPath + '...', 'ok');
+          exportToast = window.showToast ? window.showToast('Exporting proof bundle…', 'loading') : null;
           const exp = await window.electronAPI.exportProofBundle(sel.destPath);
           if (exp && exp.success) {
             if (typeof setStatus === 'function') setStatus('Export complete: ' + exp.fileCount + ' files written to ' + exp.bundleName, 'ok');
-            if (confirm('Export complete.\n\nBundle: ' + exp.bundleName + '\nFiles: ' + exp.fileCount + '\n\nOpen the bundle folder?')) {
-              window.electronAPI.openExportFolder(exp.bundlePath).catch(function() {});
+            if (window.recordRecentExport) window.recordRecentExport(exp);
+            if (exportToast) {
+              window.updateToast(exportToast, 'Export complete: ' + exp.fileCount + ' files → ' + exp.bundleName, 'ok', {
+                actionLabel: 'Open folder',
+                onAction: function() { window.electronAPI.openExportFolder(exp.bundlePath).catch(function() {}); }
+              });
             }
           } else {
-            if (typeof setStatus === 'function') setStatus('Export failed: ' + ((exp && exp.error) || 'unknown error'), 'bad');
+            const emsg = 'Export failed: ' + ((exp && exp.error) || 'unknown error');
+            if (typeof setStatus === 'function') setStatus(emsg, 'bad');
+            if (exportToast) window.updateToast(exportToast, emsg, 'bad');
+            else if (window.showToast) window.showToast(emsg, 'bad');
           }
         } catch (e) {
-          if (typeof setStatus === 'function') setStatus('Export error: ' + (e.message || e), 'bad');
+          const emsg = 'Export error: ' + (e.message || e);
+          if (typeof setStatus === 'function') setStatus(emsg, 'bad');
+          if (exportToast) window.updateToast(exportToast, emsg, 'bad');
+          else if (window.showToast) window.showToast(emsg, 'bad');
         }
       });
     })();
@@ -5135,6 +5159,157 @@
         dismiss();
         el('fdLoadEvidence') && el('fdLoadEvidence').click();
       });
+    })();
+
+    // ── Toast notifications + recent activity (v1.6.16 polish) ───────────────
+    (function wireToastsAndRecents() {
+      let seq = 0;
+      const toasts = {};
+      const ICONS = { ok: '\u2713', bad: '\u2715', info: '\u2139', loading: '\u25CC' };
+
+      function removeToast(id) {
+        const t = toasts[id];
+        if (!t) return;
+        if (t.timer) clearTimeout(t.timer);
+        const node = t.node;
+        node.classList.remove('show');
+        setTimeout(function() { if (node && node.parentNode) node.parentNode.removeChild(node); }, 200);
+        delete toasts[id];
+      }
+
+      function scheduleAuto(id, kind, timeout) {
+        const t = toasts[id];
+        if (!t) return;
+        if (t.timer) clearTimeout(t.timer);
+        if (kind === 'loading') return;
+        const ms = timeout || (kind === 'bad' ? 6000 : 4000);
+        t.timer = setTimeout(function() { removeToast(id); }, ms);
+      }
+
+      function buildContent(node, kind, message, opts) {
+        node.className = 'hs-toast ' + (kind || 'info');
+        node.innerHTML = '';
+        const icon = document.createElement('span');
+        icon.className = 'hs-toast-icon';
+        icon.textContent = ICONS[kind] || ICONS.info;
+        node.appendChild(icon);
+        const body = document.createElement('div');
+        body.className = 'hs-toast-body';
+        const msg = document.createElement('span');
+        msg.className = 'hs-toast-msg';
+        msg.textContent = message == null ? '' : String(message);
+        body.appendChild(msg);
+        if (opts && opts.actionLabel && typeof opts.onAction === 'function') {
+          const abtn = document.createElement('button');
+          abtn.type = 'button';
+          abtn.className = 'hs-toast-action';
+          abtn.textContent = opts.actionLabel;
+          abtn.addEventListener('click', function() { try { opts.onAction(); } catch (e) {} });
+          body.appendChild(abtn);
+        }
+        node.appendChild(body);
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'hs-toast-close';
+        close.setAttribute('aria-label', 'Dismiss');
+        close.textContent = '\u00D7';
+        node.appendChild(close);
+        return close;
+      }
+
+      window.showToast = function(message, kind, opts) {
+        const container = el('toastContainer');
+        if (!container) return null;
+        kind = kind || 'info';
+        opts = opts || {};
+        const id = opts.id || ('t' + (++seq));
+        const existing = toasts[id];
+        const node = existing ? existing.node : document.createElement('div');
+        const close = buildContent(node, kind, message, opts);
+        close.addEventListener('click', function() { removeToast(id); });
+        if (!existing) {
+          container.appendChild(node);
+          toasts[id] = { node: node, timer: null };
+          requestAnimationFrame(function() { node.classList.add('show'); });
+        } else {
+          node.classList.add('show');
+        }
+        scheduleAuto(id, kind, opts.timeout);
+        return id;
+      };
+
+      window.updateToast = function(id, message, kind, opts) {
+        if (!id || !toasts[id]) return window.showToast(message, kind, opts);
+        return window.showToast(message, kind, Object.assign({}, opts || {}, { id: id }));
+      };
+
+      window.dismissToast = function(id) { removeToast(id); };
+
+      // ── Recent activity ──────────────────────────────────────────────
+      const K_SAMPLE = 'hs_last_sample';
+      const K_EXPORT = 'hs_last_export';
+
+      function readJSON(key) {
+        try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+      }
+      function writeJSON(key, val) {
+        try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+      }
+      function relTime(ts) {
+        if (!ts) return '';
+        const d = new Date(ts);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+
+      function render() {
+        const card = el('recentActivityCard');
+        if (!card) return;
+        const sample = readJSON(K_SAMPLE);
+        const exp = readJSON(K_EXPORT);
+        let any = false;
+        const sRow = el('recentSampleRow');
+        if (sRow) {
+          if (sample && sample.base) {
+            el('recentSampleValue').textContent = sample.base;
+            el('recentSampleValue').title = sample.base;
+            el('recentSampleMeta').textContent = relTime(sample.ts);
+            sRow.style.display = 'flex';
+            any = true;
+          } else { sRow.style.display = 'none'; }
+        }
+        const eRow = el('recentExportRow');
+        if (eRow) {
+          if (exp && exp.bundleName) {
+            el('recentExportValue').textContent = exp.bundleName + (exp.fileCount ? ' (' + exp.fileCount + ' files)' : '');
+            el('recentExportValue').title = exp.bundlePath || exp.bundleName;
+            el('recentExportMeta').textContent = relTime(exp.ts);
+            eRow.style.display = 'flex';
+            any = true;
+          } else { eRow.style.display = 'none'; }
+        }
+        card.style.display = any ? 'block' : 'none';
+      }
+
+      window.recordRecentSample = function(base) { writeJSON(K_SAMPLE, { base: base, ts: Date.now() }); render(); };
+      window.recordRecentExport = function(info) {
+        writeJSON(K_EXPORT, { bundleName: info.bundleName, fileCount: info.fileCount, bundlePath: info.bundlePath, ts: Date.now() });
+        render();
+      };
+
+      el('btnOpenRecentSample') && el('btnOpenRecentSample').addEventListener('click', function() {
+        if (window.electronAPI && window.electronAPI.openSampleProofFolder) {
+          window.electronAPI.openSampleProofFolder().catch(function() {});
+        }
+      });
+      el('btnOpenRecentExport') && el('btnOpenRecentExport').addEventListener('click', function() {
+        const exp = readJSON(K_EXPORT);
+        if (exp && exp.bundlePath && window.electronAPI && window.electronAPI.openExportFolder) {
+          window.electronAPI.openExportFolder(exp.bundlePath).catch(function() {});
+        }
+      });
+
+      render();
     })();
 
     const caseMgr = new CaseManager();
