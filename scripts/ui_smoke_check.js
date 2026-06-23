@@ -207,6 +207,15 @@ const requiredIds = [
   "appBackground",
   "appMotion",
   "btnResetAppearance",
+  "proofPassportCard",
+  "ppBundleId",
+  "ppArtifacts",
+  "ppReceipts",
+  "ppHashes",
+  "ppExportStatus",
+  "ppLastVerified",
+  "ppProofStatus",
+  "btnProveItAgain",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));

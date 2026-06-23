@@ -2025,6 +2025,54 @@
       gap: 0.4rem;
     }
     .ssc-icon { font-size: 1.1rem; }
+
+    /* ── Proof Passport card (v1.6.16 polish) ───────────────────── */
+    .proof-passport-card {
+      margin: 0 0 1rem;
+      padding: 1rem 1.2rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+    }
+    .ppc-head {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+    }
+    .ppc-icon { font-size: 1.1rem; }
+    .ppc-title { font-size: 0.95rem; font-weight: 700; color: var(--text-accent); }
+    .ppc-status {
+      margin-left: auto;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      color: var(--text-muted);
+    }
+    .ppc-status.clean { color: var(--color-ok); border-color: var(--color-ok); }
+    .ppc-status.bad { color: var(--color-bad); border-color: var(--color-bad); }
+    .ppc-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.45rem 1.4rem;
+    }
+    @media (max-width: 620px) { .ppc-grid { grid-template-columns: 1fr; } }
+    .ppc-field {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.8rem;
+      font-size: 0.82rem;
+      padding: 2px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .ppc-label { color: var(--text-muted); flex-shrink: 0; }
+    .ppc-value { color: var(--text-base); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ppc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.85rem; }
+
     .ssc-stats {
       display: flex;
       gap: 1.8rem;
@@ -2506,6 +2554,25 @@
               <button type="button" class="pill-btn" id="btnViewReceipt">View Receipt</button>
               <button type="button" class="pill-btn" id="btnExportBundle" disabled title="Export Proof Bundle (coming next)">Export Proof Bundle</button>
             </div>
+          </div>
+        </section>
+        <section class="proof-passport-card" id="proofPassportCard" style="display:none;" aria-label="Proof Passport">
+          <div class="ppc-head">
+            <span class="ppc-icon">&#x1F6C2;</span>
+            <span class="ppc-title">Proof Passport</span>
+            <span class="ppc-status" id="ppProofStatus">Not exported</span>
+          </div>
+          <div class="ppc-grid">
+            <div class="ppc-field"><span class="ppc-label">Bundle ID</span><span class="ppc-value mono" id="ppBundleId">— export to generate</span></div>
+            <div class="ppc-field"><span class="ppc-label">Artifacts</span><span class="ppc-value" id="ppArtifacts">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Receipts</span><span class="ppc-value" id="ppReceipts">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Hashes verified</span><span class="ppc-value" id="ppHashes">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Export status</span><span class="ppc-value" id="ppExportStatus">Not exported</span></div>
+            <div class="ppc-field"><span class="ppc-label">Last verified</span><span class="ppc-value" id="ppLastVerified">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Cloud required</span><span class="ppc-value" id="ppCloud">No</span></div>
+          </div>
+          <div class="ppc-actions">
+            <button type="button" class="pill-btn" id="btnProveItAgain" disabled title="Export a proof bundle first, then re-prove it from disk.">Prove It Again</button>
           </div>
         </section>
         <section class="input-dropzone" aria-label="Evidence intake and decode controls">
