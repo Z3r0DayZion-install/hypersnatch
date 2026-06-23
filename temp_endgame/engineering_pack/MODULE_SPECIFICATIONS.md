@@ -1,7 +1,0 @@
-Core modules:
-
-missionReplayEngine.js
-counterfactualEngine.js
-evidenceWeightEngine.js
-challengeModeEngine.js
-strategicCommandEngine.js

@@ -20,7 +20,6 @@ Date: March 19, 2026
 - `coverage/` test coverage reports
 - `logs/` runtime/build logs
 - `release/` generated release bundles and handoff artifacts
-- `release_handoff/` generated release package staging
 
 ## Forensic and Release Proof Records
 

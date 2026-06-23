@@ -1,1 +1,0 @@
-All analytic steps must produce an auditable chain of reasoning.
