@@ -1926,12 +1926,15 @@
     });
 
     function setEvidenceLoaded(v) {
+      const lrPath = el('lrSessionPath');
       if (v) {
         document.body.classList.add('evidence-loaded');
         const g = el('valGlobalStatus');
         if (g) { g.textContent = 'EVIDENCE LOADED'; g.className = 'status-badge ok'; }
+        if (lrPath) lrPath.textContent = 'Evidence bundle loaded — click to open folder';
       } else {
         document.body.classList.remove('evidence-loaded');
+        if (lrPath) lrPath.textContent = 'No evidence loaded yet';
       }
       updateProofStatus();
     }
@@ -1946,10 +1949,10 @@
 
     function updateProofStatus() {
       const loaded = document.body.classList.contains('evidence-loaded');
-      setPill('psEvidence', loaded ? 'Loaded' : 'Not loaded', loaded ? 'ok' : 'idle');
+      setPill('psEvidence', loaded ? 'Loaded' : 'Waiting for evidence', loaded ? 'ok' : 'idle');
 
       const c = window.caseMgr && window.caseMgr.activeCase;
-      setPill('psCase', c ? 'Active' : 'No active case', c ? 'ok' : 'idle');
+      setPill('psCase', c ? 'Active' : 'No case loaded yet', c ? 'ok' : 'idle');
 
       const hashTxt = (el('intHash') && el('intHash').textContent) || '--';
       const hasHash = hashTxt && hashTxt !== '--' && hashTxt.replace(/\s/g, '').length > 8;
@@ -1958,7 +1961,7 @@
 
       const exTxt = (el('intExportReady') && el('intExportReady').textContent) || '';
       const ready = /ready/i.test(exTxt) && !/blocked|waiting/i.test(exTxt);
-      setPill('psExport', ready ? 'Ready' : 'Not ready', ready ? 'ok' : 'idle');
+      setPill('psExport', ready ? 'Ready' : 'Not ready yet', ready ? 'ok' : 'idle');
     }
     window.updateProofStatus = updateProofStatus;
     updateProofStatus();
@@ -4587,7 +4590,7 @@
       if (typeof window.updateProofStatus === 'function') window.updateProofStatus();
       if (footerCase) {
         const c = window.caseMgr?.activeCase;
-        footerCase.textContent = c ? `Case: ${c.title || c.case_id}` : 'No active case';
+        footerCase.textContent = c ? `Case: ${c.title || c.case_id}` : 'No case loaded yet';
         footerCase.style.color = c ? 'var(--color-ok)' : 'var(--text-muted)';
       }
       if (footerQueue) {
@@ -4841,6 +4844,48 @@
               ? 'Integrity check: bundle hash present, proof status refreshed.'
               : 'Proof status refreshed — run a decode to generate the bundle hash.', hasHash ? 'ok' : 'muted');
           }
+        });
+      }
+    })();
+
+    // ── Left/right rail responsiveness ───────────────────────────────────────
+    (function wireRails() {
+      // Left rail: Evidence Source Path opens the evidence folder when loaded.
+      function openEvidence() {
+        if (!document.body.classList.contains('evidence-loaded')) {
+          if (typeof setStatus === 'function') setStatus('No evidence loaded yet — load a target folder or open the sample proof workspace.', 'muted');
+          return;
+        }
+        if (window.electronAPI && window.electronAPI.openEvidenceFolder) {
+          try { window.electronAPI.openEvidenceFolder(); if (typeof setStatus === 'function') setStatus('Opening evidence folder…', 'ok'); }
+          catch (e) { if (typeof setStatus === 'function') setStatus('Could not open evidence folder.', 'bad'); }
+        } else if (typeof setStatus === 'function') {
+          setStatus('Opening the evidence folder is not available in this build.', 'muted');
+        }
+      }
+      const lrPath = el('lrSessionPath');
+      if (lrPath) {
+        lrPath.addEventListener('click', openEvidence);
+        lrPath.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openEvidence(); }
+        });
+      }
+
+      // Right rail: Proof Status pills explain themselves on click (informational, never silent).
+      const proofExplain = {
+        psEvidence: 'Evidence: whether an artifact bundle is loaded. Load a target folder or open the sample proof workspace.',
+        psCase: 'Case: an open case holds findings, notes, and exports. Open one from the Cases tab.',
+        psHash: 'Hash: SHA-256 of the captured artifact. Created after you run a decode.',
+        psManifest: 'Manifest: the proof manifest of artifacts and hashes. Ready after a decode.',
+        psExport: 'Export: a proof package can be exported once a case is active and a run has completed.'
+      };
+      const proofStatus = el('proofStatus');
+      if (proofStatus) {
+        proofStatus.addEventListener('click', (ev) => {
+          const pill = ev.target && ev.target.closest ? ev.target.closest('[id^="ps"]') : null;
+          if (!pill || !proofExplain[pill.id]) return;
+          const val = (pill.textContent || '').trim();
+          if (typeof setStatus === 'function') setStatus(proofExplain[pill.id] + ' (Currently: ' + val + ')', 'muted');
         });
       }
     })();
