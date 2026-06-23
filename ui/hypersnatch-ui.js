@@ -5454,6 +5454,7 @@
         const btn = el('btnProveItAgain');
         if (btn) { btn.disabled = true; btn.title = 'Export a proof bundle first, then re-prove it from disk.'; }
         _showTamperTrialPreExport();
+        if (typeof window._nlPreExport === 'function') window._nlPreExport(counts);
       };
 
       function ttStatusPill(text, kind) {
@@ -5510,6 +5511,7 @@
         if (btn) { btn.disabled = false; btn.title = 'Re-read the exported bundle from disk and re-verify every hash.'; }
         _showTamperTrialPreExport();
         _enableTamperTrialAfterExport();
+        if (typeof window._nlAfterExport === 'function') window._nlAfterExport(exp);
       };
 
       el('btnProveItAgain') && el('btnProveItAgain').addEventListener('click', async function() {
@@ -5782,6 +5784,63 @@
       });
 
       refreshCompareBtn();
+    })();
+
+    (function wireNutritionLabel() {
+      function setText(id, val) { const n = el(id); if (n) n.textContent = (val == null ? '—' : String(val)); }
+      function setValue(id, text, kind) {
+        const n = el(id);
+        if (!n) return;
+        n.textContent = text;
+        n.className = 'ppc-value' + (kind ? ' ' + kind : '');
+      }
+      function setPill(text, kind) {
+        const p = el('enlStatus');
+        if (!p) return;
+        p.textContent = text;
+        p.className = 'ppc-status' + (kind ? ' ' + kind : '');
+      }
+
+      window._nlPreExport = function(counts) {
+        const card = el('evidenceNutritionLabel');
+        if (!card) return;
+        card.style.display = 'block';
+        setText('enlArtifacts', counts ? counts.artifacts : '—');
+        setText('enlReceipts', counts ? counts.receipts : '—');
+        setText('enlHashes', counts ? counts.hashes : '—');
+        setValue('enlVerifier', 'Not yet exported', '');
+        setValue('enlPassport', 'Not yet exported', '');
+        setValue('enlProveAgain', 'Available after export', '');
+        setValue('enlTamper', 'Available after export', '');
+        setValue('enlNetwork', 'No', 'ok');
+        setValue('enlCloud', 'No', 'ok');
+        setValue('enlCourt', 'No', '');
+        setPill('Not exported yet', '');
+      };
+
+      window._nlAfterExport = function(exp) {
+        const card = el('evidenceNutritionLabel');
+        if (!card || !exp) return;
+        card.style.display = 'block';
+        const pp = exp.passport || {};
+        const counts = pp.counts || {};
+        setText('enlArtifacts', counts.artifacts != null ? counts.artifacts : '—');
+        setText('enlReceipts', counts.receipts != null ? counts.receipts : '—');
+        setText('enlHashes', counts.sha256_entries != null ? counts.sha256_entries : (exp.fileCount != null ? exp.fileCount : '—'));
+        const verifierIncluded = pp.capsule && pp.capsule.verifier_included;
+        setValue('enlVerifier', verifierIncluded ? 'Included' : 'Not included', verifierIncluded ? 'ok' : 'bad');
+        setValue('enlPassport', 'Present', 'ok');
+        setValue('enlProveAgain', 'Available', 'ok');
+        setValue('enlTamper', 'Available', 'ok');
+        setValue('enlNetwork', 'No', 'ok');
+        setValue('enlCloud', 'No', 'ok');
+        setValue('enlCourt', 'No', '');
+        const clean = pp.verification && pp.verification.status === 'clean';
+        setPill(clean ? 'Clean' : 'Needs review', clean ? 'clean' : 'bad');
+      };
+
+      // Reflect re-verification / tamper-trial outcomes in the label status.
+      window._nlSetStatus = function(text, kind) { setPill(text, kind); };
     })();
 
     const caseMgr = new CaseManager();
