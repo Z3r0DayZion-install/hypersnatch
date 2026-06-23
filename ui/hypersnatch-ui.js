@@ -4890,5 +4890,25 @@
       }
     })();
 
+    // ── Front-door Workbench actions ─────────────────────────────────────────
+    (function wireFrontDoor() {
+      el('fdOpenSample') && el('fdOpenSample').addEventListener('click', () => {
+        window.open('https://github.com/Z3r0DayZion-install/hypersnatch/blob/main/samples/demo-case/DEMO_CASE.md', '_blank');
+        if (typeof setStatus === 'function') setStatus('Opening the sample proof workspace guide. In-app sample loading is coming next.', 'ok');
+      });
+      el('fdLoadEvidence') && el('fdLoadEvidence').addEventListener('click', () => {
+        const b = el('btnLoadEvidence');
+        if (b) { b.click(); if (typeof setStatus === 'function') setStatus('Choose a target folder to load evidence.', 'muted'); }
+      });
+      el('fdCreateCase') && el('fdCreateCase').addEventListener('click', () => {
+        const t = el('tabBtnCases');
+        if (t) { t.click(); if (typeof setStatus === 'function') setStatus('Cases: create a new case or open an existing one.', 'muted'); }
+      });
+      el('fdSettings') && el('fdSettings').addEventListener('click', () => {
+        const s = el('btnSettings');
+        if (s) s.click();
+      });
+    })();
+
     const caseMgr = new CaseManager();
     window.caseMgr = caseMgr; // Expose globally for onclick handlers

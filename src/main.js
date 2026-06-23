@@ -1974,10 +1974,11 @@ app.whenReady().then(() => {
 
   // Create main window with hardened security
   const mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    minWidth: 900,
-    minHeight: 600,
+    width: 1440,
+    height: 900,
+    minWidth: 1280,
+    minHeight: 800,
+    center: true,           // Center on launch so the front door is fully visible
     resizable: true,
     show: true,             // Show immediately — ready-to-show unreliable when renderer crashes in sandbox
     frame: false,           // SOVEREIGN SHELL: Frameless
