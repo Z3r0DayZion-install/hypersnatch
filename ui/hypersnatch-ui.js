@@ -1953,8 +1953,8 @@
 
       const hashTxt = (el('intHash') && el('intHash').textContent) || '--';
       const hasHash = hashTxt && hashTxt !== '--' && hashTxt.replace(/\s/g, '').length > 8;
-      setPill('psHash', hasHash ? 'Created' : 'Pending', hasHash ? 'ok' : 'idle');
-      setPill('psManifest', hasHash ? 'Ready' : 'Pending', hasHash ? 'ok' : 'idle');
+      setPill('psHash', hasHash ? 'Created' : 'Waiting', hasHash ? 'ok' : 'idle');
+      setPill('psManifest', hasHash ? 'Ready' : 'Waiting', hasHash ? 'ok' : 'idle');
 
       const exTxt = (el('intExportReady') && el('intExportReady').textContent) || '';
       const ready = /ready/i.test(exTxt) && !/blocked|waiting/i.test(exTxt);
@@ -4724,6 +4724,126 @@
     updateFooter('Ready');
 
     // ==================== END EXPANSION TABS ====================
+
+    // ── Settings modal + control-alive wiring ────────────────────────────────
+    (function wireSettingsAndControls() {
+      const settingsModal = el('settingsModal');
+      function setSettingsStatus(msg, kind) {
+        const s = el('settingsStatus');
+        if (!s) return;
+        s.textContent = msg || '\u00a0';
+        s.className = 'tiny ' + (kind === 'ok' ? 'ok' : kind === 'bad' ? 'bad' : 'muted');
+      }
+      function openSettings() {
+        if (!settingsModal) return;
+        const v = el('uiVer');
+        if (v && el('setVersion')) el('setVersion').textContent = v.textContent;
+        settingsModal.style.display = 'flex';
+        setSettingsStatus('');
+        el('btnSettingsClose') && el('btnSettingsClose').focus();
+        if (typeof setStatus === 'function') setStatus('Settings opened.', 'muted');
+      }
+      function closeSettings() {
+        if (settingsModal) settingsModal.style.display = 'none';
+      }
+      el('btnSettings') && el('btnSettings').addEventListener('click', openSettings);
+      el('uiVer') && el('uiVer').addEventListener('click', openSettings);
+      el('brandShell') && el('brandShell').addEventListener('click', openSettings);
+      el('brandShell') && el('brandShell').addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openSettings(); }
+      });
+      el('btnSettingsClose') && el('btnSettingsClose').addEventListener('click', closeSettings);
+      settingsModal && settingsModal.addEventListener('click', (ev) => {
+        if (ev.target === settingsModal) closeSettings();
+      });
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && settingsModal && settingsModal.style.display !== 'none') closeSettings();
+      });
+
+      function buildDiagnosticReport() {
+        return [
+          'HyperSnatch diagnostic report',
+          'Generated: ' + new Date().toISOString(),
+          'Version: ' + ((el('uiVer') && el('uiVer').textContent) || ''),
+          'Bridge: ' + ((el('bridgeText') && el('bridgeText').textContent) || ''),
+          'Evidence: ' + ((el('valGlobalStatus') && el('valGlobalStatus').textContent) || ''),
+          ((el('footerCase') && el('footerCase').textContent) || ''),
+          ((el('footerQueue') && el('footerQueue').textContent) || ''),
+          "CSP: script-src 'self' — no unsafe-inline",
+          'UA: ' + navigator.userAgent
+        ].join('\n');
+      }
+
+      el('btnSetOpenRelease') && el('btnSetOpenRelease').addEventListener('click', () => {
+        window.open('https://github.com/Z3r0DayZion-install/hypersnatch/releases/latest', '_blank');
+        setSettingsStatus('Opening the release page in your browser…', 'ok');
+      });
+      el('btnSetOpenSample') && el('btnSetOpenSample').addEventListener('click', () => {
+        window.open('https://github.com/Z3r0DayZion-install/hypersnatch/blob/main/samples/demo-case/DEMO_CASE.md', '_blank');
+        setSettingsStatus('Opening the sample proof workspace guide…', 'ok');
+      });
+      el('btnSetClearEvidence') && el('btnSetClearEvidence').addEventListener('click', () => {
+        if (typeof window.setEvidenceLoaded === 'function') window.setEvidenceLoaded(false);
+        const list = el('lrFileList');
+        if (list) list.innerHTML = '<div class="muted" style="font-size:0.8rem; padding:1rem; text-align:center;">Awaiting evidence load.</div>';
+        if (typeof window.updateProofStatus === 'function') window.updateProofStatus();
+        setSettingsStatus('Loaded evidence cleared.', 'ok');
+        if (typeof setStatus === 'function') setStatus('Evidence cleared.', 'muted');
+      });
+      el('btnSetResetUi') && el('btnSetResetUi').addEventListener('click', () => {
+        el('btnClear') && el('btnClear').click();
+        if (typeof window.setEvidenceLoaded === 'function') window.setEvidenceLoaded(false);
+        if (typeof window.updateProofStatus === 'function') window.updateProofStatus();
+        setSettingsStatus('Session UI reset.', 'ok');
+        if (typeof setStatus === 'function') setStatus('Session UI reset.', 'muted');
+      });
+      el('btnSetCopyDiag') && el('btnSetCopyDiag').addEventListener('click', async () => {
+        const report = buildDiagnosticReport();
+        let ok = false;
+        try {
+          if (window.electronAPI && window.electronAPI.copyToClipboard) ok = window.electronAPI.copyToClipboard(report);
+          else { await navigator.clipboard.writeText(report); ok = true; }
+        } catch (e) { ok = false; }
+        setSettingsStatus(ok ? 'Diagnostic report copied to clipboard.' : 'Could not copy report.', ok ? 'ok' : 'bad');
+      });
+      el('btnSetOpenLogs') && el('btnSetOpenLogs').addEventListener('click', async () => {
+        if (!(window.electronAPI && window.electronAPI.openLogsFolder)) {
+          setSettingsStatus('Logs folder is not available in this build.', 'bad');
+          return;
+        }
+        try { await window.electronAPI.openLogsFolder(); setSettingsStatus('Opened logs folder.', 'ok'); }
+        catch (e) { setSettingsStatus('Could not open logs folder.', 'bad'); }
+      });
+
+      // Bridge indicator: explain status on click instead of staying silent.
+      function explainBridge() {
+        const t = (el('bridgeText') && el('bridgeText').textContent) || 'Bridge status unavailable';
+        if (typeof setStatus === 'function') setStatus('Bridge status: ' + t, 'muted');
+      }
+      const bridgeText = el('bridgeText');
+      const bridgeDot = el('bridgeDot');
+      if (bridgeText) { bridgeText.style.cursor = 'pointer'; bridgeText.title = 'Click for bridge status'; bridgeText.addEventListener('click', explainBridge); }
+      if (bridgeDot) { bridgeDot.style.cursor = 'pointer'; bridgeDot.addEventListener('click', explainBridge); }
+
+      // Left-rail Verify: real action when evidence is loaded, clear reason otherwise.
+      const btnVerify = el('btnVerifyIntegrity');
+      if (btnVerify) {
+        btnVerify.addEventListener('click', () => {
+          if (!document.body.classList.contains('evidence-loaded')) {
+            if (typeof setStatus === 'function') setStatus('Load evidence first — Verify then checks the artifact bundle.', 'muted');
+            return;
+          }
+          if (typeof window.updateProofStatus === 'function') window.updateProofStatus();
+          const hashTxt = (el('intHash') && el('intHash').textContent) || '--';
+          const hasHash = hashTxt && hashTxt !== '--' && hashTxt.replace(/\s/g, '').length > 8;
+          if (typeof setStatus === 'function') {
+            setStatus(hasHash
+              ? 'Integrity check: bundle hash present, proof status refreshed.'
+              : 'Proof status refreshed — run a decode to generate the bundle hash.', hasHash ? 'ok' : 'muted');
+          }
+        });
+      }
+    })();
 
     const caseMgr = new CaseManager();
     window.caseMgr = caseMgr; // Expose globally for onclick handlers

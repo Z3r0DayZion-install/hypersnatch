@@ -1726,6 +1726,32 @@
     .diag-drawer > .panel {
       margin: 0 8px 8px;
     }
+    .settings-section {
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .settings-section:last-of-type { border-bottom: none; }
+    .settings-heading {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-accent);
+      margin-bottom: 0.45rem;
+    }
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      font-size: 0.78rem;
+      padding: 2px 0;
+    }
+    .settings-row > .muted { flex-shrink: 0; }
+    .settings-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
 
@@ -1734,7 +1760,7 @@
   <!-- Workstation Shell -->
   <div class="workstation-layout">
     <header class="top-header">
-      <div class="brand-shell">
+      <div class="brand-shell" id="brandShell" role="button" tabindex="0" title="About HyperSnatch — open Settings" style="cursor:pointer;">
         <div class="brand-mark" aria-hidden="true">
           <svg width="28" height="28" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g transform="translate(256 256) scale(0.84) translate(-256 -256)">
@@ -1769,11 +1795,12 @@
       <div class="control-row header-tools">
         <span id="bridgeDot" class="idle" aria-hidden="true">●</span>
         <span id="bridgeText" class="tiny muted">Bridge: Initializing</span>
-        <span class="pill tiny mono" id="uiVer">v1.6.13</span>
+        <button id="uiVer" class="pill tiny mono" type="button" title="Open Settings / About">v1.6.13</button>
         <button id="nodeIdPill" class="pill tiny mono" type="button" title="Copy hardware node fingerprint">
           NODE <span id="nodeIdText">--</span>
         </button>
         <button id="btnSafeMode" class="pill tiny" type="button">Safe Mode: OFF</button>
+        <button id="btnSettings" class="pill tiny" type="button" title="Settings" aria-label="Open Settings">&#9881; Settings</button>
       </div>
       <div style="flex-grow:1;"></div>
 
@@ -1905,7 +1932,7 @@
               <option value="offline">Offline Hold</option>
             </select>
             <span class="pill tiny mono" id="bridgeUrlTxt">http://127.0.0.1:4179/decode</span>
-            <span class="pill tiny" id="radarStatus">HUB: IDLE</span>
+            <span class="pill tiny" id="radarStatus">Ready</span>
           </div>
           <textarea id="input" aria-label="Evidence input payload" placeholder="Paste target URL, inline script blob, page snapshot HTML, or extracted network text."></textarea>
           <div class="control-row" style="margin-top:0.72rem;">
@@ -2050,6 +2077,62 @@
           </div>
         </div>
       </div>
+
+      <div id="settingsModal" class="modal-overlay" style="display:none; z-index:9500;" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="modal-content" style="max-width:560px; background:var(--bg-panel); border:1px solid var(--border-hard);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <h2 id="settingsTitle" style="color:var(--text-accent); margin:0; font-size:1.1rem;">Settings</h2>
+            <button type="button" id="btnSettingsClose" class="pill-btn" aria-label="Close settings">Close</button>
+          </div>
+          <div id="settingsStatus" class="tiny muted" style="min-height:14px; margin-bottom:0.6rem;">&nbsp;</div>
+
+          <div class="settings-section">
+            <div class="settings-heading">General</div>
+            <div class="settings-row"><span class="muted">Version</span><span class="mono" id="setVersion">v1.6.13</span></div>
+            <div class="settings-row"><span class="muted">Mode</span><span>Local-first — no cloud calls during investigation</span></div>
+            <div class="settings-actions">
+              <button type="button" id="btnSetOpenRelease" class="pill-btn">Open release page</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-heading">Evidence</div>
+            <div class="settings-row"><span class="muted">Sample case</span><span>A ready-made demo workspace with receipts</span></div>
+            <div class="settings-actions">
+              <button type="button" id="btnSetOpenSample" class="pill-btn">Open sample proof workspace</button>
+              <button type="button" id="btnSetClearEvidence" class="pill-btn">Clear loaded evidence</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-heading">Proof</div>
+            <div class="settings-row"><span class="muted">Receipts</span><span>Hashes, manifests, and receipts per captured artifact</span></div>
+            <div class="settings-actions">
+              <button type="button" id="btnSetResetUi" class="pill-btn">Reset session UI state</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-heading">Privacy &amp; Security</div>
+            <div class="settings-row"><span class="muted">Script CSP</span><span id="setCsp" class="mono tiny">script-src 'self' — no unsafe-inline</span></div>
+            <div class="settings-row"><span class="muted">Network</span><span>No external calls during investigation</span></div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-heading">Diagnostics</div>
+            <div class="settings-actions">
+              <button type="button" id="btnSetCopyDiag" class="pill-btn">Copy diagnostic report</button>
+              <button type="button" id="btnSetOpenLogs" class="pill-btn">Open logs folder</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-heading">About</div>
+            <div class="settings-row"><span class="muted">HyperSnatch</span><span>The Proof Foundry™ — Capture the artifact. Keep the proof.</span></div>
+          </div>
+        </div>
+      </div>
+
       <div id="tabCases" class="tab-content" style="display:none;" role="tabpanel" aria-labelledby="tabBtnCases">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
           <h2 style="font-size:1.2rem; margin:0;">Case Management System</h2>
@@ -3391,11 +3474,11 @@
         </div>
         <div class="trust-row">
           <span class="muted">Hash</span>
-          <span id="psHash" class="pill tiny idle">Pending</span>
+          <span id="psHash" class="pill tiny idle">Waiting</span>
         </div>
         <div class="trust-row">
           <span class="muted">Manifest</span>
-          <span id="psManifest" class="pill tiny idle">Pending</span>
+          <span id="psManifest" class="pill tiny idle">Waiting</span>
         </div>
         <div class="trust-row">
           <span class="muted">Export</span>
