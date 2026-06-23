@@ -1752,6 +1752,8 @@
       gap: 8px;
       margin-top: 0.5rem;
     }
+    #proofStatus .pill { cursor: help; }
+    #lrSessionPath:hover { color: var(--text-accent); }
   </style>
 </head>
 
@@ -1833,7 +1835,7 @@
       <div class="panel">
         <div class="panel-header">Active Session</div>
         <div class="data-label">Evidence Source Path</div>
-        <div id="lrSessionPath" class="data-value mono" style="font-size:0.75rem; word-break:break-all;">--</div>
+        <div id="lrSessionPath" class="data-value mono" role="button" tabindex="0" title="Open the evidence folder (once evidence is loaded)" style="font-size:0.75rem; word-break:break-all; cursor:pointer;">No evidence loaded yet</div>
       </div>
 
       <div class="panel" style="flex-grow:1; display:flex; flex-direction:column;">
@@ -3463,26 +3465,26 @@
     <aside class="right-panel">
       <div class="panel-header">Proof Status</div>
 
-      <div class="proof-status">
+      <div class="proof-status" id="proofStatus">
         <div class="trust-row">
           <span class="muted">Evidence</span>
-          <span id="psEvidence" class="pill tiny idle">Not loaded</span>
+          <span id="psEvidence" class="pill tiny idle" title="Whether an artifact bundle is loaded. Click for details.">Waiting for evidence</span>
         </div>
         <div class="trust-row">
           <span class="muted">Case</span>
-          <span id="psCase" class="pill tiny idle">No active case</span>
+          <span id="psCase" class="pill tiny idle" title="Whether a case is open to hold findings. Click for details.">No case loaded yet</span>
         </div>
         <div class="trust-row">
           <span class="muted">Hash</span>
-          <span id="psHash" class="pill tiny idle">Waiting</span>
+          <span id="psHash" class="pill tiny idle" title="SHA-256 of the captured artifact. Created after a decode. Click for details.">Waiting</span>
         </div>
         <div class="trust-row">
           <span class="muted">Manifest</span>
-          <span id="psManifest" class="pill tiny idle">Waiting</span>
+          <span id="psManifest" class="pill tiny idle" title="Proof manifest listing artifacts and hashes. Ready after a decode. Click for details.">Waiting</span>
         </div>
         <div class="trust-row">
           <span class="muted">Export</span>
-          <span id="psExport" class="pill tiny idle">Not ready</span>
+          <span id="psExport" class="pill tiny idle" title="Whether a proof package can be exported. Needs an active case and a completed run. Click for details.">Not ready yet</span>
         </div>
       </div>
 
@@ -3559,7 +3561,7 @@
     <span class="muted" style="opacity:0.5;">|</span>
     <span id="footerVersion" style="color:var(--text-muted);">v1.6.13</span>
     <span class="muted" style="opacity:0.5;">|</span>
-    <span id="footerCase" style="color:var(--text-muted);">No active case</span>
+    <span id="footerCase" style="color:var(--text-muted);">No case loaded yet</span>
     <span class="muted" style="opacity:0.5;">|</span>
     <span id="footerQueue" style="color:var(--text-muted);">Queue: 0</span>
     <span class="muted" style="opacity:0.5;">|</span>
