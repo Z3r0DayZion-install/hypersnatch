@@ -5453,7 +5453,40 @@
         setStatusPill('Not exported', '');
         const btn = el('btnProveItAgain');
         if (btn) { btn.disabled = true; btn.title = 'Export a proof bundle first, then re-prove it from disk.'; }
+        _showTamperTrialPreExport();
       };
+
+      function ttStatusPill(text, kind) {
+        const p = el('ttStatus');
+        if (!p) return;
+        p.textContent = text;
+        p.className = 'ppc-status' + (kind ? ' ' + kind : '');
+      }
+
+      function _showTamperTrialPreExport() {
+        const card = el('tamperTrialCard');
+        if (card) card.style.display = 'block';
+        ttStatusPill('Not run', '');
+        setText('ttCaught', '—');
+        setText('ttCaseModified', '—');
+        setText('ttCaseMissing', '—');
+        setText('ttCasePassport', '—');
+        setText('ttCaseVerifier', '—');
+        setText('ttOriginal', '—');
+        const pathRow = document.querySelector('.ttc-path-row');
+        if (pathRow) pathRow.style.display = 'none';
+        const run = el('btnRunTamperTrial');
+        if (run) { run.disabled = true; run.title = 'Export a proof bundle first, then run a tamper trial on a temporary copy.'; }
+        const open = el('btnOpenTamperResult');
+        if (open) open.disabled = true;
+      }
+
+      function _enableTamperTrialAfterExport() {
+        const card = el('tamperTrialCard');
+        if (card) card.style.display = 'block';
+        const run = el('btnRunTamperTrial');
+        if (run) { run.disabled = false; run.title = 'Copy the export to a temp folder, damage the copy, and confirm HyperSnatch catches it.'; }
+      }
 
       window._showPassportAfterExport = function(exp) {
         const card = el('proofPassportCard');
@@ -5475,6 +5508,8 @@
         setStatusPill(clean ? 'Clean' : 'Needs review', clean ? 'clean' : 'bad');
         const btn = el('btnProveItAgain');
         if (btn) { btn.disabled = false; btn.title = 'Re-read the exported bundle from disk and re-verify every hash.'; }
+        _showTamperTrialPreExport();
+        _enableTamperTrialAfterExport();
       };
 
       el('btnProveItAgain') && el('btnProveItAgain').addEventListener('click', async function() {
@@ -5518,6 +5553,78 @@
         } catch (e) {
           const emsg = 'Re-prove error: ' + (e.message || e);
           if (t) window.updateToast(t, emsg, 'bad'); else if (window.showToast) window.showToast(emsg, 'bad');
+        }
+      });
+
+      let lastTrial = null;
+
+      function caseLabel(c) {
+        if (!c) return '—';
+        return c.detected ? 'Detected' : 'Not caught';
+      }
+      function caseKind(c) { return c && c.detected ? 'ok' : 'bad'; }
+      function setCase(id, c) {
+        const n = el(id);
+        if (!n) return;
+        n.textContent = caseLabel(c);
+        n.className = 'ppc-value ' + caseKind(c);
+      }
+
+      el('btnRunTamperTrial') && el('btnRunTamperTrial').addEventListener('click', async function() {
+        if (!lastExport || !lastExport.bundlePath) {
+          if (window.showToast) window.showToast('Export a proof bundle first.', 'bad');
+          return;
+        }
+        const t = window.showToast ? window.showToast('Running tamper trial on a temporary copy…', 'loading') : null;
+        try {
+          const r = await window.electronAPI.runTamperTrial(lastExport.bundlePath);
+          if (!r || !r.success) {
+            const emsg = 'Tamper Trial error: ' + ((r && r.error) || 'unknown error');
+            ttStatusPill('Error', 'bad');
+            if (t) window.updateToast(t, emsg, 'bad'); else if (window.showToast) window.showToast(emsg, 'bad');
+            return;
+          }
+          lastTrial = r;
+          const byCase = {};
+          (r.cases || []).forEach(function(c) { byCase[c.case] = c; });
+          setCase('ttCaseModified', byCase['modified_hashed_file']);
+          setCase('ttCaseMissing', byCase['missing_hashed_file']);
+          setCase('ttCasePassport', byCase['altered_passport']);
+          setCase('ttCaseVerifier', byCase['missing_verifier']);
+          const caught = r.summary ? r.summary.caught : 0;
+          const total = r.summary ? r.summary.total : 4;
+          setText('ttCaught', caught + '/' + total);
+          const origOk = r.originalStatus === 'clean';
+          const origNode = el('ttOriginal');
+          if (origNode) { origNode.textContent = origOk ? 'Still clean' : 'Review'; origNode.className = 'ppc-value ' + (origOk ? 'ok' : 'bad'); }
+          const pathRow = document.querySelector('.ttc-path-row');
+          if (pathRow) pathRow.style.display = 'flex';
+          setText('ttTrialPath', r.trialBundle || '—');
+          const openBtn = el('btnOpenTamperResult');
+          if (openBtn) openBtn.disabled = false;
+
+          const passed = r.summary && r.summary.status === 'passed';
+          if (passed) {
+            ttStatusPill('Passed', 'clean');
+            const msg = 'Tamper Trial passed. HyperSnatch caught ' + caught + '/' + total + ' tamper cases on a temporary copy. Your real export is unchanged' + (origOk ? ' and still verifies clean.' : '.');
+            if (t) window.updateToast(t, msg, 'ok'); else if (window.showToast) window.showToast(msg, 'ok');
+            if (typeof setStatus === 'function') setStatus(msg, 'ok');
+          } else {
+            ttStatusPill('Needs review', 'bad');
+            const msg = 'Tamper Trial needs review. HyperSnatch caught ' + caught + '/' + total + ' tamper cases.';
+            if (t) window.updateToast(t, msg, 'bad'); else if (window.showToast) window.showToast(msg, 'bad');
+            if (typeof setStatus === 'function') setStatus(msg, 'bad');
+          }
+        } catch (e) {
+          ttStatusPill('Error', 'bad');
+          const emsg = 'Tamper Trial error: ' + (e.message || e);
+          if (t) window.updateToast(t, emsg, 'bad'); else if (window.showToast) window.showToast(emsg, 'bad');
+        }
+      });
+
+      el('btnOpenTamperResult') && el('btnOpenTamperResult').addEventListener('click', function() {
+        if (lastTrial && lastTrial.trialBundle) {
+          window.electronAPI.openExportFolder(lastTrial.trialBundle).catch(function() {});
         }
       });
     })();

@@ -669,6 +669,68 @@ ipcMain.handle('open-export-folder', async (_event, { bundlePath }) => {
   }
 });
 
+// Verify a proof bundle directory: re-hash every SHA256SUMS entry, plus check
+// passport presence/schema, receipt/manifest presence, offline verifier
+// presence, and repo-hygiene cleanliness. Returns a structured result (no IPC
+// wrapper). Shared by "Prove It Again" and "Tamper Trial".
+function verifyBundleDir(resolved) {
+  const crypto = require('crypto');
+  const sumsPath = path.join(resolved, 'SHA256SUMS.txt');
+  if (!fs.existsSync(sumsPath)) {
+    return { error: 'SHA256SUMS.txt not found in bundle.' };
+  }
+  const sumsText = fs.readFileSync(sumsPath, 'utf8');
+  const lines = sumsText.split(/\r?\n/).filter((l) => l.trim().length > 0);
+
+  let verified = 0, failed = 0, missing = 0;
+  const failures = [];
+  for (const line of lines) {
+    const m = /^([0-9a-fA-F]{64})\s+(.+)$/.exec(line.trim());
+    if (!m) continue;
+    const expected = m[1].toLowerCase();
+    const rel = m[2].trim();
+    const fp = path.join(resolved, rel);
+    if (!fs.existsSync(fp)) { missing++; failures.push('missing: ' + rel); continue; }
+    const actual = crypto.createHash('sha256').update(fs.readFileSync(fp)).digest('hex');
+    if (actual === expected) { verified++; }
+    else { failed++; failures.push('hash mismatch: ' + rel); }
+  }
+  const total = verified + failed + missing;
+
+  // Proof Passport presence + schema
+  let passportPresent = false, passportValid = false, bundleId = null;
+  const passportPath = path.join(resolved, 'PROOF-PASSPORT.json');
+  if (fs.existsSync(passportPath)) {
+    passportPresent = true;
+    try {
+      const pp = JSON.parse(fs.readFileSync(passportPath, 'utf8'));
+      passportValid = pp && pp.schema === 'hypersnatch.proof_passport.v1';
+      bundleId = (pp && pp.bundle_id) || null;
+    } catch (e) { passportValid = false; }
+  }
+
+  const receiptPresent = fs.existsSync(path.join(resolved, 'proof', 'receipt.json'));
+  const manifestPresent = fs.existsSync(path.join(resolved, 'proof', 'manifest.json'));
+  const hygieneFound = scanRepoHygiene(resolved);
+  const verifierPresent = fs.existsSync(path.join(resolved, 'VERIFY-HYPERSNATCH.html'));
+
+  const clean = failed === 0 && missing === 0 && total > 0 &&
+    passportPresent && passportValid && receiptPresent && manifestPresent &&
+    verifierPresent && hygieneFound.length === 0;
+
+  return {
+    status: clean ? 'clean' : 'failed',
+    bundleId,
+    total, verified, failed, missing,
+    passportPresent, passportValid,
+    receiptPresent, manifestPresent,
+    verifierPresent,
+    repoHygieneFound: hygieneFound.length,
+    repoHygieneFiles: hygieneFound,
+    failures
+  };
+}
+
 // Re-verify an exported proof bundle from disk ("Prove It Again").
 // Path safety: only a path that exists on disk (returned by a prior export or
 // selected by the user) is inspected; nothing outside the bundle is scanned.
@@ -682,69 +744,135 @@ ipcMain.handle('reverify-export-bundle', async (_event, { bundlePath }) => {
       return { success: false, error: 'Bundle folder no longer exists: ' + resolved };
     }
 
-    const crypto = require('crypto');
-    const sumsPath = path.join(resolved, 'SHA256SUMS.txt');
-    if (!fs.existsSync(sumsPath)) {
-      return { success: false, error: 'SHA256SUMS.txt not found in bundle.' };
-    }
-    const sumsText = fs.readFileSync(sumsPath, 'utf8');
-    const lines = sumsText.split(/\r?\n/).filter((l) => l.trim().length > 0);
-
-    let verified = 0, failed = 0, missing = 0;
-    const failures = [];
-    for (const line of lines) {
-      const m = /^([0-9a-fA-F]{64})\s+(.+)$/.exec(line.trim());
-      if (!m) continue;
-      const expected = m[1].toLowerCase();
-      const rel = m[2].trim();
-      const fp = path.join(resolved, rel);
-      if (!fs.existsSync(fp)) { missing++; failures.push('missing: ' + rel); continue; }
-      const actual = crypto.createHash('sha256').update(fs.readFileSync(fp)).digest('hex');
-      if (actual === expected) { verified++; }
-      else { failed++; failures.push('hash mismatch: ' + rel); }
-    }
-    const total = verified + failed + missing;
-
-    // Proof Passport presence + schema
-    let passportPresent = false, passportValid = false, bundleId = null;
-    const passportPath = path.join(resolved, 'PROOF-PASSPORT.json');
-    if (fs.existsSync(passportPath)) {
-      passportPresent = true;
-      try {
-        const pp = JSON.parse(fs.readFileSync(passportPath, 'utf8'));
-        passportValid = pp && pp.schema === 'hypersnatch.proof_passport.v1';
-        bundleId = (pp && pp.bundle_id) || null;
-      } catch (e) { passportValid = false; }
-    }
-
-    // Receipt + manifest presence
-    const receiptPresent = fs.existsSync(path.join(resolved, 'proof', 'receipt.json'));
-    const manifestPresent = fs.existsSync(path.join(resolved, 'proof', 'manifest.json'));
-
-    // Repo hygiene scan
-    const hygieneFound = scanRepoHygiene(resolved);
-
-    // Offline verifier presence (presence-verified, like the passport)
-    const verifierPresent = fs.existsSync(path.join(resolved, 'VERIFY-HYPERSNATCH.html'));
-
-    const clean = failed === 0 && missing === 0 && total > 0 &&
-      passportPresent && passportValid && receiptPresent && manifestPresent &&
-      verifierPresent && hygieneFound.length === 0;
-
-    return {
-      success: true,
-      status: clean ? 'clean' : 'failed',
-      bundleId,
-      total, verified, failed, missing,
-      passportPresent, passportValid,
-      receiptPresent, manifestPresent,
-      verifierPresent,
-      repoHygieneFound: hygieneFound.length,
-      repoHygieneFiles: hygieneFound,
-      failures
-    };
+    const r = verifyBundleDir(resolved);
+    if (r.error) return { success: false, error: r.error };
+    return Object.assign({ success: true }, r);
   } catch (err) {
     log.error('REVERIFY_EXPORT_BUNDLE_ERROR', { message: err.message });
+    return { success: false, error: err.message };
+  }
+});
+
+// Tamper Trial: prove HyperSnatch catches tampering.
+// Safety model:
+//   - Only operates on a HyperSnatch export bundle (name prefix + required files).
+//   - NEVER modifies the original bundle. Each tamper case runs on a fresh copy
+//     made under the OS temp dir. All writes stay inside that temp trial folder.
+//   - Reuses verifyBundleDir() (the exact "Prove It Again" logic).
+const TAMPER_BUNDLE_PREFIX = 'HyperSnatch-Proof-Bundle-';
+
+function isSafeBundlePath(resolved) {
+  try {
+    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) return false;
+    if (!path.basename(resolved).startsWith(TAMPER_BUNDLE_PREFIX)) return false;
+    if (!fs.existsSync(path.join(resolved, 'SHA256SUMS.txt'))) return false;
+    if (!fs.existsSync(path.join(resolved, 'PROOF-PASSPORT.json'))) return false;
+    return true;
+  } catch (e) { return false; }
+}
+
+ipcMain.handle('run-tamper-trial', async (_event, { bundlePath }) => {
+  try {
+    if (!bundlePath || typeof bundlePath !== 'string') {
+      return { success: false, error: 'No bundle path specified.' };
+    }
+    const source = path.resolve(bundlePath);
+    if (!isSafeBundlePath(source)) {
+      return { success: false, error: 'Tamper Trial only runs on a HyperSnatch export bundle. This path is not a recognized export.' };
+    }
+
+    const os = require('os');
+    const trialRoot = path.join(os.tmpdir(), 'HyperSnatch-Tamper-Trial-' + timestamp());
+    fs.mkdirSync(trialRoot, { recursive: true });
+
+    // Baseline: original export must remain clean (we only read it).
+    const baseline = verifyBundleDir(source);
+    const originalStatus = baseline && !baseline.error ? baseline.status : 'error';
+
+    // Each case: isolated copy under trialRoot, one deterministic tamper, verify.
+    const caseDefs = [
+      {
+        case: 'modified_hashed_file', expected_detection: 'hash_mismatch',
+        apply: (dir) => {
+          const fp = path.join(dir, 'artifacts', 'sample-report.txt');
+          fs.appendFileSync(fp, '\n<<tamper-trial-modification>>\n');
+          return 'artifacts/sample-report.txt';
+        },
+        detect: (r) => r.failed >= 1
+      },
+      {
+        case: 'missing_hashed_file', expected_detection: 'missing_file',
+        apply: (dir) => {
+          const fp = path.join(dir, 'artifacts', 'sample-download.bin');
+          fs.unlinkSync(fp);
+          return 'artifacts/sample-download.bin';
+        },
+        detect: (r) => r.missing >= 1
+      },
+      {
+        case: 'altered_passport', expected_detection: 'passport_invalid',
+        apply: (dir) => {
+          const fp = path.join(dir, 'PROOF-PASSPORT.json');
+          const pp = JSON.parse(fs.readFileSync(fp, 'utf8'));
+          pp.schema = 'tampered.not_a_real_schema';
+          pp.bundle_id = 'TAMPERED';
+          fs.writeFileSync(fp, JSON.stringify(pp, null, 2) + '\n');
+          return 'PROOF-PASSPORT.json';
+        },
+        detect: (r) => r.passportPresent === true && r.passportValid === false
+      },
+      {
+        case: 'missing_verifier', expected_detection: 'verifier_missing',
+        apply: (dir) => {
+          fs.unlinkSync(path.join(dir, 'VERIFY-HYPERSNATCH.html'));
+          return 'VERIFY-HYPERSNATCH.html';
+        },
+        detect: (r) => r.verifierPresent === false
+      }
+    ];
+
+    const cases = [];
+    let idx = 0;
+    for (const def of caseDefs) {
+      idx++;
+      const caseDir = path.join(trialRoot, 'case-' + idx + '-' + def.case);
+      copyDirRecursive(source, caseDir);
+      let target = null, applyError = null;
+      try { target = def.apply(caseDir); } catch (e) { applyError = e.message; }
+      const r = verifyBundleDir(caseDir);
+      const verifyFailed = r && !r.error && r.status === 'failed';
+      const detected = !applyError && !r.error && def.detect(r) && verifyFailed;
+      cases.push({
+        case: def.case,
+        expected_detection: def.expected_detection,
+        target_file: target,
+        detected: !!detected,
+        verify_status: r && r.error ? 'error' : r.status,
+        signals: r && !r.error ? { failed: r.failed, missing: r.missing, passportValid: r.passportValid, verifierPresent: r.verifierPresent } : null
+      });
+    }
+
+    const caught = cases.filter((c) => c.detected).length;
+    const total = cases.length;
+    const status = caught === total ? 'passed' : 'needs_review';
+
+    const result = {
+      schema: 'hypersnatch.tamper_trial.v1',
+      created_at: new Date().toISOString(),
+      app_version: app.getVersion(),
+      source_bundle: source,
+      source_bundle_id: baseline && baseline.bundleId ? baseline.bundleId : null,
+      original_status: originalStatus,
+      trial_bundle: trialRoot,
+      cases,
+      summary: { caught, total, status }
+    };
+    const resultPath = path.join(trialRoot, 'TAMPER-TRIAL-RESULT.json');
+    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2) + '\n');
+
+    return { success: true, trialBundle: trialRoot, resultPath, originalStatus, cases, summary: result.summary };
+  } catch (err) {
+    log.error('RUN_TAMPER_TRIAL_ERROR', { message: err.message });
     return { success: false, error: err.message };
   }
 });
