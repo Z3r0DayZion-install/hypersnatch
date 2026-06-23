@@ -4,8 +4,8 @@
 
 # HyperSnatch
 
-**Offline evidence and stream intelligence workstation.**  
-Decode, organize, sign, verify, and seal investigation artifacts — locally, with cryptographic proof at every step.
+**Local-first Windows proof workstation.**  
+Capture artifacts, export receipt-backed proof bundles, and verify them offline — no cloud dependency, cryptographic proof at every step.
 
 A [Proof Foundry](https://github.com/Z3r0DayZion-install/hypersnatch) product.
 
@@ -27,7 +27,7 @@ SHA256 hashes in [`SHA256SUMS.txt`](https://github.com/Z3r0DayZion-install/hyper
 
 - **Decode & capture** — pull and store evidence bundles from streams and URLs
 - **Investigate** — build cases, log findings, attach bundles, run comparisons
-- **Sign & seal** — cryptographically sign evidence, seal packages, generate chain-of-custody
+- **Sign & verify** — record hashes, receipts, proof bundle metadata, and verification results
 - **Graph & analyze** — map infrastructure topology, find hot nodes, bridges, and cross-case correlations
 - **Trust registry** — track and verify intelligence sources
 - **Workspace management** — assign cases to analysts, manage teams
@@ -44,7 +44,7 @@ Every release ships with a signed proof record:
 
 - `release:gate` must pass before any tag is created
 - Installer SHA256 hashes are recorded in `docs/release/RELEASE_PROOF_vX.Y.Z.md`
-- 93 E2E Playwright tests cover the full operator UI surface
+- 99 E2E Playwright tests cover the full operator UI surface
 
 ---
 
