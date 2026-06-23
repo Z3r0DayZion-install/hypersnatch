@@ -9,7 +9,7 @@ Decode, organize, sign, verify, and seal investigation artifacts — locally, wi
 
 A [Proof Foundry](https://github.com/Z3r0DayZion-install/hypersnatch) product.
 
-[![Release](https://img.shields.io/badge/release-v1.6.13-brightgreen)](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.13)
+[![Release](https://img.shields.io/badge/release-v1.6.14-brightgreen)](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.14)
 [![Tests](https://img.shields.io/badge/E2E%20tests-93%2F93-brightgreen)](#)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](#)
 
@@ -17,9 +17,9 @@ A [Proof Foundry](https://github.com/Z3r0DayZion-install/hypersnatch) product.
 
 ## Download
 
-**[HyperSnatch-Setup-1.6.13.exe](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.13)** — Windows installer
+**[HyperSnatch-Setup-1.6.14.exe](https://github.com/Z3r0DayZion-install/hypersnatch/releases/tag/v1.6.14)** — Windows installer
 
-SHA256 hashes in [`SHA256SUMS.txt`](https://github.com/Z3r0DayZion-install/hypersnatch/releases/download/v1.6.13/SHA256SUMS.txt) and [`docs/release/RECEIPT_v1.6.13.md`](docs/release/RECEIPT_v1.6.13.md).
+SHA256 hashes in [`SHA256SUMS.txt`](https://github.com/Z3r0DayZion-install/hypersnatch/releases/download/v1.6.14/SHA256SUMS.txt) and [`docs/release/RECEIPT_v1.6.14.md`](docs/release/RECEIPT_v1.6.14.md).
 
 ---
 
@@ -62,10 +62,10 @@ Requires Node.js 18+ and Windows (Electron build target).
 ## Verify a download
 
 ```powershell
-Get-FileHash .\HyperSnatch-Setup-1.6.13.exe -Algorithm SHA256
+Get-FileHash .\HyperSnatch-Setup-1.6.14.exe -Algorithm SHA256
 ```
 
-Compare against [`SHA256SUMS.txt`](https://github.com/Z3r0DayZion-install/hypersnatch/releases/download/v1.6.13/SHA256SUMS.txt).
+Compare against [`SHA256SUMS.txt`](https://github.com/Z3r0DayZion-install/hypersnatch/releases/download/v1.6.14/SHA256SUMS.txt).
 
 ---
 
@@ -73,7 +73,9 @@ Compare against [`SHA256SUMS.txt`](https://github.com/Z3r0DayZion-install/hypers
 
 | Version | Notes |
 |---------|-------|
-| v1.6.13 | Brand/icon refresh + workbench-first IA + sample proof workspace + strict script CSP (no unsafe-inline) + packaged interaction proof |\n| v1.6.12 | Critical packaged UI interaction hotfix: CSP allowed inline renderer init (script-src 'unsafe-inline'), null-guarded window/license controls, added missing SovereignAuth require |
+| v1.6.14 | UI-aliveness hotfix: Settings panel (General/Evidence/Proof/Privacy & Security/Diagnostics/About), visible controls now respond with action/feedback/reason, left-rail Verify no longer silent, responsive rails, calmer idle language + packaged click audit |
+| v1.6.13 | Brand/icon refresh + workbench-first IA + sample proof workspace + strict script CSP (no unsafe-inline) + packaged interaction proof |
+| v1.6.12 | Critical packaged UI interaction hotfix: CSP allowed inline renderer init (script-src 'unsafe-inline'), null-guarded window/license controls, added missing SovereignAuth require |
 | v1.6.11 | Public launch: asar files list fix (src/**/* — all modules now included in packaged build) — superseded |
 | v1.6.10 | sandbox:false fix — superseded |
 | v1.6.9 | Proof Foundry brand + consolidated window-show fixes — superseded |
