@@ -1770,6 +1770,145 @@
     .fd-flow-title { font-size: 0.86rem; font-weight: 700; }
     .fd-flow-desc { font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; }
 
+    /* ── toast notifications (v1.6.16 polish) ───────────────────── */
+    #toastContainer {
+      position: fixed;
+      right: 18px;
+      bottom: 44px;
+      z-index: 10050;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 380px;
+      pointer-events: none;
+    }
+    .hs-toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      min-width: 260px;
+      padding: 0.7rem 0.8rem;
+      border-radius: 11px;
+      border: 1px solid rgba(120, 150, 180, 0.32);
+      background: rgba(10, 18, 27, 0.97);
+      box-shadow: 0 14px 38px rgba(1, 6, 12, 0.55);
+      color: #dcebff;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .hs-toast.show { opacity: 1; transform: translateY(0); }
+    .hs-toast .hs-toast-icon {
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .hs-toast .hs-toast-body { flex: 1 1 auto; }
+    .hs-toast .hs-toast-msg { display: block; }
+    .hs-toast .hs-toast-action {
+      margin-top: 6px;
+      background: rgba(42, 198, 255, 0.12);
+      border: 1px solid rgba(42, 198, 255, 0.4);
+      color: #aee6ff;
+      border-radius: 7px;
+      padding: 3px 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .hs-toast .hs-toast-action:hover { background: rgba(42, 198, 255, 0.22); }
+    .hs-toast .hs-toast-close {
+      flex: 0 0 auto;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 2px;
+    }
+    .hs-toast .hs-toast-close:hover { color: #fff; }
+    .hs-toast.ok { border-color: rgba(56, 245, 176, 0.5); }
+    .hs-toast.ok .hs-toast-icon { color: var(--color-secure, #38f5b0); }
+    .hs-toast.bad { border-color: rgba(255, 110, 110, 0.55); }
+    .hs-toast.bad .hs-toast-icon { color: #ff8a8a; }
+    .hs-toast.info .hs-toast-icon { color: var(--text-accent); }
+    .hs-toast.loading .hs-toast-icon {
+      color: var(--text-accent);
+      animation: hs-spin 0.9s linear infinite;
+    }
+    @keyframes hs-spin { to { transform: rotate(360deg); } }
+
+    /* ── recent activity card (v1.6.16 polish) ──────────────────── */
+    .recent-activity-card {
+      margin-bottom: 1.25rem;
+      padding: 1rem 1.15rem;
+      border: 1px solid var(--border-soft);
+      border-radius: 13px;
+      background: linear-gradient(180deg, rgba(56, 245, 176, 0.05), rgba(6, 10, 14, 0.22));
+    }
+    .recent-activity-card .rac-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.7rem;
+    }
+    .recent-activity-card .rac-head .rac-dot {
+      width: 7px; height: 7px; border-radius: 999px;
+      background: var(--color-secure, #38f5b0);
+    }
+    .rac-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0.5rem 0;
+    }
+    .rac-row + .rac-row { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+    .rac-row-info { min-width: 0; }
+    .rac-row-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .rac-row-value {
+      font-size: 0.82rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rac-row-meta { font-size: 0.7rem; color: var(--text-muted); }
+
+    /* ── richer empty workspace backdrop (v1.6.16 polish) ───────── */
+    .center-workspace {
+      position: relative;
+    }
+    .center-workspace::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(circle at 50% 120%, rgba(42, 198, 255, 0.055), transparent 55%),
+        radial-gradient(circle at 12% 8%, rgba(56, 245, 176, 0.03), transparent 30%);
+    }
+    .center-workspace > * { position: relative; z-index: 1; }
+
     /* ── evidence gating placeholder ────────────────────────────── */
     .gate-placeholder {
       display: none;
@@ -2147,6 +2286,25 @@
             <div class="fd-flow-step"><span class="fd-flow-num">2</span><span class="fd-flow-title">Analyze</span><span class="fd-flow-desc">HyperSnatch extracts and verifies the data.</span></div>
             <div class="fd-flow-step"><span class="fd-flow-num">3</span><span class="fd-flow-title">Prove</span><span class="fd-flow-desc">Hashes, manifests, and receipts are created.</span></div>
             <div class="fd-flow-step"><span class="fd-flow-num">4</span><span class="fd-flow-title">Export</span><span class="fd-flow-desc">Export the proof bundle to share or archive.</span></div>
+          </div>
+        </section>
+        <section class="recent-activity-card" id="recentActivityCard" style="display:none;" aria-label="Recent activity">
+          <div class="rac-head"><span class="rac-dot"></span><span>Recent activity</span></div>
+          <div class="rac-row" id="recentSampleRow" style="display:none;">
+            <div class="rac-row-info">
+              <div class="rac-row-label">Last opened sample</div>
+              <div class="rac-row-value" id="recentSampleValue">—</div>
+              <div class="rac-row-meta" id="recentSampleMeta"></div>
+            </div>
+            <button type="button" class="pill-btn" id="btnOpenRecentSample">Open</button>
+          </div>
+          <div class="rac-row" id="recentExportRow" style="display:none;">
+            <div class="rac-row-info">
+              <div class="rac-row-label">Last exported bundle</div>
+              <div class="rac-row-value" id="recentExportValue">—</div>
+              <div class="rac-row-meta" id="recentExportMeta"></div>
+            </div>
+            <button type="button" class="pill-btn" id="btnOpenRecentExport">Open folder</button>
           </div>
         </section>
         <section class="sample-summary-card" id="sampleSummaryCard" style="display:none;" aria-label="Loaded sample workspace summary">
@@ -3900,7 +4058,7 @@
   </div>
 
   <script src="hypersnatch-ui.js"></script>
-  <div id="appFooter" style="position:fixed;bottom:0;left:0;right:0;height:26px;background:rgba(6,10,14,0.97);border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:12px;padding:0 14px;font-size:0.6rem;z-index:9999;user-select:none;">
+  <div id="appFooter" style="position:fixed;bottom:0;left:0;right:0;height:30px;background:rgba(6,10,14,0.97);border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:12px;padding:0 14px;font-size:0.72rem;z-index:9999;user-select:none;">
     <span style="color:var(--color-secure);font-weight:700;letter-spacing:0.05em;">HyperSnatch</span>
     <span class="muted" style="opacity:0.5;">|</span>
     <span id="footerVersion" style="color:var(--text-muted);">v1.6.15</span>
@@ -3911,8 +4069,9 @@
     <span class="muted" style="opacity:0.5;">|</span>
     <span id="footerLastAction" style="color:var(--text-muted);">Ready</span>
     <span style="flex:1;"></span>
-    <span id="footerShortcuts" style="color:rgba(255,255,255,0.2);font-size:0.55rem;">Ctrl+D decode &nbsp; Ctrl+K clear &nbsp; Ctrl+1–9 tabs &nbsp; Ctrl+↵ rebuild graph</span>
+    <span id="footerShortcuts" style="color:rgba(255,255,255,0.45);font-size:0.66rem;">Ctrl+D decode &nbsp; Ctrl+K clear &nbsp; Ctrl+1–9 tabs &nbsp; Ctrl+↵ rebuild graph</span>
   </div>
+  <div id="toastContainer" aria-live="polite" aria-atomic="false"></div>
 </body>
 
 </html>

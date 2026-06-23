@@ -190,6 +190,16 @@ const requiredIds = [
   "btnSetReopenOnboarding",
   "setStoragePath",
   "setSamplesPath",
+  "toastContainer",
+  "recentActivityCard",
+  "recentSampleRow",
+  "recentSampleValue",
+  "recentSampleMeta",
+  "btnOpenRecentSample",
+  "recentExportRow",
+  "recentExportValue",
+  "recentExportMeta",
+  "btnOpenRecentExport",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));
