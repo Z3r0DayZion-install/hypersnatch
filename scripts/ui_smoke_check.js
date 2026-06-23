@@ -255,6 +255,25 @@ const requiredIds = [
   "enlCourt",
 ];
 
+// ── receipt explanation mode IDs ─────────────────────────────────────────
+const receiptExplainIds = [
+  "rcptTabBtnDetails",
+  "rcptTabBtnExplain",
+  "rcptTabBtnRaw",
+  "rcptPanelDetails",
+  "rcptPanelExplain",
+  "rcptPanelRaw",
+  "rcptExplainSampleNote",
+  "rcptExplainProves",
+  "rcptExplainProofType",
+  "rcptRelatedFiles",
+];
+const missingExplain = receiptExplainIds.filter((id) => !ids.has(id));
+if (missingExplain.length) {
+  console.error(`[ui-smoke] Missing receipt explanation mode IDs: ${missingExplain.join(", ")}`);
+  process.exit(1);
+}
+
 const missing = requiredIds.filter((id) => !ids.has(id));
 if (missing.length) {
   console.error(`[ui-smoke] Missing critical UI IDs: ${missing.join(", ")}`);
@@ -1219,6 +1238,53 @@ async function runRuntimeInteractionProofs() {
     "[ui-smoke] Runtime case-report export failed: blocked no-active-case path must not emit downloads.");
   assertRuntime(exportBlockedStatuses.some((s) => s.kind === "warn" && s.message.includes("Case report export blocked: no active case.")),
     "[ui-smoke] Runtime case-report export failed: blocked path must emit explicit no-active-case warning.");
+}
+
+// ── receipt explanation mode structural checks ────────────────────────────
+if (!html.includes('data-rcpt-tab="rcptPanelDetails"') ||
+    !html.includes('data-rcpt-tab="rcptPanelExplain"') ||
+    !html.includes('data-rcpt-tab="rcptPanelRaw"')) {
+  fail("[ui-smoke] Receipt explanation mode tab buttons are missing data-rcpt-tab attributes.");
+}
+
+if (!html.includes('What this receipt proves') || !html.includes('What this receipt does not prove') || !html.includes('How to verify')) {
+  fail("[ui-smoke] Receipt explanation mode is missing required explanation section headings.");
+}
+
+if (!html.includes('hash-verified') || !html.includes('tamper-evident') || !html.includes('local-first')) {
+  fail("[ui-smoke] Receipt explanation mode is missing required allowed proof language (hash-verified / tamper-evident / local-first).");
+}
+
+if (!html.includes('receipt-backed') || !html.includes('self-verifying')) {
+  fail("[ui-smoke] Receipt explanation mode is missing required proof vocabulary (receipt-backed / self-verifying).");
+}
+
+if (!html.includes('Prove It Again') || !html.includes('VERIFY-HYPERSNATCH.html')) {
+  fail("[ui-smoke] Receipt explanation mode is missing verification instructions referencing Prove It Again and offline verifier.");
+}
+
+// Forbidden overclaim language
+const forbiddenCopies = [
+  "court-certified",
+  "court-ready",
+  "tamper-proof",
+  "legal evidence platform",
+  "forensic certification",
+];
+forbiddenCopies.forEach(function(phrase) {
+  if (html.toLowerCase().includes(phrase.toLowerCase())) {
+    fail(`[ui-smoke] Receipt explanation mode contains forbidden overclaim language: "${phrase}"`);
+  }
+});
+
+// wireReceiptTabs IIFE must be present
+if (!html.includes('function wireReceiptTabs(') && !html.includes('(function wireReceiptTabs(')) {
+  fail("[ui-smoke] Receipt explanation mode tab wiring (wireReceiptTabs) is missing.");
+}
+
+// rcpt-tab-btn class must appear in the receipt modal tab bar
+if ((html.match(/rcpt-tab-btn/g) || []).length < 3) {
+  fail("[ui-smoke] Receipt explanation mode requires at least 3 tab buttons (.rcpt-tab-btn).");
 }
 
 runRuntimeInteractionProofs()
