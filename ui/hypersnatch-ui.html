@@ -730,6 +730,17 @@
       backdrop-filter: blur(8px);
     }
 
+    .modal-content {
+      box-sizing: border-box;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      padding: 22px 26px;
+      max-height: 86vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    }
+
     .modal {
       background: var(--bg-surface);
       border: 1px solid var(--border-soft);
@@ -1658,6 +1669,107 @@
       color: var(--text-muted);
     }
 
+    /* ── front-door start panel ─────────────────────────────────── */
+    .front-door {
+      margin-bottom: 1.25rem;
+      padding: 1.5rem 1.6rem;
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(42, 198, 255, 0.06), rgba(6, 10, 14, 0.25));
+    }
+    .fd-welcome { text-align: center; margin-bottom: 1.4rem; }
+    .fd-welcome h2 {
+      font-size: 1.85rem;
+      margin: 0 0 0.35rem;
+      color: var(--text-primary, #e8eef5);
+      letter-spacing: 0.01em;
+    }
+    .fd-welcome .fd-tagline {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-accent);
+      margin: 0 0 0.6rem;
+    }
+    .fd-welcome .fd-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0 auto;
+      max-width: 620px;
+      line-height: 1.5;
+    }
+    .fd-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.9rem;
+      margin-bottom: 1.4rem;
+    }
+    @media (max-width: 1200px) {
+      .fd-actions { grid-template-columns: repeat(2, 1fr); }
+    }
+    .fd-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.45rem;
+      text-align: left;
+      padding: 1.1rem 1.15rem;
+      min-height: 116px;
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      background: var(--bg-panel-alt);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: border-color 0.18s ease, transform 0.1s ease, background 0.18s ease;
+    }
+    .fd-card:hover {
+      border-color: var(--text-accent);
+      transform: translateY(-2px);
+      background: rgba(42, 198, 255, 0.07);
+    }
+    .fd-card:focus-visible { outline: 2px solid var(--text-accent); outline-offset: 2px; }
+    .fd-card .fd-card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .fd-card .fd-card-desc {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+    .fd-flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.7rem;
+      padding-top: 1.1rem;
+      border-top: 1px solid var(--border-soft);
+    }
+    @media (max-width: 1200px) {
+      .fd-flow { grid-template-columns: repeat(2, 1fr); }
+    }
+    .fd-flow-step {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.6rem 0.7rem;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .fd-flow-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      font-size: 0.66rem;
+      font-weight: 700;
+      color: #060a0e;
+      background: var(--color-secure, #38f5b0);
+    }
+    .fd-flow-title { font-size: 0.86rem; font-weight: 700; }
+    .fd-flow-desc { font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; }
+
     /* ── evidence gating placeholder ────────────────────────────── */
     .gate-placeholder {
       display: none;
@@ -1727,23 +1839,24 @@
       margin: 0 8px 8px;
     }
     .settings-section {
-      padding: 0.7rem 0;
+      padding: 0.9rem 0;
       border-bottom: 1px solid var(--border-soft);
     }
     .settings-section:last-of-type { border-bottom: none; }
     .settings-heading {
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--text-accent);
-      margin-bottom: 0.45rem;
+      margin-bottom: 0.6rem;
     }
     .settings-row {
       display: flex;
       justify-content: space-between;
       gap: 1rem;
-      font-size: 0.78rem;
-      padding: 2px 0;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      padding: 3px 0;
     }
     .settings-row > .muted { flex-shrink: 0; }
     .settings-actions {
@@ -1878,27 +1991,35 @@
       </div>
 
       <div id="tabSummary" class="tab-content active" role="tabpanel" aria-labelledby="tabBtnSummary">
-        <section class="workbench-steps" aria-label="HyperSnatch workflow">
-          <div class="wb-heading">
-            <h2>HyperSnatch Workbench</h2>
-            <span class="wb-tagline">Capture the artifact. Keep the proof.</span>
+        <section class="front-door" aria-label="HyperSnatch start">
+          <div class="fd-welcome">
+            <h2>Welcome to HyperSnatch</h2>
+            <p class="fd-tagline">Capture the artifact. Keep the proof.</p>
+            <p class="fd-sub">Capture pages, files, links, and research artifacts. Keep hashes, manifests, and receipts so you can prove what you found.</p>
           </div>
-          <div class="wb-steps-grid">
-            <button type="button" class="wb-step" id="wbStepLoad">
-              <span class="wb-step-num">1</span>
-              <span class="wb-step-title">Load Evidence</span>
-              <span class="wb-step-desc">Folder, file, URL, or paste.</span>
+          <div class="fd-actions">
+            <button type="button" class="fd-card" id="fdOpenSample">
+              <span class="fd-card-title">Open Sample Proof Workspace</span>
+              <span class="fd-card-desc">Explore a ready-made demo case with artifacts and receipts.</span>
             </button>
-            <button type="button" class="wb-step" id="wbStepDecode">
-              <span class="wb-step-num">2</span>
-              <span class="wb-step-title">Decode &amp; Analyze</span>
-              <span class="wb-step-desc">Extract candidates, traces, and notes.</span>
+            <button type="button" class="fd-card" id="fdLoadEvidence">
+              <span class="fd-card-title">Load Evidence</span>
+              <span class="fd-card-desc">Load a folder, file, or URL to start analyzing.</span>
             </button>
-            <button type="button" class="wb-step" id="wbStepProof">
-              <span class="wb-step-num">3</span>
-              <span class="wb-step-title">Seal Proof</span>
-              <span class="wb-step-desc">Hash, manifest, receipt, export.</span>
+            <button type="button" class="fd-card" id="fdCreateCase">
+              <span class="fd-card-title">Create / Open Case</span>
+              <span class="fd-card-desc">Create a new case or open an existing one to organize evidence.</span>
             </button>
+            <button type="button" class="fd-card" id="fdSettings">
+              <span class="fd-card-title">Settings</span>
+              <span class="fd-card-desc">Version, evidence, proof, privacy, diagnostics, and about.</span>
+            </button>
+          </div>
+          <div class="fd-flow" aria-label="How HyperSnatch works">
+            <div class="fd-flow-step"><span class="fd-flow-num">1</span><span class="fd-flow-title">Capture</span><span class="fd-flow-desc">Collect the artifact or evidence.</span></div>
+            <div class="fd-flow-step"><span class="fd-flow-num">2</span><span class="fd-flow-title">Analyze</span><span class="fd-flow-desc">HyperSnatch extracts and verifies the data.</span></div>
+            <div class="fd-flow-step"><span class="fd-flow-num">3</span><span class="fd-flow-title">Prove</span><span class="fd-flow-desc">Hashes, manifests, and receipts are created.</span></div>
+            <div class="fd-flow-step"><span class="fd-flow-num">4</span><span class="fd-flow-title">Export</span><span class="fd-flow-desc">Export the proof bundle to share or archive.</span></div>
           </div>
         </section>
         <section class="input-dropzone" aria-label="Evidence intake and decode controls">
@@ -2081,10 +2202,10 @@
       </div>
 
       <div id="settingsModal" class="modal-overlay" style="display:none; z-index:9500;" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-        <div class="modal-content" style="max-width:560px; background:var(--bg-panel); border:1px solid var(--border-hard);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-            <h2 id="settingsTitle" style="color:var(--text-accent); margin:0; font-size:1.1rem;">Settings</h2>
-            <button type="button" id="btnSettingsClose" class="pill-btn" aria-label="Close settings">Close</button>
+        <div class="modal-content" style="width:min(820px, 92vw); max-width:820px; background:var(--bg-panel); border:1px solid var(--border-hard);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+            <h2 id="settingsTitle" style="color:var(--text-accent); margin:0; font-size:1.35rem;">Settings</h2>
+            <button type="button" id="btnSettingsClose" class="pill-btn" style="font-size:0.8rem; padding:6px 16px;" aria-label="Close settings">Close</button>
           </div>
           <div id="settingsStatus" class="tiny muted" style="min-height:14px; margin-bottom:0.6rem;">&nbsp;</div>
 
