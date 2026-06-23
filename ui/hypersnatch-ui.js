@@ -1925,15 +1925,17 @@
       panel.insertBefore(ph, panel.firstChild);
     });
 
-    function setEvidenceLoaded(v) {
+    function setEvidenceLoaded(v, opts) {
+      const isSample = opts && opts.sample;
       const lrPath = el('lrSessionPath');
       if (v) {
         document.body.classList.add('evidence-loaded');
+        if (isSample) document.body.classList.add('sample-loaded');
         const g = el('valGlobalStatus');
-        if (g) { g.textContent = 'EVIDENCE LOADED'; g.className = 'status-badge ok'; }
-        if (lrPath) lrPath.textContent = 'Evidence bundle loaded — click to open folder';
+        if (g) { g.textContent = isSample ? 'SAMPLE LOADED' : 'EVIDENCE LOADED'; g.className = 'status-badge ok'; }
+        if (lrPath && !lrPath.textContent) lrPath.textContent = 'Evidence bundle loaded — click to open folder';
       } else {
-        document.body.classList.remove('evidence-loaded');
+        document.body.classList.remove('evidence-loaded', 'sample-loaded');
         if (lrPath) lrPath.textContent = 'No evidence loaded yet';
       }
       updateProofStatus();
@@ -1949,19 +1951,30 @@
 
     function updateProofStatus() {
       const loaded = document.body.classList.contains('evidence-loaded');
+      const isSample = document.body.classList.contains('sample-loaded');
       setPill('psEvidence', loaded ? 'Loaded' : 'Waiting for evidence', loaded ? 'ok' : 'idle');
 
-      const c = window.caseMgr && window.caseMgr.activeCase;
-      setPill('psCase', c ? 'Active' : 'No case loaded yet', c ? 'ok' : 'idle');
+      if (isSample && window._sampleWorkspace && window._sampleWorkspace.case) {
+        setPill('psCase', 'Active (demo)', 'ok');
+      } else {
+        const c = window.caseMgr && window.caseMgr.activeCase;
+        setPill('psCase', c ? 'Active' : 'No case loaded yet', c ? 'ok' : 'idle');
+      }
 
-      const hashTxt = (el('intHash') && el('intHash').textContent) || '--';
-      const hasHash = hashTxt && hashTxt !== '--' && hashTxt.replace(/\s/g, '').length > 8;
-      setPill('psHash', hasHash ? 'Created' : 'Waiting', hasHash ? 'ok' : 'idle');
-      setPill('psManifest', hasHash ? 'Ready' : 'Waiting', hasHash ? 'ok' : 'idle');
+      if (isSample && window._sampleWorkspace) {
+        setPill('psHash', 'Created', 'ok');
+        setPill('psManifest', 'Ready', 'ok');
+        setPill('psExport', 'Ready', 'ok');
+      } else {
+        const hashTxt = (el('intHash') && el('intHash').textContent) || '--';
+        const hasHash = hashTxt && hashTxt !== '--' && hashTxt.replace(/\s/g, '').length > 8;
+        setPill('psHash', hasHash ? 'Created' : 'Waiting', hasHash ? 'ok' : 'idle');
+        setPill('psManifest', hasHash ? 'Ready' : 'Waiting', hasHash ? 'ok' : 'idle');
 
-      const exTxt = (el('intExportReady') && el('intExportReady').textContent) || '';
-      const ready = /ready/i.test(exTxt) && !/blocked|waiting/i.test(exTxt);
-      setPill('psExport', ready ? 'Ready' : 'Not ready yet', ready ? 'ok' : 'idle');
+        const exTxt = (el('intExportReady') && el('intExportReady').textContent) || '';
+        const ready = /ready/i.test(exTxt) && !/blocked|waiting/i.test(exTxt);
+        setPill('psExport', ready ? 'Ready' : 'Not ready yet', ready ? 'ok' : 'idle');
+      }
     }
     window.updateProofStatus = updateProofStatus;
     updateProofStatus();
@@ -4892,9 +4905,53 @@
 
     // ── Front-door Workbench actions ─────────────────────────────────────────
     (function wireFrontDoor() {
-      el('fdOpenSample') && el('fdOpenSample').addEventListener('click', () => {
-        window.open('https://github.com/Z3r0DayZion-install/hypersnatch/blob/main/samples/demo-case/DEMO_CASE.md', '_blank');
-        if (typeof setStatus === 'function') setStatus('Opening the sample proof workspace guide. In-app sample loading is coming next.', 'ok');
+      el('fdOpenSample') && el('fdOpenSample').addEventListener('click', async () => {
+        if (typeof setStatus === 'function') setStatus('Loading sample proof workspace...', 'ok');
+        try {
+          const result = await window.electronAPI.readSampleWorkspace();
+          if (!result || !result.success) {
+            if (typeof setStatus === 'function') setStatus('Could not load sample workspace: ' + ((result && result.error) || 'unknown error'), 'bad');
+            return;
+          }
+          window._sampleWorkspace = result;
+          const counts = result.counts;
+
+          const lrPath = el('lrSessionPath');
+          if (lrPath) { lrPath.textContent = result.base; lrPath.title = 'Click to open the sample proof folder'; }
+
+          const list = el('lrFileList');
+          if (list && Array.isArray(result.files)) {
+            list.innerHTML = result.files.map((f) => {
+              const shorts = (f.sha256 || '').slice(0, 12);
+              return '<div class="file-entry"><span class="file-name mono">' + escapeHTML(f.path) + '</span><span class="file-hash mono tiny muted">' + escapeHTML((f.role || '') + ' · ' + shorts) + '</span></div>';
+            }).join('');
+          }
+
+          setEvidenceLoaded(true, { sample: true, counts: counts });
+
+          const card = el('sampleSummaryCard');
+          if (card) card.style.display = 'block';
+          if (counts) {
+            setText('sscArtifactCount', String(counts.artifacts));
+            setText('sscHashCount', String(counts.hashes));
+            setText('sscReceiptCount', String(counts.receipts));
+          }
+
+          const proofPills = el('proofStatus');
+          if (proofPills) proofPills.style.display = 'block';
+          updateProofStatus();
+
+          const front = document.querySelector('.front-door');
+          if (front) front.style.display = 'none';
+
+          if (typeof setStatus === 'function') setStatus('Sample case loaded: ' + counts.artifacts + ' artifacts, ' + counts.hashes + ' hashes, ' + counts.receipts + ' receipt. Proof: Ready.', 'ok');
+
+          window.electronAPI.verifySampleWorkspace().then((vr) => {
+            window._sampleVerify = vr;
+          }).catch(() => {});
+        } catch (e) {
+          if (typeof setStatus === 'function') setStatus('Sample workspace error: ' + (e.message || e), 'bad');
+        }
       });
       el('fdLoadEvidence') && el('fdLoadEvidence').addEventListener('click', () => {
         const b = el('btnLoadEvidence');
@@ -4909,6 +4966,99 @@
         if (s) s.click();
       });
     })();
+
+    (function wireReceiptModal() {
+      const modal = el('receiptModal');
+      const closeBtn = el('btnReceiptClose');
+
+      function openReceiptModal() {
+        try {
+          const ws = window._sampleWorkspace;
+          if (!ws) { alert('No sample workspace loaded. Open the sample proof workspace first.'); return; }
+
+          setText('rcptReceiptId', ws.receipt && ws.receipt.receiptId || '—');
+          setText('rcptCaseId', ws.receipt && ws.receipt.caseId || ws.case && ws.case.id || '—');
+          setText('rcptCaseTitle', ws.case && ws.case.title || '—');
+          setText('rcptIssuedAt', ws.receipt && ws.receipt.issuedAt || '—');
+          setText('rcptSourcePage', (ws.receipt && ws.receipt.page && ws.receipt.page.capturePath) || (ws.capture && ws.capture.capturePath) || '—');
+          setText('rcptCapturedAt', (ws.receipt && ws.receipt.page && ws.receipt.page.capturedAt) || (ws.capture && ws.capture.capturedAt) || '—');
+          setText('rcptViewport', (ws.capture && ws.capture.viewport) || '—');
+          setText('rcptUserAgent', (ws.capture && ws.capture.userAgent) || '—');
+          setText('rcptDownloadLink', (ws.receipt && ws.receipt.download && ws.receipt.download.filename) || '—');
+          setText('rcptDownloadSha', (ws.receipt && ws.receipt.download && ws.receipt.download.sha256) || '—');
+          setText('rcptManifestSha', (ws.manifest && ws.manifest.sha256) || '—');
+
+          const vr = window._sampleVerify;
+          const badge = el('rcptVerifiedBadge');
+          const note = el('rcptVerifiedNote');
+          if (vr && vr.results && vr.allVerified) {
+            if (badge) { badge.textContent = 'Verified'; badge.className = 'pill tiny ok'; }
+            if (note) note.textContent = 'All ' + vr.results.length + ' files match SHA256SUMS.';
+          } else if (vr && vr.results) {
+            const failed = vr.results.filter(function(r) { return !r.verified; });
+            if (badge) { badge.textContent = 'Mismatch'; badge.className = 'pill tiny bad'; }
+            if (note) note.textContent = failed.length + ' of ' + vr.results.length + ' file hashes do not match.';
+          } else {
+            if (badge) { badge.textContent = 'Pending'; badge.className = 'pill tiny idle'; }
+            if (note) note.textContent = 'Verification in progress or unavailable.';
+          }
+
+          const sumsEl = el('rcptSumsText');
+          if (sumsEl) sumsEl.textContent = ws.sumsText || '—';
+
+          const tbody = el('rcptFileBody');
+          if (tbody && Array.isArray(ws.files)) {
+            var vrMap = {};
+            if (vr && Array.isArray(vr.results)) {
+              vr.results.forEach(function(r) { vrMap[r.path] = r; });
+            }
+            tbody.innerHTML = ws.files.map(function(f) {
+              var v = vrMap[f.path];
+              var verifiedHtml = '—';
+              if (v) {
+                verifiedHtml = v.verified ? '<span class="pill tiny ok" style="font-size:0.58rem;">OK</span>' : '<span class="pill tiny bad" style="font-size:0.58rem;">FAIL</span>';
+              }
+              return '<tr><td class="mono">' + escapeHTML(f.path) + '</td><td>' + escapeHTML(f.role || '') + '</td><td class="mono tiny">' + escapeHTML(f.sha256 || '') + '</td><td>' + verifiedHtml + '</td></tr>';
+            }).join('');
+          }
+
+          if (modal) modal.style.display = 'flex';
+        } catch (e) {
+          console.error('Receipt modal error:', e);
+        }
+      }
+
+      if (closeBtn) closeBtn.addEventListener('click', function() { if (modal) modal.style.display = 'none'; });
+      if (modal) {
+        modal.addEventListener('click', function(e) { if (e.target === modal) modal.style.display = 'none'; });
+      }
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
+          modal.style.display = 'none';
+        }
+      });
+
+      el('btnViewReceipt') && el('btnViewReceipt').addEventListener('click', openReceiptModal);
+
+      el('btnCopyReceipt') && el('btnCopyReceipt').addEventListener('click', function() {
+        var ws = window._sampleWorkspace;
+        if (!ws || !ws.receipt) { alert('No receipt to copy.'); return; }
+        var ok = window.electronAPI.copyToClipboard(JSON.stringify(ws.receipt, null, 2));
+        if (typeof setStatus === 'function') setStatus(ok ? 'Receipt copied to clipboard.' : 'Could not copy receipt.', ok ? 'ok' : 'bad');
+      });
+
+      el('btnOpenReceiptFolder') && el('btnOpenReceiptFolder').addEventListener('click', function() {
+        window.electronAPI.openSampleProofFolder().catch(function(e) {
+          console.error('Open receipt folder error:', e);
+        });
+      });
+
+      el('btnExportBundle') && el('btnExportBundle').addEventListener('click', function() {
+        if (typeof setStatus === 'function') setStatus('Export Proof Bundle will be available in the next update.', 'muted');
+      });
+    })();
+
+    function setText(id, val) { var n = el(id); if (n) n.textContent = val == null ? '—' : String(val); }
 
     const caseMgr = new CaseManager();
     window.caseMgr = caseMgr; // Expose globally for onclick handlers

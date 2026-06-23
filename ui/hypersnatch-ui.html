@@ -1867,6 +1867,116 @@
     }
     #proofStatus .pill { cursor: help; }
     #lrSessionPath:hover { color: var(--text-accent); }
+
+    /* ── sample summary card ──────────────────────────────── */
+    .sample-summary-card {
+      margin: 1rem 0 0.8rem;
+      padding: 1rem 1.2rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+    }
+    .ssc-header {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-accent);
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .ssc-icon { font-size: 1.1rem; }
+    .ssc-stats {
+      display: flex;
+      gap: 1.8rem;
+      margin-bottom: 0.8rem;
+    }
+    .ssc-stat { text-align: center; }
+    .ssc-stat-num {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-ok);
+      line-height: 1.2;
+    }
+    .ssc-stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .ssc-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    /* ── receipt modal ────────────────────────────────────── */
+    .receipt-section {
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border-soft);
+      padding-bottom: 0.8rem;
+    }
+    .receipt-section:last-of-type { border-bottom: none; }
+    .receipt-heading {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-accent);
+      margin-bottom: 0.5rem;
+    }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      padding: 2px 0;
+    }
+    .receipt-row > .muted { flex-shrink: 0; min-width: 100px; }
+    .receipt-table-wrap {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border-soft);
+      border-radius: 4px;
+    }
+    .receipt-file-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.72rem;
+    }
+    .receipt-file-table th {
+      text-align: left;
+      padding: 6px 10px;
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.65rem;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .receipt-file-table td {
+      padding: 5px 10px;
+      border-bottom: 1px solid var(--border-soft);
+      word-break: break-all;
+      vertical-align: top;
+    }
+    .receipt-file-table td.mono { font-family: var(--font-mono); font-size: 0.68rem; }
+    .receipt-sums {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      background: var(--bg-elevated);
+      padding: 0.6rem 0.8rem;
+      border-radius: 4px;
+      max-height: 150px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin: 0;
+      color: var(--text-muted);
+      border: 1px solid var(--border-soft);
+    }
   </style>
 </head>
 
@@ -2020,6 +2130,23 @@
             <div class="fd-flow-step"><span class="fd-flow-num">2</span><span class="fd-flow-title">Analyze</span><span class="fd-flow-desc">HyperSnatch extracts and verifies the data.</span></div>
             <div class="fd-flow-step"><span class="fd-flow-num">3</span><span class="fd-flow-title">Prove</span><span class="fd-flow-desc">Hashes, manifests, and receipts are created.</span></div>
             <div class="fd-flow-step"><span class="fd-flow-num">4</span><span class="fd-flow-title">Export</span><span class="fd-flow-desc">Export the proof bundle to share or archive.</span></div>
+          </div>
+        </section>
+        <section class="sample-summary-card" id="sampleSummaryCard" style="display:none;" aria-label="Loaded sample workspace summary">
+          <div class="ssc-body">
+            <div class="ssc-header">
+              <span class="ssc-icon">&#x1F4E6;</span>
+              <span>Sample Proof Workspace Loaded</span>
+            </div>
+            <div class="ssc-stats">
+              <div class="ssc-stat"><span class="ssc-stat-num" id="sscArtifactCount">5</span><span class="ssc-stat-label">Artifacts</span></div>
+              <div class="ssc-stat"><span class="ssc-stat-num" id="sscHashCount">5</span><span class="ssc-stat-label">SHA-256 Hashes</span></div>
+              <div class="ssc-stat"><span class="ssc-stat-num" id="sscReceiptCount">1</span><span class="ssc-stat-label">Receipt</span></div>
+            </div>
+            <div class="ssc-actions">
+              <button type="button" class="pill-btn" id="btnViewReceipt">View Receipt</button>
+              <button type="button" class="pill-btn" id="btnExportBundle" disabled title="Export Proof Bundle (coming next)">Export Proof Bundle</button>
+            </div>
           </div>
         </section>
         <section class="input-dropzone" aria-label="Evidence intake and decode controls">
@@ -2252,6 +2379,54 @@
           <div class="settings-section">
             <div class="settings-heading">About</div>
             <div class="settings-row"><span class="muted">HyperSnatch</span><span>The Proof Foundry™ — Capture the artifact. Keep the proof.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="receiptModal" class="modal-overlay" style="display:none; z-index:9600;" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
+        <div class="modal-content" style="width:min(740px, 92vw); max-width:740px; background:var(--bg-panel); border:1px solid var(--border-hard);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+            <h2 id="receiptTitle" style="color:var(--text-accent); margin:0; font-size:1.25rem;">Proof Receipt</h2>
+            <button type="button" id="btnReceiptClose" class="pill-btn" style="font-size:0.8rem; padding:6px 16px;" aria-label="Close receipt">Close</button>
+          </div>
+          <div id="receiptStatus" class="tiny muted" style="min-height:14px; margin-bottom:0.6rem;">&nbsp;</div>
+
+          <div class="receipt-section">
+            <div class="receipt-heading">Case Receipt</div>
+            <div class="receipt-grid">
+              <div class="receipt-row"><span class="muted">Receipt ID</span><span class="mono" id="rcptReceiptId">—</span></div>
+              <div class="receipt-row"><span class="muted">Case ID</span><span class="mono" id="rcptCaseId">—</span></div>
+              <div class="receipt-row"><span class="muted">Case Title</span><span id="rcptCaseTitle">—</span></div>
+              <div class="receipt-row"><span class="muted">Issued At</span><span class="mono" id="rcptIssuedAt">—</span></div>
+              <div class="receipt-row"><span class="muted">Source Page</span><span class="mono" id="rcptSourcePage">—</span></div>
+              <div class="receipt-row"><span class="muted">Captured At</span><span class="mono" id="rcptCapturedAt">—</span></div>
+              <div class="receipt-row"><span class="muted">Viewport</span><span id="rcptViewport">—</span></div>
+              <div class="receipt-row"><span class="muted">User Agent</span><span class="mono tiny" id="rcptUserAgent">—</span></div>
+              <div class="receipt-row"><span class="muted">Download Link</span><span id="rcptDownloadLink">—</span></div>
+              <div class="receipt-row"><span class="muted">Download SHA-256</span><span class="mono tiny" id="rcptDownloadSha">—</span></div>
+              <div class="receipt-row"><span class="muted">Manifest SHA-256</span><span class="mono tiny" id="rcptManifestSha">—</span></div>
+              <div class="receipt-row"><span class="muted">Verification</span><span><span id="rcptVerifiedBadge" class="pill tiny idle">—</span> <span id="rcptVerifiedNote" class="tiny muted"></span></span></div>
+            </div>
+          </div>
+
+          <div class="receipt-section">
+            <div class="receipt-heading">File Inventory</div>
+            <div class="receipt-table-wrap">
+              <table class="receipt-file-table" aria-label="File inventory with SHA-256 hashes and verification status">
+                <thead><tr><th>Artifact</th><th>Role</th><th>SHA-256</th><th>Verified</th></tr></thead>
+                <tbody id="rcptFileBody"><tr><td colspan="4" class="muted">No files loaded.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="receipt-section">
+            <div class="receipt-heading">SHA256SUMS</div>
+            <pre class="receipt-sums" id="rcptSumsText">—</pre>
+          </div>
+
+          <div style="display:flex; gap:0.5rem; margin-top:0.8rem;">
+            <button type="button" class="pill-btn" id="btnCopyReceipt">Copy Receipt</button>
+            <button type="button" class="pill-btn" id="btnOpenReceiptFolder">Open Receipt Folder</button>
           </div>
         </div>
       </div>

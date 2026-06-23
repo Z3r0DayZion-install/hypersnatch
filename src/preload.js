@@ -165,7 +165,10 @@ const ALLOWED_IPC_CHANNELS = new Set([
   'adv-operator-model',
   'adv-operator-get',
   'adv-predict-future',
-  'adv-assistant-synthesize'
+  'adv-assistant-synthesize',
+  'read-sample-workspace',
+  'verify-sample-workspace',
+  'open-sample-proof-folder'
 ]);
 
 function validateIPCChannel(channel) {
@@ -901,6 +904,21 @@ const electronAPI = {
   windowClose: () => {
     validateIPCChannel('window-close');
     return ipcRenderer.invoke('window-close');
+  },
+
+  readSampleWorkspace: () => {
+    validateIPCChannel('read-sample-workspace');
+    return ipcRenderer.invoke('read-sample-workspace');
+  },
+
+  verifySampleWorkspace: () => {
+    validateIPCChannel('verify-sample-workspace');
+    return ipcRenderer.invoke('verify-sample-workspace');
+  },
+
+  openSampleProofFolder: () => {
+    validateIPCChannel('open-sample-proof-folder');
+    return ipcRenderer.invoke('open-sample-proof-folder');
   }
 };
 

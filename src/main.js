@@ -147,6 +147,75 @@ ipcMain.handle('open-evidence-folder', () => {
   shell.openPath(EVIDENCE_DIR);
 });
 
+// ==================== SAMPLE PROOF WORKSPACE IPC ====================
+function sampleWorkspaceDir() {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, 'samples', 'demo-case')
+    : path.join(__dirname, '..', 'samples', 'demo-case');
+}
+
+ipcMain.handle('read-sample-workspace', async () => {
+  try {
+    const base = sampleWorkspaceDir();
+    const proofDir = path.join(base, 'proof');
+    const manifest = JSON.parse(fs.readFileSync(path.join(proofDir, 'manifest.json'), 'utf8'));
+    const receipt = JSON.parse(fs.readFileSync(path.join(proofDir, 'receipt.json'), 'utf8'));
+    const sumsText = fs.readFileSync(path.join(proofDir, 'SHA256SUMS.txt'), 'utf8');
+    const files = Array.isArray(manifest.files) ? manifest.files : [];
+    return {
+      success: true,
+      base,
+      proofDir,
+      synthetic: Boolean(manifest.synthetic),
+      case: manifest.case || {},
+      capture: manifest.capture || {},
+      files,
+      counts: { artifacts: files.length, hashes: files.length, receipts: 1 },
+      hashAlgorithm: manifest.hashAlgorithm || 'sha256',
+      manifest: { path: 'proof/manifest.json', sha256: (receipt.manifest && receipt.manifest.sha256) || null },
+      receipt,
+      sumsText
+    };
+  } catch (err) {
+    log.error('READ_SAMPLE_WORKSPACE_ERROR', { message: err.message });
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('verify-sample-workspace', async () => {
+  try {
+    const crypto = require('crypto');
+    const base = sampleWorkspaceDir();
+    const manifest = JSON.parse(fs.readFileSync(path.join(base, 'proof', 'manifest.json'), 'utf8'));
+    const files = Array.isArray(manifest.files) ? manifest.files : [];
+    const results = files.map((f) => {
+      let actual = null;
+      let verified = false;
+      try {
+        const buf = fs.readFileSync(path.join(base, f.path));
+        actual = crypto.createHash('sha256').update(buf).digest('hex');
+        verified = actual === f.sha256;
+      } catch (e) {
+        actual = null;
+      }
+      return { path: f.path, role: f.role, expected: f.sha256, actual, verified };
+    });
+    return { success: true, results, allVerified: results.length > 0 && results.every((r) => r.verified) };
+  } catch (err) {
+    log.error('VERIFY_SAMPLE_WORKSPACE_ERROR', { message: err.message });
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('open-sample-proof-folder', () => {
+  try {
+    shell.openPath(path.join(sampleWorkspaceDir(), 'proof'));
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 // ==================== SMART DECODE IPC ====================
 ipcMain.handle('smart-decode-run', async (event, { input, options }) => {
   try {
