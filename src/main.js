@@ -284,6 +284,245 @@ function scanRepoHygiene(dir) {
   return found;
 }
 
+// Client-side runtime for the exported offline verifier (VERIFY-HYPERSNATCH.html).
+// Serialized via .toString() so it ships as inline JS inside the exported file.
+// It is NOT the app renderer, so it does not affect the app's CSP promise.
+// Pure-local: no network, no CDN, no fonts, no analytics. Uses crypto.subtle and
+// falls back to manual `sha256sum -c` instructions when crypto.subtle is absent.
+function capsuleClientScript() {
+  var DATA = window.__HS_CAPSULE__ || {};
+  function $(id) { return document.getElementById(id); }
+  function text(id, v) { var n = $(id); if (n) n.textContent = (v == null ? '\u2014' : String(v)); }
+  function setStatus(label, kind) { var p = $('capStatus'); if (!p) return; p.textContent = label; p.className = 'cap-status' + (kind ? ' ' + kind : ''); }
+  function basename(p) { var i = p.lastIndexOf('/'); return i >= 0 ? p.slice(i + 1) : p; }
+  function stripTop(rel) { var i = rel.indexOf('/'); return i >= 0 ? rel.slice(i + 1) : rel; }
+
+  text('mBundleId', DATA.bundle_id);
+  text('mApp', (DATA.app || 'HyperSnatch') + ' ' + (DATA.app_version || ''));
+  text('mCreated', DATA.created_at);
+  var c = DATA.counts || {};
+  text('mArtifacts', c.artifacts);
+  text('mReceipts', c.receipts);
+  text('mHashes', c.sha256_entries);
+  var priv = DATA.privacy || {};
+  text('mCloud', priv.cloud_required ? 'Yes' : 'No');
+  var claims = DATA.claims || {};
+  text('mCourt', claims.court_certified ? 'Yes' : 'No');
+
+  var sumsPre = $('sumsPre');
+  if (sumsPre) sumsPre.textContent = (DATA.sums || []).map(function (e) { return e.hash + '  ' + e.path; }).join('\n');
+
+  var hasSubtle = !!(window.crypto && window.crypto.subtle && window.crypto.subtle.digest);
+  if (!hasSubtle) {
+    var auto = $('autoVerify'); if (auto) auto.style.display = 'none';
+    var man = $('manualFallback'); if (man) man.style.display = 'block';
+    setStatus('Manual verification only', '');
+    return;
+  }
+
+  async function sha256(file) {
+    var buf = await file.arrayBuffer();
+    var d = await window.crypto.subtle.digest('SHA-256', buf);
+    return Array.prototype.slice.call(new Uint8Array(d)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  var selected = null;
+
+  function indexFiles(files) {
+    var byRel = {}, byBase = {}, hasPassport = false, hasVerifier = false, n = 0;
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i]; n++;
+      var rp = f.webkitRelativePath || f._relPath || f.name;
+      byRel[stripTop(rp)] = f; byRel[rp] = f;
+      var bn = basename(rp); byBase[bn] = f;
+      if (bn === 'PROOF-PASSPORT.json') hasPassport = true;
+      if (bn === 'VERIFY-HYPERSNATCH.html') hasVerifier = true;
+    }
+    return { byRel: byRel, byBase: byBase, hasPassport: hasPassport, hasVerifier: hasVerifier, count: n };
+  }
+
+  function onFiles(files) {
+    if (!files || !files.length) return;
+    selected = indexFiles(files);
+    setStatus('Files selected (' + selected.count + ')', '');
+    var b = $('btnVerify'); if (b) b.disabled = false;
+  }
+
+  function renderRows(rows) {
+    var tb = $('resultsBody'); if (!tb) return;
+    tb.innerHTML = '';
+    rows.forEach(function (r) {
+      var tr = document.createElement('tr');
+      var td1 = document.createElement('td'); td1.textContent = r.path; td1.className = 'mono';
+      var td2 = document.createElement('td'); td2.textContent = r.state; td2.className = (r.state === 'OK' ? 'ok' : 'bad');
+      tr.appendChild(td1); tr.appendChild(td2); tb.appendChild(tr);
+    });
+    var rt = $('resultsTable'); if (rt) rt.style.display = 'table';
+  }
+
+  async function verify() {
+    if (!selected) return;
+    setStatus('Verifying\u2026', '');
+    var rows = [], verified = 0, failed = 0, missing = 0;
+    var sums = DATA.sums || [];
+    for (var i = 0; i < sums.length; i++) {
+      var e = sums[i];
+      var f = selected.byRel[e.path] || selected.byBase[basename(e.path)];
+      if (!f) { missing++; rows.push({ path: e.path, state: 'Missing file' }); continue; }
+      var got = await sha256(f);
+      if (got === e.hash) { verified++; rows.push({ path: e.path, state: 'OK' }); }
+      else { failed++; rows.push({ path: e.path, state: 'Changed file' }); }
+    }
+    renderRows(rows);
+    var passportOk = selected.hasPassport;
+    var clean = failed === 0 && missing === 0 && verified === sums.length && passportOk;
+    if (clean) {
+      setStatus('Clean', 'clean');
+      text('summaryLine', 'Clean. ' + verified + '/' + sums.length + ' hashes verified. Proof Passport present. No cloud required.');
+    } else {
+      setStatus('Needs review', 'bad');
+      var reasons = [];
+      if (failed) reasons.push('Hash mismatch: ' + failed);
+      if (missing) reasons.push('Missing file: ' + missing);
+      if (!passportOk) reasons.push('Passport missing');
+      text('summaryLine', 'Needs review. Changed or missing files detected. (' + reasons.join(', ') + ')');
+    }
+  }
+
+  function walkEntry(entry, prefix, out) {
+    return new Promise(function (resolve) {
+      if (entry.isFile) {
+        entry.file(function (f) { try { f._relPath = prefix + entry.name; } catch (_) {} out.push(f); resolve(); }, function () { resolve(); });
+      } else if (entry.isDirectory) {
+        var reader = entry.createReader(); var all = [];
+        (function readBatch() {
+          reader.readEntries(function (batch) {
+            if (!batch.length) { Promise.all(all.map(function (ch) { return walkEntry(ch, prefix + entry.name + '/', out); })).then(resolve); }
+            else { all = all.concat(Array.prototype.slice.call(batch)); readBatch(); }
+          }, function () { resolve(); });
+        })();
+      } else { resolve(); }
+    });
+  }
+
+  var dir = $('dirInput'); if (dir) dir.addEventListener('change', function (e) { onFiles(e.target.files); });
+  var fil = $('fileInput'); if (fil) fil.addEventListener('change', function (e) { onFiles(e.target.files); });
+  var bv = $('btnVerify'); if (bv) bv.addEventListener('click', function () { verify(); });
+
+  var dz = $('dropZone');
+  if (dz) {
+    ['dragenter', 'dragover'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('drag'); }); });
+    ['dragleave', 'drop'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('drag'); }); });
+    dz.addEventListener('drop', async function (e) {
+      var items = e.dataTransfer && e.dataTransfer.items;
+      if (items && items.length && items[0].webkitGetAsEntry) {
+        var files = [], entries = [];
+        for (var i = 0; i < items.length; i++) { var en = items[i].webkitGetAsEntry(); if (en) entries.push(en); }
+        await Promise.all(entries.map(function (en) { return walkEntry(en, '', files); }));
+        onFiles(files);
+      } else if (e.dataTransfer && e.dataTransfer.files) { onFiles(e.dataTransfer.files); }
+    });
+  }
+
+  setStatus('Ready', '');
+}
+
+function buildOfflineVerifierHtml(meta) {
+  var css = [
+    ':root{color-scheme:dark}',
+    '*{box-sizing:border-box}',
+    'body{margin:0;padding:2rem 1.25rem;background:#0e1116;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5}',
+    '.wrap{max-width:880px;margin:0 auto}',
+    'h1{font-size:1.4rem;margin:0 0 .25rem}',
+    '.sub{color:#9aa7b4;font-size:.9rem;margin:0 0 1.25rem}',
+    '.card{background:#161b22;border:1px solid #283039;border-radius:10px;padding:1rem 1.2rem;margin:0 0 1rem}',
+    '.cap-status{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 10px;border-radius:999px;border:1px solid #283039;color:#9aa7b4}',
+    '.cap-status.clean{color:#3fb950;border-color:#3fb950}',
+    '.cap-status.bad{color:#f85149;border-color:#f85149}',
+    '.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem 1.4rem;margin-top:.6rem}',
+    '@media(max-width:560px){.grid{grid-template-columns:1fr}}',
+    '.row{display:flex;justify-content:space-between;gap:1rem;font-size:.85rem;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)}',
+    '.row .k{color:#9aa7b4}.row .v{text-align:right}',
+    '.mono{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;font-size:.8rem}',
+    '#dropZone{border:1.5px dashed #3a4452;border-radius:10px;padding:1.4rem;text-align:center;color:#9aa7b4;transition:.15s;cursor:default}',
+    '#dropZone.drag{border-color:#3fb950;color:#e6edf3;background:#10261a}',
+    '.controls{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:.8rem}',
+    'button{font:inherit;background:#21262d;color:#e6edf3;border:1px solid #3a4452;border-radius:7px;padding:.45rem .9rem;cursor:pointer}',
+    'button:disabled{opacity:.5;cursor:not-allowed}',
+    'label.btn{display:inline-block;background:#21262d;border:1px solid #3a4452;border-radius:7px;padding:.45rem .9rem;cursor:pointer;font-size:.85rem}',
+    'input[type=file]{display:none}',
+    'table{width:100%;border-collapse:collapse;margin-top:.8rem;display:none}',
+    'th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid #283039;font-size:.82rem}',
+    'td.ok{color:#3fb950}td.bad{color:#f85149}',
+    '#summaryLine{margin-top:.8rem;font-size:.92rem}',
+    'details{margin-top:.6rem}summary{cursor:pointer;color:#9aa7b4;font-size:.85rem}',
+    'pre{background:#0b0f14;border:1px solid #283039;border-radius:8px;padding:.8rem;overflow:auto;font-size:.75rem}',
+    '.note{color:#9aa7b4;font-size:.78rem;margin-top:.5rem}'
+  ].join('');
+
+  var html = [
+    '<!DOCTYPE html>',
+    '<html lang="en">',
+    '<head>',
+    '<meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width,initial-scale=1">',
+    '<title>HyperSnatch Offline Proof Verifier</title>',
+    '<style>' + css + '</style>',
+    '</head>',
+    '<body>',
+    '<div class="wrap">',
+    '<h1>HyperSnatch Offline Proof Verifier</h1>',
+    '<p class="sub">Self-verifying proof bundle. Tamper-evident, hash-verified, offline. No install, no account, no network.</p>',
+
+    '<div class="card">',
+    '<span class="cap-status" id="capStatus">Ready</span>',
+    '<div class="grid">',
+    '<div class="row"><span class="k">Bundle ID</span><span class="v mono" id="mBundleId">\u2014</span></div>',
+    '<div class="row"><span class="k">App</span><span class="v" id="mApp">\u2014</span></div>',
+    '<div class="row"><span class="k">Exported</span><span class="v" id="mCreated">\u2014</span></div>',
+    '<div class="row"><span class="k">Artifacts</span><span class="v" id="mArtifacts">\u2014</span></div>',
+    '<div class="row"><span class="k">Receipts</span><span class="v" id="mReceipts">\u2014</span></div>',
+    '<div class="row"><span class="k">SHA-256 entries</span><span class="v" id="mHashes">\u2014</span></div>',
+    '<div class="row"><span class="k">Cloud required</span><span class="v" id="mCloud">No</span></div>',
+    '<div class="row"><span class="k">Court certified</span><span class="v" id="mCourt">No</span></div>',
+    '</div>',
+    '</div>',
+
+    '<div class="card" id="autoVerify">',
+    '<strong>Verify this bundle</strong>',
+    '<p class="note">Drag the whole bundle folder here, or pick it below. Files are hashed locally in your browser with SHA-256. Nothing is uploaded.</p>',
+    '<div id="dropZone">Drop the bundle folder (or its files) here</div>',
+    '<div class="controls">',
+    '<label class="btn">Select bundle folder<input type="file" id="dirInput" webkitdirectory directory multiple></label>',
+    '<label class="btn">Select files<input type="file" id="fileInput" multiple></label>',
+    '<button id="btnVerify" disabled>Verify</button>',
+    '</div>',
+    '<table id="resultsTable"><thead><tr><th>File</th><th>Status</th></tr></thead><tbody id="resultsBody"></tbody></table>',
+    '<div id="summaryLine"></div>',
+    '</div>',
+
+    '<div class="card" id="manualFallback" style="display:none">',
+    '<strong>Manual verification</strong>',
+    '<p class="note">This browser does not expose SHA-256 hashing for local files. Verify from a terminal in the bundle folder:</p>',
+    '<pre>sha256sum -c SHA256SUMS.txt</pre>',
+    '</div>',
+
+    '<details>',
+    '<summary>Expected checksums (SHA256SUMS.txt)</summary>',
+    '<pre id="sumsPre"></pre>',
+    '<p class="note">These are the expected SHA-256 hashes for the corpus. PROOF-PASSPORT.json and this verifier are confirmed by presence (not self-hashed).</p>',
+    '</details>',
+
+    '<p class="note">Generated by HyperSnatch. This is an offline, self-verifying bundle. It is tamper-evident and hash-verified. It is not a court certification, chain-of-custody record, or legal admissibility determination.</p>',
+    '</div>',
+    '<script>window.__HS_CAPSULE__=' + JSON.stringify(meta) + ';</script>',
+    '<script>(' + capsuleClientScript.toString() + ')();</script>',
+    '</body>',
+    '</html>'
+  ].join('\n');
+  return html;
+}
+
 ipcMain.handle('export-proof-bundle', async (_event, { destDir }) => {
   try {
     if (!destDir || typeof destDir !== 'string') {
@@ -347,6 +586,10 @@ ipcMain.handle('export-proof-bundle', async (_event, { destDir }) => {
       },
       privacy: { cloud_required: false, telemetry_required: false, local_first: true },
       claims: { court_certified: false, chain_of_custody_claimed: false },
+      // Offline Proof Capsule: the bundle ships a standalone, no-network verifier.
+      // Like the passport, it is verified by presence (not self-hashed) to avoid a
+      // circular checksum and to keep the SHA256SUMS corpus count stable.
+      capsule: { offline_verifier: 'VERIFY-HYPERSNATCH.html', verifier_included: true, verifier_schema: 'hypersnatch.proof_capsule.v1' },
       // PROOF-PASSPORT.json is intentionally NOT listed in SHA256SUMS.txt: it
       // summarizes that corpus, so self-listing would couple its identity to its
       // own checksum line. It is instead verified by presence + schema during
@@ -354,6 +597,26 @@ ipcMain.handle('export-proof-bundle', async (_event, { destDir }) => {
       notes: 'Verify the corpus with `sha256sum -c SHA256SUMS.txt`. This passport is verified by presence and schema, not self-listed in SHA256SUMS.'
     };
     fs.writeFileSync(path.join(bundlePath, 'PROOF-PASSPORT.json'), JSON.stringify(passport, null, 2) + '\n');
+
+    // ── Offline Proof Capsule ──────────────────────────────────────────────
+    // Standalone local verifier the recipient can open without installing
+    // HyperSnatch. Presence-verified (not in SHA256SUMS) to avoid self-hashing.
+    const verifierMeta = {
+      schema: 'hypersnatch.proof_capsule.v1',
+      app: 'HyperSnatch',
+      app_version: app.getVersion(),
+      bundle_id: bundleId,
+      bundle_name: bundleName,
+      created_at: passport.created_at,
+      counts: passport.counts,
+      privacy: passport.privacy,
+      claims: passport.claims,
+      sums: sumsLines.map((line) => {
+        const idx = line.indexOf('  ');
+        return { hash: line.slice(0, idx), path: line.slice(idx + 2) };
+      })
+    };
+    fs.writeFileSync(path.join(bundlePath, 'VERIFY-HYPERSNATCH.html'), buildOfflineVerifierHtml(verifierMeta));
 
     const readme = [
       'HyperSnatch Proof Bundle',
@@ -370,9 +633,11 @@ ipcMain.handle('export-proof-bundle', async (_event, { destDir }) => {
       '  proof/                -- Original manifest, receipt, and SHA256SUMS',
       '  SHA256SUMS.txt        -- Recomputed SHA-256 checksums (' + fileCount + ' files)',
       '  PROOF-PASSPORT.json   -- Bundle identity card (counts + verification summary)',
+      '  VERIFY-HYPERSNATCH.html -- Offline verifier (open in a browser, no install)',
       '',
       'Verification:',
-      '  Run  sha256sum -c SHA256SUMS.txt  to verify file integrity.',
+      '  Open VERIFY-HYPERSNATCH.html in a browser, then drag this folder in to verify.',
+      '  Or run  sha256sum -c SHA256SUMS.txt  to verify file integrity.',
       '  Open PROOF-PASSPORT.json for the bundle id and a verification summary.',
       '',
       'This bundle was exported from a local instance of HyperSnatch.',
@@ -459,9 +724,12 @@ ipcMain.handle('reverify-export-bundle', async (_event, { bundlePath }) => {
     // Repo hygiene scan
     const hygieneFound = scanRepoHygiene(resolved);
 
+    // Offline verifier presence (presence-verified, like the passport)
+    const verifierPresent = fs.existsSync(path.join(resolved, 'VERIFY-HYPERSNATCH.html'));
+
     const clean = failed === 0 && missing === 0 && total > 0 &&
       passportPresent && passportValid && receiptPresent && manifestPresent &&
-      hygieneFound.length === 0;
+      verifierPresent && hygieneFound.length === 0;
 
     return {
       success: true,
@@ -470,6 +738,7 @@ ipcMain.handle('reverify-export-bundle', async (_event, { bundlePath }) => {
       total, verified, failed, missing,
       passportPresent, passportValid,
       receiptPresent, manifestPresent,
+      verifierPresent,
       repoHygieneFound: hygieneFound.length,
       repoHygieneFiles: hygieneFound,
       failures

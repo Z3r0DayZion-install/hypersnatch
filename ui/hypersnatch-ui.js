@@ -5222,7 +5222,7 @@
             if (window.recordRecentExport) window.recordRecentExport(exp);
             if (typeof window._showPassportAfterExport === 'function') window._showPassportAfterExport(exp);
             if (exportToast) {
-              window.updateToast(exportToast, 'Export complete: ' + exp.fileCount + ' files → ' + exp.bundleName, 'ok', {
+              window.updateToast(exportToast, 'Export complete: ' + exp.fileCount + ' files → ' + exp.bundleName + '. Offline verifier included — open VERIFY-HYPERSNATCH.html.', 'ok', {
                 actionLabel: 'Open folder',
                 onAction: function() { window.electronAPI.openExportFolder(exp.bundlePath).catch(function() {}); }
               });
@@ -5449,6 +5449,7 @@
         setText('ppExportStatus', 'Not exported');
         setText('ppLastVerified', '—');
         setText('ppCloud', 'No');
+        setText('ppVerifier', 'after export');
         setStatusPill('Not exported', '');
         const btn = el('btnProveItAgain');
         if (btn) { btn.disabled = true; btn.title = 'Export a proof bundle first, then re-prove it from disk.'; }
@@ -5468,6 +5469,8 @@
         setText('ppExportStatus', 'Exported');
         setText('ppLastVerified', 'not re-proven yet');
         setText('ppCloud', 'No');
+        const verifierIncluded = pp.capsule && pp.capsule.verifier_included;
+        setText('ppVerifier', verifierIncluded ? 'Yes' : 'No');
         const clean = pp.verification && pp.verification.status === 'clean';
         setStatusPill(clean ? 'Clean' : 'Needs review', clean ? 'clean' : 'bad');
         const btn = el('btnProveItAgain');
@@ -5493,7 +5496,8 @@
           if (r.status === 'clean') {
             setStatusPill('Clean', 'clean');
             setText('ppHashes', r.verified + '/' + r.total + ' verified');
-            const msg = 'Still clean. ' + r.verified + '/' + r.total + ' hashes verified. No missing files. No repo hygiene files. Proof Passport present.';
+            if (r.verifierPresent) setText('ppVerifier', 'Yes');
+            const msg = 'Still clean. ' + r.verified + '/' + r.total + ' hashes verified. Proof Passport present.' + (r.verifierPresent ? ' Offline verifier present.' : '');
             if (t) window.updateToast(t, msg, 'ok'); else if (window.showToast) window.showToast(msg, 'ok');
             if (typeof setStatus === 'function') setStatus(msg, 'ok');
           } else {
@@ -5505,6 +5509,7 @@
             else if (!r.passportValid) reasons.push('passport invalid');
             if (!r.receiptPresent) reasons.push('receipt missing');
             if (!r.manifestPresent) reasons.push('manifest missing');
+            if (!r.verifierPresent) reasons.push('offline verifier missing');
             if (r.repoHygieneFound) reasons.push(r.repoHygieneFound + ' repo hygiene file(s)');
             const msg = 'Re-prove failed: ' + (reasons.join(', ') || 'verification did not pass');
             if (t) window.updateToast(t, msg, 'bad'); else if (window.showToast) window.showToast(msg, 'bad');

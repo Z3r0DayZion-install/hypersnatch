@@ -215,6 +215,7 @@ const requiredIds = [
   "ppExportStatus",
   "ppLastVerified",
   "ppProofStatus",
+  "ppVerifier",
   "btnProveItAgain",
 ];
 
