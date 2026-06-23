@@ -31,10 +31,14 @@ let _serverUrl = null;
 async function getServer() {
   if (_server) return _serverUrl;
   return new Promise((resolve, reject) => {
+    const JS_PATH = path.resolve(__dirname, "..", "ui", "hypersnatch-ui.js");
     _server = http.createServer((req, res) => {
       if (req.url === "/" || req.url === "/hypersnatch-ui.html") {
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(fs.readFileSync(UI_PATH));
+      } else if (req.url === "/hypersnatch-ui.js") {
+        res.writeHead(200, { "Content-Type": "application/javascript" });
+        res.end(fs.readFileSync(JS_PATH));
       } else if (req.url === "/hypersnatch-logo.svg") {
         res.writeHead(200, { "Content-Type": "image/svg+xml" });
         res.end(fs.readFileSync(LOGO_PATH));
@@ -1752,6 +1756,102 @@ test("enterprise: Activate with empty profile name shows validation error", asyn
 
   const status = await page.locator("#status").textContent();
   expect(status).toMatch(/enter a profile name/i);
+});
+
+// ─── Test 91: Receipt Explanation Mode ───────────────────────────────────────
+
+test("receipt explanation mode: modal opens with tab bar and explanation sections visible", async ({ page }) => {
+  await openFresh(page);
+
+  // Inject a minimal sample workspace so the receipt modal can open
+  await page.evaluate(() => {
+    window._sampleWorkspace = {
+      isSample: true,
+      case: { id: "CASE-REM-001", title: "Receipt Explanation Mode E2E", sample: true },
+      receipt: {
+        receiptId: "rcpt-rem-001",
+        caseId: "CASE-REM-001",
+        issuedAt: "2025-01-01T00:00:00Z",
+        sample: true,
+        page: { capturePath: "sample://demo", capturedAt: "2025-01-01T00:00:00Z" },
+        download: { filename: "demo.zip", sha256: "abc123def456abc123def456abc123def456abc123def456abc123def456abcd" }
+      },
+      capture: { viewport: "1280x720", userAgent: "HyperSnatch/1.6.17" },
+      manifest: { sha256: "deadbeef00000000deadbeef00000000deadbeef00000000deadbeef00000000" },
+      files: [
+        { path: "receipt.json", role: "receipt", sha256: "aaa000bbb111ccc222ddd333eee444fff555" },
+        { path: "SHA256SUMS.txt", role: "sums", sha256: "111aaa222bbb333ccc444ddd555eee666fff" }
+      ],
+      sumsText: "aaa000  receipt.json\n111aaa  SHA256SUMS.txt"
+    };
+    window._sampleVerify = {
+      allVerified: true,
+      results: [
+        { path: "receipt.json", verified: true },
+        { path: "SHA256SUMS.txt", verified: true }
+      ]
+    };
+  });
+
+  // Stub alert so the modal open path doesn't block on a dialog
+  await page.evaluate(() => { window.alert = () => {}; });
+
+  // Dispatch click directly (btnViewReceipt is wired but inside a hidden section)
+  await page.evaluate(() => {
+    const btn = document.getElementById("btnViewReceipt");
+    if (btn) btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+  });
+  await page.waitForTimeout(400);
+
+  // Modal should be visible
+  await page.waitForSelector("#receiptModal", { state: "visible", timeout: 6000 });
+
+  // Tab bar must be present with all 3 tabs
+  await expect(page.locator("#rcptTabBtnDetails")).toBeVisible();
+  await expect(page.locator("#rcptTabBtnExplain")).toBeVisible();
+  await expect(page.locator("#rcptTabBtnRaw")).toBeVisible();
+
+  // Details panel is active by default
+  await expect(page.locator("#rcptPanelDetails")).toHaveClass(/active/);
+  await expect(page.locator("#rcptPanelExplain")).not.toHaveClass(/active/);
+
+  // Switch to Explanation tab
+  await page.click("#rcptTabBtnExplain");
+  await expect(page.locator("#rcptPanelExplain")).toHaveClass(/active/);
+  await expect(page.locator("#rcptPanelDetails")).not.toHaveClass(/active/);
+
+  // Required explanation section headings must appear
+  const explainText = await page.locator("#rcptPanelExplain").textContent();
+  expect(explainText).toMatch(/What this receipt proves/i);
+  expect(explainText).toMatch(/What this receipt does not prove/i);
+  expect(explainText).toMatch(/How to verify/i);
+
+  // Proof vocabulary must be present
+  expect(explainText).toMatch(/hash-verified/i);
+  expect(explainText).toMatch(/tamper-evident/i);
+  expect(explainText).toMatch(/local-first/i);
+
+  // Forbidden overclaim language must NOT appear
+  expect(explainText).not.toMatch(/court-certified/i);
+  expect(explainText).not.toMatch(/tamper-proof/i);
+  expect(explainText).not.toMatch(/chain-of-custody/i);
+
+  // Sample note is visible (isSample: true)
+  await expect(page.locator("#rcptExplainSampleNote")).toBeVisible();
+
+  // Related files list is populated
+  const relatedFiles = await page.locator("#rcptRelatedFiles").textContent();
+  expect(relatedFiles).toMatch(/receipt\.json/);
+
+  // Switch to Raw / Hashes tab
+  await page.click("#rcptTabBtnRaw");
+  await expect(page.locator("#rcptPanelRaw")).toHaveClass(/active/);
+  const rawText = await page.locator("#rcptPanelRaw").textContent();
+  expect(rawText).toMatch(/SHA256SUMS/i);
+
+  // Close modal
+  await page.click("#btnReceiptClose");
+  await page.waitForSelector("#receiptModal", { state: "hidden", timeout: 4000 });
 });
 
 // ─── Test 90: anomaly scoring updates stat counters ───────────────────────

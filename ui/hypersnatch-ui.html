@@ -2222,6 +2222,83 @@
       border: 1px solid var(--border-soft);
     }
 
+    /* ── receipt explanation mode ───────────────────────── */
+    .rcpt-tab-bar {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border-soft);
+      margin-bottom: 0.9rem;
+    }
+    .rcpt-tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .rcpt-tab-btn:hover { color: var(--text-primary); }
+    .rcpt-tab-btn.active {
+      color: var(--text-accent);
+      border-bottom-color: var(--text-accent);
+    }
+    .rcpt-tab-panel { display: none; }
+    .rcpt-tab-panel.active { display: block; }
+    .rcpt-explain-block {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .rcpt-explain-block:last-child { margin-bottom: 0; }
+    .rcpt-explain-heading {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-accent);
+      margin-bottom: 0.45rem;
+    }
+    .rcpt-explain-body {
+      font-size: 0.81rem;
+      line-height: 1.55;
+      color: var(--text-primary);
+    }
+    .rcpt-explain-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.45rem;
+      line-height: 1.5;
+    }
+    .rcpt-verify-steps {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      font-size: 0.8rem;
+      line-height: 1.65;
+      color: var(--text-primary);
+    }
+    .rcpt-verify-steps li { margin-bottom: 0.15rem; }
+    .rcpt-related-files {
+      font-family: var(--font-mono);
+      font-size: 0.69rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-soft);
+      border-radius: 4px;
+      padding: 0.5rem 0.7rem;
+      margin-top: 0.45rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--text-muted);
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
     /* ── onboarding modal ────────────────────────────────── */
     .onboarding-hero {
       text-align: center;
@@ -3034,37 +3111,81 @@
           </div>
           <div id="receiptStatus" class="tiny muted" style="min-height:14px; margin-bottom:0.6rem;">&nbsp;</div>
 
-          <div class="receipt-section">
-            <div class="receipt-heading">Case Receipt</div>
-            <div class="receipt-grid">
-              <div class="receipt-row"><span class="muted">Receipt ID</span><span class="mono" id="rcptReceiptId">—</span></div>
-              <div class="receipt-row"><span class="muted">Case ID</span><span class="mono" id="rcptCaseId">—</span></div>
-              <div class="receipt-row"><span class="muted">Case Title</span><span id="rcptCaseTitle">—</span></div>
-              <div class="receipt-row"><span class="muted">Issued At</span><span class="mono" id="rcptIssuedAt">—</span></div>
-              <div class="receipt-row"><span class="muted">Source Page</span><span class="mono" id="rcptSourcePage">—</span></div>
-              <div class="receipt-row"><span class="muted">Captured At</span><span class="mono" id="rcptCapturedAt">—</span></div>
-              <div class="receipt-row"><span class="muted">Viewport</span><span id="rcptViewport">—</span></div>
-              <div class="receipt-row"><span class="muted">User Agent</span><span class="mono tiny" id="rcptUserAgent">—</span></div>
-              <div class="receipt-row"><span class="muted">Download Link</span><span id="rcptDownloadLink">—</span></div>
-              <div class="receipt-row"><span class="muted">Download SHA-256</span><span class="mono tiny" id="rcptDownloadSha">—</span></div>
-              <div class="receipt-row"><span class="muted">Manifest SHA-256</span><span class="mono tiny" id="rcptManifestSha">—</span></div>
-              <div class="receipt-row"><span class="muted">Verification</span><span><span id="rcptVerifiedBadge" class="pill tiny idle">—</span> <span id="rcptVerifiedNote" class="tiny muted"></span></span></div>
+          <div class="rcpt-tab-bar" role="tablist" aria-label="Receipt view tabs">
+            <button type="button" class="rcpt-tab-btn active" id="rcptTabBtnDetails" role="tab" aria-selected="true" aria-controls="rcptPanelDetails" data-rcpt-tab="rcptPanelDetails">Receipt Details</button>
+            <button type="button" class="rcpt-tab-btn" id="rcptTabBtnExplain" role="tab" aria-selected="false" aria-controls="rcptPanelExplain" data-rcpt-tab="rcptPanelExplain">Explanation</button>
+            <button type="button" class="rcpt-tab-btn" id="rcptTabBtnRaw" role="tab" aria-selected="false" aria-controls="rcptPanelRaw" data-rcpt-tab="rcptPanelRaw">Raw / Hashes</button>
+          </div>
+
+          <div id="rcptPanelDetails" class="rcpt-tab-panel active" role="tabpanel" aria-labelledby="rcptTabBtnDetails">
+            <div class="receipt-section">
+              <div class="receipt-heading">Case Receipt</div>
+              <div class="receipt-grid">
+                <div class="receipt-row"><span class="muted">Receipt ID</span><span class="mono" id="rcptReceiptId">—</span></div>
+                <div class="receipt-row"><span class="muted">Case ID</span><span class="mono" id="rcptCaseId">—</span></div>
+                <div class="receipt-row"><span class="muted">Case Title</span><span id="rcptCaseTitle">—</span></div>
+                <div class="receipt-row"><span class="muted">Issued At</span><span class="mono" id="rcptIssuedAt">—</span></div>
+                <div class="receipt-row"><span class="muted">Source Page</span><span class="mono" id="rcptSourcePage">—</span></div>
+                <div class="receipt-row"><span class="muted">Captured At</span><span class="mono" id="rcptCapturedAt">—</span></div>
+                <div class="receipt-row"><span class="muted">Viewport</span><span id="rcptViewport">—</span></div>
+                <div class="receipt-row"><span class="muted">User Agent</span><span class="mono tiny" id="rcptUserAgent">—</span></div>
+                <div class="receipt-row"><span class="muted">Download Link</span><span id="rcptDownloadLink">—</span></div>
+                <div class="receipt-row"><span class="muted">Download SHA-256</span><span class="mono tiny" id="rcptDownloadSha">—</span></div>
+                <div class="receipt-row"><span class="muted">Manifest SHA-256</span><span class="mono tiny" id="rcptManifestSha">—</span></div>
+                <div class="receipt-row"><span class="muted">Verification</span><span><span id="rcptVerifiedBadge" class="pill tiny idle">—</span> <span id="rcptVerifiedNote" class="tiny muted"></span></span></div>
+              </div>
+            </div>
+
+            <div class="receipt-section">
+              <div class="receipt-heading">File Inventory</div>
+              <div class="receipt-table-wrap">
+                <table class="receipt-file-table" aria-label="File inventory with SHA-256 hashes and verification status">
+                  <thead><tr><th>Artifact</th><th>Role</th><th>SHA-256</th><th>Verified</th></tr></thead>
+                  <tbody id="rcptFileBody"><tr><td colspan="4" class="muted">No files loaded.</td></tr></tbody>
+                </table>
+              </div>
             </div>
           </div>
 
-          <div class="receipt-section">
-            <div class="receipt-heading">File Inventory</div>
-            <div class="receipt-table-wrap">
-              <table class="receipt-file-table" aria-label="File inventory with SHA-256 hashes and verification status">
-                <thead><tr><th>Artifact</th><th>Role</th><th>SHA-256</th><th>Verified</th></tr></thead>
-                <tbody id="rcptFileBody"><tr><td colspan="4" class="muted">No files loaded.</td></tr></tbody>
-              </table>
+          <div id="rcptPanelExplain" class="rcpt-tab-panel" role="tabpanel" aria-labelledby="rcptTabBtnExplain">
+            <div id="rcptExplainSampleNote" class="rcpt-explain-block" style="display:none;">
+              <div class="rcpt-explain-heading">Sample Receipt</div>
+              <p class="rcpt-explain-body">This sample receipt proves the bundled demo workspace was loaded and verified as a local HyperSnatch sample. It is for demonstrating the proof workflow, not for proving an external website or live source.</p>
+            </div>
+
+            <div class="rcpt-explain-block">
+              <div class="rcpt-explain-heading">What this receipt proves</div>
+              <p class="rcpt-explain-body" id="rcptExplainProves">This receipt records what HyperSnatch captured or exported, when it was created, which files were included, and which SHA-256 hashes were computed for verification.</p>
+              <p class="rcpt-explain-note">Proof type: <span class="mono" id="rcptExplainProofType">hash-verified · local-first · tamper-evident</span></p>
+            </div>
+
+            <div class="rcpt-explain-block">
+              <div class="rcpt-explain-heading">What this receipt does not prove</div>
+              <p class="rcpt-explain-body">This receipt does not prove court admissibility, legal ownership, chain of custody, or that the original website or source cannot change later.</p>
+              <p class="rcpt-explain-note">HyperSnatch produces self-verifying, receipt-backed proof bundles. Interpretation for legal or formal use is your responsibility.</p>
+            </div>
+
+            <div class="rcpt-explain-block">
+              <div class="rcpt-explain-heading">How to verify</div>
+              <ol class="rcpt-verify-steps">
+                <li>Use <strong>Prove It Again</strong> inside HyperSnatch to re-verify the loaded proof bundle against its SHA256SUMS.</li>
+                <li>Or export a proof bundle and open <strong>VERIFY-HYPERSNATCH.html</strong> from the exported folder — the offline verifier checks all bundle files against SHA256SUMS.txt without needing the app.</li>
+              </ol>
+              <p class="rcpt-explain-note">The offline verifier is a self-contained HTML file included in every exported proof bundle.</p>
+            </div>
+
+            <div class="rcpt-explain-block">
+              <div class="rcpt-explain-heading">Related proof files</div>
+              <p class="rcpt-explain-note" style="margin-top:0; margin-bottom:0.4rem;">Files recorded in this receipt:</p>
+              <div class="rcpt-related-files" id="rcptRelatedFiles">—</div>
             </div>
           </div>
 
-          <div class="receipt-section">
-            <div class="receipt-heading">SHA256SUMS</div>
-            <pre class="receipt-sums" id="rcptSumsText">—</pre>
+          <div id="rcptPanelRaw" class="rcpt-tab-panel" role="tabpanel" aria-labelledby="rcptTabBtnRaw">
+            <div class="receipt-section">
+              <div class="receipt-heading">SHA256SUMS</div>
+              <pre class="receipt-sums" id="rcptSumsText">—</pre>
+            </div>
           </div>
 
           <div style="display:flex; gap:0.5rem; margin-top:0.8rem;">

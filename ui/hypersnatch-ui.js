@@ -5116,6 +5116,23 @@
       const modal = el('receiptModal');
       const closeBtn = el('btnReceiptClose');
 
+      // Receipt explanation mode — tab switching
+      (function wireReceiptTabs() {
+        const tabBtns = modal ? Array.from(modal.querySelectorAll('.rcpt-tab-btn')) : [];
+        const tabPanels = modal ? Array.from(modal.querySelectorAll('.rcpt-tab-panel')) : [];
+        tabBtns.forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            tabBtns.forEach(function(b) { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+            tabPanels.forEach(function(p) { p.classList.remove('active'); });
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
+            var panelId = btn.getAttribute('data-rcpt-tab');
+            var panel = el(panelId);
+            if (panel) panel.classList.add('active');
+          });
+        });
+      })();
+
       function openReceiptModal() {
         try {
           const ws = window._sampleWorkspace;
@@ -5165,6 +5182,35 @@
               }
               return '<tr><td class="mono">' + escapeHtml(f.path) + '</td><td>' + escapeHtml(f.role || '') + '</td><td class="mono tiny">' + escapeHtml(f.sha256 || '') + '</td><td>' + verifiedHtml + '</td></tr>';
             }).join('');
+          }
+
+          // Explanation panel: related files list
+          const relatedFilesEl = el('rcptRelatedFiles');
+          if (relatedFilesEl && Array.isArray(ws.files) && ws.files.length) {
+            relatedFilesEl.textContent = ws.files.map(function(f) {
+              return (f.path || '?') + (f.sha256 ? '  ' + f.sha256.slice(0, 12) + '…' : '');
+            }).join('\n');
+          } else if (relatedFilesEl) {
+            relatedFilesEl.textContent = '—';
+          }
+
+          // Explanation panel: show sample note if this is a sample workspace
+          const sampleNoteEl = el('rcptExplainSampleNote');
+          if (sampleNoteEl) {
+            var isSample = !!(ws.isSample || (ws.case && ws.case.sample) || (ws.receipt && ws.receipt.sample));
+            sampleNoteEl.style.display = isSample ? 'block' : 'none';
+          }
+
+          // Reset tabs to Details on each open
+          if (modal) {
+            var tabBtns = Array.from(modal.querySelectorAll('.rcpt-tab-btn'));
+            var tabPanels = Array.from(modal.querySelectorAll('.rcpt-tab-panel'));
+            tabBtns.forEach(function(b) { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+            tabPanels.forEach(function(p) { p.classList.remove('active'); });
+            var firstBtn = el('rcptTabBtnDetails');
+            var firstPanel = el('rcptPanelDetails');
+            if (firstBtn) { firstBtn.classList.add('active'); firstBtn.setAttribute('aria-selected', 'true'); }
+            if (firstPanel) firstPanel.classList.add('active');
           }
 
           if (modal) modal.style.display = 'flex';
