@@ -200,6 +200,13 @@ const requiredIds = [
   "recentExportValue",
   "recentExportMeta",
   "btnOpenRecentExport",
+  "appearanceSection",
+  "appThemeSelect",
+  "appFontScale",
+  "appDensity",
+  "appBackground",
+  "appMotion",
+  "btnResetAppearance",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));

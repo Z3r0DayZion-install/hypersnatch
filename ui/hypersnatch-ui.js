@@ -3,6 +3,116 @@
     const el = (id) => document.getElementById(id);
     const APP_VERSION_FALLBACK = "1.6.15";
 
+    // ── Appearance / Theme system (v1.6.16 polish) ───────────────────────────
+    (function appearanceSystem() {
+      const KEY = 'hs_appearance';
+      const DEFAULTS = { theme: 'proof-foundry-dark', accent: '', fontScale: 'normal', density: 'comfortable', background: 'calm', motion: 'normal' };
+      const THEMES = ['proof-foundry-dark', 'evidence-blue', 'terminal-green', 'high-contrast', 'warm-graphite'];
+      const FONT = ['small', 'normal', 'large'];
+      const DENSITY = ['comfortable', 'compact'];
+      const BG = ['calm', 'grid', 'minimal', 'off'];
+      const MOTION = ['normal', 'reduced'];
+
+      function clampOne(val, allowed, fallback) { return allowed.indexOf(val) >= 0 ? val : fallback; }
+
+      function read() {
+        let s;
+        try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { s = {}; }
+        return {
+          theme: clampOne(s.theme, THEMES, DEFAULTS.theme),
+          accent: (typeof s.accent === 'string' && /^#[0-9a-fA-F]{6}$/.test(s.accent)) ? s.accent : '',
+          fontScale: clampOne(s.fontScale, FONT, DEFAULTS.fontScale),
+          density: clampOne(s.density, DENSITY, DEFAULTS.density),
+          background: clampOne(s.background, BG, DEFAULTS.background),
+          motion: clampOne(s.motion, MOTION, DEFAULTS.motion)
+        };
+      }
+      function write(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+
+      function hexToRgba(hex, alpha) {
+        const m = /^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/.exec(hex);
+        if (!m) return hex;
+        return 'rgba(' + parseInt(m[1], 16) + ', ' + parseInt(m[2], 16) + ', ' + parseInt(m[3], 16) + ', ' + alpha + ')';
+      }
+
+      function apply(s) {
+        const root = document.documentElement;
+        root.setAttribute('data-theme', s.theme);
+        root.setAttribute('data-font-scale', s.fontScale);
+        root.setAttribute('data-density', s.density);
+        root.setAttribute('data-bg', s.background);
+        root.setAttribute('data-motion', s.motion);
+        const accentVars = ['--text-accent', '--accent-main', '--accent-border', '--accent-soft', '--text-accent-glow'];
+        if (s.accent) {
+          root.style.setProperty('--text-accent', s.accent);
+          root.style.setProperty('--accent-main', s.accent);
+          root.style.setProperty('--accent-border', hexToRgba(s.accent, 0.42));
+          root.style.setProperty('--accent-soft', hexToRgba(s.accent, 0.16));
+          root.style.setProperty('--text-accent-glow', hexToRgba(s.accent, 0.5));
+        } else {
+          accentVars.forEach((v) => root.style.removeProperty(v));
+        }
+      }
+
+      let state = read();
+      apply(state);
+
+      function syncControls() {
+        const set = (id, val) => { const n = el(id); if (n) n.value = val; };
+        set('appThemeSelect', state.theme);
+        set('appFontScale', state.fontScale);
+        set('appDensity', state.density);
+        set('appBackground', state.background);
+        set('appMotion', state.motion);
+        const btns = document.querySelectorAll('.app-accent-btn');
+        btns.forEach((b) => b.setAttribute('aria-pressed', (b.getAttribute('data-accent') || '') === state.accent ? 'true' : 'false'));
+      }
+
+      function feedback(msg) {
+        const st = el('settingsStatus');
+        if (st) { st.textContent = msg; st.className = 'tiny ok'; }
+        if (window.showToast) window.showToast(msg, 'ok');
+      }
+
+      function update(patch, msg) {
+        state = Object.assign({}, state, patch);
+        apply(state);
+        write(state);
+        syncControls();
+        feedback(msg || 'Appearance updated');
+      }
+
+      function wire() {
+        el('appThemeSelect') && el('appThemeSelect').addEventListener('change', (e) => {
+          const v = clampOne(e.target.value, THEMES, DEFAULTS.theme);
+          update({ theme: v }, v === 'high-contrast' ? 'High Contrast enabled' : 'Theme: ' + e.target.selectedOptions[0].textContent);
+        });
+        el('appFontScale') && el('appFontScale').addEventListener('change', (e) => update({ fontScale: clampOne(e.target.value, FONT, 'normal') }, 'Font scale updated'));
+        el('appDensity') && el('appDensity').addEventListener('change', (e) => update({ density: clampOne(e.target.value, DENSITY, 'comfortable') }, 'Density updated'));
+        el('appBackground') && el('appBackground').addEventListener('change', (e) => update({ background: clampOne(e.target.value, BG, 'calm') }, 'Background updated'));
+        el('appMotion') && el('appMotion').addEventListener('change', (e) => update({ motion: clampOne(e.target.value, MOTION, 'normal') }, e.target.value === 'reduced' ? 'Reduced motion enabled' : 'Motion restored'));
+        document.querySelectorAll('.app-accent-btn').forEach((b) => {
+          b.addEventListener('click', () => {
+            const a = b.getAttribute('data-accent') || '';
+            update({ accent: a }, a ? 'Accent updated' : 'Accent: theme default');
+          });
+        });
+        el('btnResetAppearance') && el('btnResetAppearance').addEventListener('click', () => {
+          state = Object.assign({}, DEFAULTS);
+          apply(state); write(state); syncControls();
+          feedback('Appearance reset to defaults');
+        });
+        syncControls();
+      }
+
+      window._syncAppearanceControls = syncControls;
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', wire);
+      } else {
+        wire();
+      }
+    })();
+
     // CSP-safe event delegation (replaces former inline onclick handlers).
     document.addEventListener("click", (ev) => {
       const target = ev.target.closest ? ev.target.closest("[data-action]") : null;
@@ -4759,6 +4869,7 @@
         if (v && el('setVersion')) el('setVersion').textContent = v.textContent;
         settingsModal.style.display = 'flex';
         setSettingsStatus('');
+        if (typeof window._syncAppearanceControls === 'function') window._syncAppearanceControls();
         el('btnSettingsClose') && el('btnSettingsClose').focus();
         if (typeof setStatus === 'function') setStatus('Settings opened.', 'muted');
       }
