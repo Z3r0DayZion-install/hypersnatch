@@ -95,3 +95,9 @@ Authoritative checksum file: `dist/SHA256SUMS.txt` (gate-generated; independentl
 ## Supersede
 
 HyperSnatch **v1.6.13 supersedes v1.6.12**. Once published, v1.6.13 is the latest release.
+
+## Launch visibility log
+
+- 2026-06-22 — Hacker News update posted: v1.6.13 live.
+  Thread: https://news.ycombinator.com/item?id=48625074
+- Reddit: r/windowsapps queued (first subreddit; one at a time, then wait).
