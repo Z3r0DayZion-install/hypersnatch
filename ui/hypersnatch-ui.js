@@ -5629,5 +5629,160 @@
       });
     })();
 
+    (function wireProofBundleDiff() {
+      let diffA = null; // { path, bundleId }
+      let diffB = null;
+
+      function setText(id, val) { const n = el(id); if (n) n.textContent = (val == null ? '—' : String(val)); }
+      function setPill(text, kind) {
+        const p = el('pbdStatus');
+        if (!p) return;
+        p.textContent = text;
+        p.className = 'ppc-status' + (kind ? ' ' + kind : '');
+      }
+      function refreshCompareBtn() {
+        const btn = el('btnCompareBundles');
+        if (!btn) return;
+        const ready = !!(diffA && diffA.path && diffB && diffB.path);
+        btn.disabled = !ready;
+        btn.title = ready ? 'Compare the two selected proof bundles.' : 'Select Bundle A and Bundle B, then compare.';
+      }
+      function shortId(id) { return id || 'unknown'; }
+
+      async function pick(which) {
+        try {
+          const r = await window.electronAPI.selectProofBundleForDiff(which);
+          if (!r || !r.success) {
+            if (r && r.canceled) return;
+            const emsg = (r && r.error) || 'Could not select bundle.';
+            if (window.showToast) window.showToast(emsg, 'bad');
+            return;
+          }
+          const slot = { path: r.bundlePath, bundleId: r.bundleId };
+          if (which === 'b') { diffB = slot; setText('pbdBundleBId', shortId(r.bundleId)); }
+          else { diffA = slot; setText('pbdBundleAId', shortId(r.bundleId)); }
+          refreshCompareBtn();
+          if (window.showToast) window.showToast('Bundle ' + (which === 'b' ? 'B' : 'A') + ' selected: ' + shortId(r.bundleId), 'ok');
+        } catch (e) {
+          if (window.showToast) window.showToast('Select error: ' + (e.message || e), 'bad');
+        }
+      }
+
+      el('btnSelectBundleA') && el('btnSelectBundleA').addEventListener('click', function() { pick('a'); });
+      el('btnSelectBundleB') && el('btnSelectBundleB').addEventListener('click', function() { pick('b'); });
+
+      function verifiedNode(id, ok, count) {
+        const n = el(id);
+        if (!n) return;
+        n.textContent = (ok ? 'Yes' : 'No') + (count != null ? ' (' + count + ' hashes)' : '');
+        n.className = 'ppc-value ' + (ok ? 'ok' : 'bad');
+      }
+
+      function renderChanges(changes) {
+        const wrap = el('pbdChangesList');
+        if (!wrap) return;
+        wrap.innerHTML = '';
+        const rows = [];
+        (changes.changed || []).forEach(function(c) { rows.push({ path: c.path, a: c.a_hash, b: c.b_hash, tag: 'changed' }); });
+        (changes.added || []).forEach(function(c) { rows.push({ path: c.path, a: '—', b: c.b_hash, tag: 'added' }); });
+        (changes.removed || []).forEach(function(c) { rows.push({ path: c.path, a: c.a_hash, b: '—', tag: 'removed' }); });
+        if (rows.length === 0) { wrap.style.display = 'none'; return; }
+        rows.forEach(function(r) {
+          const row = document.createElement('div');
+          row.className = 'pbd-row';
+          const p = document.createElement('span');
+          p.className = 'pbd-path mono';
+          p.textContent = r.path;
+          p.title = r.path + '\nA: ' + r.a + '\nB: ' + r.b;
+          const h = document.createElement('span');
+          h.className = 'pbd-hash';
+          h.textContent = (r.a === '—' ? '—' : String(r.a).slice(0, 8)) + ' → ' + (r.b === '—' ? '—' : String(r.b).slice(0, 8));
+          const tag = document.createElement('span');
+          tag.className = 'pbd-tag ' + r.tag;
+          tag.textContent = r.tag;
+          row.appendChild(p); row.appendChild(h); row.appendChild(tag);
+          wrap.appendChild(row);
+        });
+        wrap.style.display = 'block';
+      }
+
+      function renderPassportDiff(diff) {
+        const wrap = el('pbdPassportDiff');
+        if (!wrap) return;
+        wrap.innerHTML = '';
+        if (!diff || diff.length === 0) { wrap.style.display = 'none'; return; }
+        const head = document.createElement('div');
+        head.className = 'pbd-pp-head';
+        head.textContent = 'Passport differences (informational, not part of the hash corpus):';
+        wrap.appendChild(head);
+        diff.forEach(function(d) {
+          const row = document.createElement('div');
+          row.className = 'pbd-pp-row';
+          const label = document.createElement('span');
+          label.textContent = d.field;
+          const val = document.createElement('span');
+          val.className = 'mono';
+          val.textContent = (d.a == null ? '—' : d.a) + ' → ' + (d.b == null ? '—' : d.b);
+          val.title = 'A: ' + (d.a == null ? '—' : d.a) + '  B: ' + (d.b == null ? '—' : d.b);
+          row.appendChild(label); row.appendChild(val);
+          wrap.appendChild(row);
+        });
+        wrap.style.display = 'block';
+      }
+
+      window._renderBundleDiff = function(r) {
+        if (!r || !r.success) return;
+        setText('pbdBundleAId', shortId(r.bundle_a && r.bundle_a.bundle_id));
+        setText('pbdBundleBId', shortId(r.bundle_b && r.bundle_b.bundle_id));
+        verifiedNode('pbdAVerified', r.bundle_a && r.bundle_a.verified, r.bundle_a && r.bundle_a.hashes_verified);
+        verifiedNode('pbdBVerified', r.bundle_b && r.bundle_b.verified, r.bundle_b && r.bundle_b.hashes_verified);
+        const s = r.summary || {};
+        setText('pbdSame', s.same);
+        setText('pbdChanged', s.changed);
+        setText('pbdAdded', s.added);
+        setText('pbdRemoved', s.removed);
+        renderChanges(r.changes || {});
+        renderPassportDiff(r.passport_diff || []);
+        const allSame = !s.needs_review && s.changed === 0 && s.added === 0 && s.removed === 0;
+        if (allSame) setPill('Bundles match', 'clean');
+        else setPill('Needs review', 'bad');
+        return allSame;
+      };
+
+      el('btnCompareBundles') && el('btnCompareBundles').addEventListener('click', async function() {
+        if (!diffA || !diffA.path || !diffB || !diffB.path) {
+          if (window.showToast) window.showToast('Select Bundle A and Bundle B first.', 'bad');
+          return;
+        }
+        const t = window.showToast ? window.showToast('Comparing proof bundles…', 'loading') : null;
+        try {
+          const r = await window.electronAPI.compareProofBundles(diffA.path, diffB.path);
+          if (!r || !r.success) {
+            const emsg = 'Could not compare bundles: ' + ((r && r.error) || 'unknown error');
+            setPill('Error', 'bad');
+            if (t) window.updateToast(t, emsg, 'bad'); else if (window.showToast) window.showToast(emsg, 'bad');
+            return;
+          }
+          const allSame = window._renderBundleDiff(r);
+          const s = r.summary || {};
+          if (allSame) {
+            const msg = 'Bundles match. ' + s.same + ' files verified identical.';
+            if (t) window.updateToast(t, msg, 'ok'); else if (window.showToast) window.showToast(msg, 'ok');
+            if (typeof setStatus === 'function') setStatus(msg, 'ok');
+          } else {
+            const summaryMsg = 'Comparison complete. ' + s.same + ' same, ' + s.changed + ' changed, ' + s.added + ' added, ' + s.removed + ' removed.';
+            if (t) window.updateToast(t, summaryMsg, 'bad'); else if (window.showToast) window.showToast(summaryMsg, 'bad');
+            if (typeof setStatus === 'function') setStatus('Needs review. Some files changed, were added, or are missing.', 'bad');
+          }
+        } catch (e) {
+          setPill('Error', 'bad');
+          const emsg = 'Compare error: ' + (e.message || e);
+          if (t) window.updateToast(t, emsg, 'bad'); else if (window.showToast) window.showToast(emsg, 'bad');
+        }
+      });
+
+      refreshCompareBtn();
+    })();
+
     const caseMgr = new CaseManager();
     window.caseMgr = caseMgr; // Expose globally for onclick handlers

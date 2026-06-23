@@ -2078,6 +2078,44 @@
     .ppc-value.ok { color: var(--color-ok); }
     .ppc-value.bad { color: var(--color-bad); }
 
+    .pbd-pickers { display: flex; flex-direction: column; gap: 0.5rem; margin: 0 0 0.85rem; }
+    .pbd-picker { display: flex; align-items: center; gap: 0.7rem; }
+    .pbd-picker .ppc-value { flex: 1; text-align: left; }
+    .pbd-changes {
+      margin-top: 0.8rem;
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid var(--border-soft);
+      border-radius: 6px;
+    }
+    .pbd-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.6rem;
+      align-items: center;
+      font-size: 0.72rem;
+      padding: 5px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .pbd-row:last-child { border-bottom: none; }
+    .pbd-row .pbd-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-base); }
+    .pbd-row .pbd-hash { font-family: var(--font-mono, monospace); color: var(--text-muted); }
+    .pbd-tag {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 1px 7px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+    }
+    .pbd-tag.changed { color: var(--color-warn, #e0a92e); border-color: var(--color-warn, #e0a92e); }
+    .pbd-tag.added { color: var(--color-ok); border-color: var(--color-ok); }
+    .pbd-tag.removed { color: var(--color-bad); border-color: var(--color-bad); }
+    .pbd-passport { margin-top: 0.7rem; font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; }
+    .pbd-passport .pbd-pp-row { display: flex; justify-content: space-between; gap: 0.8rem; }
+    .pbd-passport .pbd-pp-row .mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
     .ssc-stats {
       display: flex;
       gap: 1.8rem;
@@ -2600,6 +2638,37 @@
           <div class="ppc-actions">
             <button type="button" class="pill-btn" id="btnRunTamperTrial" disabled title="Export a proof bundle first, then run a tamper trial on a temporary copy.">Run Tamper Trial</button>
             <button type="button" class="pill-btn" id="btnOpenTamperResult" disabled title="Open the temporary trial folder and result file.">Open trial result</button>
+          </div>
+        </section>
+        <section class="proof-passport-card proof-bundle-diff-card" id="proofBundleDiffCard" aria-label="Proof Bundle Diff">
+          <div class="ppc-head">
+            <span class="ppc-icon">&#x1F50D;</span>
+            <span class="ppc-title">Proof Bundle Diff</span>
+            <span class="ppc-status" id="pbdStatus">No comparison</span>
+          </div>
+          <p class="ttc-note">Compare two exported proof bundles and see what changed. Pick two HyperSnatch proof bundles below; nothing else on disk is read.</p>
+          <div class="pbd-pickers">
+            <div class="pbd-picker">
+              <button type="button" class="pill-btn" id="btnSelectBundleA" title="Choose the first proof bundle folder.">Select Bundle A</button>
+              <span class="ppc-value mono" id="pbdBundleAId">— not selected</span>
+            </div>
+            <div class="pbd-picker">
+              <button type="button" class="pill-btn" id="btnSelectBundleB" title="Choose the second proof bundle folder.">Select Bundle B</button>
+              <span class="ppc-value mono" id="pbdBundleBId">— not selected</span>
+            </div>
+          </div>
+          <div class="ppc-grid">
+            <div class="ppc-field"><span class="ppc-label">Bundle A verified</span><span class="ppc-value" id="pbdAVerified">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Bundle B verified</span><span class="ppc-value" id="pbdBVerified">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Same</span><span class="ppc-value" id="pbdSame">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Changed</span><span class="ppc-value" id="pbdChanged">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Added</span><span class="ppc-value" id="pbdAdded">—</span></div>
+            <div class="ppc-field"><span class="ppc-label">Removed</span><span class="ppc-value" id="pbdRemoved">—</span></div>
+          </div>
+          <div class="pbd-changes" id="pbdChangesList" style="display:none;"></div>
+          <div class="pbd-passport" id="pbdPassportDiff" style="display:none;"></div>
+          <div class="ppc-actions">
+            <button type="button" class="pill-btn" id="btnCompareBundles" disabled title="Select Bundle A and Bundle B, then compare.">Compare Proof Bundles</button>
           </div>
         </section>
         <section class="input-dropzone" aria-label="Evidence intake and decode controls">

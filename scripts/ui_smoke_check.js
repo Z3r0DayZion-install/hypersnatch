@@ -227,6 +227,20 @@ const requiredIds = [
   "ttOriginal",
   "btnRunTamperTrial",
   "btnOpenTamperResult",
+  "proofBundleDiffCard",
+  "pbdStatus",
+  "btnSelectBundleA",
+  "btnSelectBundleB",
+  "pbdBundleAId",
+  "pbdBundleBId",
+  "pbdAVerified",
+  "pbdBVerified",
+  "pbdSame",
+  "pbdChanged",
+  "pbdAdded",
+  "pbdRemoved",
+  "pbdChangesList",
+  "btnCompareBundles",
 ];
 
 const missing = requiredIds.filter((id) => !ids.has(id));
